@@ -2,7 +2,7 @@
 [![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
 
-**Latest Version 4.0.10 - 20 Jul 2026**
+**Latest Version 4.0.11 - 28 Jul 2026**
 
 ![KittoX_logo.png](./images/kittoX_logo_200.png)
 
@@ -57,6 +57,20 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 ---
 
 # Release Notes
+
+## 28 Jul 2026: ver. 4.0.11 Beta
+
+### REST / JSON API (opt-in) — new
+- Expose an app's data views as a **REST/JSON web service**, by default under **`/api/v4/{View}`** in parallel to the HTML<sup>x</sup> GUI, on the same engine, models, rules and ACL — opt-in
+- Plugin available adding **Kitto.Web.Rest** unit to **UseKitto.pas**
+- Full **CRUD** with model-level permissions
+- **Bearer-token (stateless) auth**
+- Self-describing **OpenAPI 3.0** spec and a built-in **Swagger UI**
+- **Configurable base path**, opt-in **CORS**
+
+### Bug fixes
+- **`TEFDBConnection.Open` made idempotent** — fixes open datasets being silently emptied when a query is created on a busy connection
+- **Robust date parsing** in `ValueToDateTime`/`ValueToDate` (locale dates no longer raise `EConvertError`)
 
 ## 20 Jul 2026: ver. 4.0.10 Beta
 

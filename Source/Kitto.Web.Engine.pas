@@ -120,6 +120,7 @@ uses
   EF.Logger,
   Kitto.Auth,
   Kitto.Config,
+  Kitto.Web.Routing.Registry,
   Kitto.Html.Response,
   Kitto.Web.Types;
 
@@ -154,6 +155,10 @@ begin
     LAuthClass := TKAuthenticatorRegistry.Instance.FindClass(LAuthType);
     FAuthCarriesSessionId := Assigned(LAuthClass)
       and TKAuthenticatorClass(LAuthClass).CarriesSessionIdInCredential;
+    // Expand the '{apibase}' placeholder in the REST routes with the configured
+    // base path (Server/RestBasePath, default '/api/v4') now that the config is
+    // loaded, before any request is served. No-op for non-REST routes / apps.
+    TKXResourceRegistry.Instance.ResolveApiBase(LConfig.RestBasePath);
   finally
     FreeAndNil(LConfig);
   end;
@@ -219,15 +224,25 @@ function TKWebEngine.GetSessionIdFromRequest: string;
   end;
 
 var
-  LToken, LSidFromJWT: string;
+  LToken, LSidFromJWT, LAuth: string;
 begin
   // Legacy session id cookie (used by Auth: DB / TextFile / Null and similar).
   Result := TKWebRequest.Current.GetCookie(FSessionIDCookieName);
   if Result <> '' then
     Exit;
-  // JWT path: the kx_token cookie carries a signed token whose 'sid' claim
-  // is the session correlator.
+  // JWT path: the token carries a signed 'sid' claim used as the session
+  // correlator. The browser SPA sends it in the kx_token cookie; a stateless
+  // REST client sends it in the Authorization: Bearer header. Reading the sid
+  // from the header too means repeated calls with the same token reuse ONE
+  // server-side session (1 per token) instead of creating a fresh one per
+  // request (which would leak sessions until timeout).
   LToken := TKWebRequest.Current.GetCookie('kx_token');
+  if LToken = '' then
+  begin
+    LAuth := TKWebRequest.Current.GetHeaderField('Authorization');
+    if LAuth.StartsWith('Bearer ', True) then
+      LToken := Trim(LAuth.Substring(7));
+  end;
   if (LToken <> '') and TryDecodeSidFromTokenCookie(LToken, LSidFromJWT) then
     Result := LSidFromJWT;
 end;
@@ -338,7 +353,15 @@ begin
 
   if LCreated then
   begin
-    if LSessionId <> '' then
+    // A non-empty session id that did not match a live session usually means the
+    // session was lost (server restart / timeout). But when the credential is a
+    // signed token that carries the session id (Auth: JWT), the token is
+    // self-sufficient: AuthorizeRequest re-hydrates the session from its verified
+    // claims (user, ACL, db, language), so a mismatch is NOT a lost session — the
+    // token is the source of truth. Pure-stateless: a valid token keeps working
+    // across a server restart or on a different cluster node, and never triggers
+    // the "session lost, please restart" gate.
+    if (LSessionId <> '') and not FAuthCarriesSessionId then
       LSession.IsSessionLost := True;
   end
   else if TKWebRequest.Current.IsPageRefresh(AURL.Document) then

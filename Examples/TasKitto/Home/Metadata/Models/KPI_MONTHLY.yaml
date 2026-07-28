@@ -4,3 +4,5 @@ Fields:
   ACTIVE_PROJECTS: Integer
   ACTIVE_CUSTOMERS: Integer
 PhysicalName: VW_KPI_MONTHLY
+# Backed by a SQL view: read-only (no REST write endpoints).
+IsReadOnly: True

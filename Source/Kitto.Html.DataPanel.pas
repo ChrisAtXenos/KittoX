@@ -174,7 +174,7 @@ begin
   // Add è visible unless PreventAdding or read-only
   FVisibleActions.AddOrSetValue('Add',
     IsActionSupported('Add')
-    and not LVT.GetBoolean('Controller/PreventAdding')
+    and not LVT.PreventAdding
     and not GetConfigBoolean('PreventAdding')
     and not LIsReadOnly);
   FAllowedActions.AddOrSetValue('Add',
@@ -192,7 +192,7 @@ begin
   // Edit è visible unless PreventEditing or read-only
   FVisibleActions.AddOrSetValue('Edit',
     IsActionSupported('Edit')
-    and not LVT.GetBoolean('Controller/PreventEditing')
+    and not LVT.PreventEditing
     and not GetConfigBoolean('PreventEditing')
     and not LIsReadOnly);
   FAllowedActions.AddOrSetValue('Edit',
@@ -201,7 +201,7 @@ begin
   // Delete è visible unless PreventDeleting or read-only
   FVisibleActions.AddOrSetValue('Delete',
     IsActionSupported('Delete')
-    and not LVT.GetBoolean('Controller/PreventDeleting')
+    and not LVT.PreventDeleting
     and not GetConfigBoolean('PreventDeleting')
     and not LIsReadOnly);
   FAllowedActions.AddOrSetValue('Delete',

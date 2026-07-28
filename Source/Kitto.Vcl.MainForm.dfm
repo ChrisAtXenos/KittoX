@@ -458,16 +458,16 @@ object KMainForm: TKMainForm
           801
           81)
         object SessionCountLabel: TLabel
-          Left = 264
-          Top = 25
+          Left = 360
+          Top = 5
           Width = 90
           Height = 13
           Caption = 'SessionCountLabel'
           Visible = False
         end
         object StartSpeedButton: TSpeedButton
-          Left = 194
-          Top = 22
+          Left = 290
+          Top = 2
           Width = 20
           Height = 20
           Action = StartAction
@@ -475,8 +475,8 @@ object KMainForm: TKMainForm
           Transparent = False
         end
         object StopSpeedButton: TSpeedButton
-          Left = 216
-          Top = 22
+          Left = 312
+          Top = 2
           Width = 20
           Height = 20
           Action = StopAction
@@ -484,20 +484,14 @@ object KMainForm: TKMainForm
         end
         object AppTitleLabel: TLabel
           Left = 4
-          Top = 45
-          Width = 199
+          Top = 28
+          Width = 174
           Height = 13
           Caption = 'No config loaded. Please select one.'
-          Font.Charset = DEFAULT_CHARSET
-          Font.Color = clWindowText
-          Font.Height = -11
-          Font.Name = 'Tahoma'
-          Font.Style = [fsBold]
-          ParentFont = False
           ShowAccelChar = False
         end
         object ConfigLinkLabel: TLabel
-          Left = 4
+          Left = 3
           Top = 5
           Width = 80
           Height = 13
@@ -515,8 +509,8 @@ object KMainForm: TKMainForm
           OnClick = ConfigLinkLabelClick
         end
         object SpeedButton1: TSpeedButton
-          Left = 240
-          Top = 22
+          Left = 336
+          Top = 2
           Width = 16
           Height = 20
           Action = RestartAction
@@ -524,7 +518,7 @@ object KMainForm: TKMainForm
         end
         object HomeURLLabel: TLabel
           Left = 4
-          Top = 62
+          Top = 47
           Width = 71
           Height = 13
           Cursor = crHandPoint
@@ -552,9 +546,28 @@ object KMainForm: TKMainForm
           Stretch = True
           ExplicitLeft = 604
         end
-        object ConfigFileNameComboBox: TComboBox
+        object APIURLLabel: TLabel
           Left = 4
-          Top = 22
+          Top = 62
+          Width = 61
+          Height = 13
+          Cursor = crHandPoint
+          Hint = 'Click to open REST API swagger documentation'
+          Caption = 'APIURLLabel'
+          Color = clBtnFace
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clHotLight
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = [fsUnderline]
+          ParentColor = False
+          ParentFont = False
+          Visible = False
+          OnClick = HomeURLLabelClick
+        end
+        object ConfigFileNameComboBox: TComboBox
+          Left = 99
+          Top = 0
           Width = 185
           Height = 21
           Style = csDropDownList

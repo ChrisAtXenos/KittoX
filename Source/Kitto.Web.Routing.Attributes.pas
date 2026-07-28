@@ -57,6 +57,26 @@ type
   TKXANYAttribute = class(TCustomAttribute);
 
   /// <summary>
+  ///   Marks a handler method as responding to HTTP PUT requests (REST update).
+  /// </summary>
+  TKXPUTAttribute = class(TCustomAttribute);
+
+  /// <summary>
+  ///   Marks a handler method as responding to HTTP DELETE requests (REST delete).
+  /// </summary>
+  TKXDELETEAttribute = class(TCustomAttribute);
+
+  /// <summary>
+  ///   Marks a handler method as responding to HTTP PATCH requests (REST partial update).
+  /// </summary>
+  TKXPATCHAttribute = class(TCustomAttribute);
+
+  /// <summary>
+  ///   Marks a handler method as responding to HTTP OPTIONS requests (CORS preflight).
+  /// </summary>
+  TKXOPTIONSAttribute = class(TCustomAttribute);
+
+  /// <summary>
   ///   Extracts a named segment from the URL path template.
   ///   The name must match a {ParamName} placeholder in the path.
   ///   Example: [TKXPathParam('ViewName')] const AViewName: string

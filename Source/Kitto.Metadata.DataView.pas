@@ -742,6 +742,9 @@ type
     function GetDisplayLabel: string;
     function GetPluralDisplayLabel: string;
     function GetIsReadOnly: Boolean;
+    function GetPreventAdding: Boolean;
+    function GetPreventEditing: Boolean;
+    function GetPreventDeleting: Boolean;
     function GetMasterTable: TKViewTable;
     function GetDefaultSorting: string;
     function GetDefaultFilter: string;
@@ -849,6 +852,15 @@ type
 
     [YamlNode('IsReadOnly', 'True', 'Table data is not editable')]
     property IsReadOnly: Boolean read GetIsReadOnly;
+
+    /// <summary>Effective PreventAdding: the view's Controller/PreventAdding if
+    /// specified, else the Model's PreventAdding (fallback). Used by the GUI to
+    /// hide the Add button. The REST API enforces the Model-level flag directly.</summary>
+    property PreventAdding: Boolean read GetPreventAdding;
+    /// <summary>Effective PreventEditing (view Controller if specified, else Model).</summary>
+    property PreventEditing: Boolean read GetPreventEditing;
+    /// <summary>Effective PreventDeleting (view Controller if specified, else Model).</summary>
+    property PreventDeleting: Boolean read GetPreventDeleting;
 
     /// <summary>
     ///  Optional fixed filter expression to apply when building the select
@@ -1486,6 +1498,39 @@ begin
     Result := LNode.AsBoolean
   else
     Result := Model.IsReadOnly;
+end;
+
+function TKViewTable.GetPreventAdding: Boolean;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('Controller/PreventAdding');
+  if Assigned(LNode) then
+    Result := LNode.AsBoolean
+  else
+    Result := Model.PreventAdding;
+end;
+
+function TKViewTable.GetPreventEditing: Boolean;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('Controller/PreventEditing');
+  if Assigned(LNode) then
+    Result := LNode.AsBoolean
+  else
+    Result := Model.PreventEditing;
+end;
+
+function TKViewTable.GetPreventDeleting: Boolean;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('Controller/PreventDeleting');
+  if Assigned(LNode) then
+    Result := LNode.AsBoolean
+  else
+    Result := Model.PreventDeleting;
 end;
 
 function TKViewTable.GetMasterTable: TKViewTable;

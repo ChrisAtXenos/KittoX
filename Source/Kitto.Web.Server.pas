@@ -42,6 +42,9 @@ type
   private
     FEngine: TKWebEngine;
     procedure InitThreadScheduler(const AThreadPoolSize: Integer);
+    procedure ParseAuthentication(AContext: TIdContext;
+      const AAuthType, AAuthData: string; var VUsername, VPassword: string;
+      var VHandled: Boolean);
   protected
     procedure Startup; override;
     procedure Shutdown; override;
@@ -78,6 +81,12 @@ var
 begin
   inherited;
   FEngine := TKWebEngine.Create;
+  // Indy's TIdHTTPServer only parses the 'Basic' authorization scheme and
+  // rejects anything else ("Unsupported authorization scheme") before the
+  // request reaches the engine. Handle the event so Bearer (and any other
+  // scheme) passes through untouched, leaving the raw Authorization header in
+  // RawHeaders for KittoX to read (REST JWT via Authorization: Bearer).
+  OnParseAuthentication := ParseAuthentication;
   // Standard config objects are per application; we need to create our own
   // instance in order to read server-wide params.
   LConfig := TKConfig.Create;
@@ -130,6 +139,15 @@ procedure TKWebServer.DoCommandOther(AContext: TIdContext; ARequestInfo: TIdHTTP
 begin
   inherited;
   DoCommandGet(AContext, ARequestInfo, AResponseInfo);
+end;
+
+procedure TKWebServer.ParseAuthentication(AContext: TIdContext;
+  const AAuthType, AAuthData: string; var VUsername, VPassword: string;
+  var VHandled: Boolean);
+begin
+  // Accept every scheme: KittoX reads/validates the token itself. Without this,
+  // Indy raises "Unsupported authorization scheme" for a Bearer header.
+  VHandled := True;
 end;
 
 procedure TKWebServer.InitThreadScheduler(const AThreadPoolSize: Integer);

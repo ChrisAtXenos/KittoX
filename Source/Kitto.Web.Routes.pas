@@ -160,10 +160,21 @@ begin
 end;
 
 function TKBaseStaticWebRoute.ServeLocalFile(const AFileName: string; const AResponse: TKWebResponse): Boolean;
+var
+  LMime: string;
 begin
   if FileExists(AFileName) then
   begin
-    AResponse.ContentType := GetFileMimeType(AFileName, 'application/octet-stream');
+    LMime := GetFileMimeType(AFileName, 'application/octet-stream');
+    // KittoX text assets are UTF-8. Without an explicit charset the Indy layer
+    // defaults every text/* response to ISO-8859-1, which corrupts multibyte
+    // UTF-8 bytes in JS/CSS (e.g. the Swagger UI bundle) → the browser raises a
+    // SyntaxError and the script never runs (blank page). Force utf-8 on the
+    // textual types (ASCII files are unaffected, UTF-8 being a superset).
+    if LMime.StartsWith('text/') or (LMime = 'application/json') or
+       (LMime = 'application/javascript') or (LMime = 'image/svg+xml') then
+      LMime := LMime + '; charset=utf-8';
+    AResponse.ContentType := LMime;
     AResponse.ReplaceContentStream(TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone));
     Result := True;
   end

@@ -7,4 +7,6 @@ Fields:
   TOTAL_HOURS: Decimal(9, 2)
     DisplayLabel: Hours
 PhysicalName: VW_ACTIVITY_BY_STATUS
+# Backed by a SQL view: read-only (no REST write endpoints).
+IsReadOnly: True
 ImageName: checklist

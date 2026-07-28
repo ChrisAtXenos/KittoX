@@ -35,6 +35,8 @@ uses
   //Global Kittox uses
   , Kitto.Html.All
   , Kitto.Web.Enterprise
+  // Opt-in REST/JSON API under /api/v4/{ViewName} (see Kitto.Web.Rest).
+  , Kitto.Web.Rest
   // Activates the file logger endpoint declared in Config.yaml under
   // Log/TextFile (auto-registered via the unit's initialization). Standalone
   // Indy hosts must include this unit explicitly — the WebBroker bridge for

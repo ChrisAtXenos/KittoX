@@ -608,6 +608,9 @@ type
     function GetDefaultPluralDisplayLabel: string;
     function GetPluralDisplayLabel: string;
     function GetIsReadOnly: Boolean;
+    function GetPreventAdding: Boolean;
+    function GetPreventEditing: Boolean;
+    function GetPreventDeleting: Boolean;
     function GetDefaultDefaultSorting: string;
     function GetDefaultSorting: string;
     function GetIsLarge: Boolean;
@@ -768,6 +771,22 @@ type
 
     [YamlNode('IsReadOnly', 'True', 'Model data is read-only')]
     property IsReadOnly: Boolean read GetIsReadOnly;
+
+    /// <summary>Model-level default that prevents adding records. The REST API
+    /// honors it (POST -> 405); a view Controller/PreventAdding overrides it for
+    /// the GUI only (view-if-specified else this model default).</summary>
+    [YamlNode('PreventAdding', 'True', 'Prevent adding records (Model default; REST-enforced)')]
+    property PreventAdding: Boolean read GetPreventAdding;
+    /// <summary>Model-level default that prevents editing records. The REST API
+    /// honors it (PUT/PATCH -> 405); a view Controller/PreventEditing overrides
+    /// it for the GUI only.</summary>
+    [YamlNode('PreventEditing', 'True', 'Prevent editing records (Model default; REST-enforced)')]
+    property PreventEditing: Boolean read GetPreventEditing;
+    /// <summary>Model-level default that prevents deleting records. The REST API
+    /// honors it (DELETE -> 405); a view Controller/PreventDeleting overrides it
+    /// for the GUI only.</summary>
+    [YamlNode('PreventDeleting', 'True', 'Prevent deleting records (Model default; REST-enforced)')]
+    property PreventDeleting: Boolean read GetPreventDeleting;
 
     [YamlNode('DefaultFilter', 'SQL WHERE clause applied by default')]
     property DefaultFilter: string read GetDefaultFilter;
@@ -1268,6 +1287,21 @@ end;
 function TKModel.GetIsReadOnly: Boolean;
 begin
   Result := GetBoolean('IsReadOnly');
+end;
+
+function TKModel.GetPreventAdding: Boolean;
+begin
+  Result := GetBoolean('PreventAdding');
+end;
+
+function TKModel.GetPreventEditing: Boolean;
+begin
+  Result := GetBoolean('PreventEditing');
+end;
+
+function TKModel.GetPreventDeleting: Boolean;
+begin
+  Result := GetBoolean('PreventDeleting');
 end;
 
 function TKModel.GetPhysicalName: string;

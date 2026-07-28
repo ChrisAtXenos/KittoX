@@ -287,6 +287,13 @@ Server:
   Port: 3622
   # default 20
   ThreadPoolSize: 15
+  # Base path of the REST API (default /api/v4). Uncomment to change it:
+  # RestBasePath: /rest
+  # CORS for the REST API (/api/v4). Absent/empty AllowedOrigins = disabled.
+  # Uncomment and set to '*' or a comma-separated list of origins to enable.
+  # CORS:
+  #   AllowedOrigins: https://app.example.com, http://localhost:9999
+  #   AllowCredentials: True
 
 Engine:
   Session:

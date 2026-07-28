@@ -37,6 +37,10 @@ uses
   //Global Kittox uses
   Kitto.Html.All,
   Kitto.Web.Enterprise,
+  // Opt-in REST/JSON API under /api/v4/{ViewName} (GET/POST/PUT/PATCH/DELETE),
+  // sharing the same views, business rules and ACL as the HTML GUI. Browser-only
+  // apps simply omit this unit — no /api routes are then linked/registered.
+  Kitto.Web.Rest,
   // Activates the file logger endpoint declared in Config.yaml under
   // Log/TextFile (auto-registered via the unit's initialization). Standalone
   // Indy hosts must include this unit explicitly — the WebBroker bridge for

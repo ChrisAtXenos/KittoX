@@ -96,8 +96,11 @@ type
 implementation
 
 uses
+  System.Classes,
+  System.StrUtils,
   EF.Localization,
   EF.Logger,
+  Kitto.Config,
   Kitto.Web.Application,
   Kitto.Web.Session,
   Kitto.Web.Request,
@@ -178,7 +181,20 @@ begin
   if (not TKWebSession.Current.IsAuthenticated) and not AContext.AllowUnauthenticated then
   begin
     if Assigned(TKWebResponse.Current) then
-      TKWebResponse.Current.StatusCode := 404;
+    begin
+      // REST (/api) clients get a JSON 401; the SPA keeps the opaque 404 (so
+      // probing can't tell "protected" from "absent"). The envelope shape matches
+      // TKXApiErrorFilter; no JSON framework is linked into the core for this.
+      if ContainsText(AContext.Path, TKWebApplication.Current.Config.RestBasePath) then
+      begin
+        TKWebResponse.Current.StatusCode := 401;
+        TKWebResponse.Current.ContentType := 'application/json; charset=utf-8';
+        TKWebResponse.Current.ReplaceContentStream(TStringStream.Create(
+          '{"error":"Authentication required","code":"unauthorized"}', TEncoding.UTF8));
+      end
+      else
+        TKWebResponse.Current.StatusCode := 404;
+    end;
     TEFLogger.Instance.LogFmt(
       'Unauthenticated request to protected endpoint: %s',
       [AContext.Path], TEFLogger.LOG_DETAILED);

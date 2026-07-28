@@ -51,6 +51,7 @@ type
     FHttpMethod: string;       // 'GET', 'POST', or '' (ANY)
     FParams: TArray<TKXParamInfo>;
     FFullPathTokens: TArray<string>;  // merged base+sub path, split by '/'
+    FPathTemplate: string;     // full base+sub path, unexpanded (may hold '{apibase}')
     FLiteralCount: Integer;    // number of non-{param} tokens (for specificity sort)
     FIsAnonymous: Boolean;     // [TKXAnonymous] — skip the auth gate for this method
     FIsNavigable: Boolean;     // [TKXNavigable] — reachable by top-level navigation
@@ -65,6 +66,9 @@ type
     property Params: TArray<TKXParamInfo> read FParams;
     /// <summary>Full path (base + sub) split into tokens, used for URL matching.</summary>
     property FullPathTokens: TArray<string> read FFullPathTokens;
+    /// <summary>Unexpanded full path (base + sub); may contain the '{apibase}'
+    /// placeholder resolved at runtime by TKXResourceRegistry.ResolveApiBase.</summary>
+    property PathTemplate: string read FPathTemplate;
     /// <summary>Count of literal (non-{param}) tokens; higher = more specific route.</summary>
     property LiteralCount: Integer read FLiteralCount;
     /// <summary>True if decorated with [TKXAnonymous] (skips the authentication gate).</summary>
@@ -136,8 +140,44 @@ type
     procedure RegisterOverride(AClass: TClass);
     /// <summary>Removes the resource registered for AClass, if present.</summary>
     procedure UnregisterResource(AClass: TClass);
+    /// <summary>
+    ///   Expands the '{apibase}' placeholder in every registered route with the
+    ///   configured REST base path (e.g. '/api/v4'), recomputing the match tokens
+    ///   and re-sorting by specificity. Called once by the engine after the config
+    ///   is loaded and before requests are served. Idempotent (re-expands from the
+    ///   stored template) and a no-op for routes without the placeholder.
+    /// </summary>
+    procedure ResolveApiBase(const ABasePath: string);
     /// <summary>All registered resource descriptors, sorted by descending specificity.</summary>
     property Resources: TObjectList<TKXResourceInfo> read FResources;
+  end;
+
+  /// <summary>A named link to a server endpoint, shown e.g. in the desktop host UI.</summary>
+  TKXServerLink = record
+    /// <summary>Human-readable caption (e.g. 'Swagger UI').</summary>
+    Caption: string;
+    /// <summary>App-relative path template; may contain '{apibase}' (e.g. '{apibase}/docs').</summary>
+    PathTemplate: string;
+  end;
+
+  /// <summary>
+  ///   Registry of "server links" that opt-in modules publish for the host UI
+  ///   (the VCL MainForm) to display — without the host depending on those units.
+  ///   A module registers a link in its initialization; the host reads the list
+  ///   and expands '{apibase}' with the configured REST base path. Keeps the
+  ///   MainForm free of any hardcoded '/api/v4' string.
+  /// </summary>
+  TKXServerLinkRegistry = class
+  strict private
+    class var FLinks: TList<TKXServerLink>;
+    class function GetLinks: TList<TKXServerLink>; static;
+  public
+    /// <summary>Frees the link list at unit finalization.</summary>
+    class destructor DestroyClass;
+    /// <summary>Publishes a server link (caption + app-relative path template).</summary>
+    class procedure Register(const ACaption, APathTemplate: string);
+    /// <summary>The published links, in registration order (empty if none).</summary>
+    class function Links: TArray<TKXServerLink>;
   end;
 
 implementation
@@ -272,6 +312,26 @@ begin
       LHttpMethod := '';
       LHasHttpMethod := True;
     end
+    else if LAttr is TKXPUTAttribute then
+    begin
+      LHttpMethod := 'PUT';
+      LHasHttpMethod := True;
+    end
+    else if LAttr is TKXDELETEAttribute then
+    begin
+      LHttpMethod := 'DELETE';
+      LHasHttpMethod := True;
+    end
+    else if LAttr is TKXPATCHAttribute then
+    begin
+      LHttpMethod := 'PATCH';
+      LHasHttpMethod := True;
+    end
+    else if LAttr is TKXOPTIONSAttribute then
+    begin
+      LHttpMethod := 'OPTIONS';
+      LHasHttpMethod := True;
+    end
     else if LAttr is TKXAnonymousAttribute then
       LIsAnonymous := True
     else if LAttr is TKXNavigableAttribute then
@@ -299,6 +359,9 @@ begin
       LFullPath := LFullPath + '/';
     LFullPath := LFullPath + LSubPath;
   end;
+  // Keep the unexpanded full path so ResolveApiBase can (re)expand the
+  // '{apibase}' placeholder from the configured REST base path at runtime.
+  LMethodInfo.FPathTemplate := LFullPath;
   LMethodInfo.FFullPathTokens := SplitPath(LFullPath);
   LMethodInfo.FLiteralCount := CountLiterals(LMethodInfo.FFullPathTokens);
 
@@ -476,6 +539,53 @@ begin
       FResources.Delete(I);
       Break;
     end;
+end;
+
+procedure TKXResourceRegistry.ResolveApiBase(const ABasePath: string);
+var
+  LResource: TKXResourceInfo;
+  LMethod: TKXMethodInfo;
+  LFull: string;
+begin
+  for LResource in FResources do
+    for LMethod in LResource.Methods do
+    begin
+      if not ContainsStr(LMethod.FPathTemplate, '{apibase}') then
+        Continue; // route without the placeholder: leave it untouched
+      LFull := ReplaceStr(LMethod.FPathTemplate, '{apibase}', ABasePath);
+      LMethod.FFullPathTokens := SplitPath(LFull);
+      LMethod.FLiteralCount := CountLiterals(LMethod.FFullPathTokens);
+    end;
+  // Token counts may have changed → restore the specificity ordering.
+  SortBySpecificity;
+end;
+
+{ TKXServerLinkRegistry }
+
+class function TKXServerLinkRegistry.GetLinks: TList<TKXServerLink>;
+begin
+  if not Assigned(FLinks) then
+    FLinks := TList<TKXServerLink>.Create;
+  Result := FLinks;
+end;
+
+class destructor TKXServerLinkRegistry.DestroyClass;
+begin
+  FreeAndNil(FLinks);
+end;
+
+class procedure TKXServerLinkRegistry.Register(const ACaption, APathTemplate: string);
+var
+  LLink: TKXServerLink;
+begin
+  LLink.Caption := ACaption;
+  LLink.PathTemplate := APathTemplate;
+  GetLinks.Add(LLink);
+end;
+
+class function TKXServerLinkRegistry.Links: TArray<TKXServerLink>;
+begin
+  Result := GetLinks.ToArray;
 end;
 
 end.

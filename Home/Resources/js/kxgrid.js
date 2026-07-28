@@ -2079,7 +2079,8 @@ var kxForm = {
     if (!panel) return;
     // Mark as loading
     panel.innerHTML = '<div style="padding:16px;color:var(--kx-text-muted)">Loading...</div>';
-    kxFetchWithTimeout('kx/view/' + viewName + '/detail/' + tabIndex + '/data?key=' + encodeURIComponent(masterKey))
+    kxFetchWithTimeout('kx/view/' + viewName + '/detail/' + tabIndex + '/data?key=' + encodeURIComponent(masterKey),
+        { headers: { 'X-KittoX': 'true' } })
       .then(function(r) { return r.text(); })
       .then(function(html) {
         panel.innerHTML = html;

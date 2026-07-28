@@ -3198,43 +3198,68 @@ end;
 
 function TEFDataType.ValueToDate(const AValue: Variant): TDate;
 var
-  LFormatSetting: TFormatSettings;
+  LISO: TFormatSettings;
+  LStr: string;
+  LDate: TDateTime;
 begin
-  if VarIsStr(AValue) then
-  begin
-    LFormatSetting := TFormatSettings.Create('en-US');
-    LFormatSetting.ShortDateFormat := 'yyyy-mm-dd';
-    LFormatSetting.DateSeparator := '-';
-    Result := StrToDate(VarToStr(AValue), LFormatSetting);
-  end
-  else if VarIsNull(AValue) then
-    Result := 0
-  else
-    Result := AValue;
+  if VarIsNull(AValue) or VarIsEmpty(AValue) then
+    Exit(0);
+  if not VarIsStr(AValue) then
+    Exit(AValue);
+
+  LStr := Trim(VarToStr(AValue));
+  if LStr = '' then
+    Exit(0);
+
+  // Try the ISO 'yyyy-mm-dd' format first (serialized values), then fall back to
+  // the current locale (e.g. '17/09/2022' in dd/mm/yyyy read from the store/UI),
+  // mirroring ValueToDateTime.
+  LISO := TFormatSettings.Create('en-US');
+  LISO.ShortDateFormat := 'yyyy-mm-dd';
+  LISO.DateSeparator := '-';
+  if TryStrToDate(LStr, LDate, LISO) then
+    Exit(LDate);
+  if TryStrToDate(LStr, LDate, FormatSettings) then
+    Exit(LDate);
+
+  raise EConvertError.CreateFmt('''%s'' is not a valid date', [LStr]);
 end;
 
 function TEFDataType.ValueToDateTime(const AValue: Variant): TDateTime;
 var
-  LFormatSetting: TFormatSettings;
+  LISO: TFormatSettings;
   LStr: string;
 begin
-  if VarIsStr(AValue) then
-  begin
-    LStr := Trim(VarToStr(AValue));
-    // Accept both 'yyyy-mm-dd hh:mm:ss' and 'yyyy-mm-dd hh:mm' (no seconds)
-    if (Length(LStr) > 0) and (Length(LStr) <= 16) then
-      LStr := LStr + ':00';
-    LFormatSetting := TFormatSettings.Create('en-US');
-    LFormatSetting.ShortDateFormat := 'yyyy-mm-dd';
-    LFormatSetting.LongTimeFormat := 'hh:mm:ss';
-    LFormatSetting.DateSeparator := '-';
-    LFormatSetting.TimeSeparator := ':';
-    Result := StrToDateTime(LStr, LFormatSetting);
-  end
-  else if VarIsNull(AValue) then
-    Result := 0
-  else
-    Result := AValue;
+  if VarIsNull(AValue) or VarIsEmpty(AValue) then
+    Exit(0);
+  // A native date/time variant needs no parsing.
+  if not VarIsStr(AValue) then
+    Exit(AValue);
+
+  LStr := Trim(VarToStr(AValue));
+  if LStr = '' then
+    Exit(0);
+
+  // 1) Try the ISO-ish format used by serialized values: 'yyyy-mm-dd', optionally
+  //    followed by ' hh:mm' or ' hh:mm:ss'. ShortTimeFormat = 'hh:mm' lets
+  //    StrToDateTime accept a time without seconds — no need to append ':00'
+  //    (the old heuristic appended ':00' to ANY string <= 16 chars, which
+  //    corrupted date-only values, e.g. '2022-09-17' -> '2022-09-17:00').
+  LISO := TFormatSettings.Create('en-US');
+  LISO.ShortDateFormat := 'yyyy-mm-dd';
+  LISO.DateSeparator := '-';
+  LISO.TimeSeparator := ':';
+  LISO.ShortTimeFormat := 'hh:mm';
+  LISO.LongTimeFormat := 'hh:mm:ss';
+  if TryStrToDateTime(LStr, Result, LISO) then
+    Exit;
+
+  // 2) Fall back to the current locale (e.g. '17/09/2022' in dd/mm/yyyy for a
+  //    date-only value read from the store/UI — the AutoAdd Date field case).
+  if TryStrToDateTime(LStr, Result, FormatSettings) then
+    Exit;
+
+  raise EConvertError.CreateFmt('''%s'' is not a valid date/time', [LStr]);
 end;
 
 function TEFDataType.ValueToDecimal(const AValue: Variant): TBcd;

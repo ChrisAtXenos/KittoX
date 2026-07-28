@@ -35,6 +35,11 @@ uses
   Kitto.Metadata.Views,
   Kitto.Metadata.SubNodes;
 
+const
+  /// <summary>Default base path of the REST API, used when Config.yaml does not
+  /// set Server/RestBasePath. The single source of truth for the default.</summary>
+  KX_DEFAULT_REST_BASE_PATH = '/api/v4';
+
 type
   TKConfigMacroExpander = class;
 
@@ -89,6 +94,7 @@ type
     function GetViews: TKViews;
     function GetDefaultDatabaseName: string;
     function GetDatabaseName: string;
+    function GetRestBasePath: string;
     function GetLanguagePerSession: Boolean;
     function GetFOPEnginePath: string;
     function GetUseAltLanguage: Boolean;
@@ -315,6 +321,12 @@ type
     /// DefaultDatabaseName node.</summary>
     [YamlNode('DefaultDatabaseName', 'Main', 'Default database connection name')]
     property DatabaseName: string read GetDatabaseName;
+
+    /// <summary>Base path of the REST API (the shared prefix of every /api
+    /// endpoint), from Server/RestBasePath. Normalized: leading '/', no trailing
+    /// '/'. Defaults to KX_DEFAULT_REST_BASE_PATH ('/api/v4').</summary>
+    [YamlNode('Server/RestBasePath', '/api/v4', 'Base path of the REST API endpoints')]
+    property RestBasePath: string read GetRestBasePath;
 
     /// <summary>
     ///  Returns the application title, to be used for captions, about
@@ -587,6 +599,18 @@ begin
       LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
   else
     Result := GetDefaultDatabaseName;
+end;
+
+function TKConfig.GetRestBasePath: string;
+begin
+  Result := Trim(Config.GetString('Server/RestBasePath', KX_DEFAULT_REST_BASE_PATH));
+  if Result = '' then
+    Result := KX_DEFAULT_REST_BASE_PATH;
+  // Normalize: exactly one leading '/', no trailing '/'.
+  while (Length(Result) > 1) and (Result[Length(Result)] = '/') do
+    Delete(Result, Length(Result), 1);
+  if Result[1] <> '/' then
+    Result := '/' + Result;
 end;
 
 function TKConfig.GetDefaultDatabaseName: string;

@@ -39,7 +39,7 @@ td{
 <h1>Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX</h1>
 <p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a>
 <a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
-<p><strong>Latest Version 4.0.10 - 20 Jul 2026</strong></p>
+<p><strong>Latest Version 4.0.11 - 28 Jul 2026</strong></p>
 <p><img src="./images/kittoX_logo_200.png" alt="KittoX_logo.png"/></p>
 <p><strong>Kitto<sup>x</sup></strong> allows to create <strong>Rich Internet Applications</strong> based on a data model that can be mapped onto any database. The client-side part uses <strong>HTMX</strong> (through webbroker technology) to create a fully <strong>AJAX</strong> application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.</p>
 <p><strong>Kitto<sup>x</sup></strong> is aimed at <strong>Delphi</strong> developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.</p>
@@ -80,6 +80,21 @@ td{
 <p>Visit <a href="https://ethea.it/Kitto-Demo/">this site</a> for online demos.</p>
 <hr />
 <h1>Release Notes</h1>
+<h2>28 Jul 2026: ver. 4.0.11 Beta</h2>
+<h3>REST / JSON API (opt-in) — new</h3>
+<ul>
+<li>Expose an app's data views as a <strong>REST/JSON web service</strong>, by default under <strong><code>/api/v4/{View}</code></strong> in parallel to the HTML<sup>x</sup> GUI, on the same engine, models, rules and ACL — opt-in</li>
+<li>Plugin available adding <strong>Kitto.Web.Rest</strong> unit to <strong>UseKitto.pas</strong></li>
+<li>Full <strong>CRUD</strong> with model-level permissions</li>
+<li><strong>Bearer-token (stateless) auth</strong></li>
+<li>Self-describing <strong>OpenAPI 3.0</strong> spec and a built-in <strong>Swagger UI</strong></li>
+<li><strong>Configurable base path</strong>, opt-in <strong>CORS</strong></li>
+</ul>
+<h3>Bug fixes</h3>
+<ul>
+<li><strong><code>TEFDBConnection.Open</code> made idempotent</strong> — fixes open datasets being silently emptied when a query is created on a busy connection</li>
+<li><strong>Robust date parsing</strong> in <code>ValueToDateTime</code>/<code>ValueToDate</code> (locale dates no longer raise <code>EConvertError</code>)</li>
+</ul>
 <h2>20 Jul 2026: ver. 4.0.10 Beta</h2>
 <h3>Oracle &amp; Database</h3>
 <ul>

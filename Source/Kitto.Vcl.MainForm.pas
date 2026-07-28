@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,6 +90,7 @@ type
     RefreshButton: TButton;
     SessionListView: TListView;
     SessionListRefreshTimer: TTimer;
+    APIURLLabel: TLabel;
     procedure StartActionUpdate(Sender: TObject);
     procedure StopActionUpdate(Sender: TObject);
     procedure StartActionExecute(Sender: TObject);
@@ -103,6 +104,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure HomeURLLabelClick(Sender: TObject);
+    procedure APIURLLabelClick(Sender: TObject);
     procedure MainTabSetChange(Sender: TObject; NewTab: Integer; var AllowChange: Boolean);
     procedure RefreshButtonClick(Sender: TObject);
     procedure SessionListViewEdited(Sender: TObject; Item: TListItem; var S: string);
@@ -126,6 +128,10 @@ type
     procedure SetConfig(const AFileName: string);
     procedure SelectConfigFile;
     procedure DisplayHomeURL(const AHomeURL: string);
+    /// <summary>Shows the first server link published via TKXServerLinkRegistry
+    /// (e.g. the REST Swagger UI), expanding '{apibase}' with the configured
+    /// RestBasePath; hides APIURLLabel when no link is registered.</summary>
+    procedure DisplayAPIURL(const AHomeURL: string);
     function HasConfigFileName: Boolean;
     procedure DoLog(const AString: string);
   end;
@@ -141,10 +147,12 @@ uses
   System.Math,
   System.StrUtils,
   System.DateUtils,
+  System.UITypes,
   EF.Sys,
   EF.Sys.Windows,
   EF.Shell,
-  EF.Localization;
+  EF.Localization,
+  Kitto.Web.Routing.Registry;
 
 { TKMainForm }
 
@@ -210,6 +218,7 @@ begin
     FServer.Active := False;
     DoLog(_('Listener stopped'));
     HomeURLLabel.Visible := False;
+    APIURLLabel.Visible := False;
     while IsStarted do
       Vcl.Forms.Application.ProcessMessages;
     if FRestart then
@@ -348,6 +357,8 @@ procedure TKMainForm.FormCreate(Sender: TObject);
 var
   LDefaultConfig: string;
 begin
+  //Bold Title label
+  AppTitleLabel.Font.Style := AppTitleLabel.Font.Style + [fsBold];
   //Read command line param -config
   LDefaultConfig := ChangeFileExt(GetCmdLineParamValue('Config', TKConfig.BaseConfigFileName),'.yaml');
   if LDefaultConfig <> '' then
@@ -415,6 +426,38 @@ begin
   HomeURLLabel.Visible := True;
 end;
 
+procedure TKMainForm.DisplayAPIURL(const AHomeURL: string);
+var
+  LLinks: TArray<TKXServerLink>;
+  LSub, LFull: string;
+begin
+  // The REST/Swagger support is opt-in: it publishes a server link via
+  // TKXServerLinkRegistry (core), so the form neither depends on the REST unit
+  // nor hardcodes any '/api/v4' string. No link registered → hide the label.
+  LLinks := TKXServerLinkRegistry.Links;
+  if Length(LLinks) = 0 then
+  begin
+    APIURLLabel.Visible := False;
+    Exit;
+  end;
+  // Expand the '{apibase}' placeholder with the app's configured REST base path,
+  // then append it to the home URL (which ends with '/').
+  LSub := ReplaceStr(LLinks[0].PathTemplate, '{apibase}', FApplication.Config.RestBasePath);
+  LFull := AHomeURL;
+  if (LFull <> '') and (LFull[Length(LFull)] = '/') then
+    LFull := Copy(LFull, 1, Length(LFull) - 1);
+  LFull := LFull + LSub;
+  APIURLLabel.Caption := LFull;
+  APIURLLabel.OnClick := APIURLLabelClick;
+  APIURLLabel.Visible := True;
+  DoLog(Format('%s: %s', [LLinks[0].Caption, LFull]));
+end;
+
+procedure TKMainForm.APIURLLabelClick(Sender: TObject);
+begin
+  OpenDocument(APIURLLabel.Caption);
+end;
+
 procedure TKMainForm.FillConfigFileNameCombo;
 var
   LConfigIndex: Integer;
@@ -444,7 +487,9 @@ begin
   FServer.Active := True;
   SessionCountLabel.Visible := True;
   DoLog(_('Listener started'));
-  DisplayHomeURL(FApplication.GetHomeURL(FServer.DefaultPort));
+  var LHomeURL: string := FApplication.GetHomeURL(FServer.DefaultPort);
+  DisplayHomeURL(LHomeURL);
+  DisplayAPIURL(LHomeURL);
   UpdateSessionInfo;
 end;
 

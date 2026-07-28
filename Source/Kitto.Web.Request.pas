@@ -43,6 +43,7 @@ type
     FRequest: TWebRequest;
     FOwnsRequest: Boolean;
     class threadvar FCurrent: TKWebRequest;
+    function GetContent: string;
     function GetIsAjax: Boolean;
     class function GetCurrent: TKWebRequest; static;
     class procedure SetCurrent(const AValue: TKWebRequest); static;
@@ -88,6 +89,9 @@ type
     ///  Note: All values are treated as strings.
     /// </summary>
     property JSONContentTree: TEFTree read GetJSONContentTree;
+
+    /// <summary>The raw request body (e.g. a JSON payload for a REST call).</summary>
+    property Content: string read GetContent;
 
     /// <summary>
     ///  Decodes and returns the value of the query field with the given name,
@@ -157,6 +161,8 @@ type
     property Files: TAbstractWebRequestFiles read GetFiles;
     /// <summary>HTTP method of the request (GET, POST, etc.).</summary>
     function Method: string;
+    /// <summary>The request body's media type (Content-Type header), e.g. 'application/json'.</summary>
+    function ContentType: string;
   end;
 
   /// <summary>
@@ -229,6 +235,11 @@ end;
 function TKWebRequest.GetHeaderField(const AName: string): string;
 begin
   Result := FRequest.GetFieldByName(AName);
+  // Indy (TIdHTTPAppRequest) surfaces the Authorization header via the dedicated
+  // TWebRequest.Authorization property, not the generic field list, so
+  // GetFieldByName('Authorization') comes back empty. Fall back to the property.
+  if (Result = '') and SameText(AName, 'Authorization') then
+    Result := FRequest.Authorization;
 end;
 
 function TKWebRequest.GetIsAjax: Boolean;
@@ -239,6 +250,16 @@ end;
 function TKWebRequest.GetIsRefresh: Boolean;
 begin
   Result := not IsAjax and (FRequest.GetFieldByName('Cache-Control') = 'max-age=0');
+end;
+
+function TKWebRequest.GetContent: string;
+begin
+  Result := FRequest.Content;
+end;
+
+function TKWebRequest.ContentType: string;
+begin
+  Result := FRequest.ContentType;
 end;
 
 function TKWebRequest.GetJSONContentTree: TEFTree;

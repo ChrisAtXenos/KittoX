@@ -923,8 +923,16 @@ end;
 
 class function TKJWTCookieHelper.ReadFromRequest(
   const AConfig: TKJWTConfig): string;
+var
+  LAuth: string;
 begin
-  Result := TKWebRequest.Current.GetCookie(AConfig.CookieName);
+  // Prefer the Authorization: Bearer header (stateless REST clients that hold
+  // the token themselves); fall back to the kx_token cookie (browser SPA).
+  LAuth := TKWebRequest.Current.GetHeaderField('Authorization');
+  if (LAuth <> '') and LAuth.StartsWith('Bearer ', True) then
+    Result := Trim(LAuth.Substring(7))
+  else
+    Result := TKWebRequest.Current.GetCookie(AConfig.CookieName);
 end;
 
 class function TKJWTCookieHelper.ShouldSlide(const AContext: TKJWTContext;
