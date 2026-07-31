@@ -48,19 +48,45 @@ Databases:
       Trim Char: False
 
 Auth: JWT
-  # Inner authenticator: the actual credential check stays delegated to the
-  # TextFile authenticator (registered by Kitto.Auth.TextFile), which reads
-  # the user list from FileAuthenticator.txt in Home/. TKJWTAuthenticator
-  # wraps it: on successful Authenticate, builds and signs a JWT, sets it in
-  # the kx_token HttpOnly cookie, and reads/validates it on every subsequent
-  # request via the auth gate in TKWebApplication.DoHandleRequest.
-  Inner: TextFile
-    IsPassepartoutEnabled: True
-    PassepartoutPassword: password
-    IsClearPassword: True
-    Defaults:
-      UserName: guest
-      .Password: password
+  # Inner authenticator: the credential check is delegated to the LDAP
+  # authenticator (registered by Kitto.Auth.LDAP), which validates the user
+  # against Active Directory with a simple bind (native wldap32 API).
+  # TKJWTAuthenticator wraps it: on success it builds/signs a JWT, sets the
+  # kx_token HttpOnly cookie and validates it on every subsequent request
+  # via the auth gate in TKWebApplication.DoHandleRequest.
+  Inner: LDAP
+    # ============================================================
+    # DEMO CONFIG - public test LDAP server (no Windows domain needed).
+    # Log in with just the short name, e.g.:   tesla / password
+    # Other users: einstein, newton, galieleo (all password "password").
+    # ============================================================
+    Host: ldap.forumsys.com
+    Port: 389
+    UseSSL: False
+    # Generic (non-AD) LDAP: build the full bind DN from the short user name,
+    # so the user types only "tesla" instead of the whole DN.
+    BindDNTemplate: uid=%s,dc=example,dc=com
+    # Read the user's display attributes after the bind.
+    SearchBase: dc=example,dc=com
+    SearchFilter: (uid=%s)
+    Attributes:
+      Email: mail
+      FullName: cn
+      LastName: sn
+    #
+    # --- PRODUCTION Active Directory example (uncomment and edit) ---
+    # Host: dc01.corp.local
+    # Port: 389
+    # UseSSL: False
+    # DefaultDomain: CORP
+    # SearchBase: DC=corp,DC=local
+    # SearchFilter: (sAMAccountName=%s)
+    # Attributes:
+    #   Email: mail
+    #   FirstName: givenName
+    #   LastName: sn
+    #   FullName: displayName
+    #   Groups: memberOf
 
   # JWT envelope settings.
   # SigningAlgorithm: HS256/HS384/HS512 (HMAC, no OpenSSL DLL required from

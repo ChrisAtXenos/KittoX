@@ -1,6 +1,8 @@
 object ppReport: TppReport
+  NoDataBehaviors = [ndBlankReport]
   PrinterSetup.BinName = 'Default'
   PrinterSetup.DocumentName = 'Report'
+  PrinterSetup.Duplex = dpNone
   PrinterSetup.Orientation = poLandscape
   PrinterSetup.PaperName = 'A4'
   PrinterSetup.PrinterName = 'Default'
@@ -14,33 +16,64 @@ object ppReport: TppReport
   PrinterSetup.PaperSize = 9
   SaveAsTemplate = True
   Template.FileName = 
-    'C:\ETHEA\Kitto\Examples\TasKitto\Home\ReportTemplates\ActivityRe' +
-    'port.rtm'
+    'D:\ETHEA\KittoX\Examples\TasKitto\Home\ReportTemplates\ActivityR' +
+    'eport.rtm'
   Template.Format = ftASCII
   Units = utMillimeters
+  AllowPrintToFile = True
   ArchiveFileName = '($MyDocuments)\ReportArchive.raf'
-  DeviceType = 'Screen'
+  DeviceType = 'PDF'
   DefaultFileDeviceType = 'PDF'
   EmailSettings.ReportFormat = 'PDF'
+  EmailSettings.ConnectionSettings.MailService = 'SMTP'
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.RedirectURI = 'http://localhost'
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.RedirectPort = 0
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.RefreshTokenLifeSpan = 365
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.RedirectURI = 'http://localhost'
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.RedirectPort = 0
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.RefreshTokenLifeSpan = 365
+  EmailSettings.ConnectionSettings.EnableMultiPlugin = False
+  EmailSettings.ConnectionSettings.ConnectionStatusInfo = [csiStatusBar]
   LanguageID = 'English (United States)'
+  OpenFile = False
   OutlineSettings.CreateNode = True
   OutlineSettings.CreatePageNodes = True
   OutlineSettings.Enabled = True
   OutlineSettings.Visible = True
+  ThumbnailSettings.Enabled = True
+  ThumbnailSettings.Visible = True
+  ThumbnailSettings.DeadSpace = 30
+  ThumbnailSettings.PageHighlight.Width = 3
+  ThumbnailSettings.ThumbnailSize = tsSmall
   PDFSettings.EmbedFontOptions = [efUseSubset]
   PDFSettings.EncryptSettings.AllowCopy = True
   PDFSettings.EncryptSettings.AllowInteract = True
   PDFSettings.EncryptSettings.AllowModify = True
   PDFSettings.EncryptSettings.AllowPrint = True
+  PDFSettings.EncryptSettings.AllowExtract = True
+  PDFSettings.EncryptSettings.AllowAssemble = True
+  PDFSettings.EncryptSettings.AllowQualityPrint = True
   PDFSettings.EncryptSettings.Enabled = False
+  PDFSettings.EncryptSettings.KeyLength = kl40Bit
+  PDFSettings.EncryptSettings.EncryptionType = etRC4
+  PDFSettings.DigitalSignatureSettings.SignPDF = False
   PDFSettings.FontEncoding = feAnsi
   PDFSettings.ImageCompressionLevel = 25
+  PDFSettings.PDFAFormat = pafNone
+  PDFSettings.Layers = False
+  PDFSettings.Outline = False
+  PreviewFormSettings.PageBorder.mmPadding = 0
+  RTFSettings.AppName = 'ReportBuilder'
+  RTFSettings.Author = 'ReportBuilder'
   RTFSettings.DefaultFont.Charset = DEFAULT_CHARSET
   RTFSettings.DefaultFont.Color = clWindowText
   RTFSettings.DefaultFont.Height = -13
   RTFSettings.DefaultFont.Name = 'Arial'
   RTFSettings.DefaultFont.Style = []
-  ShowAutoSearchDialog = True
+  RTFSettings.Title = 'Report'
+  ShowPrintDialog = False
   TextFileName = '($MyDocuments)\Report.pdf'
   TextSearchSettings.DefaultString = '<FindText>'
   TextSearchSettings.Enabled = True
@@ -48,25 +81,46 @@ object ppReport: TppReport
   XLSSettings.Author = 'ReportBuilder'
   XLSSettings.Subject = 'Report'
   XLSSettings.Title = 'Report'
-  Left = 249
-  Top = 26
-  Version = '14.06'
+  XLSSettings.WorksheetName = 'Report'
+  CloudDriveSettings.DropBoxSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  CloudDriveSettings.DropBoxSettings.OAuth2.RedirectURI = 'http://localhost'
+  CloudDriveSettings.DropBoxSettings.OAuth2.RedirectPort = 0
+  CloudDriveSettings.DropBoxSettings.OAuth2.RefreshTokenLifeSpan = 365
+  CloudDriveSettings.DropBoxSettings.DirectorySupport = True
+  CloudDriveSettings.DropBoxSettings.SharedResources = True
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.RedirectURI = 'http://localhost'
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.RedirectPort = 0
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.RefreshTokenLifeSpan = 365
+  CloudDriveSettings.GoogleDriveSettings.DirectorySupport = False
+  CloudDriveSettings.GoogleDriveSettings.SharedResources = False
+  CloudDriveSettings.OneDriveSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  CloudDriveSettings.OneDriveSettings.OAuth2.RedirectURI = 'http://localhost'
+  CloudDriveSettings.OneDriveSettings.OAuth2.RedirectPort = 0
+  CloudDriveSettings.OneDriveSettings.OAuth2.RefreshTokenLifeSpan = 365
+  CloudDriveSettings.OneDriveSettings.DirectorySupport = True
+  CloudDriveSettings.OneDriveSettings.SharedResources = True
+  Version = '23.04'
   mmColumnWidth = 0
   object ppHeaderBand1: TppHeaderBand
-    Background.Brush.Style = bsClear
+    Border.mmPadding = 0
     mmBottomOffset = 0
     mmHeight = 14817
     mmPrintPosition = 0
     object ppLabel1: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label1'
       HyperlinkEnabled = False
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Activity Report'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 14
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       TextAlignment = taCentered
       Transparent = True
       mmHeight = 5821
@@ -77,14 +131,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel2: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label2'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Description'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 529
@@ -94,14 +152,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel3: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label3'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Phase'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 55033
@@ -111,14 +173,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel4: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label4'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Employee'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 86254
@@ -128,14 +194,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel5: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label5'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Role'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 125942
@@ -145,14 +215,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel6: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label6'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Type'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 154252
@@ -162,14 +236,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel7: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label7'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Activity date'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 181505
@@ -179,14 +257,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel8: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label8'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Start time'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 206375
@@ -196,14 +278,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel9: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label9'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'End time'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 225161
@@ -213,14 +299,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel10: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label10'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Duration'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 244211
@@ -230,14 +320,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel11: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label11'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Status'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = []
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 4763
       mmLeft = 262467
@@ -248,15 +342,16 @@ object ppReport: TppReport
     end
   end
   object ppDetailBand1: TppDetailBand
-    Background1.Brush.Style = bsClear
-    Background2.Brush.Style = bsClear
+    Border.mmPadding = 0
     mmBottomOffset = 0
     mmHeight = 6350
     mmPrintPosition = 0
     object ppDBText1: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText1'
+      Border.mmPadding = 0
       DataField = 'DESCRIPTION'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -264,7 +359,7 @@ object ppReport: TppReport
       Font.Style = []
       ParentDataPipeline = False
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4763
       mmLeft = 529
       mmTop = 529
@@ -273,9 +368,11 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText2: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText2'
+      Border.mmPadding = 0
       DataField = 'PHASE_NAME'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -283,7 +380,7 @@ object ppReport: TppReport
       Font.Style = []
       ParentDataPipeline = False
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4763
       mmLeft = 55033
       mmTop = 529
@@ -292,9 +389,11 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText3: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText3'
+      Border.mmPadding = 0
       DataField = 'EMPLOYEE_NAME'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -302,7 +401,7 @@ object ppReport: TppReport
       Font.Style = []
       ParentDataPipeline = False
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4763
       mmLeft = 86254
       mmTop = 529
@@ -311,9 +410,11 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText4: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText4'
+      Border.mmPadding = 0
       DataField = 'ROLE_NAME'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -321,7 +422,7 @@ object ppReport: TppReport
       Font.Style = []
       ParentDataPipeline = False
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4763
       mmLeft = 125942
       mmTop = 529
@@ -330,9 +431,11 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText5: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText5'
+      Border.mmPadding = 0
       DataField = 'TYPE_NAME'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -340,7 +443,7 @@ object ppReport: TppReport
       Font.Style = []
       ParentDataPipeline = False
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4763
       mmLeft = 154252
       mmTop = 529
@@ -349,9 +452,11 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText6: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText6'
+      Border.mmPadding = 0
       DataField = 'ACTIVITY_DATE'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -360,7 +465,7 @@ object ppReport: TppReport
       ParentDataPipeline = False
       TextAlignment = taCentered
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4868
       mmLeft = 181505
       mmTop = 529
@@ -369,9 +474,11 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText7: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText7'
+      Border.mmPadding = 0
       DataField = 'START_TIME'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -380,7 +487,7 @@ object ppReport: TppReport
       ParentDataPipeline = False
       TextAlignment = taRightJustified
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4868
       mmLeft = 206375
       mmTop = 529
@@ -389,9 +496,11 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText8: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText8'
+      Border.mmPadding = 0
       DataField = 'END_TIME'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -400,7 +509,7 @@ object ppReport: TppReport
       ParentDataPipeline = False
       TextAlignment = taRightJustified
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4868
       mmLeft = 225161
       mmTop = 529
@@ -409,9 +518,11 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText9: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText9'
+      Border.mmPadding = 0
       DataField = 'DATEDIFF_MINUTE_FROM_STAR'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -420,7 +531,7 @@ object ppReport: TppReport
       ParentDataPipeline = False
       TextAlignment = taRightJustified
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4868
       mmLeft = 250825
       mmTop = 529
@@ -429,9 +540,11 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText10: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText10'
+      Border.mmPadding = 0
       DataField = 'STATUS'
-      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      DataPipeline = daSQLQueryDataView2.ACTIVITY1
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
@@ -439,7 +552,7 @@ object ppReport: TppReport
       Font.Style = []
       ParentDataPipeline = False
       Transparent = True
-      DataPipelineName = 'ACTIVITY'
+      DataPipelineName = 'ACTIVITY1'
       mmHeight = 4763
       mmLeft = 262467
       mmTop = 529
@@ -449,14 +562,14 @@ object ppReport: TppReport
     end
   end
   object ppFooterBand1: TppFooterBand
-    Background.Brush.Style = bsClear
+    Border.mmPadding = 0
     mmBottomOffset = 0
     mmHeight = 265
     mmPrintPosition = 0
   end
   object daDataModule1: TdaDataModule
-    object daSQLQueryDataView2: TdaSQLQueryDataView
-      UserName = 'Query_ACTIVITY'
+    object daSQLQueryDataView2: TdaFireDACQueryDataView
+      UserName = 'Query_ACTIVITY1'
       Height = 292
       Left = 8
       NameColumnWidth = 105
@@ -464,11 +577,11 @@ object ppReport: TppReport
       SortMode = 0
       Top = 9
       TypeColumnWidth = 52
-      Width = 274
+      Width = 400
       AutoSearchTabOrder = 0
-      object ACTIVITY: TppChildDBPipeline
+      object ACTIVITY1: TppChildDBPipeline
         AutoCreateFields = False
-        UserName = 'ACTIVITY'
+        UserName = 'ACTIVITY1'
         object ppField1: TppField
           FieldAlias = 'DESCRIPTION'
           FieldName = 'DESCRIPTION'
@@ -560,9 +673,9 @@ object ppReport: TppReport
         end
       end
       object daSQL2: TdaSQL
-        DatabaseName = 'Main'
-        DatabaseType = dtFirebird
-        DataPipelineName = 'ACTIVITY'
+        DatabaseName = 'FireDAC_MSSQL'
+        DatabaseType = dtMSSQLServer
+        DataPipelineName = 'ACTIVITY1'
         LinkColor = clNavy
         LinkType = ltMagicSQL
         MaxSQLFieldAliasLength = 25
@@ -576,7 +689,7 @@ object ppReport: TppReport
           '       ACTIVITY_1.START_TIME, '
           '       ACTIVITY_1.END_TIME, PHASE_1.STATUS, '
           
-            '       DATEDIFF(MINUTE FROM START_TIME TO END_TIME) DATEDIFF_MIN' +
+            '       DATEDIFF(MINUTE, START_TIME, END_TIME) DATEDIFF_MIN' +
             'UTE_FROM_STAR'
           'FROM ACTIVITY ACTIVITY_1'
           '      LEFT OUTER JOIN EMPLOYEE EMPLOYEE_1 ON '
@@ -606,7 +719,7 @@ object ppReport: TppReport
           TableName = 'PHASE'
           TableSQLAlias = 'PHASE_1'
           CalcType = dacaExpression
-          Expression = 'DATEDIFF(MINUTE FROM START_TIME TO END_TIME)'
+          Expression = 'DATEDIFF(MINUTE, START_TIME, END_TIME)'
         end
         object daCriteria1: TdaCriteria
           ChildType = 7

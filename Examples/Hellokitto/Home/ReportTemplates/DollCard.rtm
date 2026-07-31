@@ -1,9 +1,11 @@
 object ppReport: TppReport
   AutoStop = False
   DataPipeline = daSQLQueryDataView1.DOLL
+  NoDataBehaviors = [ndBlankReport]
   PrinterSetup.BinName = 'Default'
   PrinterSetup.DocumentName = 'Report'
-  PrinterSetup.PaperName = 'Lettera'
+  PrinterSetup.Duplex = dpNone
+  PrinterSetup.PaperName = 'Letter'
   PrinterSetup.PrinterName = 'Default'
   PrinterSetup.SaveDeviceSettings = False
   PrinterSetup.mmMarginBottom = 6350
@@ -12,35 +14,66 @@ object ppReport: TppReport
   PrinterSetup.mmMarginTop = 6350
   PrinterSetup.mmPaperHeight = 279401
   PrinterSetup.mmPaperWidth = 215900
-  PrinterSetup.PaperSize = 1
+  PrinterSetup.PaperSize = 124
   SaveAsTemplate = True
   Template.FileName = 
-    'C:\ETHEA\KittoEnt\Examples\ReportBuilderDemo\Home\ReportTemplate' +
-    's\DollCard.rtm'
+    'D:\ETHEA\KittoX\Examples\HelloKitto\Home\ReportTemplates\DollCar' +
+    'd.rtm'
   Template.Format = ftASCII
+  AllowPrintToFile = True
   ArchiveFileName = '($MyDocuments)\ReportArchive.raf'
-  DeviceType = 'Screen'
+  DeviceType = 'PDF'
   DefaultFileDeviceType = 'PDF'
   EmailSettings.ReportFormat = 'PDF'
+  EmailSettings.ConnectionSettings.MailService = 'SMTP'
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.RedirectURI = 'http://localhost'
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.RedirectPort = 0
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.RefreshTokenLifeSpan = 365
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.RedirectURI = 'http://localhost'
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.RedirectPort = 0
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.RefreshTokenLifeSpan = 365
+  EmailSettings.ConnectionSettings.EnableMultiPlugin = False
+  EmailSettings.ConnectionSettings.ConnectionStatusInfo = [csiStatusBar]
   LanguageID = 'English (United States)'
+  OpenFile = False
   OutlineSettings.CreateNode = True
   OutlineSettings.CreatePageNodes = True
   OutlineSettings.Enabled = False
   OutlineSettings.Visible = False
+  ThumbnailSettings.Enabled = True
+  ThumbnailSettings.Visible = True
+  ThumbnailSettings.DeadSpace = 30
+  ThumbnailSettings.PageHighlight.Width = 3
+  ThumbnailSettings.ThumbnailSize = tsSmall
   PDFSettings.EmbedFontOptions = [efUseSubset]
   PDFSettings.EncryptSettings.AllowCopy = True
   PDFSettings.EncryptSettings.AllowInteract = True
   PDFSettings.EncryptSettings.AllowModify = True
   PDFSettings.EncryptSettings.AllowPrint = True
+  PDFSettings.EncryptSettings.AllowExtract = True
+  PDFSettings.EncryptSettings.AllowAssemble = True
+  PDFSettings.EncryptSettings.AllowQualityPrint = True
   PDFSettings.EncryptSettings.Enabled = False
+  PDFSettings.EncryptSettings.KeyLength = kl40Bit
+  PDFSettings.EncryptSettings.EncryptionType = etRC4
+  PDFSettings.DigitalSignatureSettings.SignPDF = False
   PDFSettings.FontEncoding = feAnsi
   PDFSettings.ImageCompressionLevel = 25
+  PDFSettings.PDFAFormat = pafNone
+  PDFSettings.Layers = False
+  PDFSettings.Outline = False
+  PreviewFormSettings.PageBorder.mmPadding = 0
+  RTFSettings.AppName = 'ReportBuilder'
+  RTFSettings.Author = 'ReportBuilder'
   RTFSettings.DefaultFont.Charset = DEFAULT_CHARSET
   RTFSettings.DefaultFont.Color = clWindowText
   RTFSettings.DefaultFont.Height = -13
   RTFSettings.DefaultFont.Name = 'Arial'
   RTFSettings.DefaultFont.Style = []
-  ShowAutoSearchDialog = True
+  RTFSettings.Title = 'Report'
+  ShowPrintDialog = False
   TextFileName = '($MyDocuments)\Report.pdf'
   TextSearchSettings.DefaultString = '<FindText>'
   TextSearchSettings.Enabled = False
@@ -48,25 +81,46 @@ object ppReport: TppReport
   XLSSettings.Author = 'ReportBuilder'
   XLSSettings.Subject = 'Report'
   XLSSettings.Title = 'Report'
-  Left = 249
-  Top = 26
-  Version = '14.06'
+  XLSSettings.WorksheetName = 'Report'
+  CloudDriveSettings.DropBoxSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  CloudDriveSettings.DropBoxSettings.OAuth2.RedirectURI = 'http://localhost'
+  CloudDriveSettings.DropBoxSettings.OAuth2.RedirectPort = 0
+  CloudDriveSettings.DropBoxSettings.OAuth2.RefreshTokenLifeSpan = 365
+  CloudDriveSettings.DropBoxSettings.DirectorySupport = True
+  CloudDriveSettings.DropBoxSettings.SharedResources = True
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.RedirectURI = 'http://localhost'
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.RedirectPort = 0
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.RefreshTokenLifeSpan = 365
+  CloudDriveSettings.GoogleDriveSettings.DirectorySupport = False
+  CloudDriveSettings.GoogleDriveSettings.SharedResources = False
+  CloudDriveSettings.OneDriveSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  CloudDriveSettings.OneDriveSettings.OAuth2.RedirectURI = 'http://localhost'
+  CloudDriveSettings.OneDriveSettings.OAuth2.RedirectPort = 0
+  CloudDriveSettings.OneDriveSettings.OAuth2.RefreshTokenLifeSpan = 365
+  CloudDriveSettings.OneDriveSettings.DirectorySupport = True
+  CloudDriveSettings.OneDriveSettings.SharedResources = True
+  Version = '23.04'
   mmColumnWidth = 0
   DataPipelineName = 'DOLL'
   object ppHeaderBand1: TppHeaderBand
-    Background.Brush.Style = bsClear
+    Border.mmPadding = 0
     mmBottomOffset = 0
     mmHeight = 22754
     mmPrintPosition = 0
     object ppLabel4: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label4'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'DOLL CARD'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       TextAlignment = taCentered
       Transparent = True
       mmHeight = 5027
@@ -77,10 +131,13 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppImage1: TppImage
+      DesignLayer = ppDesignLayer1
       UserName = 'KittoImage'
       AlignHorizontal = ahCenter
       AlignVertical = avCenter
       MaintainAspectRatio = False
+      RotationAngle = 0
+      Border.mmPadding = 0
       mmHeight = 13229
       mmLeft = 1323
       mmTop = 1058
@@ -89,10 +146,13 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppImage2: TppImage
+      DesignLayer = ppDesignLayer1
       UserName = 'HelloKittoImage'
       AlignHorizontal = ahCenter
       AlignVertical = avCenter
       MaintainAspectRatio = False
+      RotationAngle = 0
+      Border.mmPadding = 0
       mmHeight = 13229
       mmLeft = 145786
       mmTop = 1058
@@ -102,13 +162,14 @@ object ppReport: TppReport
     end
   end
   object ppDetailBand1: TppDetailBand
-    Background1.Brush.Style = bsClear
-    Background2.Brush.Style = bsClear
+    Border.mmPadding = 0
     mmBottomOffset = 0
     mmHeight = 57679
     mmPrintPosition = 0
     object ppDBText1: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText1'
+      Border.mmPadding = 0
       DataField = 'DOLL_NAME'
       DataPipeline = daSQLQueryDataView1.DOLL
       Font.Charset = DEFAULT_CHARSET
@@ -126,7 +187,9 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText2: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText2'
+      Border.mmPadding = 0
       DataField = 'DRESS_SIZE'
       DataPipeline = daSQLQueryDataView1.DOLL
       Font.Charset = DEFAULT_CHARSET
@@ -144,11 +207,14 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBImage1: TppDBImage
+      DesignLayer = ppDesignLayer1
       UserName = 'DBImage1'
       AlignHorizontal = ahCenter
       AlignVertical = avCenter
       MaintainAspectRatio = False
+      RotationAngle = 0
       Stretch = True
+      Border.mmPadding = 0
       DataField = 'PICTURE'
       DataPipeline = daSQLQueryDataView1.DOLL
       GraphicType = 'AutoDetect'
@@ -161,14 +227,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel1: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label1'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Name'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 5027
       mmLeft = 12700
@@ -178,14 +248,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel2: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label2'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Dress size'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 5027
       mmLeft = 12700
@@ -195,14 +269,18 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppLabel5: TppLabel
+      DesignLayer = ppDesignLayer1
       UserName = 'Label5'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'Birth date'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
       mmHeight = 5027
       mmLeft = 12700
@@ -212,7 +290,9 @@ object ppReport: TppReport
       LayerName = Foreground
     end
     object ppDBText3: TppDBText
+      DesignLayer = ppDesignLayer1
       UserName = 'DBText3'
+      Border.mmPadding = 0
       DataField = 'DATE_BOUGHT'
       DataPipeline = daSQLQueryDataView1.DOLL
       Font.Charset = DEFAULT_CHARSET
@@ -231,42 +311,22 @@ object ppReport: TppReport
     end
   end
   object ppFooterBand1: TppFooterBand
-    Background.Brush.Style = bsClear
+    Border.mmPadding = 0
     mmBottomOffset = 0
     mmHeight = 32544
     mmPrintPosition = 0
   end
-  object raCodeModule1: TraCodeModule
-    ProgramStream = {
-      01060F5472614576656E7448616E646C65720B50726F6772616D4E616D650611
-      4B6974746F496D6167654F6E5072696E740B50726F6772616D54797065070B74
-      7450726F63656475726506536F75726365067A70726F636564757265204B6974
-      746F496D6167654F6E5072696E743B0D0A626567696E0D0A20204B6974746F49
-      6D6167652E706963747572652E4C6F616446726F6D46696C6528457870616E64
-      496D61676546696C655061746828276B6974746F5F6C6F676F5F3135302E706E
-      672729293B0D0A656E643B0D0A0D436F6D706F6E656E744E616D65060A4B6974
-      746F496D616765094576656E744E616D6506074F6E5072696E74074576656E74
-      494402200001060F5472614576656E7448616E646C65720B50726F6772616D4E
-      616D65061648656C6C6F4B6974746F496D6167654F6E5072696E740B50726F67
-      72616D54797065070B747450726F63656475726506536F75726365068570726F
-      6365647572652048656C6C6F4B6974746F496D6167654F6E5072696E743B0D0A
-      626567696E0D0A202048656C6C6F4B6974746F496D6167652E70696374757265
-      2E4C6F616446726F6D46696C6528457870616E64496D61676546696C65506174
-      68282768656C6C6F5F6B6974746F5F3135302E706E672729293B0D0A656E643B
-      0D0A0D436F6D706F6E656E744E616D65060F48656C6C6F4B6974746F496D6167
-      65094576656E744E616D6506074F6E5072696E74074576656E74494402200000}
-  end
   object daDataModule1: TdaDataModule
-    object daSQLQueryDataView1: TdaSQLQueryDataView
+    object daSQLQueryDataView1: TdaFireDACQueryDataView
       UserName = 'Query_DOLL'
       Height = 363
       Left = 10
-      NameColumnWidth = 105
+      NameColumnWidth = 130
       SizeColumnWidth = 35
       SortMode = 0
       Top = 10
-      TypeColumnWidth = 52
-      Width = 224
+      TypeColumnWidth = 70
+      Width = 392
       AutoSearchTabOrder = 0
       object DOLL: TppChildDBPipeline
         AutoCreateFields = False
@@ -340,8 +400,8 @@ object ppReport: TppReport
         end
       end
       object daSQL1: TdaSQL
-        DatabaseName = 'DBXFb'
-        DatabaseType = dtFirebird
+        DatabaseName = 'FireDAC_MSSQL'
+        DatabaseType = dtMSSQLServer
         DataPipelineName = 'DOLL'
         LinkColor = clMaroon
         LinkType = ltMagicSQL
@@ -473,6 +533,37 @@ object ppReport: TppReport
           TableName = 'DOLL'
         end
       end
+    end
+  end
+  object raCodeModule1: TraCodeModule
+    object raProgramInfo1: TraProgramInfo
+      raClassName = 'TraEventHandler'
+      raProgram.ProgramName = 'KittoImageOnPrint'
+      raProgram.ProgramType = ttProcedure
+      raProgram.Source = 
+        'procedure KittoImageOnPrint;'#13#10'begin'#13#10'  KittoImage.picture.LoadFr' +
+        'omFile(ExpandImageFilePath('#39'kittox_logo_150.png'#39'));'#13#10'end;'#13#10
+      raProgram.ComponentName = 'KittoImage'
+      raProgram.EventName = 'OnPrint'
+      raProgram.EventID = 32
+      raProgram.CaretPos = (
+        62
+        3)
+    end
+    object raProgramInfo2: TraProgramInfo
+      raClassName = 'TraEventHandler'
+      raProgram.ProgramName = 'HelloKittoImageOnPrint'
+      raProgram.ProgramType = ttProcedure
+      raProgram.Source = 
+        'procedure HelloKittoImageOnPrint;'#13#10'begin'#13#10'  HelloKittoImage.pict' +
+        'ure.LoadFromFile(ExpandImageFilePath('#39'hello_kitto_150.png'#39'));'#13#10'e' +
+        'nd;'#13#10
+      raProgram.ComponentName = 'HelloKittoImage'
+      raProgram.EventName = 'OnPrint'
+      raProgram.EventID = 32
+      raProgram.CaretPos = (
+        3
+        3)
     end
   end
   object ppDesignLayers1: TppDesignLayers

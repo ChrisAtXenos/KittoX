@@ -44,3 +44,20 @@ MainTable:
           RequireSelection: False
           ClientFileName:
         ImageName: download
+#      ReportBuilderSQL:
+#        DisplayLabel: _(Doll Card by RB)
+#        ImageName: print
+#        Controller: ReportBuilderTool
+#          ClientFileName: DollCard_{Doll_Id}.pdf
+#          TemplateFileName: %APP_PATH%ReportTemplates\DollCard.rtm
+#          RequireSelection: True
+#          Design: False
+#      ReportBuilderPipe:
+#        DisplayLabel: _(Dolls by RB)
+#        ImageName: print
+#        Controller: ReportBuilderTool
+#          ClientFileName: Dolls.pdf
+#          TemplateFileName: %APP_PATH%ReportTemplates\DollsListPipe.rtm
+#          RequireSelection: False
+#          UsePipeLines: True
+#          Design: False

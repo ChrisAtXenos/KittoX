@@ -199,7 +199,10 @@ var
   I: Integer;
 begin
   for I := 0 to FTempFileNames.Count - 1 do
-    TFile.Delete(FTempFileNames[I]);
+  begin
+    if TFile.Exists(FTempFileNames[I]) then
+      TFile.Delete(FTempFileNames[I]);
+  end;
   FTempFileNames.Clear;
 end;
 
@@ -244,8 +247,11 @@ begin
       FStream := nil; // Ownership transferred; prevent double-free in destructor.
     end;
   except
-    Cleanup;
-    raise;
+    On E: Exception do
+    begin
+      Cleanup;
+      raise;
+    end;
   end;
 end;
 

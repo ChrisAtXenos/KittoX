@@ -6,7 +6,7 @@ object ppReport: TppReport
   PrinterSetup.DocumentName = 'Report'
   PrinterSetup.Duplex = dpNone
   PrinterSetup.Orientation = poLandscape
-  PrinterSetup.PaperName = 'Lettera'
+  PrinterSetup.PaperName = 'Letter'
   PrinterSetup.PrinterName = 'Default'
   PrinterSetup.SaveDeviceSettings = False
   PrinterSetup.mmMarginBottom = 6350
@@ -15,17 +15,28 @@ object ppReport: TppReport
   PrinterSetup.mmMarginTop = 6350
   PrinterSetup.mmPaperHeight = 215900
   PrinterSetup.mmPaperWidth = 279401
-  PrinterSetup.PaperSize = 1
+  PrinterSetup.PaperSize = 124
   SaveAsTemplate = True
   Template.FileName = 
-    'D:\ETHEA\GitHub_EtheaDev\Kitto2\kittoent2\Examples\ReportBuilder' +
-    'Demo\Home\ReportTemplates\DollsListPipe.rtm'
+    'D:\ETHEA\KittoX\Examples\HelloKitto\Home\ReportTemplates\DollsLi' +
+    'stPipe.rtm'
   Template.Format = ftASCII
   AllowPrintToFile = True
   ArchiveFileName = '($MyDocuments)\ReportArchive.raf'
   DeviceType = 'PDF'
   DefaultFileDeviceType = 'PDF'
   EmailSettings.ReportFormat = 'PDF'
+  EmailSettings.ConnectionSettings.MailService = 'SMTP'
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.RedirectURI = 'http://localhost'
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.RedirectPort = 0
+  EmailSettings.ConnectionSettings.WebMail.GmailSettings.OAuth2.RefreshTokenLifeSpan = 365
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.RedirectURI = 'http://localhost'
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.RedirectPort = 0
+  EmailSettings.ConnectionSettings.WebMail.Outlook365Settings.OAuth2.RefreshTokenLifeSpan = 365
+  EmailSettings.ConnectionSettings.EnableMultiPlugin = False
+  EmailSettings.ConnectionSettings.ConnectionStatusInfo = [csiStatusBar]
   LanguageID = 'Default'
   OpenFile = False
   OutlineSettings.CreateNode = True
@@ -35,6 +46,8 @@ object ppReport: TppReport
   ThumbnailSettings.Enabled = True
   ThumbnailSettings.Visible = True
   ThumbnailSettings.DeadSpace = 30
+  ThumbnailSettings.PageHighlight.Width = 3
+  ThumbnailSettings.ThumbnailSize = tsSmall
   PDFSettings.EmbedFontOptions = [efUseSubset]
   PDFSettings.EncryptSettings.AllowCopy = True
   PDFSettings.EncryptSettings.AllowInteract = True
@@ -46,15 +59,23 @@ object ppReport: TppReport
   PDFSettings.EncryptSettings.Enabled = False
   PDFSettings.EncryptSettings.KeyLength = kl40Bit
   PDFSettings.EncryptSettings.EncryptionType = etRC4
+  PDFSettings.DigitalSignatureSettings.SignPDF = False
   PDFSettings.FontEncoding = feAnsi
   PDFSettings.ImageCompressionLevel = 25
+  PDFSettings.PDFAFormat = pafNone
+  PDFSettings.Layers = False
+  PDFSettings.Outline = False
+  PreviewFormSettings.PageBorder.mmPadding = 0
+  RTFSettings.AppName = 'ReportBuilder'
+  RTFSettings.Author = 'ReportBuilder'
   RTFSettings.DefaultFont.Charset = DEFAULT_CHARSET
   RTFSettings.DefaultFont.Color = clWindowText
   RTFSettings.DefaultFont.Height = -13
   RTFSettings.DefaultFont.Name = 'Arial'
   RTFSettings.DefaultFont.Style = []
+  RTFSettings.Title = 'Report'
   ShowPrintDialog = False
-  TextFileName = 'C:\Users\carlo\AppData\Local\Temp\7B69O092.pdf'
+  TextFileName = '($MyDocuments)\Report.pdf'
   TextSearchSettings.DefaultString = '<TestoCercato>'
   TextSearchSettings.Enabled = False
   XLSSettings.AppName = 'ReportBuilder'
@@ -62,11 +83,29 @@ object ppReport: TppReport
   XLSSettings.Subject = 'Report'
   XLSSettings.Title = 'Report'
   XLSSettings.WorksheetName = 'Report'
-  Version = '17.02'
+  CloudDriveSettings.DropBoxSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  CloudDriveSettings.DropBoxSettings.OAuth2.RedirectURI = 'http://localhost'
+  CloudDriveSettings.DropBoxSettings.OAuth2.RedirectPort = 0
+  CloudDriveSettings.DropBoxSettings.OAuth2.RefreshTokenLifeSpan = 365
+  CloudDriveSettings.DropBoxSettings.DirectorySupport = True
+  CloudDriveSettings.DropBoxSettings.SharedResources = True
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.RedirectURI = 'http://localhost'
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.RedirectPort = 0
+  CloudDriveSettings.GoogleDriveSettings.OAuth2.RefreshTokenLifeSpan = 365
+  CloudDriveSettings.GoogleDriveSettings.DirectorySupport = False
+  CloudDriveSettings.GoogleDriveSettings.SharedResources = False
+  CloudDriveSettings.OneDriveSettings.OAuth2.AuthStorage = [oasAccessToken, oasRefreshToken, oasEncryptTokens]
+  CloudDriveSettings.OneDriveSettings.OAuth2.RedirectURI = 'http://localhost'
+  CloudDriveSettings.OneDriveSettings.OAuth2.RedirectPort = 0
+  CloudDriveSettings.OneDriveSettings.OAuth2.RefreshTokenLifeSpan = 365
+  CloudDriveSettings.OneDriveSettings.DirectorySupport = True
+  CloudDriveSettings.OneDriveSettings.SharedResources = True
+  Version = '23.04'
   mmColumnWidth = 0
   DataPipelineName = 'Doll'
   object ppHeaderBand1: TppHeaderBand
-    Background.Brush.Style = bsClear
+    Border.mmPadding = 0
     mmBottomOffset = 0
     mmHeight = 22754
     mmPrintPosition = 0
@@ -74,17 +113,22 @@ object ppReport: TppReport
       DesignLayer = ppDesignLayer1
       UserName = 'Label1'
       AutoSize = False
+      Border.BorderPositions = [bpBottom]
+      Border.Visible = True
+      Border.mmPadding = 0
       Caption = 'Name'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
-      mmHeight = 4995
+      mmHeight = 5292
       mmLeft = 10583
       mmTop = 17198
-      mmWidth = 128059
+      mmWidth = 83079
       BandType = 0
       LayerName = Foreground
     end
@@ -92,15 +136,20 @@ object ppReport: TppReport
       DesignLayer = ppDesignLayer1
       UserName = 'Label2'
       AutoSize = False
+      Border.BorderPositions = [bpBottom]
+      Border.Visible = True
+      Border.mmPadding = 0
       Caption = 'Dress size'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       Transparent = True
-      mmHeight = 4995
-      mmLeft = 139700
+      mmHeight = 5292
+      mmLeft = 94721
       mmTop = 17198
       mmWidth = 27252
       BandType = 0
@@ -110,12 +159,15 @@ object ppReport: TppReport
       DesignLayer = ppDesignLayer1
       UserName = 'Label4'
       AutoSize = False
+      Border.mmPadding = 0
       Caption = 'DOLLS'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clBlack
       Font.Name = 'Arial'
       Font.Size = 12
       Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
       TextAlignment = taCentered
       Transparent = True
       mmHeight = 5027
@@ -131,6 +183,8 @@ object ppReport: TppReport
       AlignHorizontal = ahCenter
       AlignVertical = avCenter
       MaintainAspectRatio = False
+      RotationAngle = 0
+      Border.mmPadding = 0
       mmHeight = 13229
       mmLeft = 1323
       mmTop = 1058
@@ -144,6 +198,8 @@ object ppReport: TppReport
       AlignHorizontal = ahCenter
       AlignVertical = avCenter
       MaintainAspectRatio = False
+      RotationAngle = 0
+      Border.mmPadding = 0
       mmHeight = 13229
       mmLeft = 209286
       mmTop = 1058
@@ -151,16 +207,85 @@ object ppReport: TppReport
       BandType = 0
       LayerName = Foreground
     end
+    object ppLabel5: TppLabel
+      DesignLayer = ppDesignLayer1
+      UserName = 'Label5'
+      AutoSize = False
+      Border.BorderPositions = [bpBottom]
+      Border.Visible = True
+      Border.mmPadding = 0
+      Caption = 'Hair'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
+      Transparent = True
+      mmHeight = 5292
+      mmLeft = 123561
+      mmTop = 17198
+      mmWidth = 27252
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel8: TppLabel
+      DesignLayer = ppDesignLayer1
+      UserName = 'Label8'
+      AutoSize = False
+      Border.BorderPositions = [bpBottom]
+      Border.Visible = True
+      Border.mmPadding = 0
+      Caption = 'Mom'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
+      Transparent = True
+      mmHeight = 5292
+      mmLeft = 152665
+      mmTop = 17198
+      mmWidth = 35983
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel3: TppLabel
+      DesignLayer = ppDesignLayer1
+      UserName = 'Label3'
+      AutoSize = False
+      Border.BorderPositions = [bpBottom]
+      Border.Visible = True
+      Border.mmPadding = 0
+      Caption = 'Mom Phone'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      FormFieldSettings.FormSubmitInfo.SubmitMethod = fstPost
+      FormFieldSettings.FormFieldType = fftNone
+      Transparent = True
+      mmHeight = 5292
+      mmLeft = 191030
+      mmTop = 17198
+      mmWidth = 35983
+      BandType = 0
+      LayerName = Foreground
+    end
   end
   object ppDetailBand1: TppDetailBand
-    Background1.Brush.Style = bsClear
-    Background2.Brush.Style = bsClear
+    Border.mmPadding = 0
     mmBottomOffset = 0
-    mmHeight = 19844
+    mmHeight = 7938
     mmPrintPosition = 0
     object ppDBText1: TppDBText
       DesignLayer = ppDesignLayer1
       UserName = 'DBText1'
+      Border.mmPadding = 0
       DataField = 'Doll_Name'
       DataPipeline = Doll
       Font.Charset = DEFAULT_CHARSET
@@ -173,13 +298,14 @@ object ppReport: TppReport
       mmHeight = 4763
       mmLeft = 10583
       mmTop = 529
-      mmWidth = 128059
+      mmWidth = 83079
       BandType = 4
       LayerName = Foreground
     end
     object ppDBText2: TppDBText
       DesignLayer = ppDesignLayer1
       UserName = 'DBText2'
+      Border.mmPadding = 0
       DataField = 'Dress_Size'
       DataPipeline = Doll
       Font.Charset = DEFAULT_CHARSET
@@ -190,15 +316,75 @@ object ppReport: TppReport
       Transparent = True
       DataPipelineName = 'Doll'
       mmHeight = 4763
-      mmLeft = 139700
+      mmLeft = 94721
       mmTop = 529
       mmWidth = 27252
       BandType = 4
       LayerName = Foreground
     end
+    object ppDBText3: TppDBText
+      DesignLayer = ppDesignLayer1
+      UserName = 'DBText3'
+      Border.mmPadding = 0
+      DataField = 'Hair'
+      DataPipeline = Doll
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      DataPipelineName = 'Doll'
+      mmHeight = 4763
+      mmLeft = 123561
+      mmTop = 529
+      mmWidth = 26723
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText4: TppDBText
+      DesignLayer = ppDesignLayer1
+      UserName = 'DBText4'
+      Border.mmPadding = 0
+      DataField = 'Mom'
+      DataPipeline = Doll
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      DataPipelineName = 'Doll'
+      mmHeight = 4763
+      mmLeft = 152665
+      mmTop = 531
+      mmWidth = 35983
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText5: TppDBText
+      DesignLayer = ppDesignLayer1
+      UserName = 'DBText5'
+      Border.mmPadding = 0
+      DataField = 'Mom_Phone'
+      DataPipeline = Doll
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      DataPipelineName = 'Doll'
+      mmHeight = 4763
+      mmLeft = 191030
+      mmTop = 529
+      mmWidth = 39952
+      BandType = 4
+      LayerName = Foreground
+    end
   end
   object ppFooterBand1: TppFooterBand
-    Background.Brush.Style = bsClear
+    Border.mmPadding = 0
     mmBottomOffset = 0
     mmHeight = 2381
     mmPrintPosition = 0
@@ -210,12 +396,12 @@ object ppReport: TppReport
       raProgram.ProgramType = ttProcedure
       raProgram.Source = 
         'procedure KittoImageOnPrint;'#13#10'begin'#13#10'  KittoImage.picture.LoadFr' +
-        'omFile(ExpandImageFilePath('#39'kitto_logo_150.png'#39'));'#13#10'end;'#13#10
+        'omFile(ExpandImageFilePath('#39'kittoX_logo_150.png'#39'));'#13#10'end;'#13#10
       raProgram.ComponentName = 'KittoImage'
       raProgram.EventName = 'OnPrint'
       raProgram.EventID = 32
       raProgram.CaretPos = (
-        3
+        75
         3)
     end
     object raProgramInfo2: TraProgramInfo
@@ -230,7 +416,7 @@ object ppReport: TppReport
       raProgram.EventName = 'OnPrint'
       raProgram.EventID = 32
       raProgram.CaretPos = (
-        3
+        59
         3)
     end
   end

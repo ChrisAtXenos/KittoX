@@ -2,7 +2,7 @@
 [![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
 
-**Latest Version 4.0.11 - 28 Jul 2026**
+**Latest Version 4.0.12 - 31 Jul 2026**
 
 ![KittoX_logo.png](./images/kittoX_logo_200.png)
 
@@ -57,6 +57,14 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 ---
 
 # Release Notes
+
+## 31 Jul 2026: ver. 4.0.12 Beta
+
+### LDAP / Active Directory authentication — new
+- New **Kitto.Auth.LDAP** authenticator (`Auth: LDAP`): LDAP simple bind (Active Directory or generic LDAP), no local user table, reads name/e-mail from the directory
+
+### ReportBuilder Tool — ported
+- `Controller: ReportBuilderTool` updated to latest ReportBuilder version
 
 ## 28 Jul 2026: ver. 4.0.11 Beta
 

@@ -3,6 +3,12 @@
 interface
 
 uses
+  //Core Kitto Units
+  Kitto.Html.All
+  //Kitto Enterprise components
+  , Kitto.Web.Enterprise
+  //Activates Logger
+  , EF.Logger.TextFile
   // ---------------------------------------------------------------------------
   // DELPHI ENTERPRISE (or ARCHITECT) REQUIRED for the client/server database
   // drivers listed below: the DBExpress Data.DBX* drivers and the FireDAC
@@ -17,50 +23,46 @@ uses
   // target a local DB (SQLite/InterBase) — remove the client/server driver uses
   // accordingly. (ADO/dbGo and the SQLite/InterBase drivers are in Professional.)
   // ---------------------------------------------------------------------------
-  Data.DBXMSSQL,
-  Data.DBXFirebird,
-  EF.DB.ADO,
-  EF.DB.DBX,
-  EF.DB.FD, //FireDac support
-  FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLMeta, //FireDac support for MS-SQL
-  FireDAC.Phys.IBBase, FireDAC.Phys.FB, //FireDac support for Firebird
-  FireDAC.Phys.PG, FireDAC.Phys.PGWrapper, //FireDac support for PostgreSQL
-  FireDAC.Phys.Oracle, FireDAC.Phys.OracleMeta, //FireDac support for Oracle
+  //ADO Support
+  , EF.DB.ADO
+  //DbExpress Support
+  , EF.DB.DBX
+  , Data.DBXMSSQL
+  , Data.DBXFirebird
+  , Data.DBXOracle
+  //FireDac base support
+  , EF.DB.FD
+  //FireDac support for MS-SQL
+  , FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLMeta
+  //FireDac support for Firebird
+  , FireDAC.Phys.IBBase, FireDAC.Phys.FB
+  //FireDac support for PostgreSQL
+  , FireDAC.Phys.PG, FireDAC.Phys.PGWrapper
+  //FireDac support for Oracle
+  , FireDAC.Phys.Oracle, FireDAC.Phys.OracleMeta
   // Oracle via Devart ODAC (optional) — alternative to FireDAC.Phys.Oracle above.
-  // Left commented out because ODAC is a third-party commercial library that
-  // requires ODAC installed + its library path in the project. Uncomment the
-  // single EF.DB.ODAC line below to enable the 'ODAC' adapter (see the
-  // ODAC_Oracle block in Config.yaml). Unit order in this uses clause does not
-  // matter: each EF.DB.* adapter self-registers by ClassId in its own
-  // initialization, independently of FireDAC. ODAC: https://www.devart.com/odac/
-  // EF.DB.ODAC, //ODAC support for Oracle (Devart)
-  //Global Kittox uses
-  Kitto.Html.All,
-  Kitto.Web.Enterprise,
-  // Opt-in REST/JSON API under /api/v4/{ViewName} (GET/POST/PUT/PATCH/DELETE),
-  // sharing the same views, business rules and ACL as the HTML GUI. Browser-only
-  // apps simply omit this unit — no /api routes are then linked/registered.
-  Kitto.Web.Rest,
+  //, EF.DB.ODAC //ODAC support for Oracle (Devart)
+
+  // Opt-in REST/JSON API under /api/v4/{ViewName} (see Kitto.Web.Rest).
+  , Kitto.Web.Rest
   // Activates the file logger endpoint declared in Config.yaml under
   // Log/TextFile (auto-registered via the unit's initialization). Standalone
   // Indy hosts must include this unit explicitly — the WebBroker bridge for
   // ISAPI/Apache pulls it in on its own.
-  EF.Logger.TextFile
-  // Kitto.AccessControl.DB,
   , Kitto.Auth.DB
-  // Kitto.Auth.DBServer,
-  // Kitto.Auth.OSDB,
-  // Kitto.Auth.TextFile,
+  // , Kitto.Auth.DBServer
+  // , Kitto.Auth.OSDB
+  // , Kitto.Auth.TextFile
   // JWT authenticator (Auth: JWT) — registered as 'JWT' on init.
-  // HelloKitto wraps the standard DB authenticator under Auth/Inner so the
-  // session credential travels in a signed JWT cookie instead of a server
-  // session id. No DatabaseChoices on the login page (DefaultDatabaseName
-  // drives the dialect): swap PostgreSQL/SQL Server/Firebird by editing
-  // Config.yaml only.
   , Kitto.Auth.JWT
-  , Kitto.Tool.ADO //For Excel/Import export
-  , Kitto.Tool.DebenuQuickPDF //For PDF Merge
-  //, Kitto.Ext.ReportBuilderTools //Tool for Reportbuilder
+  //, Kitto.AccessControl.DB
+
+  //For Excel/Import export via ADO: requires Microsoft.ACE.OLEDB.12.0 installed
+  , Kitto.Tool.ADO
+  //Debenu Quick PDF Engine + Tool: requires Debenu Quick PDF (only 32bit)
+  , Kitto.Tool.DebenuQuickPDF
+  //ReportBuilder engine + 'ReportBuilderTool' controller: requires ReportBuilder
+  //, Kitto.ReportBuilder
   //, Kitto.Ext.FOPTools //For FOP Engine
   // Kitto.Localization.dxgettext, //Commented to enable per-session localization
   ;

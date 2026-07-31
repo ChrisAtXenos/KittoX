@@ -2,7 +2,7 @@
 Controller: BorderPanel
   DisplayMode: FullScreen
   WestView:
-    DisplayLabel: _(Main Menu)
+    DisplayLabel: Main Menu
     Controller: BorderPanel
       Width: 230
       Collapsible: True
@@ -39,6 +39,5 @@ Controller: BorderPanel
   SouthView:
     Controller: StatusBar
       Text: |
-        <center>Connected to: <b>EMPLOYEE</b></center>
-        <center>_(User: %Auth:UserName%)</center>
+        Connected to: <b>EMPLOYEE</b> &nbsp;&mdash;&nbsp; User: <b>%Auth:UserName%</b> &nbsp;&mdash;&nbsp; FullName: <b>%Auth:FULL_NAME%</b> &nbsp;&mdash;&nbsp; <b>EMail: %Auth:EMAIL_ADDRESS%</b> - Authenticated by: ldap.forumsys.com
       ImageName: person

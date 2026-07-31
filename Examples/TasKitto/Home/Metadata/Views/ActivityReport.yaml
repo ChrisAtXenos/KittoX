@@ -75,3 +75,12 @@ MainTable:
           FileName: %APP_PATH%\Resources\taskitto_logo_150.png
           ClientFileName: takitto_logo.png
           ContentType: image/png
+#      ActivityReportRBuilder:
+#        DisplayLabel: _(Activity Report by RB)
+#        ImageName: print
+#        Controller: ReportBuilderTool
+#          ClientFileName: ActivityReport.pdf
+#          TemplateFileName: %APP_PATH%ReportTemplates\ActivityReport.rtm
+#          RequireSelection: False
+#          UsePipeLines: True
+#          Design: False

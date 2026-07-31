@@ -83,6 +83,7 @@ contains
   Kitto.AccessControl.DB in '..\..\Source\Kitto.AccessControl.DB.pas',
   Kitto.AccessControl in '..\..\Source\Kitto.AccessControl.pas',
   Kitto.Auth.DB in '..\..\Source\Kitto.Auth.DB.pas',
+  Kitto.Auth.LDAP in '..\..\Source\Kitto.Auth.LDAP.pas',
   Kitto.Auth.DBServer in '..\..\Source\Kitto.Auth.DBServer.pas',
   Kitto.Auth.OSDB in '..\..\Source\Kitto.Auth.OSDB.pas',
   Kitto.Auth in '..\..\Source\Kitto.Auth.pas',

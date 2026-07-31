@@ -28,6 +28,16 @@ MainTable:
           ClientFileName: PartyList.xls
           TemplateFileName: %APP_PATH%ReportTemplates\PartyList.xlt
           RequireSelection: False
+#      ReportBuilderPipe:
+#        DisplayLabel: _(Parties by RB)
+#        ImageName: print
+#        Controller: ReportBuilderTool
+#          ClientFileName: Parties.pdf
+#          TemplateFileName: %APP_PATH%ReportTemplates\PartyListPipe.rtm
+#          RequireSelection: True
+#          RequireDetails: True
+#          UsePipeLines: True
+#          Design: False
     Grouping:
       FieldName: Party_Period
       SortFieldNames: Party_Period_Order

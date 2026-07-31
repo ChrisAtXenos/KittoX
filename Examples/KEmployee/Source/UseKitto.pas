@@ -4,13 +4,11 @@ interface
 
 uses
   //Core Kitto Units
-  Kitto.Html.All,
-  Kitto.Web.Enterprise,
-  // Activates the file logger endpoint declared in Config.yaml under
-  // Log/TextFile (auto-registered via the unit's initialization). Standalone
-  // Indy hosts must include this unit explicitly — the WebBroker bridge for
-  // ISAPI/Apache pulls it in on its own.
-  EF.Logger.TextFile,
+  Kitto.Html.All
+  //Kitto Enterprise components
+  , Kitto.Web.Enterprise
+  //Activates Logger
+  , EF.Logger.TextFile
   // ---------------------------------------------------------------------------
   // DELPHI ENTERPRISE (or ARCHITECT) REQUIRED for the client/server database
   // drivers listed below: the DBExpress Data.DBX* drivers and the FireDAC
@@ -19,30 +17,57 @@ uses
   // Enterprise and Architect editions only. Delphi PROFESSIONAL ships FireDAC/
   // DBExpress with local/embedded drivers only (SQLite, InterBase ToGo), so on
   // a Professional license these uses do NOT compile (e.g. "unit
-  // Data.DBXFirebird not found"). A KittoX web app normally connects to a
+  // FireDAC.Phys.MSSQL not found"). A KittoX web app normally connects to a
   // client/server DB, so building this example needs a license upgrade from
   // Professional to Enterprise (or Architect). With Professional you can only
   // target a local DB (SQLite/InterBase) — remove the client/server driver uses
   // accordingly. (ADO/dbGo and the SQLite/InterBase drivers are in Professional.)
   // ---------------------------------------------------------------------------
-  EF.DB.DBX,
-  Data.DBXFirebird,
-  EF.DB.FD,
-  // Kitto.AccessControl.DB,
-  // Kitto.Auth.DB,
-  // Kitto.Auth.DBServer,
-  // Kitto.Auth.OSDB,
-  Kitto.Auth.TextFile,
+  //ADO Support
+  , EF.DB.ADO
+  //DbExpress Support
+  , EF.DB.DBX
+  , Data.DBXMSSQL
+  , Data.DBXFirebird
+  , Data.DBXOracle
+  //FireDac base support
+  , EF.DB.FD
+  //FireDac support for MS-SQL
+  , FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLMeta
+  //FireDac support for Firebird
+  , FireDAC.Phys.IBBase, FireDAC.Phys.FB
+  //FireDac support for PostgreSQL
+  , FireDAC.Phys.PG, FireDAC.Phys.PGWrapper
+  //FireDac support for Oracle
+  , FireDAC.Phys.Oracle, FireDAC.Phys.OracleMeta
+  // Oracle via Devart ODAC (optional) — alternative to FireDAC.Phys.Oracle above.
+  //, EF.DB.ODAC //ODAC support for Oracle (Devart)
+
+  // Opt-in REST/JSON API under /api/v4/{ViewName} (see Kitto.Web.Rest).
+  , Kitto.Web.Rest
+  // Activates the file logger endpoint declared in Config.yaml under
+  // Log/TextFile (auto-registered via the unit's initialization). Standalone
+  // Indy hosts must include this unit explicitly — the WebBroker bridge for
+  // ISAPI/Apache pulls it in on its own.
+  , Kitto.Auth.DB
+  // , Kitto.Auth.DBServer
+  // , Kitto.Auth.OSDB
+  // Text file authenticator: use FileAuthenticator.txt
+  // , Kitto.Auth.TextFile
+  // LDAP / Active Directory authenticator
+  , Kitto.Auth.LDAP
   // JWT authenticator (Auth: JWT) — registered as 'JWT' on init.
-  // KEmployee wraps the simpler TextFile authenticator under Auth/Inner so
-  // the session credential travels in a signed JWT cookie instead of a
-  // server session id. The text file users (FileAuthenticator.txt in Home/)
-  // remain the source of truth for password verification.
-  Kitto.Auth.JWT,
-  Kitto.Tool.ADO, //For Excel export
+  , Kitto.Auth.JWT
+  //, Kitto.AccessControl.DB
+
+  //For Excel/Import export via ADO: requires Microsoft.ACE.OLEDB.12.0 installed
+  , Kitto.Tool.ADO
+  //Debenu Quick PDF Engine + Tool: requires Debenu Quick PDF (only 32bit)
+  , Kitto.Tool.DebenuQuickPDF
+  //ReportBuilder engine + 'ReportBuilderTool' controller: requires ReportBuilder
+  //, Kitto.ReportBuilder
+  //, Kitto.Ext.FOPTools //For FOP Engine
   // Kitto.Localization.dxgettext, //Commented to enable per-session localization
-  Kitto.Metadata.ModelImplementation,
-  Kitto.Metadata.ViewBuilders
   ;
 
 implementation
@@ -53,6 +78,11 @@ uses
   JOSE.Core.JWA;
 
 initialization
+{$WARN SYMBOL_PLATFORM OFF}
+  // check memory leaks at the end of the app
+  ReportMemoryLeaksOnShutdown := DebugHook <> 0;
+{$WARN SYMBOL_PLATFORM ON}
+
   // JWT signing key for the KEmployeeX demo — registered programmatically so
   // all .dpr variants (Standalone, ISAPI, Desktop, Apache) share the same key
   // without each having to set an environment variable. The first argument is

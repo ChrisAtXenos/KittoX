@@ -31,16 +31,12 @@ uses
   EF.DB.DBX,
   daADO,
   EF.DB.ADO,
-  {$IFDEF D20+}
   FireDAC.Stan.Intf,
   FireDAC.Comp.Client,
-  FireDAC.Phys.MSSQL,
-  FireDAC.Phys.MSSQLMeta,
-  FireDAC.Phys.IBBase,
-  FireDAC.Phys.FB,
   daFireDac,
   EF.DB.FD,
-  {$ENDIF}
+  EF.YAML.Attributes,
+  Kitto.Html.Files,
   Kitto.Store,
   Kitto.Metadata.DataView;
 
@@ -74,6 +70,36 @@ type
       const ADesign: Boolean = False);
   end;
 
+  /// <summary>
+  ///  Download-file tool controller that runs a ReportBuilder (.rtm) template
+  ///  against the current view-table store/record and downloads the resulting
+  ///  PDF. With Design=True it opens the ReportBuilder RAP designer on the
+  ///  template instead of producing the PDF (requires a build with the
+  ///  RB_DESIGNER define and ReportBuilder Enterprise installed).
+  ///  Registered as the 'ReportBuilderTool' controller.
+  /// </summary>
+  {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  TKXReportBuilderToolController = class(TKXDownloadFileController)
+  strict protected
+    function GetTemplateFileName: string;
+    function GetUsePipeLines: Boolean;
+    function GetDesign: Boolean;
+    function GetReportRecord: TKViewTableRecord;
+    function GetDefaultFileExtension: string; override;
+    function CreateStream: TStream; override;
+    procedure ExecuteTool; override;
+  public
+    /// <summary>The default icon name for this controller's tool button.</summary>
+    class function GetDefaultImageName: string; override;
+  //published
+    [YamlNode('TemplateFileName', 'ReportBuilder .rtm template file (may contain macros)')]
+    property TemplateFileName: string read GetTemplateFileName;
+    [YamlNode('UsePipeLines', 'Feed data to the report through KittoX store pipelines instead of the report''s own SQL')]
+    property UsePipeLines: Boolean read GetUsePipeLines;
+    [YamlNode('Design', 'Open the ReportBuilder designer on the template instead of producing the PDF')]
+    property Design: Boolean read GetDesign;
+  end;
+
 implementation
 
 uses
@@ -105,6 +131,7 @@ uses
   daDataWizardManager,
   {$ENDIF}
   System.Math,
+  System.IOUtils,
   daIDE,
   raIDE,
   ppChrtUI,
@@ -127,6 +154,7 @@ uses
   Kitto.RB.RapFunc,
   Kitto.Metadata.Models,
   Kitto.Config,
+  Kitto.Html.Controller,
   Kitto.RB.ppStorePipe;
 
 { TKReportBuilderEngine }
@@ -227,7 +255,6 @@ begin
           else
             ppDesigner.DataSettings.DatabaseType := dtOther;
         end
-        {$IFDEF D20+}
         else if ASQLConnection is TFDConnection then
         begin
           ppDesigner.DataSettings.SessionType := 'FireDACSession';
@@ -243,7 +270,6 @@ begin
             ppDesigner.DataSettings.DatabaseType := dtOther;
           end;
         end
-        {$ENDIF}
         else if ASQLConnection is TADOConnection then
         begin
           ppDesigner.DataSettings.SessionType := 'ADOSession';
@@ -277,6 +303,8 @@ begin
     Result := TSQLConnection(LInternalConnection)
   else if LInternalConnection is TADOConnection then
     Result := TADOConnection(LInternalConnection)
+  else if LInternalConnection is TFDConnection then
+    Result := TFDConnection(LInternalConnection)
   else
     Result := nil;
 end;
@@ -336,20 +364,27 @@ begin
     InsertComponent(LSQLConnection);
     try
       if LReport.AutoSearchFieldCount > 0 then
-      begin
         LReport.OnGetAutoSearchValues := OnGetAutoSearchValues;
-        LReport.ShowAutoSearchDialog := True;
-      end;
+      // Server-side render: never pop the ReportBuilder AutoSearch dialog — the
+      // parameter values are supplied programmatically by OnGetAutoSearchValues
+      // (from the current record), so there is no user to prompt.
+      LReport.ShowAutoSearchDialog := False;
       //Build a blank report if not data was found
       LReport.NoDataBehaviors := [ndBlankReport];
-      {$IFDEF RB_DESIGNER}
       if ADesign then
-        ShowDesigner(LReport, LSQLConnection)
-      else
-      {$ENDIF}
+      begin
+      {$IFDEF RB_DESIGNER}
+        ShowDesigner(LReport, LSQLConnection);
         OnGetAutoSearchValues(LReport);
-        //LReport.PrintToDevices;
+      {$ELSE}
+        Raise Exception.Create('Add RB_DESIGNER compiler directive to use ReportBuilder Designer');
+      {$ENDIF}
+      end
+      else
+      begin
+        OnGetAutoSearchValues(LReport);
         LReport.Print;
+      end;
     finally
       //Reset workaround
       LSQLConnection.Name := '';
@@ -361,5 +396,107 @@ begin
       LPipeLineList.Free;
   end;
 end;
+
+{ TKXReportBuilderToolController }
+
+function TKXReportBuilderToolController.GetTemplateFileName: string;
+begin
+  Result := ExpandServerRecordValues(Config.GetExpandedString('TemplateFileName'));
+end;
+
+function TKXReportBuilderToolController.GetUsePipeLines: Boolean;
+begin
+  Result := Config.GetBoolean('UsePipeLines', False);
+end;
+
+function TKXReportBuilderToolController.GetDesign: Boolean;
+begin
+  Result := Config.GetBoolean('Design', False);
+end;
+
+function TKXReportBuilderToolController.GetReportRecord: TKViewTableRecord;
+begin
+  // Mono-record tools (RequireSelection=True) report the current record; list
+  // tools (RequireSelection=False) report the WHOLE store, so the pipeline must
+  // receive a nil record to iterate every row. The framework always sets
+  // Sys/Record to the store's first record, so testing ServerRecord for nil is
+  // not enough — the caller's intent is given by RequireSelection.
+  if Config.GetBoolean('RequireSelection') then
+    Result := ServerRecord
+  else
+    Result := nil;
+end;
+
+function TKXReportBuilderToolController.GetDefaultFileExtension: string;
+begin
+  Result := '.pdf';
+end;
+
+class function TKXReportBuilderToolController.GetDefaultImageName: string;
+begin
+  Result := 'print';
+end;
+
+function TKXReportBuilderToolController.CreateStream: TStream;
+var
+  LEngine: TKReportBuilderEngine;
+  LTemplateFileName, LPDFFileName: string;
+  LFileStream: TFileStream;
+begin
+  LTemplateFileName := GetTemplateFileName;
+  Assert(LTemplateFileName <> '', 'ReportBuilderTool: TemplateFileName is mandatory');
+  // Render the PDF to a temp file, then return it as an in-memory stream so the
+  // base download logic can send it and Cleanup can delete the temp file.
+  LPDFFileName := TPath.Combine(TPath.GetTempPath, TPath.GetGUIDFileName + '.pdf');
+  AddTempFilename(LPDFFileName);
+  LEngine := TKReportBuilderEngine.Create(nil);
+  try
+    LEngine.BuildReport(LTemplateFileName, LPDFFileName, ServerStore, GetReportRecord,
+      GetUsePipeLines, '', False);
+  finally
+    LEngine.Free;
+  end;
+  Result := TMemoryStream.Create;
+  try
+    LFileStream := TFileStream.Create(LPDFFileName, fmOpenRead or fmShareDenyWrite);
+    try
+      Result.CopyFrom(LFileStream, 0);
+    finally
+      LFileStream.Free;
+    end;
+    Result.Position := 0;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+procedure TKXReportBuilderToolController.ExecuteTool;
+var
+  LEngine: TKReportBuilderEngine;
+  LTemplateFileName: string;
+begin
+  if GetDesign then
+  begin
+    // Design mode: open the ReportBuilder designer on the template; no download.
+    LTemplateFileName := GetTemplateFileName;
+    Assert(LTemplateFileName <> '', 'ReportBuilderTool: TemplateFileName is mandatory');
+    LEngine := TKReportBuilderEngine.Create(nil);
+    try
+      LEngine.BuildReport(LTemplateFileName, '', ServerStore, GetReportRecord,
+        GetUsePipeLines, '', True);
+    finally
+      LEngine.Free;
+    end;
+  end
+  else
+    inherited; // base ExecuteTool builds the PDF via CreateStream and downloads it
+end;
+
+initialization
+  TKXControllerRegistry.Instance.RegisterClass('ReportBuilderTool', TKXReportBuilderToolController);
+
+finalization
+  TKXControllerRegistry.Instance.UnregisterClass('ReportBuilderTool');
 
 end.
