@@ -20,6 +20,13 @@
   Home: http://extpascal.googlecode.com
   License: BSD, http://www.opensource.org/licenses/bsd-license.php
   ------------------------------------------------------------------------------- }
+
+/// <summary>
+///  Server-side user session support for KittoX. Defines TKWebSession (the
+///  per-user session object, kept thread-local via a threadvar), TKWebSessions
+///  (the thread-safe session list with find/create/cleanup), the periodic
+///  cleanup thread, and a per-session gnugettext-based localization tool.
+/// </summary>
 unit Kitto.Web.Session;
 
 interface
@@ -188,8 +195,11 @@ type
     ///  pointing to an expired/lost server-side session.
     /// </summary>
     procedure RegenerateId;
+    /// <summary>Display name for the session (falls back to SessionId when unset).</summary>
     property DisplayName: string read GetDisplayName write FDisplayName;
 
+    /// <summary>Snapshot of the last request's data (user agent, client address, time),
+    /// kept alive after the request object itself is destroyed.</summary>
     property LastRequestInfo: TKWebRequestInfo read FLastRequestInfo;
     /// <summary>
     ///  True if this session was created to replace a lost session
@@ -244,15 +254,25 @@ type
   private
     function GetGnuGettextInstance: TGnuGettextInstance;
   public
+    /// <summary>Returns Self as a TObject (IEFInterface support).</summary>
     function AsObject: TObject;
+    /// <summary>Translates AString via the Kitto text domain, falling back to the app domain.</summary>
     function TranslateString(const AString: string;
       const AIdString: string = ''): string;
+    /// <summary>Translates the captions of AComponent using both text domains.</summary>
     procedure TranslateComponent(const AComponent: TComponent);
+    /// <summary>Switches the current (per-session) instance to the given language id.</summary>
     procedure ForceLanguage(const ALanguageId: string);
+    /// <summary>Returns the language id currently active on the per-session instance.</summary>
     function GetCurrentLanguageId: string;
     procedure AfterConstruction; override;
   end;
 
+  /// <summary>
+  ///  Thread-safe list of active TKWebSession objects. Owns the sessions it
+  ///  holds and provides atomic find/create, lookup by id or client address,
+  ///  removal and expiry-based cleanup. Fires OnSessionStart/OnSessionEnd.
+  /// </summary>
   TKWebSessions = class
   private type
     TKWebSessionProc = TProc<TKWebSession>;

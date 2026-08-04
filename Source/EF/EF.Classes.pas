@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+ï»¿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,12 +31,15 @@ uses
   EF.ObserverIntf;
 
 type
+  ///	<summary>
+  ///	  Persistent tree used to hold a TEFComponent's configuration.
+  ///	</summary>
   TEFComponentConfig = class(TEFPersistentTree);
 
   ///	<summary>
   ///	  <para>
-  ///	    Abstract class for configurable objects with logging and observer
-  ///	    capability. A TEFComponent:<br />- has class-level and object-level 
+  ///	    AbstractÂ class for configurable objects with logging and observer
+  ///	    capability. A TEFComponent:<br />- has class-level and object-levelÂ 
   ///	    identification methods;<br />- has a Config that it can load from a
   ///	    file;<br />- can be a subject and observer;<br />- has logging
   ///	    capability.
@@ -53,6 +56,9 @@ type
   strict protected
     function DoLoadConfig: TEFComponentConfig; virtual;
   public
+    ///	<summary>
+    ///	  Default log level used by the logging methods when none is specified.
+    ///	</summary>
     const DEFAULT_LOG_LEVEL = 1;
   protected
     ///	<summary>
@@ -77,7 +83,7 @@ type
     ///	  object-level string Id.
     ///	</summary>
     ///	<remarks>
-    ///	  Identifying objects by string-based Ids is useful in registration
+    ///	  IdentifyingÂ objects by string-based Ids is useful in registration
     ///	  frameworks, in which object Ids are read from a file and
     ///	  corresponding objects must be retrieved from a registry or factory
     ///	  object.
@@ -100,8 +106,17 @@ type
     procedure DoLog(const AStrings: TStrings; const ALinePrefix: string = '';
       const ALogLevel: Integer = DEFAULT_LOG_LEVEL); overload;
   public
+    ///	<summary>
+    ///	  Sets the default log level for the component.
+    ///	</summary>
     procedure AfterConstruction; override;
+    ///	<summary>
+    ///	  Frees the internal config object and destroys the component.
+    ///	</summary>
     destructor Destroy; override;
+    ///	<summary>
+    ///	  Returns the component itself as a TObject (IEFInterface support).
+    ///	</summary>
     function AsObject: TObject;
   public
 
@@ -110,7 +125,7 @@ type
     ///	    Returns an identification string based on the class name.
     ///	  </para>
     ///	  <para>
-    ///	    By default, returns the class name without any 'T' or 'TEF' prefix.
+    ///	    By default,Â returns the class name without any 'T' or 'TEF' prefix.
     ///	  </para>
     ///	</summary>
     ///	<remarks>
@@ -125,7 +140,7 @@ type
     ///	  the same value as GetClassId.
     ///	</summary>
     ///	<remarks>
-    ///	  Identifying objects by string-based Ids is useful in registration
+    ///	  IdentifyingÂ objects by string-based Ids is useful in registration
     ///	  frameworks, in which object Ids are read from a file and
     ///	  corresponding objects must be retrieved from a registry or factory
     ///	  object.
@@ -138,7 +153,7 @@ type
     property OnLog: TEFLogEvent read FOnLog write FOnLog;
 
     ///	<summary>
-    ///	  Gets or sets the logging level for this component. Only messages that
+    ///	  Gets or setsÂ the logging level for this component. Only messages that
     ///	  have a level lower than or equal to this setting will be logged.
     ///	</summary>
     property LogLevel: Integer read FLogLevel write FLogLevel default DEFAULT_LOG_LEVEL;
@@ -156,6 +171,9 @@ type
     /// </summary>
     procedure InvalidateConfig;
   end;
+  ///	<summary>
+  ///	  Metaclass (class reference) for TEFComponent and its descendants.
+  ///	</summary>
   TEFComponentClass = class of TEFComponent;
 
 implementation

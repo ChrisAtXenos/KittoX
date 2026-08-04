@@ -48,6 +48,7 @@ type
   protected
     procedure BeforeRegisterClass(const AId: string; const AClass: TClass); override;
   public
+    /// <summary>Frees the singleton registry instance.</summary>
     class destructor Destroy;
     /// <summary>The singleton controller-class registry.</summary>
     class property Instance: TKXControllerRegistry read GetInstance;
@@ -65,6 +66,7 @@ type
     class var FInstance: TKXControllerFactory;
     class function GetInstance: TKXControllerFactory; static;
   public
+    /// <summary>Frees the singleton factory instance.</summary>
     class destructor Destroy;
     /// <summary>The singleton controller factory.</summary>
     class property Instance: TKXControllerFactory read GetInstance;

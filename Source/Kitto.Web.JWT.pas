@@ -43,8 +43,10 @@ uses
   JOSE.Types.Bytes;
 
 type
+  /// <summary>Exception type raised for JWT configuration and key-resolution errors.</summary>
   EKJWTError = class(Exception);
 
+  /// <summary>List of role names carried by the 'roles' claim.</summary>
   TKJWTRoles = TArray<string>;
 
   /// <summary>
@@ -61,6 +63,7 @@ type
     GrantValue: string;
   end;
 
+  /// <summary>The set of ACL rows carried by the kx_acl claim.</summary>
   TKJWTAclArray = TArray<TKJWTAclEntry>;
 
   /// <summary>

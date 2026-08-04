@@ -14,6 +14,13 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Central configuration for a Kitto application. TKConfig is the singleton
+///  that loads Config.yaml, resolves the Application and System home paths,
+///  exposes the model and view catalogs, hands out per-thread cached database
+///  connections, owns the macro-expansion engine and user/JS format settings,
+///  and surfaces the strongly-typed config sub-nodes (Server, Auth, Theme, ...).
+/// </summary>
 unit Kitto.Config;
 
 {$I Kitto.Defines.inc}
@@ -45,13 +52,22 @@ type
 
   TKConfig = class;
 
+  /// <summary>Metaclass reference to TKConfig, used to instantiate the config singleton (see SetConfigClass).</summary>
   TKConfigClass = class of TKConfig;
 
+  /// <summary>Function returning the config instance to use (installed via OnGetInstance, e.g. one per web session).</summary>
   TKGetConfig = reference to function: TKConfig;
 
+  /// <summary>Callback that resolves the application name (installed via OnGetAppName).</summary>
   TKConfigGetAppNameEvent = procedure (out AAppName: string) of object;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  Application configuration singleton. Reads Config.yaml and gives access
+  ///  to home paths, the model/view catalogs, per-thread cached database
+  ///  connections (Database/DatabaseFor), the macro-expansion engine, format
+  ///  settings and the typed configuration sub-nodes.
+  /// </summary>
   TKConfig = class(TEFComponent)
   strict private
   class var
@@ -126,10 +142,15 @@ type
     class function GetModulePath: string; static;
     /// <summary>Frees the singleton config instance.</summary>
     class procedure DestroyInstance;
+    /// <summary>Builds the per-user format settings from the UserFormats config node.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the view and model catalogs and the macro-expansion engine.</summary>
     destructor Destroy; override;
+    /// <summary>Class-level init: picks the default config file name and the JS/JSON format settings.</summary>
     class constructor Create;
+    /// <summary>Class-level cleanup: releases cached connections and the singleton instance.</summary>
     class destructor Destroy;
+    /// <summary>Observer hook: forwards notifications from watched subjects to this config's observers.</summary>
     procedure UpdateObserver(const ASubject: IEFSubject;
       const AContext: string = ''); override;
     /// <summary>

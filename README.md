@@ -2,7 +2,7 @@
 [![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
 
-**Latest Version 4.0.12 - 31 Jul 2026**
+**Latest Version 4.0.13 - 04 Aug 2026**
 
 ![KittoX_logo.png](./images/kittoX_logo_200.png)
 
@@ -18,7 +18,7 @@ A **Kitto<sup>x</sup>** application is described as a set of easily maintained *
 
 ## Full documentation
 
-- [Documentation site](https://ethea.it/docs/kittox/) with 50+ pages
+- [Documentation site](https://ethea.it/docs/kittox/) with 150+ pages
 - Pages for all controllers, filters, data concepts, how-to guides, FAQ
 - Three example applications: HelloKitto, TasKitto, KEmployee
 
@@ -34,8 +34,6 @@ Beyond the Apache 2.0 Core, **Kitto<sup>x</sup>** ships with Enterprise modules 
 
 - **MCP-KittoX** &mdash; standalone Model Context Protocol server (`MCPKittoX.exe`) that exposes KIDE<sup>x</sup> functionality to AI agents (Claude Desktop / Code, Codex, LM Studio, any MCP-compatible client). Agents can scaffold complete **Kitto<sup>x</sup>** apps and reverse-engineer Models from a live database conversationally; metadata validation, locale refresh and view scaffolding tools are on the next-phases roadmap. Bundled with KIDE<sup>x</sup>: a single OnGuard registration unlocks both.
 
-[Contact Ethea](https://ethea.it/supporto/) for commercial license details, or see the [Enterprise Edition](https://ethea.it/docs/kittox/KittoEnt.html) page on the documentation site.
-
 ---
 
 ## Licensing ##
@@ -50,13 +48,27 @@ Beyond the Apache 2.0 Core, **Kitto<sup>x</sup>** ships with Enterprise modules 
 
 See the [Licensing](https://ethea.it/docs/kittox/KittoLicensing.html) page and [Enterprise Edition](KittoEnt) for full details.
 
-Start [here](https://ethea.it/docs/kittox/Kitto-at-a-glance.html) for further information.
-
 Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 
 ---
 
 # Release Notes
+
+## 04 Aug 2026: ver. 4.0.13 Beta
+
+### Notification Center & background tools — new
+- Run a download-file tool (CSV/TXT/XML/Excel, MergePDF, ReportBuilder) as a **background job** on a worker pool separate from the HTTP threads — opt-in per tool with a single YAML line, `RunMode: Background`
+- A **notification center** bell shows each job with its status (queued/running %, completed, failed) and lets the user **download**, cancel or dismiss the result; the badge stays until the job leaves the list
+- Jobs are **persisted per-user on disk** and reloaded on startup, so results survive logout/login and a process restart
+- Configurable via `Server/Jobs` (`PoolSize`, `Directory`, `ArtifactRetentionHours`)
+
+### Licensing — new
+- License Registration into Registry under HKEY_CURRENT_USER\Software\Ethea\KIDEX
+- Updated License procedure (Company Name + developer email)
+- Now is possible to use multiple versions of KittoX in the same machine.
+
+### Repository layout — changed
+- The framework packages folder has been **renamed from `Projects/` to `Packages/`**.
 
 ## 31 Jul 2026: ver. 4.0.12 Beta
 
@@ -151,7 +163,7 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 
 ### IDE / wizard
 - New **RAD Studio IDE plugin gallery**: `KittoXIDE.bpl` registers 4 entries under **File > New > Other > KittoX Projects** (Standalone .exe / Desktop .exe / ISAPI .dll / Apache .dll)
-- **Three paths** to scaffold a new app: KIDEX standalone, the new IDE gallery, and `MCP-KittoX project_create_app`
+- **Three paths** to scaffold a new app: KIDE<sup>x</sup> standalone, the new IDE gallery, and `MCP-KittoX project_create_app`
 - New project default: `Auth: TextFile` with a ready-to-use `Home/FileAuthenticator.txt` (admin/admin demo accounts) so the generated app authenticates out of the box, no users table required. JWT envelope kept as default. `AccessControl` default switched to `Null` to avoid deny-all post-login on a brand-new project. `DB.FD.yaml` template now sets `ODBCAdvanced: TrustServerCertificate=yes` so SQL Server ODBC Driver 17/18 connects on first try
 - Model Wizard `Beautify names` option now also handles DB names with spaces (Northwind-style: `Quarterly Orders` → `QuarterlyOrders`, `Sales by Category` → `SalesByCategory`); the original name is preserved in `PhysicalName` for the SQL layer
 - Model Wizard — new editable **`DisplayLabel`** and **`Hint`** fields on every Add/Update Field action: auto-populated from the database's native column comment when present (MSSQL `MS_Description`, PostgreSQL `pg_description`, Firebird `RDB$DESCRIPTION`, MySQL `COLUMN_COMMENT`, Oracle `USER_COL_COMMENTS`), fully editable before Apply
@@ -161,7 +173,7 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 - New tool **`models_create_from_db`** — the headless equivalent of the Model Wizard. AI agents can reverse-engineer Models from a database connection conversationally: defaults to `dry_run: true` (preview only); pass `dry_run: false` to commit. Output is byte-identical to what the visual wizard writes. `DisplayLabel` auto-populated from the database's native column comments; optional `field_descriptions` array lets the agent inject labels from a non-DB source (CSV, glossary, prior YAML) with per-property override precedence
 - New tools **`models_list` / `models_read` / `views_list` / `views_read` / `resources_list` / `resources_read`** — enumerate and read project metadata and static resources headlessly
 - New tool **`menu_generate_main_menu`** — create or refresh `MainMenu.yaml` with one entry per Model under a top-level `Folder: Menu`; idempotent (existing entries preserved, only missing Models appended)
-- **Database column comments** are now auto-fetched for all 5 supported engines (MSSQL, PostgreSQL, Firebird, MySQL, Oracle) and flow into both the KIDEX wizard and the MCP tool
+- **Database column comments** are now auto-fetched for all 5 supported engines (MSSQL, PostgreSQL, Firebird, MySQL, Oracle) and flow into both the KIDE<sup>x</sup> wizard and the MCP tool
 - 16 tools now implemented (was 9)
 - Better error reporting from MCP tools: errors are now propagated verbatim to the JSON-RPC client (class name + message) instead of being replaced by a generic fallback
 
@@ -182,7 +194,7 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 - TasKitto SQL Server DDL split (tables / views in separate scripts because of T-SQL batch rules)
 - New `Tools/SetVersion.ps1`: one-shot version bump across constant, dproj, README and Inno Setup
 - New `Projects/BuildAllPackagesD{10_4,11,12,13}.ps1` wrappers: rebuild Core + Enterprise per Delphi version
-- YAML metadata files included in every `.dproj` (visible in Project Manager, KIDEX highlighting)
+- YAML metadata files included in every `.dproj` (visible in Project Manager, KIDE<sup>x</sup> highlighting)
 - `EF.Logger.TextFile` active out-of-the-box for the standalone Indy hosts
 
 ## 23 Apr 2026: ver. 4.0.5 Beta

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,9 +45,22 @@ type
   /// </summary>
   TEFNoRefCountObject = class(TObject, IInterface, IEFInterface)
   public
+    /// <summary>
+    ///  Standard IInterface implementation; returns the requested interface if
+    ///  supported.
+    /// </summary>
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
+    /// <summary>
+    ///  Disabled reference counting; always returns -1.
+    /// </summary>
     function _AddRef: Integer; stdcall;
+    /// <summary>
+    ///  Disabled reference counting; always returns -1.
+    /// </summary>
     function _Release: Integer; stdcall;
+    /// <summary>
+    ///  Returns the implementing object (Self).
+    /// </summary>
     function AsObject: TObject;
   end;
 

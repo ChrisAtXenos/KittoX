@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,35 +36,24 @@ type
   ///	</summary>
   TEFSQLBuilder = class
   public
-    // Builds a SQL delete command with ATableName as target
-    // and no where clause.
+    ///	<summary>Builds a SQL delete command with ATableName as target and no where clause.</summary>
     class procedure BuildEmptyTableCommand(const ATableName: string;
       const ACommand: TEFDBCommand);
-    // Builds a parameterized SQL select query with ASelectList in the
-    // select clause, ATableName as source and AKeyFieldNames as fields
-    // in the where clause.
+    ///	<summary>Builds a parameterized SQL select query with ASelectList in the select clause, ATableName as source and AKeyFieldNames as fields in the where clause.</summary>
     class procedure BuildRecordExistsQuery(const ATableName: string;
       const ASelectList: string; const AKeyFieldNames: TStrings;
       const AQuery: TEFDBQuery);
-    // Builds a parameterized SQL select query with ALookupResultFieldNames in the
-    // select clause, ALookupTableName as source and ALookupKeyFieldNames as fields
-    // in the where clause. AKeyFieldNames are used as names for the params in
-    // the where clause.
+    ///	<summary>Builds a parameterized SQL select query with ALookupResultFieldNames in the select clause, ALookupTableName as source and ALookupKeyFieldNames as fields in the where clause. AKeyFieldNames are used as names for the params in the where clause.</summary>
     class procedure BuildLookupQuery(const ALookupTableName,
       ALookupResultFieldNames, ALookupKeyFieldNames,
       AKeyFieldNames: string; const AQuery: TEFDBQuery);
-    // Builds a parameterized SQL insert command with ATableName as target
-    // and AFieldNames as field and param names. AFieldNames is a list of
-    // field names.
+    ///	<summary>Builds a parameterized SQL insert command with ATableName as target and AFieldNames as field and param names.</summary>
     class procedure BuildInsertCommand(const ATableName: string;
       const AFieldNames: TStrings; const ACommand: TEFDBCommand);
-    // Builds a parameterized SQL update command with ATableName as target,
-    // AFieldNames as fields in the set clause and AKeyFieldNames as fields
-    // in the where clause.
+    ///	<summary>Builds a parameterized SQL update command with ATableName as target, AFieldNames as fields in the set clause and AKeyFieldNames as fields in the where clause.</summary>
     class procedure BuildUpdateCommand(const ATableName: string;
       const AFieldNames, AKeyFieldNames: TStrings; const ACommand: TEFDBCommand);
-    // Builds a parameterized SQL delete command with ATableName as target
-    // and AKeyFieldNames as fields in the where clause.
+    ///	<summary>Builds a parameterized SQL delete command with ATableName as target and AKeyFieldNames as fields in the where clause.</summary>
     class procedure BuildDeleteCommand(const ATableName: string;
       const AKeyFieldNames: TStrings; const ACommand: TEFDBCommand);
   end;
@@ -126,7 +115,7 @@ function SetSQLOrderByClause(const ASQL, ANewClause: string): string;
 
 ///	<summary>
 ///	  Returns the SQL into clause from a given SQL statement. This function
-///	  works on the into clause that�may precede the from clause in some
+///	  works on the into clause that may precede the from clause in some
 ///	  databases (namely SQL Server).
 ///	</summary>
 function GetSQLIntoClause(const ASQL: string): string;

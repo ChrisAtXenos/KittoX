@@ -124,7 +124,10 @@ type
     /// This default implementation does nothing.</summary>
     procedure SetMustInputPIN(const Value: Boolean); virtual;
   public
+    /// <summary>Defines the auth data on the current session and creates the
+    /// auth macro expander.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the auth macro expander.</summary>
     destructor Destroy; override;
   public
     /// <summary>
@@ -198,6 +201,8 @@ type
     /// </summary>
     procedure ResetPassword(const AParams: TEFNode); virtual; abstract;
 
+    /// <summary>Thread-local reference to the currently active authenticator
+    /// instance for the request being served.</summary>
     class property Current: TKAuthenticator read GetCurrent write SetCurrent;
 
     /// <summary>
@@ -216,11 +221,19 @@ type
     /// </summary>
     property MacroExpander: TEFMacroExpander read FMacroExpander;
 
+    /// <summary>Returns True if the supplied password hash matches the stored
+    /// one. Concrete authenticators define the actual matching rules.</summary>
     function IsPasswordMatching(const ASuppliedPasswordHash: string;
       const AStoredPasswordHash: string): Boolean; virtual; abstract;
 
+    /// <summary>Indicates whether the stored password is hashed with the BCrypt
+    /// algorithm (as opposed to the legacy hash or clear text).</summary>
     property IsBCrypted: Boolean read GetIsBCrypted write FIsBCrypted;
   public
+    /// <summary>Returns True if the named URL parameter is allowed to bypass
+    /// authentication and be forwarded to the login process. The base
+    /// implementation returns False for every parameter; descendants override to
+    /// let non-sensitive params through while guarding credentials.</summary>
     function CanBypassURLParam(const AParamName: string): Boolean; virtual;
 
     /// <summary>
@@ -259,6 +272,8 @@ type
     /// </summary>
     class function CarriesSessionIdInCredential: Boolean; virtual;
   end;
+  /// <summary>Metaclass reference used to register and create authenticators
+  /// by class.</summary>
   TKAuthenticatorClass = class of TKAuthenticator;
 
   /// <summary>
@@ -275,6 +290,8 @@ type
     function GetPassword: string; override;
     function GetSecretCode: string; override;
   public
+    /// <summary>Protects the UserName, Password and SecretCode params (which
+    /// cannot be forwarded to login); returns True for any other param.</summary>
     function CanBypassURLParam(const AParamName: string): Boolean; override;
   end;
 
@@ -295,7 +312,9 @@ type
     class var FInstance: TKAuthenticatorRegistry;
     class function GetInstance: TKAuthenticatorRegistry; static;
   public
+    /// <summary>Frees the singleton registry instance.</summary>
     class destructor Destroy;
+    /// <summary>The lazily-created singleton registry instance.</summary>
     class property Instance: TKAuthenticatorRegistry read GetInstance;
 
     /// <summary>Adds an authenticator class to the registry.</summary>
@@ -308,7 +327,9 @@ type
     class var FInstance: TKAuthenticatorFactory;
     class function GetInstance: TKAuthenticatorFactory; static;
   public
+    /// <summary>Frees the singleton factory instance.</summary>
     class destructor Destroy;
+    /// <summary>The lazily-created singleton factory instance.</summary>
     class property Instance: TKAuthenticatorFactory read GetInstance;
 
     /// <summary>Creates and returns an instance of the authenticator class

@@ -73,10 +73,12 @@ type
     FTempFileNames: TStrings;
     FFileName: string;
     FStream: TStream;
+    FJobDir: string;
+    FJobResultPath: string;
+    FJobResultFileName: string;
+    FJobResultContentType: string;
     function GetContentType: string;
     function GetFileName: string;
-    procedure DoDownloadStream(const AStream: TStream;
-      const AFileName: string; const AContentType: string);
     procedure PersistFile(const AStream: TStream);
   strict protected
     function GetClientFileName: string; virtual;
@@ -87,15 +89,29 @@ type
     procedure AddTempFilename(const AFileName: string);
     procedure Cleanup;
     procedure DoAfterExecuteTool; override;
+    /// <summary>Delivers the produced content stream: to the HTTP response in
+    /// normal (foreground) mode, or — when running under a background job via
+    /// <see cref="ExecuteToFile" /> — writes it to the job artifact directory
+    /// instead of touching the response (which is absent on a worker thread).</summary>
+    procedure DoDownloadStream(const AStream: TStream;
+      const AFileName: string; const AContentType: string); virtual;
   protected
     function GetDefaultFileName: string; virtual;
     procedure PrepareFile(const AFileName: string); virtual;
     function CreateStream: TStream; virtual;
   public
+    /// <summary>Creates the internal list of temporary file names.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Deletes temporary files and frees the pending stream.</summary>
     destructor Destroy; override;
     /// <summary>The default icon name for this controller's tool button.</summary>
     class function GetDefaultImageName: string; override;
+    /// <summary>Runs the tool in background/file mode: produces the artifact into
+    /// ADirectory (no HTTP response is touched, so it is safe to call from a job
+    /// worker thread) and returns the produced file's full path, client file name
+    /// and content type. Used for tools declared with RunMode: Background.</summary>
+    procedure ExecuteToFile(const ADirectory: string;
+      out AFullPath, AClientFileName, AContentType: string);
   //published
     [YamlNode('FileName', 'Server file path to download')]
     property FileName: string read GetFileName;
@@ -150,7 +166,9 @@ type
   protected
     procedure ProcessUploadedFile(const AFile: TAbstractWebRequestFile); virtual;
   public
+    /// <summary>Creates the internal list of temporary file names.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Deletes temporary files created during the upload.</summary>
     destructor Destroy; override;
     /// <summary>The default icon name for this controller's tool button.</summary>
     class function GetDefaultImageName: string; override;
@@ -270,9 +288,45 @@ end;
 
 procedure TKXDownloadFileController.DoDownloadStream(const AStream: TStream;
   const AFileName, AContentType: string);
+var
+  LFileStream: TFileStream;
 begin
-  TKWebApplication.Current.DownloadStream(AStream, AFileName, AContentType, False);
+  if FJobDir <> '' then
+  begin
+    // Background/file mode: write the produced stream to the job artifact
+    // directory instead of the (absent) HTTP response, then take ownership.
+    FJobResultPath := TPath.Combine(FJobDir, AFileName);
+    LFileStream := TFileStream.Create(FJobResultPath, fmCreate);
+    try
+      AStream.Position := 0;
+      LFileStream.CopyFrom(AStream, 0);
+    finally
+      FreeAndNil(LFileStream);
+    end;
+    FJobResultFileName := AFileName;
+    FJobResultContentType := AContentType;
+    AStream.Free; // foreground transfers ownership to the response; here we own it
+  end
+  else
+    TKWebApplication.Current.DownloadStream(AStream, AFileName, AContentType, False);
   AfterExecuteTool;
+end;
+
+procedure TKXDownloadFileController.ExecuteToFile(const ADirectory: string;
+  out AFullPath, AClientFileName, AContentType: string);
+begin
+  FJobDir := ADirectory;
+  try
+    // Runs the standard tool chain (ExecuteTool -> produce content ->
+    // DoDownloadStream); with FJobDir set, DoDownloadStream writes the artifact
+    // to a file instead of streaming it to the (absent) HTTP response.
+    Display;
+  finally
+    FJobDir := '';
+  end;
+  AFullPath := FJobResultPath;
+  AClientFileName := FJobResultFileName;
+  AContentType := FJobResultContentType;
 end;
 
 function TKXDownloadFileController.GetPersistentFileName: string;

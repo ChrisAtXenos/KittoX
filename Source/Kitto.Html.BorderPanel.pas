@@ -51,6 +51,11 @@ function RenderNamedRegion(AConfig: TEFComponentConfig; AView: TKView;
   const AIsRequired: Boolean = False): string;
 
 type
+  /// <summary>
+  ///  Border-layout container controller. Arranges its regions (North, West,
+  ///  Center, East, South) in a CSS grid, rendering each region from the
+  ///  corresponding {Region}View / {Region}Controller config node.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXBorderPanelController = class(TKXComponent, IKXController, IKXContainer)
   strict private

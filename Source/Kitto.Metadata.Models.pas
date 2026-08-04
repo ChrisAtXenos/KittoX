@@ -14,6 +14,13 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  The model metadata layer. Defines data models (TKModel) mapped to database
+///  tables, their fields (TKModelField), detail (master-detail) references,
+///  validation rules, and the catalog (TKModels) and registry that manage them.
+///  Models are the source of truth for structure and defaults that views build
+///  upon.
+/// </summary>
 unit Kitto.Metadata.Models;
 
 {$I Kitto.Defines.inc}
@@ -35,22 +42,31 @@ uses
   Kitto.Metadata.SubNodes;
 
 type
+  /// <summary>
+  ///  Data type of a reference (foreign-key) field. Its stored value is the
+  ///  referenced model's key.
+  /// </summary>
   TKReferenceDataType = class(TEFDataType)
   protected
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns the type name under which this data type is registered ('Reference').</summary>
     class function GetTypeName: string; override;
+    /// <summary>Default value of EmptyAsNull for reference fields.</summary>
     function GetDefaultEmptyAsNull: Boolean; override;
+    /// <summary>Returns True: reference fields support the EmptyAsNull setting.</summary>
     function SupportsEmptyAsNull: Boolean; override;
   end;
 
   TKModel = class;
 
+  /// <summary>A single validation/business rule attached to a model or field.</summary>
   TKRule = class(TKMetadataItem)
   end;
 
+  /// <summary>The collection of validation/business rules of a model or field.</summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   [YamlChildType('ForceUpperCase', '', 'Force value to upper case')]
   [YamlChildType('SubType', 'alpha_space', 'Field sub-type constraint')]
@@ -72,7 +88,9 @@ type
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
+    /// <summary>Number of rules in the collection.</summary>
     property RuleCount: Integer read GetRuleCount;
+    /// <summary>The rules, by index (default property).</summary>
     property Rules[const AIndex: Integer]: TKRule read GetRule; default;
 
     /// <summary>
@@ -85,12 +103,21 @@ type
 
   TKModelField = class;
 
+  /// <summary>Predicate used to find a model field by a custom condition.</summary>
   TKModelFieldPredicate = reference to function(const AField: TKModelField): Boolean;
 
+  /// <summary>An array of model fields.</summary>
   TKModelFieldArray = TArray<TKModelField>;
 
+  /// <summary>A (field, foreign-field-name) pair constraining a reference lookup.</summary>
   TKFilterByField = TPair<TKModelField, string>;
 
+  /// <summary>
+  ///  A field of a model: maps to a database column (or is computed by an
+  ///  expression) and carries the metadata (type, size, labels, default value,
+  ///  visibility, rules, reference target, etc.) that views inherit from.
+  ///  Reference fields can contain sub-fields making up the foreign key.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKModelField = class(TKMetadataItem)
   strict private
@@ -157,11 +184,15 @@ type
     function GetFields: TKModelFields;
     function GetDataType: TEFDataType; override;
   public
+    /// <summary>Default value of AutoCompleteMinChars when not specified.</summary>
     const DEFAULT_AUTOCOMPLETEMINCHARS = 4;
 
+    /// <summary>Returns the effective EmptyAsNull setting for this field.</summary>
     function GetEmptyAsNull: Boolean; override;
+    /// <summary>Housekeeping performed before the field is saved to YAML.</summary>
     procedure BeforeSave; override;
 
+    /// <summary>The access-control resource URI identifying this field.</summary>
     function GetResourceURI: string; override;
 
     /// <summary>The model this field belongs to.</summary>
@@ -479,6 +510,9 @@ type
     function GetFilterByFields: TArray<TKFilterByField>;
   end;
 
+  /// <summary>The collection of fields of a model (or the sub-fields of a
+  /// reference field). The YAML child type of each entry selects the field's
+  /// data type.</summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   [YamlChildType('StringField', 'String(10)', 'String field with max length')]
   [YamlChildType('IntegerField', 'Integer', 'Integer numeric field')]
@@ -524,6 +558,7 @@ type
     property ParentField: TKModelField read GetParentField;
   end;
 
+  /// <summary>Base class for objects contained in a model (e.g. detail references).</summary>
   TKModelSubobject = class(TKMetadataItem)
   private
     function GetModel: TKModel;
@@ -532,6 +567,11 @@ type
     property Model: TKModel read GetModel;
   end;
 
+  /// <summary>
+  ///  A master-detail reference from a model to a detail (child) model,
+  ///  identifying the child model and the foreign-key field that links back to
+  ///  this master model.
+  /// </summary>
   TKModelDetailReference = class(TKModelSubobject)
   strict private
     function GetDetailReferenceName: string;
@@ -568,6 +608,7 @@ type
     property ReferenceFieldName: string read GetReferenceFieldName;
   end;
 
+  /// <summary>The collection of master-detail references of a model.</summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   [YamlChildType('DetailTable', 'DetailTable', 'Detail table reference')]
   TKModelDetailReferences = class(TKMetadataItem)
@@ -597,6 +638,12 @@ type
 
   TKModels = class;
 
+  /// <summary>
+  ///  A data model: the metadata description of a database table (or view),
+  ///  including its fields, primary key, detail references, rules, labels and
+  ///  behavioral defaults. Provides the record I/O API (LoadRecords/SaveRecord)
+  ///  that the default implementation carries out through SQL.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKModel = class(TKMetadata)
   strict private
@@ -641,6 +688,8 @@ type
     class function BeautifyModelName(const AModelName: string): string; virtual;
     class function GetClassNameForResourceURI: string; override;
   public
+    /// <summary>Housekeeping performed before the model is saved to YAML
+    /// (e.g. drops an empty DetailReferences node).</summary>
     procedure BeforeSave; override;
   public
     /// <summary>The models catalog this model belongs to.</summary>
@@ -649,11 +698,13 @@ type
     [YamlRequiredNode('ModelName', 'Unique model identifier')]
     property ModelName: string read GetModelName;
 
+    /// <summary>The default plural model name (the English plural of ModelName).</summary>
     property DefaultPluralModelName: string read GetDefaultPluralModelName;
 
     [YamlNode('PluralModelName', 'Plural form of model name')]
     property PluralModelName: string read GetPluralModelName;
 
+    /// <summary>The default physical name (the ModelName) when PhysicalName is not set.</summary>
     property DefaultPhysicalName: string read GetDefaultPhysicalName;
 
     [YamlNode('PhysicalName', 'Physical DB table name (defaults to ModelName)')]
@@ -668,11 +719,14 @@ type
 
     [YamlNode('DisplayLabel', '', 'Label shown in the UI', True)]
     property DisplayLabel: string read GetDisplayLabel;
+    /// <summary>The default display label (a beautified ModelName).</summary>
     property DefaultDisplayLabel: string read GetDefaultDisplayLabel;
 
     [YamlNode('PluralDisplayLabel', '', 'Plural label shown in the UI', True)]
     property PluralDisplayLabel: string read GetPluralDisplayLabel;
+    /// <summary>The default plural display label (a beautified PluralModelName).</summary>
     property DefaultPluralDisplayLabel: string read GetDefaultPluralDisplayLabel;
+    /// <summary>The default icon name when ImageName is not set.</summary>
     property DefaultImageName: string read GetDefaultImageName;
 
     [YamlNode('ImageName', 'Icon name for this model')]
@@ -806,6 +860,7 @@ type
     /// </summary>
     [YamlNode('DefaultSorting', 'Default ORDER BY expression (qualified field names)')]
     property DefaultSorting: string read GetDefaultSorting;
+    /// <summary>The fallback sort expression (the key fields) when DefaultSorting is not set.</summary>
     property DefaultDefaultSorting: string read GetDefaultDefaultSorting;
 
     /// <summary>
@@ -913,8 +968,10 @@ type
     procedure AfterNewRecord(const ARecord: TEFNode); virtual;
   end;
 
+  /// <summary>Metaclass reference for TKModel and its descendants.</summary>
   TKModelClass = class of TKModel;
 
+  /// <summary>A simple list of models.</summary>
   TKModelList = class(TList<TKModel>)
   public
     /// <summary>Adds the name of each model in the list to AStrings.</summary>
@@ -923,6 +980,7 @@ type
 
   TKModelRegistry = class;
 
+  /// <summary>The catalog of all models, loaded from the Models/ directory.</summary>
   TKModels = class(TKMetadataCatalog)
   strict private
     class var FDefaultModelClassType: TKModelClass;
@@ -971,6 +1029,7 @@ type
     procedure GetModelList(const AList: TKModelList);
   end;
 
+  /// <summary>Singleton registry mapping type ids to model classes.</summary>
   TKModelRegistry = class(TKMetadataRegistry)
   strict private
     class var FInstance: TKModelRegistry;

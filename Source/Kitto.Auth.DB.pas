@@ -59,7 +59,9 @@ type
     FName: string;
     FPasswordHash: string;
   public
+    /// <summary>The user name read from the database.</summary>
     property Name: string read FName write FName;
+    /// <summary>The password hash read from the database.</summary>
     property PasswordHash: string read FPasswordHash write FPasswordHash;
   end;
 
@@ -319,7 +321,13 @@ type
     function IsPasswordMatching(const ASuppliedPasswordHash: string;
       const AStoredPasswordHash: string): Boolean; override;
 
+    /// <summary>Generates a new random password for the user identified by
+    /// UserName/EmailAddress in AParams, stores it (flagged as must-change) in
+    /// the database and returns it via the AParams "Password" node.</summary>
     procedure ResetPassword(const AParams: TEFNode); override;
+
+    /// <summary>Generates a QR code encoding the OTP shared secret for the user
+    /// identified in AParams, for use in PIN (TOTP) authentication.</summary>
     procedure QRGenerate(const AParams: TEFNode); override;
   end;
 
@@ -383,9 +391,15 @@ type
     property BCryptCost: integer read FBCryptCost;
 
   public
+    /// <summary>Marks the authenticator as BCrypt-enabled.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Returns True if the supplied password matches the stored BCrypt
+    /// hash; transparently rehashes and upgrades the stored hash on success when
+    /// its strength (cost) is below the configured threshold.</summary>
     function IsPasswordMatching(const ASuppliedPasswordHash: string;
       const AStoredPasswordHash: string): Boolean; override;
+    /// <summary>Resets the user's password to a new random, BCrypt-hashed value
+    /// respecting the ValidatePassword rules.</summary>
     procedure ResetPassword(const AParams: TEFNode); override;
   end;
 

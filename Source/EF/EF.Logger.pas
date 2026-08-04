@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,11 @@ uses
   EF.Macros;
 
 type
+  ///	<summary>
+  ///	  Central logging service: a singleton (see Instance) that dispatches log
+  ///	  messages to the attached endpoints (observers) whenever the message
+  ///	  level does not exceed the currently configured LogLevel.
+  ///	</summary>
   TEFLogger = class(TEFComponent)
   private
     FLogLevel: Integer;
@@ -41,37 +46,110 @@ type
       FInstance: TEFLogger;
     procedure SetLogLevelFromConfig(const ALogLevelNode: TEFNode);
   public
+    ///	<summary>
+    ///	  Creates the singleton Instance.
+    ///	</summary>
     class constructor Create;
+    ///	<summary>
+    ///	  Destroys the singleton Instance.
+    ///	</summary>
     class destructor Destroy;
+    ///	<summary>
+    ///	  Sets the log level to its default value.
+    ///	</summary>
     procedure AfterConstruction; override;
+    ///	<summary>
+    ///	  The macro expansion engine set by the last Configure call. It is only
+    ///	  valid while endpoints are processing the '{ConfigChanged}' notification.
+    ///	</summary>
     property MacroExpansionEngine: TEFMacroExpansionEngine read FMacroExpansionEngine;
   public
+    ///	<summary>
+    ///	  Lowest verbosity log level (always logged).
+    ///	</summary>
     const LOG_LOW = 1;
+    ///	<summary>
+    ///	  Medium verbosity log level.
+    ///	</summary>
     const LOG_MEDIUM = 2;
+    ///	<summary>
+    ///	  High verbosity log level.
+    ///	</summary>
     const LOG_HIGH = 3;
+    ///	<summary>
+    ///	  Detailed verbosity log level.
+    ///	</summary>
     const LOG_DETAILED = 4;
+    ///	<summary>
+    ///	  Highest (debug) verbosity log level.
+    ///	</summary>
     const LOG_DEBUG = 5;
 
+    ///	<summary>
+    ///	  Default log level used when none is specified (LOG_LOW).
+    ///	</summary>
     const DEFAULT_LOG_LEVEL = LOG_LOW;
 
+    ///	<summary>
+    ///	  Applies the given configuration: reads the log level from the 'Level'
+    ///	  node (accepting 'low', 'medium', 'high', 'detailed', 'debug' or an
+    ///	  integer), then notifies observers so that endpoints can reconfigure
+    ///	  themselves against AConfig and AMacroExpansionEngine.
+    ///	</summary>
     procedure Configure(const AConfig: TEFTree; const AMacroExpansionEngine: TEFMacroExpansionEngine);
 
+    ///	<summary>
+    ///	  Gets or sets the current log level. Messages logged with a level
+    ///	  higher than this value are discarded.
+    ///	</summary>
     property LogLevel: Integer read FLogLevel write FLogLevel;
 
+    ///	<summary>
+    ///	  Logs AString if ALogLevel does not exceed the current LogLevel, by
+    ///	  notifying all attached endpoints.
+    ///	</summary>
     procedure Log(const AString: string; const ALogLevel: Integer = DEFAULT_LOG_LEVEL);
 
+    ///	<summary>
+    ///	  Logs AString at the LOG_LOW level.
+    ///	</summary>
     procedure LogLow(const AString: string); inline;
+    ///	<summary>
+    ///	  Logs AString at the LOG_MEDIUM level.
+    ///	</summary>
     procedure LogMedium(const AString: string); inline;
+    ///	<summary>
+    ///	  Logs AString at the LOG_HIGH level.
+    ///	</summary>
     procedure LogHigh(const AString: string); inline;
+    ///	<summary>
+    ///	  Logs AString at the LOG_DETAILED level.
+    ///	</summary>
     procedure LogDetailed(const AString: string); inline;
+    ///	<summary>
+    ///	  Logs AString at the LOG_DEBUG level.
+    ///	</summary>
     procedure LogDebug(const AString: string); inline;
 
+    ///	<summary>
+    ///	  Logs a message built by formatting AString with AParams (see
+    ///	  System.SysUtils.Format) at the specified log level.
+    ///	</summary>
     procedure LogFmt(const AString: string; const AParams: array of const;
       const ALogLevel: Integer = DEFAULT_LOG_LEVEL);
 
+    ///	<summary>
+    ///	  The single, application-wide logger instance.
+    ///	</summary>
     class property Instance: TEFLogger read FInstance;
   end;
 
+  ///	<summary>
+  ///	  Abstract base class for logging endpoints. An endpoint attaches itself as
+  ///	  an observer of the logger's Instance and writes each notified message to
+  ///	  a concrete destination (see the overridden DoLog). Descendants implement
+  ///	  the actual output (for example a text file).
+  ///	</summary>
   TEFLogEndpoint = class(TEFSubjectAndObserver)
   strict private
     FIsEnabled: Boolean;
@@ -81,8 +159,19 @@ type
     procedure DoLog(const AString: string); virtual; abstract;
     property IsEnabled: Boolean read FIsEnabled;
   public
+    ///	<summary>
+    ///	  Attaches this endpoint as an observer of the logger's Instance.
+    ///	</summary>
     procedure AfterConstruction; override;
+    ///	<summary>
+    ///	  Detaches this endpoint from the logger's Instance.
+    ///	</summary>
     destructor Destroy; override;
+    ///	<summary>
+    ///	  Handles logger notifications: reconfigures the endpoint on
+    ///	  '{ConfigChanged}', otherwise writes the context string through DoLog
+    ///	  (messages containing 'PASSWORD' are skipped).
+    ///	</summary>
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
   end;
 

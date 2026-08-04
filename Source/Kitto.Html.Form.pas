@@ -41,6 +41,13 @@ const
   DEFAULT_DETAIL_STYLE = 'Tabs';
 
 type
+  /// <summary>
+  ///  Modal CRUD form controller. Builds the form fields from the Form layout
+  ///  (text/number/date/checkbox editors, reference selects and large-reference
+  ///  lookups, picture and file editors), grouped in rows, fieldsets and tabs,
+  ///  and renders master-detail tables (Tabs, Bottom or Popup style). Drives
+  ///  the add/edit/view/dup operations.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXFormPanelController = class(TKXDataPanelController)
   strict private

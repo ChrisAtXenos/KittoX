@@ -47,7 +47,9 @@ type
     function InternalGetDatabaseName(const ACallerContext: TObject;
       const AParams: TEFTree): string; virtual; abstract;
   public
+    ///	<summary>Standard construction hook (no additional initialization).</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Standard destruction hook (no additional cleanup).</summary>
     destructor Destroy; override;
   public
     ///	<summary>
@@ -57,6 +59,7 @@ type
     function GetDatabaseName(const ACallerContext: TObject;
       const AParams: TEFTree): string;
   end;
+  ///	<summary>Metaclass reference to TKDatabaseRouter, used by the registry/factory.</summary>
   TKDatabaseRouterClass = class of TKDatabaseRouter;
 
   ///	<summary>A database router that routes everything to the database
@@ -76,6 +79,7 @@ type
     class var FInstance: TKDatabaseRouterRegistry;
     class function GetInstance: TKDatabaseRouterRegistry; static;
   public
+    ///	<summary>Frees the singleton registry instance.</summary>
     class destructor Destroy;
     ///	<summary>The singleton registry of database-router classes.</summary>
     class property Instance: TKDatabaseRouterRegistry read GetInstance;
@@ -90,6 +94,7 @@ type
     class var FInstance: TKDatabaseRouterFactory;
     class function GetInstance: TKDatabaseRouterFactory; static;
   public
+    ///	<summary>Frees the singleton factory instance.</summary>
     class destructor Destroy;
     ///	<summary>The singleton factory that creates database routers by id.</summary>
     class property Instance: TKDatabaseRouterFactory read GetInstance;

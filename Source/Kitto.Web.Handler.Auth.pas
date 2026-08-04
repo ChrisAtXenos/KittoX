@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,8 +65,13 @@ type
     /// POST form fields: UserName, Password, Language, DatabaseName.
     [TKXPath('/login')] [TKXPOST] [TKXAnonymous]
     procedure HandleLogin; virtual;
+    /// <summary>POST form fields: UserName, EmailAddress. Triggers a password
+    /// reset for the matching user and shows a confirmation (or error) dialog.</summary>
     [TKXPath('/resetpassword')] [TKXPOST] [TKXAnonymous]
     procedure HandleResetPassword; virtual;
+    /// <summary>POST form fields: OldPassword, NewPassword, ConfirmNewPassword.
+    /// Validates and applies the new password, then logs out and redirects to
+    /// the login page.</summary>
     [TKXPath('/changepassword')] [TKXPOST] [TKXAnonymous]
     procedure HandleChangePassword; virtual;
     /// Ends the current session. Canonical endpoint; menus still emit

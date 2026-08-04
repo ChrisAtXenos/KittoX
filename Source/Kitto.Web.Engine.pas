@@ -14,6 +14,14 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Request-pipeline engine for KittoX. TKWebEngine is the root route that
+///  orchestrates the whole request lifecycle: it ensures/creates the per-user
+///  session, sets up the thread-local request/response objects, dispatches to
+///  its child routes, manages session cookies and cleanup, and fires the
+///  session start/end events. Hosted by TKWebServer (Indy) or the WebBroker
+///  bridge (ISAPI/Apache).
+/// </summary>
 unit Kitto.Web.Engine;
 
 interface

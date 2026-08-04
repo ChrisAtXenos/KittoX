@@ -31,6 +31,10 @@ uses
   EF.YAML.Attributes;
 
 type
+  /// <summary>
+  ///  Navigation-tree controller: renders a referenced TKTreeView as a
+  ///  hierarchical menu using HTML5 details/summary elements and HTMX links.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXTreePanelController = class(TKXComponent, IKXController)
   strict private

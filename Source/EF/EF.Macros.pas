@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -58,6 +58,7 @@ type
 
     function GetFormatSettings: TFormatSettings;
   public
+    /// <summary>Creates the expander. Descendants may override to perform initialization.</summary>
     constructor Create; virtual;
 
     /// <summary>
@@ -67,8 +68,10 @@ type
     /// </summary>
     procedure Expand(var AString: string); inline;
   end;
+  /// <summary>Metaclass of TEFMacroExpander, used e.g. by RemoveExpanders to identify expanders by class.</summary>
   TEFMacroExpanderClass = class of TEFMacroExpander;
 
+  /// <summary>Function type that supplies the macro expansion engine instance to use (see TEFMacroExpansionEngine.OnGetInstance).</summary>
   TEFGetMacroExpansionEngine = reference to function: TEFMacroExpansionEngine;
 
   /// <summary>
@@ -95,11 +98,15 @@ type
   strict protected
     class destructor Destroy;
   public
+    /// <summary>Creates the engine, optionally chained to a previous engine that is invoked before this one's expanders.</summary>
     constructor Create(const APrevious: TEFMacroExpansionEngine = nil);
+    /// <summary>Clears and frees all owned expanders.</summary>
     destructor Destroy; override;
   public
+    /// <summary>Ready-made singleton engine that supports all standard registered expanders out-of-the-box; created on first access (or supplied via OnGetInstance).</summary>
     class property Instance: TEFMacroExpansionEngine read GetInstance;
 
+    /// <summary>Optional callback that provides the engine returned by Instance, allowing the application to supply its own (e.g. per-session) engine.</summary>
     class property OnGetInstance: TEFGetMacroExpansionEngine read FOnGetInstance write SetOnGetInstance;
 
     /// <summary>
@@ -432,6 +439,7 @@ type
     procedure InternalExpand(var AString: string); override;
   end;
 
+  /// <summary>Alias for a dynamic array of strings.</summary>
   TStringArray = TArray<string>;
 
   /// <summary>A base class for macro expanders that support parameterized
@@ -493,12 +501,12 @@ type
     function ExpandParameterizedMacro(const AMacroName: string;
       const AParams: TArray<string>): string; override;
   public
-    {
-      The value of this property is pre-pended to any relative file name
-      before loading the file contents as part of the expansion process.
-      Leave this property empty to have the expander use the current directory
-      as default path instead.
-    }
+    /// <summary>
+    ///   The value of this property is pre-pended to any relative file name
+    ///   before loading the file contents as part of the expansion process.
+    ///   Leave this property empty to have the expander use the current directory
+    ///   as default path instead.
+    /// </summary>
     property DefaultPath: string read FDefaultPath write FDefaultPath;
   end;
 

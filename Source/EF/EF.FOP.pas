@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+ï»¿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,8 +40,10 @@ const
   FOPRTF_FILE_EXT = '.rtf';
 
 type
+  /// <summary>Exception raised by the FOP report engine on configuration or document-generation errors.</summary>
   EFopEngineError = class(Exception);
 
+  /// <summary>Output document formats supported by the FOP engine (PDF, PCL, PostScript, plain text, RTF).</summary>
   TFopOutputType = (otPdf,otPcl,otPs,otTxt,otRtf);
 
 const
@@ -52,10 +54,12 @@ const
     (FOPPDF_FILE_EXT,FOPPCL_FILE_EXT,FOPPS_FILE_EXT,FOPTXT_FILE_EXT,FOPRTF_FILE_EXT);
 
 Type
+  /// <summary>Event fired to show or print a generated document. Set DeleteAfter to True to have the file deleted after it has been handled.</summary>
   TDocumentEvent = procedure ( OutputFile : string; var DeleteAfter : Boolean ) of Object;
 
   { TEFFopReport }
 
+  /// <summary>Non-visual component that drives the Apache FOP engine to generate PDF (or PCL/PS/TXT/RTF) documents from an XSL-FO file, or from an XML data file plus an XSL stylesheet, and optionally previews or prints them.</summary>
   TEFFopReport = class(TComponent)
   private
     FXMLDataFile: string;
@@ -90,7 +94,9 @@ Type
     procedure SetFopPath(const AValue: string);
     procedure UpdateOutputType;
   public
+    /// <summary>Returns the output file name to be generated: the explicit OutputFile if set, otherwise the XSL-FO (or XML) file name with the output extension.</summary>
     function GetOutpustring: string;
+    /// <summary>Returns the output file extension matching the current FOPOutputType (e.g. '.pdf', '.rtf').</summary>
     function GetOutputFileExt: string;
     ///	<summary>Generate file by FOP engine and call OnPrintDocument event.</summary>
     procedure Print;
@@ -98,29 +104,52 @@ Type
     procedure Preview;
     ///	<summary>Generate file by FOP engine.</summary>
     procedure Build;
+    /// <summary>Creates the component, defaulting FOPBatch to FOP.BAT and the output type to PDF.</summary>
     constructor Create(AOwner : TComponent); override;
   published
+    /// <summary>Name of the FOP batch/command file used to launch the engine (default 'FOP.BAT').</summary>
     property FOPBatch : string read FFOPBatch write FFOPBatch;
+    /// <summary>When True, runs the FOP engine with the -d (debug) option.</summary>
     property DebugMode : boolean read FDebugMode write FDebugMode default False;
+    /// <summary>Folder that contains the FOP engine batch file. When a file name is assigned at design time, its path is extracted.</summary>
     property FOPPath : string read FFopPath write SetFopPath;
+    /// <summary>XML data file to transform (used together with XSLReportFile). Setting it clears XSL_FOFile.</summary>
     property XMLDataFile : string read FXMLDataFile write SetXMLDataFile;
+    /// <summary>XSL stylesheet used to transform XMLDataFile into XSL-FO. Setting it clears XSL_FOFile.</summary>
     property XSLReportFile : string read FXSLReportFile write SetXSLReportFile;
+    /// <summary>Ready-made XSL-FO file to render directly. Setting it clears XMLDataFile and XSLReportFile.</summary>
     property XSL_FOFile : string read FXSL_FOFile write SetXSL_FOFile;
+    /// <summary>Explicit output file name; its extension also determines FOPOutputType. If empty, the name is derived from the input file.</summary>
     property OutputFile : string read FOutputFile write SetOutputFile;
+    /// <summary>Fired before XML generation begins.</summary>
     property BeforeGenerateXML : TNotifyEvent read FBeforeGenerateXML write FBeforeGenerateXML;
+    /// <summary>Fired to let the application generate the XML data file to be transformed.</summary>
     property OnGenerateXML : TNotifyEvent read FOnGenerateXML write FOnGenerateXML;
+    /// <summary>Fired before the document is printed.</summary>
     property BeforePrint : TNotifyEvent read FBeforePrint write FBeforePrint;
+    /// <summary>Fired after the document has been printed.</summary>
     property AfterPrint : TNotifyEvent read FAfterPrint write FAfterPrint;
+    /// <summary>Fired before the document is previewed.</summary>
     property BeforePreview : TNotifyEvent read FBeforePreview write FBeforePreview;
+    /// <summary>Fired after the document has been previewed.</summary>
     property AfterPreview : TNotifyEvent read FAfterPreview write FAfterPreview;
+    /// <summary>Fired to display the generated document. If unassigned on Windows, the file is opened with the default associated viewer.</summary>
     property OnShowDocument : TDocumentEvent read FOnShowDocument write FOnShowDocument;
+    /// <summary>Fired to print the generated document. Must be assigned for Print to work, otherwise an exception is raised.</summary>
     property OnPrintDocument : TDocumentEvent read FOnPrintDocument write FOnPrintDocument;
+    /// <summary>When True, shows the batch command line before executing it.</summary>
     property ShowCommand : Boolean read FShowCommand write FShowCommand default False;
+    /// <summary>When True, deletes the XML data file after the output document has been generated.</summary>
     property DeleteXMLAfterCreate : Boolean read FDeleteXMLAfterCreate write FDeleteXMLAfterCreate default False;
+    /// <summary>When True, deletes the output file after it has been shown.</summary>
     property DeleteAfterShow : Boolean read FDeleteAfterShow write FDeleteAfterShow default False;
+    /// <summary>When True, deletes the output file after it has been printed.</summary>
     property DeleteAfterPrint : Boolean read FDeleteAfterPrint write FDeleteAfterPrint default False;
+    /// <summary>Fired before the output document is generated by the engine.</summary>
     property BeforeCreatePDF : TNotifyEvent read FBeforeCreatePDF write FBeforeCreatePDF;
+    /// <summary>Fired after the output document has been generated by the engine.</summary>
     property AfterCreatePDF : TNotifyEvent read FAfterCreatePDF write FAfterCreatePDF;
+    /// <summary>Output document format produced by the engine (default otPdf).</summary>
     property FOPOutputType : TFopOutputType read FFOPOutputType write FFOPOutputType default otPdf;
   end;
 
@@ -160,11 +189,11 @@ end;
 // ritorna il nome del file di output da generare
 function TEFFopReport.GetOutpustring : string;
 begin
-  if FOutputFile <> '' then // se è specificato il file generare, ritorna quello
+  if FOutputFile <> '' then // se Ã¨ specificato il file generare, ritorna quello
   begin
     Result := FOutputFile;
   end
-  else // se non è specificato il file PDF da generare, lo ricava dal nome del file FO o XML
+  else // se non Ã¨ specificato il file PDF da generare, lo ricava dal nome del file FO o XML
   begin
     if FXSL_FOFile <> '' then
       Result := ChangeFileExt(FXSL_FOFile,GetOutputFileExt)

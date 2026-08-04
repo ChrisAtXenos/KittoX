@@ -42,6 +42,12 @@ uses
   Kitto.Store;
 
 type
+  /// <summary>
+  ///  List controller that renders each record through a custom HTML template
+  ///  (TemplateFileName or inline Template) with {FieldName} placeholder
+  ///  substitution, instead of a grid. Inherits toolbar/filter support from
+  ///  TKXListPanelController; loads all records at once (no paging).
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXTemplateDataPanelController = class(TKXListPanelController)
   strict private

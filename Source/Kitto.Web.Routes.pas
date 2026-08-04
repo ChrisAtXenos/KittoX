@@ -14,6 +14,12 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Routing infrastructure for KittoX. Defines the composable route hierarchy
+///  (abstract TKWebRoute with before/after event hooks, the static-file routes,
+///  and the TKWebRouteList composite that dispatches to its children) used by
+///  the web engine to match and serve requests.
+/// </summary>
 unit Kitto.Web.Routes;
 
 interface
@@ -28,6 +34,11 @@ uses
 type
   TKWebRoute = class;
 
+  /// <summary>
+  ///  Listener notified before and after a route handles a request. Subscribers
+  ///  can veto a request (BeforeHandleRequest) or react to its outcome
+  ///  (AfterHandleRequest).
+  /// </summary>
   IKWebHandleRequestEventListener = interface
     /// <summary>Fired before a route handles a request; set AIsAllowed := False to veto it.</summary>
     procedure BeforeHandleRequest(const ASender: TKWebRoute; const ARequest: TKWebRequest;

@@ -62,7 +62,10 @@ type
     procedure GetUserRoles(const AUserId: string; const ARoleList: TStrings);
     function GetDatabaseName: string;
   public
+    /// <summary>Creates the in-memory permission store and its column
+    /// header.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the in-memory permission store.</summary>
     destructor Destroy; override;
 
     /// <summary>Name of the user whose this object is holding permissions. Set
@@ -207,7 +210,9 @@ type
     function InternalGetAccessGrantValue(const AUserId: string;
       const AResourceURI: string; const AMode: string): Variant; override;
   public
+    /// <summary>Creates the per-user permission cache.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the cached per-user permission storages.</summary>
     destructor Destroy; override;
   end;
 

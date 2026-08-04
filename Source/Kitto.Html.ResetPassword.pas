@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,11 @@ uses
 
 type
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  Controller that renders the reset-password dialog (UserName and
+  ///  EmailAddress fields) and submits via HTMX POST to kx/resetpassword.
+  ///  Registered as controller type 'ResetPassword'.
+  /// </summary>
   TKXResetPasswordController = class(TKXFormController)
   strict private
     function GetLabelWidth: Integer;

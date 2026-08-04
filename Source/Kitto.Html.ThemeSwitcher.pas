@@ -45,6 +45,12 @@ uses
 
 type
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  Controller that renders the Light/Auto/Dark theme switcher toggle group.
+  ///  Emits markup only when Config.yaml enables user theme selection
+  ///  (Theme: Auto + UserSelection: True). Registered as controller type
+  ///  'ThemeSwitcher'.
+  /// </summary>
   TKXThemeSwitcherController = class(TKXComponent, IKXController)
   public
     /// <summary>Renders the Light/Auto/Dark theme switcher control.</summary>

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,12 +66,25 @@ type
     procedure FetchTableForeignKeys(const ATable: TEFDBTableInfo);
     procedure FetchTablePrimaryKey(const ATable: TEFDBTableInfo);
   public
+    ///	<summary>
+    ///	  Creates the info object bound to the given ADO connection.
+    ///	</summary>
     constructor Create(const AConnection: TADOConnection);
+    ///	<summary>
+    ///	  The ADO connection used to retrieve database metadata.
+    ///	</summary>
     property Connection: TADOConnection read FConnection write FConnection;
   end;
 
+  ///	<summary>
+  ///	  Metaclass of TEFDBADOQuery, used by TEFDBADOConnection to let subclasses
+  ///	  substitute a custom query class.
+  ///	</summary>
   TEFDBADOQueryClass = class of TEFDBADOQuery;
 
+  ///	<summary>
+  ///	  ADO/OLEDB implementation of TEFDBConnection. Currently targets SQL Server.
+  ///	</summary>
   TEFDBADOConnection = class(TEFDBConnection)
   private
     FConnection: TADOConnection;
@@ -82,22 +95,39 @@ type
     procedure InternalClose; override;
     function InternalCreateDBInfo: TEFDBInfo; override;
   public
+    ///	<summary>Creates the internal TADOConnection.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Destroys the internal TADOConnection.</summary>
     destructor Destroy; override;
   public
+    ///	<summary>ADO implementation of TEFDBConnection.IsOpen.</summary>
     function IsOpen: Boolean; override;
+    ///	<summary>ADO implementation of TEFDBConnection.ExecuteImmediate.</summary>
     function ExecuteImmediate(const AStatement: string): Integer; override;
+    ///	<summary>ADO implementation of TEFDBConnection.InternalStartTransaction.</summary>
     procedure InternalStartTransaction; override;
+    ///	<summary>ADO implementation of TEFDBConnection.InternalCommitTransaction.</summary>
     procedure InternalCommitTransaction; override;
+    ///	<summary>ADO implementation of TEFDBConnection.InternalRollbackTransaction.</summary>
     procedure InternalRollbackTransaction; override;
+    ///	<summary>ADO implementation of TEFDBConnection.IsInTransaction.</summary>
     function IsInTransaction: Boolean; override;
+    ///	<summary>Sequence generators are not supported by the ADO adapter; always returns 0.</summary>
     function FetchSequenceGeneratorValue(const ASequenceName: string): Int64; override;
+    ///	<summary>Returns the last generated autoincrement value (SQL Server @@IDENTITY).</summary>
     function GetLastAutoincValue(const ATableName: string = ''): Int64; override;
+    ///	<summary>ADO implementation of TEFDBConnection.CreateDBCommand.</summary>
     function CreateDBCommand: TEFDBCommand; override;
+    ///	<summary>ADO implementation of TEFDBConnection.CreateDBQuery.</summary>
     function CreateDBQuery: TEFDBQuery; override;
+    ///	<summary>Returns the underlying TADOConnection instance.</summary>
     function GetConnection: TObject; override;
   end;
 
+  ///	<summary>
+  ///	  ADO implementation of TEFDBCommand (statements returning no result set),
+  ///	  backed by a TADOCommand.
+  ///	</summary>
   TEFDBADOCommand = class(TEFDBCommand)
   private
     FCommand: TADOCommand;
@@ -118,12 +148,19 @@ type
     function GetParams: TParams; override;
     procedure SetParams(const AValue: TParams); override;
   public
+    ///	<summary>Creates the internal TADOCommand and its parameters.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Destroys the internal TADOCommand and its parameters.</summary>
     destructor Destroy; override;
   public
+    ///	<summary>ADO implementation of TEFDBCommand.Execute; returns the number of affected rows.</summary>
     function Execute: Integer; override;
   end;
 
+  ///	<summary>
+  ///	  ADO implementation of TEFDBQuery (statements returning a result set),
+  ///	  backed by a TADOQuery.
+  ///	</summary>
   TEFDBADOQuery = class(TEFDBQuery)
   private
     FQuery: TADOQuery;
@@ -147,17 +184,27 @@ type
     function GetMasterSource: TDataSource; override;
     procedure SetMasterSource(const AValue: TDataSource); override;
   public
+    ///	<summary>Creates the internal TADOQuery and its parameters.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Destroys the internal TADOQuery and its parameters.</summary>
     destructor Destroy; override;
   public
-    // Execute and Open are synonims in this class. Execute always returns 0.
+    ///	<summary>Execute and Open are synonims in this class. Execute always
+    ///	returns 0.</summary>
     function Execute: Integer; override;
+    ///	<summary>ADO implementation of TEFDBQuery.Open; opens the underlying dataset.</summary>
     procedure Open; override;
+    ///	<summary>ADO implementation of TEFDBQuery.Close; closes the underlying dataset.</summary>
     procedure Close; override;
+    ///	<summary>ADO implementation of TEFDBQuery.IsOpen.</summary>
     function IsOpen: Boolean; override;
   end;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  ///	<summary>
+  ///	  Database adapter that creates ADO/OLEDB connections. Registered with the
+  ///	  adapter registry under the ClassId 'ADO'.
+  ///	</summary>
   TEFDBADOAdapter = class(TEFDBAdapter)
   private
     function GetConnectionConfig: TEFDBADOConnectionConfig;

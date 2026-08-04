@@ -34,6 +34,11 @@ uses
 
 type
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  Controller that renders the change-password dialog (Old / New / Confirm
+  ///  password fields) and submits via HTMX POST to kx/changepassword.
+  ///  Registered as controller type 'ChangePassword'.
+  /// </summary>
   TKXChangePasswordController = class(TKXFormController)
   strict private
     function GetLabelWidth: Integer;

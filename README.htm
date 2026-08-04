@@ -39,7 +39,7 @@ td{
 <h1>Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX</h1>
 <p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a>
 <a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
-<p><strong>Latest Version 4.0.12 - 31 Jul 2026</strong></p>
+<p><strong>Latest Version 4.0.13 - 04 Aug 2026</strong></p>
 <p><img src="./images/kittoX_logo_200.png" alt="KittoX_logo.png"/></p>
 <p><strong>Kitto<sup>x</sup></strong> allows to create <strong>Rich Internet Applications</strong> based on a data model that can be mapped onto any database. The client-side part uses <strong>HTMX</strong> (through webbroker technology) to create a fully <strong>AJAX</strong> application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.</p>
 <p><strong>Kitto<sup>x</sup></strong> is aimed at <strong>Delphi</strong> developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.</p>
@@ -48,7 +48,7 @@ td{
 <hr />
 <h2>Full documentation</h2>
 <ul>
-<li><a href="https://ethea.it/docs/kittox/">Documentation site</a> with 50+ pages</li>
+<li><a href="https://ethea.it/docs/kittox/">Documentation site</a> with 150+ pages</li>
 <li>Pages for all controllers, filters, data concepts, how-to guides, FAQ</li>
 <li>Three example applications: HelloKitto, TasKitto, KEmployee</li>
 </ul>
@@ -63,7 +63,6 @@ td{
 <li><p><strong>MCP-KittoX</strong> &mdash; standalone Model Context Protocol server (<code>MCPKittoX.exe</code>) that exposes KIDE<sup>x</sup> functionality to AI agents (Claude Desktop / Code, Codex, LM Studio, any MCP-compatible client). Agents can scaffold complete <strong>Kitto<sup>x</sup></strong> apps and reverse-engineer Models from a live database conversationally; metadata validation, locale refresh and view scaffolding tools are on the next-phases roadmap. Bundled with KIDE<sup>x</sup>: a single OnGuard registration unlocks both.</p>
 </li>
 </ul>
-<p><a href="https://ethea.it/supporto/">Contact Ethea</a> for commercial license details, or see the <a href="https://ethea.it/docs/kittox/KittoEnt.html">Enterprise Edition</a> page on the documentation site.</p>
 <hr />
 <h2>Licensing</h2>
 <p><strong>Kitto<sup>x</sup></strong> uses an <strong>Open Core</strong> licensing model:</p>
@@ -76,10 +75,27 @@ td{
 </li>
 </ul>
 <p>See the <a href="https://ethea.it/docs/kittox/KittoLicensing.html">Licensing</a> page and <a href="KittoEnt">Enterprise Edition</a> for full details.</p>
-<p>Start <a href="https://ethea.it/docs/kittox/Kitto-at-a-glance.html">here</a> for further information.</p>
 <p>Visit <a href="https://ethea.it/Kitto-Demo/">this site</a> for online demos.</p>
 <hr />
 <h1>Release Notes</h1>
+<h2>04 Aug 2026: ver. 4.0.13 Beta</h2>
+<h3>Notification Center &amp; background tools — new</h3>
+<ul>
+<li>Run a download-file tool (CSV/TXT/XML/Excel, MergePDF, ReportBuilder) as a <strong>background job</strong> on a worker pool separate from the HTTP threads — opt-in per tool with a single YAML line, <code>RunMode: Background</code></li>
+<li>A <strong>notification center</strong> bell shows each job with its status (queued/running %, completed, failed) and lets the user <strong>download</strong>, cancel or dismiss the result; the badge stays until the job leaves the list</li>
+<li>Jobs are <strong>persisted per-user on disk</strong> and reloaded on startup, so results survive logout/login and a process restart</li>
+<li>Configurable via <code>Server/Jobs</code> (<code>PoolSize</code>, <code>Directory</code>, <code>ArtifactRetentionHours</code>)</li>
+</ul>
+<h3>Licensing — new</h3>
+<ul>
+<li>License Registration into Registry under HKEY_CURRENT_USER\Software\Ethea\KIDEX</li>
+<li>Updated License procedure (Company Name + developer email)</li>
+<li>Now is possible to use multiple versions of KittoX in the same machine.</li>
+</ul>
+<h3>Repository layout — changed</h3>
+<ul>
+<li>The framework packages folder has been <strong>renamed from <code>Projects/</code> to <code>Packages/</code></strong>.</li>
+</ul>
 <h2>31 Jul 2026: ver. 4.0.12 Beta</h2>
 <h3>LDAP / Active Directory authentication — new</h3>
 <ul>
@@ -187,7 +203,7 @@ td{
 <h3>IDE / wizard</h3>
 <ul>
 <li>New <strong>RAD Studio IDE plugin gallery</strong>: <code>KittoXIDE.bpl</code> registers 4 entries under <strong>File > New > Other > KittoX Projects</strong> (Standalone .exe / Desktop .exe / ISAPI .dll / Apache .dll)</li>
-<li><strong>Three paths</strong> to scaffold a new app: KIDEX standalone, the new IDE gallery, and <code>MCP-KittoX project_create_app</code></li>
+<li><strong>Three paths</strong> to scaffold a new app: KIDE<sup>x</sup> standalone, the new IDE gallery, and <code>MCP-KittoX project_create_app</code></li>
 <li>New project default: <code>Auth: TextFile</code> with a ready-to-use <code>Home/FileAuthenticator.txt</code> (admin/admin demo accounts) so the generated app authenticates out of the box, no users table required. JWT envelope kept as default. <code>AccessControl</code> default switched to <code>Null</code> to avoid deny-all post-login on a brand-new project. <code>DB.FD.yaml</code> template now sets <code>ODBCAdvanced: TrustServerCertificate=yes</code> so SQL Server ODBC Driver 17/18 connects on first try</li>
 <li>Model Wizard <code>Beautify names</code> option now also handles DB names with spaces (Northwind-style: <code>Quarterly Orders</code> → <code>QuarterlyOrders</code>, <code>Sales by Category</code> → <code>SalesByCategory</code>); the original name is preserved in <code>PhysicalName</code> for the SQL layer</li>
 <li>Model Wizard — new editable <strong><code>DisplayLabel</code></strong> and <strong><code>Hint</code></strong> fields on every Add/Update Field action: auto-populated from the database's native column comment when present (MSSQL <code>MS_Description</code>, PostgreSQL <code>pg_description</code>, Firebird <code>RDB$DESCRIPTION</code>, MySQL <code>COLUMN_COMMENT</code>, Oracle <code>USER_COL_COMMENTS</code>), fully editable before Apply</li>
@@ -198,7 +214,7 @@ td{
 <li>New tool <strong><code>models_create_from_db</code></strong> — the headless equivalent of the Model Wizard. AI agents can reverse-engineer Models from a database connection conversationally: defaults to <code>dry_run: true</code> (preview only); pass <code>dry_run: false</code> to commit. Output is byte-identical to what the visual wizard writes. <code>DisplayLabel</code> auto-populated from the database's native column comments; optional <code>field_descriptions</code> array lets the agent inject labels from a non-DB source (CSV, glossary, prior YAML) with per-property override precedence</li>
 <li>New tools <strong><code>models_list</code> / <code>models_read</code> / <code>views_list</code> / <code>views_read</code> / <code>resources_list</code> / <code>resources_read</code></strong> — enumerate and read project metadata and static resources headlessly</li>
 <li>New tool <strong><code>menu_generate_main_menu</code></strong> — create or refresh <code>MainMenu.yaml</code> with one entry per Model under a top-level <code>Folder: Menu</code>; idempotent (existing entries preserved, only missing Models appended)</li>
-<li><strong>Database column comments</strong> are now auto-fetched for all 5 supported engines (MSSQL, PostgreSQL, Firebird, MySQL, Oracle) and flow into both the KIDEX wizard and the MCP tool</li>
+<li><strong>Database column comments</strong> are now auto-fetched for all 5 supported engines (MSSQL, PostgreSQL, Firebird, MySQL, Oracle) and flow into both the KIDE<sup>x</sup> wizard and the MCP tool</li>
 <li>16 tools now implemented (was 9)</li>
 <li>Better error reporting from MCP tools: errors are now propagated verbatim to the JSON-RPC client (class name + message) instead of being replaced by a generic fallback</li>
 </ul>
@@ -221,7 +237,7 @@ td{
 <li>TasKitto SQL Server DDL split (tables / views in separate scripts because of T-SQL batch rules)</li>
 <li>New <code>Tools/SetVersion.ps1</code>: one-shot version bump across constant, dproj, README and Inno Setup</li>
 <li>New <code>Projects/BuildAllPackagesD{10_4,11,12,13}.ps1</code> wrappers: rebuild Core + Enterprise per Delphi version</li>
-<li>YAML metadata files included in every <code>.dproj</code> (visible in Project Manager, KIDEX highlighting)</li>
+<li>YAML metadata files included in every <code>.dproj</code> (visible in Project Manager, KIDE<sup>x</sup> highlighting)</li>
 <li><code>EF.Logger.TextFile</code> active out-of-the-box for the standalone Indy hosts</li>
 </ul>
 <h2>23 Apr 2026: ver. 4.0.5 Beta</h2>

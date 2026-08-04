@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,12 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  View builders that auto-generate a data view from a model at runtime: a
+///  list view (TKAutoListViewBuilder) and a form view (TKAutoFormViewBuilder),
+///  registered as 'AutoList' and 'AutoForm'. Used when a view is referenced
+///  through a 'Build ...' expression instead of a YAML file.
+/// </summary>
 unit Kitto.Metadata.ViewBuilders;
 
 {$I Kitto.Defines.inc}
@@ -27,6 +33,11 @@ uses
   Kitto.Metadata.DataView;
 
 type
+  /// <summary>
+  ///  Base class for the auto view builders. Builds a data view for a model,
+  ///  adding all fields, detail tables and a free-search filter; descendants
+  ///  supply the controller type and any view customization.
+  /// </summary>
   TKAutoViewBuilderBase = class(TKViewBuilder)
   strict private
     function BuildSearchString(const AFields: TKViewFields): string;
@@ -38,16 +49,19 @@ type
     function GetModel: TKModel;
     procedure CustomizeView(const AView: TKView); virtual;
   public
+    /// <summary>Builds and returns the data view for the configured model.</summary>
     function BuildView(const AViews: TKViews;
       const APersistentName: string = '';
       const ANode: TEFNode = nil): TKView; override;
   end;
 
+  /// <summary>Auto view builder that produces a List (grid) view. Registered as 'AutoList'.</summary>
   TKAutoListViewBuilder = class(TKAutoViewBuilderBase)
   strict protected
     function GetControllerType: string; override;
   end;
 
+  /// <summary>Auto view builder that produces a Form view (in Add mode). Registered as 'AutoForm'.</summary>
   TKAutoFormViewBuilder = class(TKAutoViewBuilderBase)
   strict protected
     function GetControllerType: string; override;

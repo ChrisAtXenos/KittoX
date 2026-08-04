@@ -54,6 +54,7 @@ uses
   Kitto.Store;
 
 type
+  /// <summary>Raised when a wizard rule cannot be created or applied (e.g. rule id not registered).</summary>
   EKWizardRuleError = class(Exception);
 
   /// <summary>
@@ -124,6 +125,7 @@ type
     /// </summary>
     procedure AfterCancel; virtual;
   end;
+  /// <summary>Metaclass reference to TKXWizardRuleImpl, used by the wizard-rule registry.</summary>
   TKXWizardRuleImplClass = class of TKXWizardRuleImpl;
 
   /// <summary>
@@ -136,8 +138,11 @@ type
     class var FInstance: TKXWizardRuleRegistry;
     class function GetInstance: TKXWizardRuleRegistry; static;
   public
+    /// <summary>Creates the registry and its internal class dictionary.</summary>
     constructor Create;
+    /// <summary>Frees the registry's internal class dictionary.</summary>
     destructor Destroy; override;
+    /// <summary>Frees the singleton registry instance.</summary>
     class destructor ClassDestroy;
     /// <summary>The singleton wizard-rule registry.</summary>
     class property Instance: TKXWizardRuleRegistry read GetInstance;

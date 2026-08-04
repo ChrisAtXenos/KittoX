@@ -3825,3 +3825,43 @@ body.kx-mobile .kx-flex-item {
   min-width: 0 !important;
   max-width: 100% !important;
 }
+
+
+/* ==== Notification center (kxnotify.js) ==== */
+.kx-notif { position: fixed; top: 6px; right: 14px; z-index: 3000; }
+/* Diameter matches the tab bar height (tab button: var(--kx-font-size) + 7px+7px padding). */
+.kx-notif-bell { position: relative; display: flex; align-items: center; justify-content: center;
+  width: calc(var(--kx-font-size, 13px) + 18px); height: calc(var(--kx-font-size, 13px) + 18px);
+  border: none; border-radius: 50%;
+  background: var(--kx-surface, #fff); color: var(--kx-text, #222);
+  box-shadow: 0 1px 4px rgba(0,0,0,.2); cursor: pointer; font-size: var(--kx-font-size, 13px); line-height: 1; }
+.kx-notif-bell:hover { background: var(--kx-hover, #f0f0f0); }
+.kx-notif-badge { position: absolute; top: -4px; right: -4px; min-width: 15px; height: 15px; padding: 0 3px;
+  border-radius: 8px; background: var(--kx-accent, #d9534f); color: #fff; font-size: 9px; line-height: 15px;
+  text-align: center; font-weight: 600; }
+.kx-notif-panel { position: absolute; top: calc(var(--kx-font-size, 13px) + 21px); right: 0; width: 320px; overflow: hidden;
+  background: var(--kx-surface, #fff); color: var(--kx-text, #222); border: 1px solid var(--kx-border, #ddd);
+  border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+/* Same chrome as a form/dialog title bar (green/white in the TasKitto theme). */
+.kx-notif-header { padding: 10px 12px; font-weight: 600; font-size: var(--kx-font-size, 13px);
+  background: var(--kx-chrome-dark, #2c3e50); color: var(--kx-chrome-text, #fff); }
+.kx-notif-body { max-height: 55vh; overflow-y: auto; }
+.kx-notif-item { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 10px 12px; border-bottom: 1px solid var(--kx-border, #eee); }
+.kx-notif-item:last-child { border-bottom: none; }
+.kx-notif-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kx-notif-state { font-size: 12px; color: var(--kx-text-muted, #888); white-space: nowrap; }
+.kx-notif-state.kx-notif-error { color: var(--kx-accent, #d9534f); cursor: help; }
+.kx-notif-download { font-size: 12px; font-weight: 600; color: var(--kx-link, #337ab7); text-decoration: none; white-space: nowrap; }
+.kx-notif-download:hover { text-decoration: underline; }
+.kx-notif-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.kx-notif-btn { border: none; background: transparent; color: var(--kx-text-muted, #888);
+  cursor: pointer; font-size: 13px; line-height: 1; padding: 2px 5px; border-radius: 3px; }
+.kx-notif-btn:hover { background: var(--kx-hover, #eee); color: var(--kx-accent, #d9534f); }
+.kx-notif-empty { padding: 16px 12px; text-align: center; color: var(--kx-text-muted, #888); font-size: 13px; }
+.kx-notif-completed .kx-notif-title { font-weight: 600; }
+.kx-notif-toast { position: fixed; bottom: 20px; right: 20px; z-index: 3100; max-width: 320px; padding: 12px 16px;
+  border-radius: 6px; background: var(--kx-surface, #333); color: var(--kx-text, #fff); box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  opacity: 0; transform: translateY(10px); transition: opacity .3s ease, transform .3s ease; font-size: 14px;
+  border-left: 4px solid var(--kx-success, #5cb85c); }
+.kx-notif-toast-show { opacity: 1; transform: translateY(0); }

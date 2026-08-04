@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -85,6 +85,9 @@ function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText:
 function DataSetToJSON(const ADataSet: TDataSet;
   const AKeyFieldsToAggregate: integer = 0): string; overload;
 
+/// <summary>
+///  Wraps the string in double quotes, escaping any embedded double quotes.
+/// </summary>
 function QuoteJSONStr(const AString: string): string; inline;
 
 /// <summary>
@@ -93,6 +96,10 @@ function QuoteJSONStr(const AString: string): string; inline;
 /// </summary>
 function QuoteJSONValue(const AString: string): string; inline;
 
+/// <summary>
+///  Returns '' when AJSONValue is the JSON literal 'null', otherwise returns
+///  AJSONValue unchanged.
+/// </summary>
 function JSONNullToEmptyStr(const AJSONValue: string): string; inline;
 
 /// <summary>

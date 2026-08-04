@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    This file is part of KittoX Enterprise Edition.
@@ -6,6 +6,11 @@
    See LICENSE-ENTERPRISE for details.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///   Attribute-routed handler for Google Map data requests. Returns JSON with
+///   the map markers (geocoded from the configured address fields) and grid
+///   HTML for GoogleMap panels.
+/// </summary>
 unit Kitto.Web.Handler.Map;
 
 {$I Kitto.Defines.inc}
@@ -18,9 +23,14 @@ uses
   Kitto.Metadata.DataView;
 
 type
+  /// <summary>Serves the map-data endpoint for a data view configured with a
+  /// GoogleMap controller.</summary>
   [TKXPath('/kx/view/{ViewName}')]
   TKXMapHandler = class
   public
+    /// <summary>Loads the view's records and returns JSON containing the map
+    /// markers built from the configured address/title/info fields and the grid
+    /// HTML for the panel sidebar.</summary>
     [TKXPath('/map-data')]
     [TKXGET]
     procedure HandleMapData(

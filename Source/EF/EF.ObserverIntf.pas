@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@
 ///	  </para>
 ///	  <para>
 ///	    This flavour introduces context strings and is designed to handle
-///	    interfaces that disable reference counting,�as all EF interfaces do.
+///	    interfaces that disable reference counting, as all EF interfaces do.
 ///	  </para>
 ///	</summary>
 unit EF.ObserverIntf;
@@ -45,6 +45,11 @@ type
   ///	</summary>
   IEFObserver = interface(IEFInterface)
     ['{72299440-39BC-4EB8-91E8-710961FAC8B2}']
+    ///	<summary>
+    ///	  Called by a subject to notify this observer of an update. ASubject is
+    ///	  the sender and AContext an optional string describing the kind of
+    ///	  update.
+    ///	</summary>
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = '');
   end;
 
@@ -53,8 +58,17 @@ type
   ///	</summary>
   IEFSubject = interface(IEFInterface)
     ['{1778901C-8D1E-4F2C-8AC2-CD6D0537E45D}']
+    ///	<summary>
+    ///	  Registers AObserver so that it receives this subject's notifications.
+    ///	</summary>
     procedure AttachObserver(const AObserver: IEFObserver);
+    ///	<summary>
+    ///	  Unregisters a previously attached observer.
+    ///	</summary>
     procedure DetachObserver(const AObserver: IEFObserver);
+    ///	<summary>
+    ///	  Notifies all attached observers, passing the optional AContext string.
+    ///	</summary>
     procedure NotifyObservers(const AContext: string = '');
   end;
 
@@ -76,12 +90,37 @@ type
     // the list.
     FObservers: TList<Pointer>;
   public
+    ///	<summary>
+    ///	  Creates the internal list used to track attached observers.
+    ///	</summary>
     procedure AfterConstruction; override;
+    ///	<summary>
+    ///	  Frees the internal observer list and destroys the object.
+    ///	</summary>
     destructor Destroy; override;
+    ///	<summary>
+    ///	  Default (empty) observer handler. Override to react to notifications
+    ///	  when this object is used as an observer.
+    ///	</summary>
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
+    ///	<summary>
+    ///	  Registers AObserver (once) so that it receives this subject's
+    ///	  notifications.
+    ///	</summary>
     procedure AttachObserver(const AObserver: IEFObserver);
+    ///	<summary>
+    ///	  Unregisters a previously attached observer.
+    ///	</summary>
     procedure DetachObserver(const AObserver: IEFObserver);
+    ///	<summary>
+    ///	  Notifies all attached observers on behalf of this subject, passing the
+    ///	  optional AContext string.
+    ///	</summary>
     procedure NotifyObservers(const AContext: string = '');
+    ///	<summary>
+    ///	  Notifies all attached observers on behalf of ASubject, allowing this
+    ///	  object to forward notifications for another subject it embeds.
+    ///	</summary>
     procedure NotifyObserversOnBehalfOf(const ASubject: IEFSubject; const AContext: string = '');
   end;
 

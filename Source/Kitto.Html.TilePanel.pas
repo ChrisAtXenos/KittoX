@@ -33,6 +33,11 @@ uses
   Kitto.Metadata.Views;
 
 type
+  /// <summary>
+  ///  Tile panel controller. Renders a Metro-style colored tile grid from a
+  ///  TKTreeView, using folder nodes as section titles and view nodes as
+  ///  clickable tiles that open data views (in a tab or as an overlay).
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXTilePanelController = class(TKXComponent, IKXController)
   strict private

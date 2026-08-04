@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -108,12 +108,26 @@ type
     procedure FetchTablePrimaryKey(const ATable: TEFDBTableInfo);
     procedure FetchTableForeignKeys(const ATable: TEFDBTableInfo);
   public
+    ///	<summary>
+    ///	  Creates the info object bound to the given ODAC session.
+    ///	</summary>
     constructor Create(const AConnection: TOraSession);
+    ///	<summary>
+    ///	  The ODAC session used to retrieve database metadata.
+    ///	</summary>
     property Connection: TOraSession read FConnection write FConnection;
   end;
 
+  ///	<summary>
+  ///	  Metaclass of TEFDBODACQuery, used by TEFDBODACConnection to let subclasses
+  ///	  substitute a custom query class.
+  ///	</summary>
   TEFDBODACQueryClass = class of TEFDBODACQuery;
 
+  ///	<summary>
+  ///	  ODAC implementation of TEFDBConnection (Oracle only), backed by a Devart
+  ///	  TOraSession.
+  ///	</summary>
   TEFDBODACConnection = class(TEFDBConnection)
   private
     FConnection: TOraSession;
@@ -127,22 +141,39 @@ type
     procedure InternalClose; override;
     function InternalCreateDBInfo: TEFDBInfo; override;
   public
+    ///	<summary>Creates the internal TOraSession.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Destroys the internal TOraSession.</summary>
     destructor Destroy; override;
   public
+    ///	<summary>ODAC implementation of TEFDBConnection.IsOpen.</summary>
     function IsOpen: Boolean; override;
+    ///	<summary>ODAC implementation of TEFDBConnection.ExecuteImmediate.</summary>
     function ExecuteImmediate(const AStatement: string): Integer; override;
+    ///	<summary>ODAC implementation of TEFDBConnection.InternalStartTransaction.</summary>
     procedure InternalStartTransaction; override;
+    ///	<summary>ODAC implementation of TEFDBConnection.InternalCommitTransaction.</summary>
     procedure InternalCommitTransaction; override;
+    ///	<summary>ODAC implementation of TEFDBConnection.InternalRollbackTransaction.</summary>
     procedure InternalRollbackTransaction; override;
+    ///	<summary>ODAC implementation of TEFDBConnection.IsInTransaction.</summary>
     function IsInTransaction: Boolean; override;
+    ///	<summary>Fetches the next value of an Oracle sequence generator (sequence.NEXTVAL).</summary>
     function FetchSequenceGeneratorValue(const ASequenceName: string): Int64; override;
+    ///	<summary>Not surfaced by this adapter; Oracle apps should use sequences. Always returns 0.</summary>
     function GetLastAutoincValue(const ATableName: string = ''): Int64; override;
+    ///	<summary>ODAC implementation of TEFDBConnection.CreateDBCommand.</summary>
     function CreateDBCommand: TEFDBCommand; override;
+    ///	<summary>ODAC implementation of TEFDBConnection.CreateDBQuery.</summary>
     function CreateDBQuery: TEFDBQuery; override;
+    ///	<summary>Returns the underlying TOraSession instance.</summary>
     function GetConnection: TObject; override;
   end;
 
+  ///	<summary>
+  ///	  ODAC implementation of TEFDBCommand (statements returning no result set),
+  ///	  backed by a TOraSQL.
+  ///	</summary>
   TEFDBODACCommand = class(TEFDBCommand)
   private
     FCommand: TOraSQL;
@@ -161,12 +192,19 @@ type
     function GetParams: TParams; override;
     procedure SetParams(const AValue: TParams); override;
   public
+    ///	<summary>Creates the internal TOraSQL and its parameters.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Destroys the internal TOraSQL and its parameters.</summary>
     destructor Destroy; override;
   public
+    ///	<summary>ODAC implementation of TEFDBCommand.Execute; returns the number of affected rows.</summary>
     function Execute: Integer; override;
   end;
 
+  ///	<summary>
+  ///	  ODAC implementation of TEFDBQuery (statements returning a result set),
+  ///	  backed by a TOraQuery.
+  ///	</summary>
   TEFDBODACQuery = class(TEFDBQuery)
   private
     FQuery: TOraQuery;
@@ -188,18 +226,27 @@ type
     function GetMasterSource: TDataSource; override;
     procedure SetMasterSource(const AValue: TDataSource); override;
   public
+    ///	<summary>Creates the internal TOraQuery and its parameters.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Destroys the internal TOraQuery and its parameters.</summary>
     destructor Destroy; override;
   public
     ///	<summary>Execute and Open are synonims in this class. Execute always
     ///	returns 0.</summary>
     function Execute: Integer; override;
+    ///	<summary>ODAC implementation of TEFDBQuery.Open; opens the underlying dataset.</summary>
     procedure Open; override;
+    ///	<summary>ODAC implementation of TEFDBQuery.Close; closes the underlying dataset.</summary>
     procedure Close; override;
+    ///	<summary>ODAC implementation of TEFDBQuery.IsOpen.</summary>
     function IsOpen: Boolean; override;
   end;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  ///	<summary>
+  ///	  Database adapter that creates ODAC (Oracle) connections. Self-registers
+  ///	  with the adapter registry under the ClassId 'ODAC'.
+  ///	</summary>
   TEFDBODACAdapter = class(TEFDBAdapter)
   private
     function GetConnectionConfig: TEFDBODACConnectionConfig;

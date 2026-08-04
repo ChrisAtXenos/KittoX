@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -155,7 +155,10 @@ uses
   EF.JSON,
   EF.Localization,
   Kitto.Rules,
+  Kitto.Auth,
   Kitto.AccessControl,
+  Kitto.Notification.Jobs,
+  Kitto.Notification.ToolJob,
   Kitto.Metadata.Views,
   Kitto.Metadata.Models,
   Kitto.Web.Request,
@@ -2107,10 +2110,7 @@ var
   LDataView: TKDataView;
   LViewTable: TKViewTable;
   LToolViewsNode, LToolNode: TEFNode;
-  LToolView: TKView;
-  LToolController: IKXController;
-  LStore: TKViewTableStore;
-  LKeyStr, LKeyFilter, LFilterExpr: string;
+  LKeyStr, LLoadFilter, LKeyFilter, LFilterExpr: string;
   LFilterItemsNode: TEFNode;
   LFilterConnector: string;
   LControllerNode: TEFNode;
@@ -2119,6 +2119,8 @@ var
   LFieldName, LFieldValue: string;
   LViewField: TKViewField;
   I: Integer;
+  LRunMode, LTitle, LUser: string;
+  LResultPath, LResultFile, LContentType: string;
 begin
   LApp := TKWebApplication.Current;
   LView := LApp.FindViewOrSetNotFound(AViewName);
@@ -2147,78 +2149,78 @@ begin
   if not Assigned(LToolNode) then
     Exit;
 
-  // Create tool view from node and instantiate tool controller
-  LToolView := LApp.Config.Views.ViewByNode(LToolNode);
-  LToolController := TKXControllerFactory.Instance.CreateController(LToolView);
-
-  // Load data store with current filters or specific record
-  LStore := LViewTable.CreateStore;
-  try
-    LKeyStr := TKWebRequest.Current.GetField('key');
-    if LKeyStr <> '' then
+  // Compute the store load filter: the record-key WHERE clause (RequireSelection
+  // tools) or the current grid filter expression (export tools). Captured here on
+  // the request thread as a plain string, so a background job can rebuild the same
+  // store on a worker without touching TKWebRequest.Current.
+  LLoadFilter := '';
+  LKeyStr := TKWebRequest.Current.GetField('key');
+  if LKeyStr <> '' then
+  begin
+    LKeyFilter := '';
+    LKeyParts := LKeyStr.Split(['&']);
+    for I := 0 to Length(LKeyParts) - 1 do
     begin
-      // Load specific record by key (for RequireSelection tools)
-      LKeyFilter := '';
-      LKeyParts := LKeyStr.Split(['&']);
-      for I := 0 to Length(LKeyParts) - 1 do
+      LPair := LKeyParts[I].Split(['=']);
+      if Length(LPair) = 2 then
       begin
-        LPair := LKeyParts[I].Split(['=']);
-        if Length(LPair) = 2 then
+        LFieldName := TNetEncoding.URL.Decode(LPair[0]);
+        LFieldValue := TNetEncoding.URL.Decode(LPair[1]);
+        LViewField := LViewTable.FindField(LFieldName);
+        if Assigned(LViewField) and LViewField.IsKey then
         begin
-          LFieldName := TNetEncoding.URL.Decode(LPair[0]);
-          LFieldValue := TNetEncoding.URL.Decode(LPair[1]);
-          LViewField := LViewTable.FindField(LFieldName);
-          if Assigned(LViewField) and LViewField.IsKey then
-          begin
-            if LKeyFilter <> '' then
-              LKeyFilter := LKeyFilter + ' and ';
-            LKeyFilter := LKeyFilter + LViewField.QualifiedDBNameOrExpression +
-              ' = ''' + ReplaceStr(LFieldValue, '''', '''''') + '''';
-          end;
+          if LKeyFilter <> '' then
+            LKeyFilter := LKeyFilter + ' and ';
+          LKeyFilter := LKeyFilter + LViewField.QualifiedDBNameOrExpression +
+            ' = ''' + ReplaceStr(LFieldValue, '''', '''''') + '''';
         end;
       end;
-      if LKeyFilter <> '' then
-        LStore.Load(LKeyFilter, '', 0, 0);
-    end
-    else
-    begin
-      // Load all data with current filters (for export tools)
-      LFilterExpr := '';
-      LControllerNode := LView.FindNode('Controller');
-      if Assigned(LControllerNode) then
-      begin
-        LFilterItemsNode := LControllerNode.FindNode('Filters/Items');
-        if Assigned(LFilterItemsNode) then
-        begin
-          LFilterConnector := LControllerNode.GetString('Filters/Connector', 'and');
-          LFilterExpr := BuildFilterExpression(
-            LFilterItemsNode, LFilterConnector,
-            function(AIndex: Integer): string
-            begin
-              Result := TKWebRequest.Current.GetField('f_' + IntToStr(AIndex));
-            end);
-        end;
-      end;
-      LStore.Load(LFilterExpr, '', 0, 0);
     end;
-
-    // Set Sys objects on the tool controller's Config for tool execution
-    LToolController.Config.SetObject('Sys/ServerStore', LStore);
-    LToolController.Config.SetObject('Sys/ViewTable', LViewTable);
-    if LStore.RecordCount > 0 then
-      LToolController.Config.SetObject('Sys/Record', LStore.Records[0]);
-
-    // Execute the tool (calls ExecuteTool + AfterExecuteTool)
-    // For download tools: DownloadStream sets Content-Disposition and content stream.
-    // For non-download tools: response may be empty or have a success indicator.
-    LToolController.Display;
-  finally
-    // Clear Sys/ references before freeing store to avoid dangling pointers
-    LToolController.Config.SetObject('Sys/ServerStore', nil);
-    LToolController.Config.SetObject('Sys/ViewTable', nil);
-    LToolController.Config.SetObject('Sys/Record', nil);
-    FreeAndNil(LStore);
+    LLoadFilter := LKeyFilter;
+  end
+  else
+  begin
+    LFilterExpr := '';
+    LControllerNode := LView.FindNode('Controller');
+    if Assigned(LControllerNode) then
+    begin
+      LFilterItemsNode := LControllerNode.FindNode('Filters/Items');
+      if Assigned(LFilterItemsNode) then
+      begin
+        LFilterConnector := LControllerNode.GetString('Filters/Connector', 'and');
+        LFilterExpr := BuildFilterExpression(
+          LFilterItemsNode, LFilterConnector,
+          function(AIndex: Integer): string
+          begin
+            Result := TKWebRequest.Current.GetField('f_' + IntToStr(AIndex));
+          end);
+      end;
+    end;
+    LLoadFilter := LFilterExpr;
   end;
+
+  // RunMode: Background -> submit a job (the tool runs on a worker and its file is
+  // downloaded later from the notification center); Foreground (default) -> run the
+  // tool now and stream its result to the client, exactly as before.
+  LRunMode := LToolNode.GetString('Controller/RunMode');
+  if SameText(LRunMode, 'Background') then
+  begin
+    // Title = "<View> - <Tool>" so the notification center shows where it started.
+    // Use the TKDataView-typed variable: TKDataView.DisplayLabel already resolves
+    // the view title, falling back to MainTable.PluralDisplayLabel (e.g.
+    // "Activities") when the view has no explicit DisplayLabel.
+    LTitle := LDataView.DisplayLabel + ' - ' + LToolNode.GetExpandedString('DisplayLabel', AToolName);
+    LUser := TKAuthenticator.Current.UserName;
+    // Build the store here on the request thread (field ACL needs the per-request
+    // auth context); ownership is transferred to the job, which runs it on a worker.
+    TKXJobQueue.Instance.Submit(
+      TKXToolJob.Create(AViewName, AToolName,
+        TKXToolExecutor.BuildStore(AViewName, LLoadFilter)), LTitle, LUser);
+    LApp.Toast(_('Operation started in the background; you will be notified when the result is ready.'));
+  end
+  else
+    TKXToolExecutor.ExecuteToolCore(AViewName, AToolName, LLoadFilter, '',
+      LResultPath, LResultFile, LContentType);
 end;
 
 procedure TKXViewHandlerBase.HandleTempUpload(const AViewName, AFieldName: string);

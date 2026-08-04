@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,15 +54,28 @@ type
     procedure FetchTablePrimaryKey(const ATableInfo: TEFDBTableInfo);
     procedure FetchTableForeignKeys(const ATableInfo: TEFDBTableInfo);
   public
+    ///	<summary>
+    ///	  Creates the info object bound to the given DBX connection.
+    ///	</summary>
     constructor Create(const AConnection: TSQLConnection);
+    ///	<summary>
+    ///	  The DBX connection used to retrieve database metadata.
+    ///	</summary>
     property Connection: TSQLConnection read FConnection write FConnection;
   end;
 
   TEFDBDBXQuery = class;
 
+  ///	<summary>
+  ///	  TSQLConnection descendant used internally by the DBX adapter.
+  ///	</summary>
   TEFSQLConnection = class(TSQLConnection)
   end;
 
+  ///	<summary>
+  ///	  DBExpress implementation of TEFDBConnection. Supports the databases
+  ///	  reachable through the configured DBX driver.
+  ///	</summary>
   TEFDBDBXConnection = class(TEFDBConnection)
   private
     FConnection: TEFSQLConnection;
@@ -96,19 +109,32 @@ type
     procedure InternalClose; override;
     function InternalCreateDBInfo: TEFDBInfo; override;
   public
+    ///	<summary>Creates the internal TSQLConnection and connection string.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Closes and destroys the internal TSQLConnection.</summary>
     destructor Destroy; override;
   public
+    ///	<summary>DBX implementation of TEFDBConnection.IsOpen.</summary>
     function IsOpen: Boolean; override;
+    ///	<summary>DBX implementation of TEFDBConnection.ExecuteImmediate.</summary>
     function ExecuteImmediate(const AStatement: string): Integer; override;
+    ///	<summary>DBX implementation of TEFDBConnection.InternalStartTransaction.</summary>
     procedure InternalStartTransaction; override;
+    ///	<summary>DBX implementation of TEFDBConnection.InternalCommitTransaction.</summary>
     procedure InternalCommitTransaction; override;
+    ///	<summary>DBX implementation of TEFDBConnection.InternalRollbackTransaction.</summary>
     procedure InternalRollbackTransaction; override;
+    ///	<summary>DBX implementation of TEFDBConnection.IsInTransaction.</summary>
     function IsInTransaction: Boolean; override;
+    ///	<summary>Auto-inc fields are not supported in dbExpress; always returns 0.</summary>
     function GetLastAutoincValue(const ATableName: string = ''): Int64; override;
+    ///	<summary>Fetches the next value of a sequence generator (Oracle and IB/Fb only).</summary>
     function FetchSequenceGeneratorValue(const ASequenceName: string): Int64; override;
+    ///	<summary>DBX implementation of TEFDBConnection.CreateDBCommand.</summary>
     function CreateDBCommand: TEFDBCommand; override;
+    ///	<summary>DBX implementation of TEFDBConnection.CreateDBQuery.</summary>
     function CreateDBQuery: TEFDBQuery; override;
+    ///	<summary>Returns the underlying TSQLConnection instance.</summary>
     function GetConnection: TObject; override;
   end;
 
@@ -126,9 +152,17 @@ type
   protected
     procedure InternalOpen; override;
   public
+    ///	<summary>
+    ///	  Patches unknown parameter types before delegating to the inherited
+    ///	  ExecSQL, to avoid the DBX "No value for parameter X" error.
+    ///	</summary>
     function ExecSQL(ExecDirect: Boolean = False): Integer; override;
   end;
 
+  ///	<summary>
+  ///	  DBExpress implementation of TEFDBCommand (statements returning no result
+  ///	  set), backed by an internal TEFSQLQuery.
+  ///	</summary>
   TEFDBDBXCommand = class(TEFDBCommand)
   private
     FQuery: TEFSQLQuery;
@@ -142,12 +176,19 @@ type
     function GetParams: TParams; override;
     procedure SetParams(const AValue: TParams); override;
   public
+    ///	<summary>Creates the internal TEFSQLQuery.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Destroys the internal TEFSQLQuery.</summary>
     destructor Destroy; override;
   public
+    ///	<summary>DBX implementation of TEFDBCommand.Execute; returns the number of affected rows.</summary>
     function Execute: Integer; override;
   end;
 
+  ///	<summary>
+  ///	  DBExpress implementation of TEFDBQuery (statements returning a result
+  ///	  set), backed by an internal TEFSQLQuery.
+  ///	</summary>
   TEFDBDBXQuery = class(TEFDBQuery)
   private
     FQuery: TEFSQLQuery;
@@ -164,18 +205,27 @@ type
     function GetMasterSource: TDataSource; override;
     procedure SetMasterSource(const AValue: TDataSource); override;
   public
+    ///	<summary>Creates the internal TEFSQLQuery.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Destroys the internal TEFSQLQuery.</summary>
     destructor Destroy; override;
   public
     ///	<summary>Execute and Open are synonims in this class. Execute always
     ///	returns 0.</summary>
     function Execute: Integer; override;
+    ///	<summary>DBX implementation of TEFDBQuery.Open; opens the underlying dataset.</summary>
     procedure Open; override;
+    ///	<summary>DBX implementation of TEFDBQuery.Close; closes the underlying dataset.</summary>
     procedure Close; override;
+    ///	<summary>DBX implementation of TEFDBQuery.IsOpen.</summary>
     function IsOpen: Boolean; override;
   end;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  ///	<summary>
+  ///	  Database adapter that creates DBExpress connections. Registered with the
+  ///	  adapter registry under the ClassId 'DBX'.
+  ///	</summary>
   TEFDBDBXAdapter = class(TEFDBAdapter)
   private
     function GetConnectionConfig: TEFDBDBXConnectionConfig;

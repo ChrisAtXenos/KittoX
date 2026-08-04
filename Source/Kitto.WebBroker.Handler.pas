@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,11 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  WebBroker bridge for KittoX. Hosts a single global TKWebEngine and adapts
+///  TWebRequest/TWebResponse to it, so the same engine can serve requests under
+///  IIS (ISAPI) or Apache without any application-specific code.
+/// </summary>
 unit Kitto.WebBroker.Handler;
 
 {$I Kitto.Defines.inc}
@@ -44,10 +49,15 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
+    /// <summary>The process-wide singleton handler instance.</summary>
     class property Current: TKWebBrokerHandler read GetCurrent;
 
+    /// <summary>The hosted web engine, lazily created on first access.</summary>
     property Engine: TKWebEngine read GetEngine;
 
+    /// <summary>Builds the full URL from the WebBroker request and delegates it to the
+    /// engine; returns True when handled (always True — emits a diagnostic 500 page on
+    /// no-match or on exception).</summary>
     function HandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse): Boolean;
   end;
 

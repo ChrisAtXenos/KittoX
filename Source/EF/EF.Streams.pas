@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,10 +59,15 @@ type
     ///	  it when it is itself destroyed.
     ///	</summary>
     constructor Create(const AStream: TStream; const AOwnsStream: Boolean = True);
+    /// <summary>Frees the decorated stream if the decorator owns it.</summary>
     destructor Destroy; override;
+    /// <summary>Reads from the decorated stream, firing OnEndOfStream when fewer bytes than requested are read.</summary>
     function Read(var Buffer; Count: Integer): Integer; override;
+    /// <summary>Writes to the decorated stream.</summary>
     function Write(const Buffer; Count: Integer): Integer; override;
+    /// <summary>Seeks on the decorated stream (32-bit overload).</summary>
     function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
+    /// <summary>Seeks on the decorated stream (64-bit overload).</summary>
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload; override;
 
     ///	<summary>
@@ -81,8 +86,11 @@ type
   private
     FGettingSize: Boolean;
   public
+    /// <summary>Reads sequentially from the decorated stream.</summary>
     function Read(var Buffer; Count: Longint): Longint; override;
+    /// <summary>Only supports the special Seek calls used to query the stream's size; any other seek raises an exception.</summary>
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+    /// <summary>Not supported on a read-only filter; always raises an exception.</summary>
     function Write(const Buffer; Count: Longint): Longint; override;
   end;
 
@@ -103,9 +111,13 @@ type
     ///	</summary>
     function ReadNextBuffer: Boolean;
   public
+    /// <summary>Allocates the internal read buffer.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the internal read buffer.</summary>
     destructor Destroy; override;
+    /// <summary>Reads the requested number of bytes, refilling the internal buffer from the decorated stream as needed.</summary>
     function Read(var Buffer; Count: Longint): Longint; override;
+    /// <summary>Returns the current logical position (accounting for buffered data); other seeks are delegated to the inherited filter.</summary>
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
   end;
 
@@ -118,6 +130,7 @@ type
   private
     FLineBreak: string;
   public
+    /// <summary>Initializes LineBreak to the platform default (sLineBreak).</summary>
     procedure AfterConstruction; override;
   public
     const
@@ -187,7 +200,9 @@ type
     ///	encoding.</summary>
     function EncodeString(const AString: string): string;
   public
+    /// <summary>Inherits any indentation offset when this stream decorates another XML output stream.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Closes any still-open tags and frees the open-tags stack.</summary>
     destructor Destroy; override;
 
     ///	<summary>Writes the XML prolog. Call this before writing anything else

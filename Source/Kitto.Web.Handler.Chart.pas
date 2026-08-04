@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    This file is part of KittoX Enterprise Edition.
@@ -22,9 +22,14 @@ uses
   Kitto.Metadata.DataView;
 
 type
+  /// <summary>Serves the chart-data endpoint for a data view configured with a
+  /// Chart controller.</summary>
   [TKXPath('/kx/view/{ViewName}')]
   TKXChartHandler = class
   public
+    /// <summary>Loads the view's records and returns JSON with the label and
+    /// data arrays (read from the configured Chart series fields) plus the grid
+    /// HTML for the panel sidebar.</summary>
     [TKXPath('/chart-data')]
     [TKXGET]
     procedure HandleChartData(

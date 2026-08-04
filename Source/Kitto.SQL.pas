@@ -14,6 +14,13 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  SQL generation for Kitto's data access layer. TKSQLBuilder builds the
+///  select, count, insert, update, delete and lookup statements for a view
+///  table or model on a given query/command, handling joins to referenced
+///  models, table aliases, master-detail linking, paging, default filters and
+///  dialect-specific identifier delimiting.
+/// </summary>
 unit Kitto.SQL;
 
 {$I Kitto.Defines.inc}
@@ -72,7 +79,9 @@ type
     /// </summary>
     procedure ExpandQualification(var AString: string; const AQualification: string);
   public
+    /// <summary>Allocates the internal reference-field and FK-column tracking lists.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the internal tracking lists.</summary>
     destructor Destroy; override;
 
     /// <summary>

@@ -44,6 +44,12 @@ const
   SPACER_WIDTH = 1;
 
 type
+  /// <summary>
+  ///  Carries all the per-field context needed to render a single input:
+  ///  element id/name, current value(s), width styles, state flags
+  ///  (read-only, required, key) and the CSS class. Passed by value to every
+  ///  TKXEditorFactory.Render* method.
+  /// </summary>
   TKXEditorContext = record
     InputId: string;
     InputName: string;
@@ -60,6 +66,12 @@ type
     EffWidth: Integer;           // Effective width in ch units (for DateTime time portion calc)
   end;
 
+  /// <summary>
+  ///  Stateless factory of class methods that build the raw HTML markup for
+  ///  each editor/input type (text, select, checkbox, date, currency, memo,
+  ///  reference, etc.) from a TKXEditorContext. Used by both form editors and
+  ///  filter inputs.
+  /// </summary>
   TKXEditorFactory = class
   public
     /// <summary>Dispatches to the correct Render* method based on ADataType.</summary>

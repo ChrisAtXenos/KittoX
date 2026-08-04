@@ -61,19 +61,23 @@ MainTable:
       DownloadText:
         DisplayLabel: Download in TXT
         Controller: ExportTextTool
+          RunMode: Background
           RequireSelection: False
           ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
       DownloadCSV:
         DisplayLabel: Download in CSV
         ImageName: download
         Controller: ExportCSVTool
+          RunMode: Background
           RequireSelection: False
+          ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.csv
       DownloadExcel:
         DisplayLabel: Download in Excel
         Controller: ExportExcelTool
-          ClientFileName: ActivityList.xls
-          TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
+          RunMode: Background
           RequireSelection: False
+          ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.xls
+          TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
       PDFReport:
         DisplayLabel: Activity report PDF
         Controller: MergePDFTool

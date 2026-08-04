@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -100,8 +100,12 @@ type
     /// values.</summary>
     procedure Init;
 
+    /// <summary>Thread-local reference to the currently active access controller
+    /// instance for the request being served.</summary>
     class property Current: TKAccessController read GetCurrent write SetCurrent;
   end;
+  /// <summary>Metaclass reference used to register and create access controllers
+  /// by class.</summary>
   TKAccessControllerClass = class of TKAccessController;
 
   /// <summary>Exception raised when access to a certain resource is
@@ -115,7 +119,9 @@ type
     class var FInstance: TKAccessControllerRegistry;
     class function GetInstance: TKAccessControllerRegistry; static;
   public
+    /// <summary>Frees the singleton registry instance.</summary>
     class destructor Destroy;
+    /// <summary>The lazily-created singleton registry instance.</summary>
     class property Instance: TKAccessControllerRegistry read GetInstance;
 
     /// <summary>Adds an access controller class to the registry.</summary>
@@ -129,7 +135,9 @@ type
     class var FInstance: TKAccessControllerFactory;
     class function GetInstance: TKAccessControllerFactory; static;
   public
+    /// <summary>Frees the singleton factory instance.</summary>
     class destructor Destroy;
+    /// <summary>The lazily-created singleton factory instance.</summary>
     class property Instance: TKAccessControllerFactory read GetInstance;
 
     /// <summary>Creates and returns an instance of the access controller class

@@ -34,6 +34,7 @@ uses
   Kitto.Html.Login,
   Kitto.Web.Handler.Auth,
   Kitto.Web.Handler.View,
+  Kitto.Web.Handler.Notification,
   Kitto.Html.FormController,
   Kitto.Html.ResetPassword,
   Kitto.Html.ChangePassword,

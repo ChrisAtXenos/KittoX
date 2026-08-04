@@ -87,7 +87,9 @@ type
     ///	macros).</summary>
     function GetUserListFileName: string; virtual;
   public
+    ///	<summary>Creates the in-memory user list.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Frees the in-memory user list.</summary>
     destructor Destroy; override;
   end;
 

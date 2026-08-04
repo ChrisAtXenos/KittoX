@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,11 +99,26 @@ type
   TEFNullLocalizationTool = class(TEFNoRefCountObject, IInterface,
     IEFInterface, IEFLocalizationTool)
   public
+    ///	<summary>
+    ///	  Returns the implementing object (Self).
+    ///	</summary>
     function AsObject: TObject;
+    ///	<summary>
+    ///	  Returns AString unchanged (no translation is performed).
+    ///	</summary>
     function TranslateString(const AString: string;
       const AIdString: string = ''): string;
+    ///	<summary>
+    ///	  Does nothing (no translation is performed).
+    ///	</summary>
     procedure TranslateComponent(const AComponent: TComponent);
+    ///	<summary>
+    ///	  Does nothing (no language switching is performed).
+    ///	</summary>
     procedure ForceLanguage(const ALanguageId: string);
+    ///	<summary>
+    ///	  Returns '' (no current language is tracked).
+    ///	</summary>
     function GetCurrentLanguageId: string;
   end;
 

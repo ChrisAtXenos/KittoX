@@ -66,6 +66,7 @@ type
     function Render: string; override;
   end;
 
+  /// <summary>Metaclass reference for TKXToolController descendants.</summary>
   TKXToolControllerClass = class of TKXToolController;
 
   /// <summary>

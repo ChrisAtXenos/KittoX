@@ -36,6 +36,11 @@ uses
   Kitto.Store;
 
 type
+  /// <summary>
+  ///  Grouped data grid controller. Loads all records (no paging) and renders
+  ///  them under collapsible group headers keyed by a grouping field, reusing
+  ///  the toolbar, filter and column support of TKXListPanelController.
+  /// </summary>
   TKXGroupingListController = class(TKXListPanelController)
   strict private
     function GetGroupingFieldName: string;

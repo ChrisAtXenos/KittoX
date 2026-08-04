@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+ï»¿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,10 +52,15 @@ type
     procedure SetTLSMode(const Value: TIdUseTLS);
     procedure SetUseTLS(const Value: Boolean);
   public
+    ///	<summary>Copies the SMTP server parameters from another TEFSMTPServerParams instance.</summary>
     procedure Assign(Source: TPersistent); override;
+    ///	<summary>SMTP server host name or IP address.</summary>
     property HostName: string read FHostName write FHostName;
+    ///	<summary>SMTP server port.</summary>
     property Port: Integer read FPort write FPort;
+    ///	<summary>Whether TLS is used. Kept in sync with TLSMode: setting it True selects a require-TLS mode when none is set.</summary>
     property UseTLS: Boolean read FUseTLS write SetUseTLS default False;
+    ///	<summary>Indy TLS mode (implicit, explicit, require, or none). Setting it also updates UseTLS accordingly.</summary>
     property TLSMode: TIdUseTLS read FTLSMode write SetTLSMode default utNoTLSSupport;
 
     ///	<summary>
@@ -83,6 +88,7 @@ type
     FReturnAddress: string;
     FEmailAddress: string;
   public
+    ///	<summary>Copies the sender data from another TEFEmailSender instance.</summary>
     procedure Assign(Source: TPersistent); override;
 
     ///	<summary>
@@ -121,7 +127,9 @@ type
     FBCCAddresses: string;
     procedure SetAttachmentFileNames(const AValue: TStrings);
   public
+    ///	<summary>Creates the message and its empty attachment file-name list.</summary>
     constructor Create;
+    ///	<summary>Frees the attachment file-name list.</summary>
     destructor Destroy; override;
 
     ///	<summary>
@@ -177,22 +185,25 @@ type
     procedure SetConnected(const Value: Boolean);
     procedure SetSMTPServerParams(const Value: TEFSMTPServerParams);
   public
+    ///	<summary>Creates the emailer and its internal Indy SMTP and message objects.</summary>
     constructor Create(AOwner: TComponent); override;
+    ///	<summary>Disconnects if still connected and frees the internal Indy objects.</summary>
     destructor Destroy; override;
+    ///	<summary>SMTP server connection and authentication parameters used when sending.</summary>
     property SMTPServerParams: TEFSMTPServerParams
       read FSMTPServerParams write SetSMTPServerParams;
 
     ///	<summary>
     ///	  Connection management is automatic each time SendMail is called. If
-    ///	  you need to call SendMail several times in a row, it is more
-    ///	  efficient to manage the connection from the caller and doing it only
+    ///	  youÂ need to call SendMail several times in a row, it is more
+    ///	  efficient toÂ manage the connection from the caller and doing it only
     ///	  once.
     ///	</summary>
     property Connected: Boolean read FConnected write SetConnected;
 
     ///	<summary>
     ///	  Sends AEmailMessage using the sender information provided in
-    ///	  AEmailSender and through the server specified in the SMTPServerParams
+    ///	  AEmailSenderÂ and through the server specified in the SMTPServerParams
     ///	  property.
     ///	</summary>
     procedure SendMail(const AEmailSender: TEFEmailSender;
@@ -320,7 +331,7 @@ begin
   FIdMessage.Body.Clear;
   if AIsHTML then
   begin
-    FIdMessage.Body.Text := StringReplace(AText,'€','&euro;',[rfReplaceAll]);
+    FIdMessage.Body.Text := StringReplace(AText,'â‚¬','&euro;',[rfReplaceAll]);
     // HTML messages need a multipart body (text + html).
     with TIdText.Create(FIdMessage.MessageParts, FIdMessage.Body) do
       ContentType := 'text/plain';

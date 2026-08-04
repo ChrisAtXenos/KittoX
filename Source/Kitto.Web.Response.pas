@@ -14,6 +14,12 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Response wrappers for KittoX. TKWebResponse adapts a WebBroker TWebResponse
+///  (status, headers, cookies, content stream) and owns a stack of
+///  TKWebResponseContent buffers that accumulate the HTML/HTMX output before it
+///  is flushed to the client. The active response is kept thread-local.
+/// </summary>
 unit Kitto.Web.Response;
 
 {$I Kitto.Defines.inc}
@@ -57,6 +63,12 @@ type
     property Count: Integer read GetCount;
   end;
 
+  /// <summary>
+  ///  Wraps a WebBroker TWebResponse and is used throughout KittoX whenever a
+  ///  response object is needed. Exposes status code, content type, custom
+  ///  headers and cookies, and an Items stack of HTML content buffers that
+  ///  Send flushes to the underlying response.
+  /// </summary>
   TKWebResponse = class
   private
     FResponse: TWebResponse;

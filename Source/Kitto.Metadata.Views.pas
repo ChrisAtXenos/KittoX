@@ -14,6 +14,12 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  The view metadata layer. Defines views (TKView) that pair a controller with
+///  data/UI configuration, their catalog (TKViews), the layouts (TKLayout) that
+///  arrange fields, tree views (TKTreeView) that form navigation menus, and the
+///  registries, view builders and factory that instantiate them from YAML.
+/// </summary>
 unit Kitto.Metadata.Views;
 
 {$I Kitto.Defines.inc}
@@ -38,6 +44,11 @@ uses
 type
   TKViews = class;
 
+  /// <summary>
+  ///  A view: a persistent metadata object that names a controller and holds its
+  ///  configuration. Base class of all view kinds (data views, tree views,
+  ///  action views, etc.).
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKView = class(TKMetadata)
   strict private
@@ -64,8 +75,10 @@ type
     property ControllerType: string read GetControllerType;
   end;
 
+  /// <summary>Metaclass reference for TKView and its descendants.</summary>
   TKViewClass = class of TKView;
 
+  /// <summary>A simple list of views.</summary>
   TKViewList = class(TList<TKView>)
   public
     /// <summary>Adds the name of each view in the list to AStrings.</summary>
@@ -74,6 +87,10 @@ type
 
   TKLayouts = class;
 
+  /// <summary>
+  ///  A layout: the persistent arrangement of fields (rows, fieldsets, page
+  ///  breaks) and label/field sizing options used to render a form or grid.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   [YamlChildType('Field', '', 'Form field')]
   [YamlChildType('FieldSet', '', 'Grouped fieldset')]
@@ -117,6 +134,7 @@ type
     property LabelSeparator: string read GetLabelSeparator;
   end;
 
+  /// <summary>Metaclass reference for TKLayout and its descendants.</summary>
   TKLayoutClass = class of TKLayout;
 
   /// <summary>
@@ -176,6 +194,7 @@ type
     procedure Close; override;
   end;
 
+  /// <summary>A simple list of layouts.</summary>
   TKLayoutList = class(TList<TKLayout>)
   end;
 
@@ -223,6 +242,7 @@ type
 
   TKTreeViewNode = class;
 
+  /// <summary>Interface implemented by objects that hold a list of tree-view nodes.</summary>
   IKTreeViewNodes = interface
     ['{5A14D9B3-6363-4B29-888B-EAF70857094E}']
     function GetTreeViewNodeCount: Integer;
@@ -296,6 +316,7 @@ type
     property TreeViewNodes[I: Integer]: TKTreeViewNode read GetTreeViewNode;
   end;
 
+  /// <summary>Singleton registry mapping type ids to view classes.</summary>
   TKViewRegistry = class(TKMetadataRegistry)
   strict private
     class var FInstance: TKViewRegistry;
@@ -312,6 +333,11 @@ type
     function GetClass(const AId1, AId2: string): TKViewClass;
   end;
 
+  /// <summary>
+  ///  Base class for objects that build a view on the fly from configuration
+  ///  (rather than loading it from a YAML file). Referenced through 'Build
+  ///  &lt;BuilderName&gt;' in a view node.
+  /// </summary>
   TKViewBuilder = class(TKMetadata)
   strict private
     FViews: TKViews;
@@ -329,8 +355,10 @@ type
       const ANode: TEFNode = nil): TKView; virtual;
   end;
 
+  /// <summary>Metaclass reference for TKViewBuilder and its descendants.</summary>
   TKViewBuilderClass = class of TKViewBuilder;
 
+  /// <summary>Singleton registry mapping ids to view-builder classes.</summary>
   TKViewBuilderRegistry = class(TEFRegistry)
   private
     class var FInstance: TKViewBuilderRegistry;
@@ -344,6 +372,7 @@ type
     function GetClass(const AId: string): TKViewBuilderClass;
   end;
 
+  /// <summary>Singleton factory that instantiates view builders by registered id.</summary>
   TKViewBuilderFactory = class(TEFFactory)
   private
     class var FInstance: TKViewBuilderFactory;
@@ -360,6 +389,7 @@ type
     function CreateObject(const AId: string): TKViewBuilder; reintroduce;
   end;
 
+  /// <summary>Singleton registry mapping type ids to layout classes.</summary>
   TKLayoutRegistry = class(TKMetadataRegistry)
   strict private
     class var FInstance: TKLayoutRegistry;

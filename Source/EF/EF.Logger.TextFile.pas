@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,9 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///   A logging endpoint that appends log messages to a text file.
+/// </summary>
 unit EF.Logger.TextFile;
 
 interface
@@ -26,6 +29,13 @@ uses
   EF.Streams;
 
 type
+  /// <summary>
+  ///   Log endpoint that writes each message, prefixed with a timestamp, as a
+  ///   new line in a text file. Created as a singleton in the unit's
+  ///   initialization section. The target file defaults to the module name with
+  ///   a '.log' extension and can be overridden through configuration (see the
+  ///   'TextFile/FileName' key) or the FileName property.
+  /// </summary>
   TEFTextFileLogEndpoint = class(TEFLogEndpoint)
   strict private
     FStream: TEFTextStream;
@@ -41,10 +51,26 @@ type
     procedure SetFileName(const AValue: string);
     function GetConfigPath: string; override;
   public
+    /// <summary>
+    ///   Creates the singleton instance of this endpoint.
+    /// </summary>
     class procedure CreateSingletonInstance;
+    /// <summary>
+    ///   Destroys the singleton instance of this endpoint.
+    /// </summary>
     class procedure FreeSingletonInstance;
+    /// <summary>
+    ///   Sets the default file name (the module name with a '.log' extension).
+    /// </summary>
     procedure AfterConstruction; override;
+    /// <summary>
+    ///   Closes the underlying stream and destroys the endpoint.
+    /// </summary>
     destructor Destroy; override;
+    /// <summary>
+    ///   Full path of the log file. Changing it closes the currently open
+    ///   stream so that the new file is used on the next write.
+    /// </summary>
     property FileName: string read FFileName write SetFileName;
   end;
 

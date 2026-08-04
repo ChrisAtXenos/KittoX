@@ -14,6 +14,13 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Request wrappers for KittoX. TKWebRequest adapts a WebBroker TWebRequest
+///  and adds Kitto-specific helpers (query/form/cookie/header access, single
+///  URL-decoding, JSON body parsing, Ajax/refresh and mobile-browser detection),
+///  kept thread-local. TKWebRequestInfo snapshots request data for use after the
+///  request object is destroyed.
+/// </summary>
 unit Kitto.Web.Request;
 
 {$I Kitto.Defines.inc}

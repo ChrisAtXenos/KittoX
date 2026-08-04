@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,13 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Base layer of the metadata system. Defines the persistent tree object
+///  (TKMetadata) and node (TKMetadataItem) that models, views and layouts
+///  derive from, the catalog that loads, caches and saves them from YAML
+///  files (TKMetadataCatalog), and the registry that maps type ids to
+///  metadata classes (TKMetadataRegistry).
+/// </summary>
 unit Kitto.Metadata;
 
 {$I Kitto.Defines.inc}
@@ -46,8 +53,10 @@ type
     class function GetClassNameForResourceURI: string; virtual;
     function GetPersistentFileName: string; override;
   public
+    /// <summary>Prefix used to name framework-supplied (system) metadata classes.</summary>
     const SYS_PREFIX = 'Sys$';
 
+    /// <summary>The catalog that owns and manages this metadata object.</summary>
     property Catalog: TKMetadataCatalog read FCatalog;
 
     /// <summary>
@@ -84,6 +93,10 @@ type
 
   TKMetadataClass = class of TKMetadata;
 
+  /// <summary>
+  ///  A metadata node: a tree node (contained in a metadata object or another
+  ///  item) that participates in access control via a resource URI.
+  /// </summary>
   TKMetadataItem = class(TEFNode)
   strict protected
     class function GetClassNameForResourceURI: string; virtual;
@@ -118,6 +131,12 @@ type
 
   TKMetadataRegistry = class;
 
+  /// <summary>
+  ///  A catalog of metadata objects backed by a directory of YAML files.
+  ///  Indexes the files, loads objects lazily on demand, caches them, and
+  ///  persists changes. Also tracks non-persistent and dynamically-created
+  ///  objects. Access is serialized (thread-safe) through Synchronize.
+  /// </summary>
   TKMetadataCatalog = class(TEFSubjectAndObserver)
   strict private
     FPath: string;
@@ -162,14 +181,21 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    /// <summary>Returns the non-persistent object created from ANode, or nil.</summary>
     function FindNonpersistentObject(const ANode: TEFNode): TKMetadata;
+    /// <summary>Registers AObject as the non-persistent object created from ANode.</summary>
     procedure AddNonpersistentObject(const AObject: TKMetadata; const ANode: TEFNode);
+    /// <summary>Removes the non-persistent object associated with ANode (does not free it).</summary>
     procedure DeleteNonpersistentObject(const ANode: TEFNode);
 
+    /// <summary>Returns the dynamically-created object registered under AName, or nil.</summary>
     function FindDynamicObject(const AName: string): TKMetadata;
+    /// <summary>Registers AObject as a dynamically-created object under AName.</summary>
     procedure AddDynamicObject(const AObject: TKMetadata; const AName: string);
+    /// <summary>Removes the dynamically-created object registered under AName (does not free it).</summary>
     procedure DeleteDynamicObject(const AName: string);
   public
+    /// <summary>The directory path holding the catalog's YAML files.</summary>
     property Path: string read FPath write SetPath;
 
     /// <summary>
@@ -214,21 +240,37 @@ type
     /// </summary>
     procedure Close; virtual;
 
+    /// <summary>Number of objects in the catalog's index.</summary>
     property ObjectCount: Integer read GetObjectCount;
+    /// <summary>The catalog's objects, by index (loaded on demand).</summary>
     property Objects[I: Integer]: TKMetadata read GetObject;
+    /// <summary>Returns the object with the given name (persistent, dynamic or
+    /// on-the-fly created), or nil.</summary>
     function FindObject(const AName: string): TKMetadata; overload;
+    /// <summary>Returns the first existing object among the given names, or nil.</summary>
     function FindObject(const ANames: TStringDynArray): TKMetadata; overload;
+    /// <summary>Predicate used to locate an object by a custom condition.</summary>
     type TPredicate = reference to function (const AObject: TKMetadata): Boolean;
+    /// <summary>Returns the first object satisfying APredicate, or nil.</summary>
     function FindObjectByPredicate(const APredicate: TPredicate): TKMetadata;
 
+    /// <summary>Returns the object with the given name; raises if not found.</summary>
     function ObjectByName(const AName: string): TKMetadata; overload;
+    /// <summary>Returns the first existing object among the given names; raises if none.</summary>
     function ObjectByName(const ANames: TStringDynArray): TKMetadata; overload;
 
+    /// <summary>Returns the object referenced by ANode; raises if not found.</summary>
     function ObjectByNode(const ANode: TEFNode): TKMetadata;
+    /// <summary>Returns the object referenced by ANode, or nil. A node with an
+    /// expanded string value references an object by name; a node with children
+    /// yields a non-persistent object built from the node's contents.</summary>
     function FindObjectByNode(const ANode: TEFNode): TKMetadata;
 
+    /// <summary>Adds AObject (which must have a persistent name) to the catalog.</summary>
     procedure AddObject(const AObject: TKMetadata);
+    /// <summary>Removes AObject from the index (does not free it).</summary>
     procedure RemoveObject(const AObject: TKMetadata);
+    /// <summary>Removes and frees the object at the given index.</summary>
     procedure DeleteObject(const AIndex: Integer);
 
     /// <summary>
@@ -246,9 +288,14 @@ type
     /// </summary>
     procedure SaveAll;
 
+    /// <summary>Saves the given object to its YAML file.</summary>
     procedure SaveObject(const AObject: TKMetadata);
   end;
 
+  /// <summary>
+  ///  Registry mapping type ids to metadata classes, with fallback and
+  ///  system-class lookup semantics.
+  /// </summary>
   TKMetadataRegistry = class(TEFRegistry)
   public
     /// <summary>

@@ -14,6 +14,13 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Stand-alone Indy-based HTTP server for KittoX. TKWebServer extends
+///  TIdCustomHTTPServer, hosts a TKWebEngine, reads its configuration from
+///  Config.yaml (port, bind address, thread-pool size) and bridges Indy
+///  requests/responses into the engine. Used by the GUI, console, service and
+///  daemon deployment modes.
+/// </summary>
 unit Kitto.Web.Server;
 
 {$I Kitto.Defines.inc}

@@ -61,72 +61,129 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); virtual;
   public
+    /// <summary>Returns the type's registration name (the class name stripped of the 'TEF' prefix and 'DataType' suffix).</summary>
     class function GetTypeName: string; virtual;
+    /// <summary>Returns True if this data type has a meaningful size (such as a string length).</summary>
     class function HasSize: Boolean; virtual;
+    /// <summary>Returns True if this data type has a meaningful scale (number of decimal digits).</summary>
     class function HasScale: Boolean; virtual;
+    /// <summary>Returns the TFieldType that corresponds to this data type.</summary>
     class function GetFieldType: TFieldType; virtual;
+    /// <summary>Returns True if values of this type need to be quoted (for example in SQL or Yaml).</summary>
     class function NeedsQuotes: Boolean; virtual;
 
+    /// <summary>
+    ///  Guesses a suitable data type from a Yaml value string and sets ANode's
+    ///  data type and value accordingly. When APreferStrings is True numbers are
+    ///  kept as strings.
+    /// </summary>
     class procedure SetNodeDataTypeAndValueFromYaml(const AYamlValue: string;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings;
       const APreferStrings: Boolean);
 
+    /// <summary>Reads AField's value into ANode, setting the node to null when the field is null.</summary>
     procedure FieldValueToNode(const AField: TField; const ANode: TEFNode);
+    /// <summary>Writes ANode's value into AField, clearing the field when the node is null.</summary>
     procedure NodeToField(const ANode: TEFNode; const AField: TField);
+    /// <summary>Writes ANode's value into AParam, setting the param to null when the node is null.</summary>
     procedure NodeToParam(const ANode: TEFNode; const AParam: TParam);
+    /// <summary>Parses a Yaml value string into ANode according to this data type.</summary>
     procedure YamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings);
+    /// <summary>Returns the default display width, in characters, for a value of the given size.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; virtual;
+    /// <summary>Returns the default column alignment ('left', 'right', ...) for this data type.</summary>
     function GetDefaultColumnAlignment: string; virtual;
+    /// <summary>Returns True if an empty value may be treated as null for this data type.</summary>
     function SupportsEmptyAsNull: Boolean; virtual;
+    /// <summary>Returns the default EmptyAsNull setting for this data type.</summary>
     function GetDefaultEmptyAsNull: Boolean; virtual;
+    /// <summary>Returns True if values of this type can be represented in JSON.</summary>
     function SupportsJSON: Boolean; virtual;
+    /// <summary>Returns True if values of this type can be represented in XML.</summary>
     function SupportsXML: Boolean; virtual;
+    /// <summary>Returns True if a value of the given size is stored as a BLOB.</summary>
     function IsBlob(const ASize: Integer): Boolean; virtual;
+    /// <summary>Returns True if this is a text data type.</summary>
     function IsText: Boolean; virtual;
+    /// <summary>Returns True if this is the boolean data type.</summary>
     function IsBoolean: Boolean; virtual;
+    /// <summary>Formats ANode's value as a JSON value, optionally quoted, returning 'null' (or '' if AEmptyNulls) for null nodes.</summary>
     function NodeToJSONValue(const AForDisplay: Boolean; const ANode: TEFNode;
       const AJSFormatSettings: TFormatSettings; const AQuote: Boolean = True;
       const AEmptyNulls: Boolean = False): string;
+    /// <summary>Formats ANode's value as an XML element (&lt;Name&gt;value&lt;/Name&gt;).</summary>
     function NodeToXMLValue(const AForDisplay: Boolean; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings; const AEmptyNulls: Boolean = False): string;
+    /// <summary>Parses a JSON value string into ANode, setting it to null for empty or 'null' input.</summary>
     procedure JSONValueToNode(const ANode: TEFNode; const AValue: string;
       const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); virtual;
+    /// <summary>Returns the JavaScript/ExtJS type name for this data type.</summary>
     function GetJSTypeName: string; virtual;
 
+    /// <summary>Converts the stored variant value to a string.</summary>
     function ValueToString(const AValue: Variant): string; virtual;
+    /// <summary>Converts the stored variant value to an Integer.</summary>
     function ValueToInteger(const AValue: Variant): Integer; virtual;
+    /// <summary>Converts the stored variant value to an object reference.</summary>
     function ValueToObject(const AValue: Variant): TObject; virtual;
+    /// <summary>Converts the stored variant value to a Boolean.</summary>
     function ValueToBoolean(const AValue: Variant): Boolean; virtual;
+    /// <summary>Converts the stored variant value to a string array.</summary>
     function ValueToStringArray(const AValue: Variant): TStringDynArray; virtual;
+    /// <summary>Converts the stored variant value to a list of name/value pairs.</summary>
     function ValueToPairs(const AValue: Variant): TEFPairs; virtual;
+    /// <summary>Converts the stored variant value to a Date.</summary>
     function ValueToDate(const AValue: Variant): TDate; virtual;
+    /// <summary>Converts the stored variant value to a Time.</summary>
     function ValueToTime(const AValue: Variant): TTime; virtual;
+    /// <summary>Converts the stored variant value to a DateTime.</summary>
     function ValueToDateTime(const AValue: Variant): TDateTime; virtual;
+    /// <summary>Converts the stored variant value to a Char.</summary>
     function ValueToChar(const AValue: Variant): Char; virtual;
+    /// <summary>Converts the stored variant value to a Currency.</summary>
     function ValueToCurrency(const AValue: Variant): Currency; virtual;
+    /// <summary>Converts the stored variant value to a Double.</summary>
     function ValueToFloat(const AValue: Variant): Double; virtual;
+    /// <summary>Converts the stored variant value to a decimal (BCD).</summary>
     function ValueToDecimal(const AValue: Variant): TBcd; virtual;
+    /// <summary>Converts the stored variant value to a byte array.</summary>
     function ValueToBytes(const AValue: Variant): TBytes; virtual;
 
+    /// <summary>Converts a string to this type's variant representation.</summary>
     function StringToValue(const AString: string): Variant; virtual;
+    /// <summary>Converts an Integer to this type's variant representation.</summary>
     function IntegerToValue(const AInteger: Integer): Variant; virtual;
+    /// <summary>Converts an object reference to this type's variant representation.</summary>
     function ObjectToValue(const AObject: TObject): Variant; virtual;
+    /// <summary>Converts a Boolean to this type's variant representation.</summary>
     function BooleanToValue(const ABoolean: Boolean): Variant; virtual;
+    /// <summary>Converts a string array to this type's variant representation.</summary>
     function StringArrayToValue(const AStringArray: TStringDynArray): Variant; virtual;
+    /// <summary>Converts a list of pairs to this type's variant representation.</summary>
     function PairsToValue(const APairs: TEFPairs): Variant; virtual;
+    /// <summary>Converts a Date to this type's variant representation.</summary>
     function DateToValue(const ADate: TDate): Variant; virtual;
+    /// <summary>Converts a Time to this type's variant representation.</summary>
     function TimeToValue(const ATime: TTime): Variant; virtual;
+    /// <summary>Converts a DateTime to this type's variant representation.</summary>
     function DateTimeToValue(const ADateTime: TDateTime): Variant; virtual;
+    /// <summary>Converts a Currency to this type's variant representation.</summary>
     function CurrencyToValue(const ACurrency: Currency): Variant; virtual;
+    /// <summary>Converts a Double to this type's variant representation.</summary>
     function FloatToValue(const AFloat: Double): Variant; virtual;
+    /// <summary>Converts a decimal (BCD) to this type's variant representation.</summary>
     function DecimalToValue(const ADecimal: TBcd): Variant; virtual;
+    /// <summary>Converts a byte array to this type's variant representation.</summary>
     function BytesToValue(const ABytes: TBytes): Variant; virtual;
+    /// <summary>Converts a Char to this type's variant representation.</summary>
     function CharToValue(const AChar: Char): Variant; virtual;
   end;
+  /// <summary>Metaclass reference for TEFDataType descendants.</summary>
   TEFDataTypeClass = class of TEFDataType;
 
+  /// <summary>Data type for text values (Delphi strings).</summary>
   TEFStringDataType = class(TEFDataType)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
@@ -134,36 +191,54 @@ type
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns ftString.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns the default display width for a string of the given size.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    /// <summary>Returns True: empty strings may be treated as null.</summary>
     function SupportsEmptyAsNull: Boolean; override;
+    /// <summary>Returns False: a plain string is not a BLOB.</summary>
     function IsBlob(const ASize: Integer): Boolean; override;
+    /// <summary>Returns the JavaScript type name for strings.</summary>
     function GetJSTypeName: string; override;
+    /// <summary>Returns True: strings have a size (length).</summary>
     class function HasSize: Boolean; override;
+    /// <summary>Returns True: this is a text data type.</summary>
     function IsText: Boolean; override;
+    /// <summary>Returns the default EmptyAsNull setting for strings.</summary>
     function GetDefaultEmptyAsNull: Boolean; override;
   end;
 
+  /// <summary>Data type for long text (memo) values.</summary>
   TEFMemoDataType = class(TEFStringDataType)
   public
+    /// <summary>Returns True when the size marks the value as a BLOB-sized memo.</summary>
     function IsBlob(const ASize: Integer): Boolean; override;
+    /// <summary>Returns False: memo values have no fixed size.</summary>
     class function HasSize: Boolean; override;
   end;
 
+  /// <summary>Data type for binary (BLOB) values.</summary>
   TEFBlobDataType = class(TEFDataType)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
   public
+    /// <summary>Returns ftBlob.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns True: this is always a BLOB.</summary>
     function IsBlob(const ASize: Integer): Boolean; override;
+    /// <summary>Returns False: BLOBs are not represented in JSON.</summary>
     function SupportsJSON: Boolean; override;
   end;
 
+  /// <summary>Common base for the Date, Time and DateTime data types.</summary>
   TEFDateTimeDataTypeBase = class(TEFDataType)
   public
+    /// <summary>Returns the default EmptyAsNull setting for date/time types.</summary>
     function GetDefaultEmptyAsNull: Boolean; override;
   end;
 
+  /// <summary>Data type for date-only values.</summary>
   TEFDateDataType = class(TEFDateTimeDataTypeBase)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
@@ -174,15 +249,22 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns ftDate.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns the default display width for a date value.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    /// <summary>Returns True: empty dates may be treated as null.</summary>
     function SupportsEmptyAsNull: Boolean; override;
+    /// <summary>Formats the node's date value, using ISO format when not for display.</summary>
     function InternalFormatNodeValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
+    /// <summary>Returns the JavaScript type name for dates.</summary>
     function GetJSTypeName: string; override;
+    /// <summary>Converts the stored date value to a string.</summary>
     function ValueToString(const AValue: Variant): string; override;
   end;
 
+  /// <summary>Data type for time-only values.</summary>
   TEFTimeDataType = class(TEFDateTimeDataTypeBase)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
@@ -193,14 +275,20 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns ftTime.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns the default display width for a time value.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    /// <summary>Returns True: empty times may be treated as null.</summary>
     function SupportsEmptyAsNull: Boolean; override;
+    /// <summary>Formats the node's time value, using ISO format when not for display.</summary>
     function InternalFormatNodeValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
+    /// <summary>Converts the stored time value to a string.</summary>
     function ValueToString(const AValue: Variant): string; override;
   end;
 
+  /// <summary>Data type for combined date and time values.</summary>
   TEFDateTimeDataType = class(TEFDateTimeDataTypeBase)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
@@ -211,15 +299,22 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns ftDateTime.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns the default display width for a date/time value.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    /// <summary>Returns True: empty date/times may be treated as null.</summary>
     function SupportsEmptyAsNull: Boolean; override;
+    /// <summary>Formats the node's date/time value, using ISO format when not for display.</summary>
     function InternalFormatNodeValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
+    /// <summary>Returns the JavaScript type name for date/times.</summary>
     function GetJSTypeName: string; override;
+    /// <summary>Converts the stored date/time value to a string.</summary>
     function ValueToString(const AValue: Variant): string; override;
   end;
 
+  /// <summary>Data type for boolean values.</summary>
   TEFBooleanDataType = class(TEFDataType)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
@@ -230,22 +325,31 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns False: boolean values are not quoted.</summary>
     class function NeedsQuotes: Boolean; override;
+    /// <summary>Returns ftBoolean.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns the default display width for a boolean value.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    /// <summary>Formats the node's boolean value as a string.</summary>
     function InternalFormatNodeValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
+    /// <summary>Returns the JavaScript type name for booleans.</summary>
     function GetJSTypeName: string; override;
+    /// <summary>Returns True: this is the boolean data type.</summary>
     function IsBoolean: Boolean; override;
   end;
 
+  /// <summary>Common base for the numeric data types (Integer, Float, Currency, Decimal).</summary>
   TEFNumericDataTypeBase = class(TEFDataType)
   strict protected
     function StripThousandSeparator(const AValue: string; const AFormatSettings: TFormatSettings): string;
   public
+    /// <summary>Returns False: numeric values are not quoted.</summary>
     class function NeedsQuotes: Boolean; override;
   end;
 
+  /// <summary>Data type for integer values.</summary>
   TEFIntegerDataType = class(TEFNumericDataTypeBase)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
@@ -256,14 +360,20 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns ftInteger.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns 'right': integers are right-aligned.</summary>
     function GetDefaultColumnAlignment: string; override;
+    /// <summary>Returns the default display width for an integer value.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    /// <summary>Returns the JavaScript type name for integers.</summary>
     function GetJSTypeName: string; override;
   end;
 
+  /// <summary>Common base for the decimal numeric data types (Currency, Float, Decimal).</summary>
   TEFDecimalNumericDataTypeBase = class(TEFNumericDataTypeBase);
 
+  /// <summary>Data type for currency (monetary) values.</summary>
   TEFCurrencyDataType = class(TEFDecimalNumericDataTypeBase)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
@@ -274,17 +384,26 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns ftCurrency.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns 'right': currency values are right-aligned.</summary>
     function GetDefaultColumnAlignment: string; override;
+    /// <summary>Returns the default display width for a currency value.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    /// <summary>Returns True: empty currency values may be treated as null.</summary>
     function SupportsEmptyAsNull: Boolean; override;
+    /// <summary>Formats the node's currency value as a string.</summary>
     function InternalFormatNodeValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
+    /// <summary>Returns the JavaScript type name for currency values.</summary>
     function GetJSTypeName: string; override;
+    /// <summary>Returns True: currency values have a size.</summary>
     class function HasSize: Boolean; override;
+    /// <summary>Returns True: currency values have a scale.</summary>
     class function HasScale: Boolean; override;
   end;
 
+  /// <summary>Data type for floating-point values.</summary>
   TEFFloatDataType = class(TEFDecimalNumericDataTypeBase)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
@@ -295,15 +414,22 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns ftFloat.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns 'right': float values are right-aligned.</summary>
     function GetDefaultColumnAlignment: string; override;
+    /// <summary>Returns the default display width for a float value.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    /// <summary>Returns True: empty float values may be treated as null.</summary>
     function SupportsEmptyAsNull: Boolean; override;
+    /// <summary>Formats the node's float value as a string.</summary>
     function InternalFormatNodeValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
+    /// <summary>Returns the JavaScript type name for float values.</summary>
     function GetJSTypeName: string; override;
   end;
 
+  /// <summary>Data type for high-precision decimal (BCD) values.</summary>
   TEFDecimalDataType = class(TEFDecimalNumericDataTypeBase)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
@@ -314,14 +440,22 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns ftFMTBcd.</summary>
     class function GetFieldType: TFieldType; override;
+    /// <summary>Returns 'right': decimal values are right-aligned.</summary>
     function GetDefaultColumnAlignment: string; override;
+    /// <summary>Returns the default display width for a decimal value.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    /// <summary>Returns True: empty decimal values may be treated as null.</summary>
     function SupportsEmptyAsNull: Boolean; override;
+    /// <summary>Formats the node's decimal value as a string.</summary>
     function InternalFormatNodeValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
+    /// <summary>Returns the JavaScript type name for decimal values.</summary>
     function GetJSTypeName: string; override;
+    /// <summary>Returns True: decimal values have a size.</summary>
     class function HasSize: Boolean; override;
+    /// <summary>Returns True: decimal values have a scale.</summary>
     class function HasScale: Boolean; override;
   end;
 
@@ -335,12 +469,16 @@ type
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
   public
+    /// <summary>Returns the default display width for an object reference value.</summary>
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
   end;
 
+  /// <summary>Metaclass reference for TEFNode descendants.</summary>
   TEFNodeClass = class of TEFNode;
+  /// <summary>A list that owns its TEFNode items.</summary>
   TEFNodes = TObjectList<TEFNode>;
 
+  /// <summary>Function type used to compare two nodes when sorting a tree.</summary>
   TEFNodeCompareFunc = TFunc<TEFNode, TEFNode, Integer>;
 
   /// <summary>
@@ -371,14 +509,21 @@ type
       end;
     function GetChildClass(const AName: string): TEFNodeClass; virtual;
   public
+    /// <summary>Creates an empty tree.</summary>
     constructor Create; virtual;
+    /// <summary>Destroys the tree and all its nodes.</summary>
     destructor Destroy; override;
+    /// <summary>Called before the tree is saved; recursively notifies all children.</summary>
     procedure BeforeSave; virtual;
+    /// <summary>IInterface support: queries for a supported interface.</summary>
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
+    /// <summary>IInterface support: no-op reference count increment (lifetime is not managed by refcounting).</summary>
     function _AddRef: Integer; stdcall;
+    /// <summary>IInterface support: no-op reference count decrement (lifetime is not managed by refcounting).</summary>
     function _Release: Integer; stdcall;
   public
     type
+      /// <summary>Callback invoked for each node copied during Assign/Clone.</summary>
       TAssignNodeProc = reference to procedure (const ASource, ADestination: TEFNode);
 
     /// <summary>
@@ -391,6 +536,7 @@ type
     /// </summary>
     property NodeList: TEFNodes read FNodes;
 
+    /// <summary>Returns the root of the tree. In this class, returns Self.</summary>
     function GetRoot: TEFTree; virtual;
 
     /// <summary>
@@ -720,6 +866,7 @@ type
     ///   otherwise returns ADefaultValue.
     /// </summary>
     function GetObject(const APath: string; const ADefaultValue: TObject = nil): TObject; overload;
+    /// <summary>Finds a node by path and returns its object value cast to T, or nil if not found.</summary>
     function GetObject<T: class>(const APath: string): T; overload;
 
     /// <summary>
@@ -771,9 +918,13 @@ type
     /// </summary>
     procedure AddFieldsAsChildren(const AFields: TFields);
 
+    /// <summary>Number of annotations attached to the tree.</summary>
     property AnnotationCount: Integer read GetAnnotationCount;
+    /// <summary>Indexed access to the tree's annotations (free-form comment strings).</summary>
     property Annotations[const AIndex: Integer]: string read GetAnnotation write SetAnnotation;
+    /// <summary>Adds an annotation string and returns its index.</summary>
     function AddAnnotation(const AAnnotation: string): Integer;
+    /// <summary>Replaces the tree's annotations with the contents of AStrings.</summary>
     procedure AssignAnnotations(const AStrings: TStrings);
 
     /// <summary>Returns a string-based path.</summary>
@@ -786,6 +937,7 @@ type
     /// </summary>
     property Root: TEFTree read GetRoot;
 
+    /// <summary>Sorts the direct child nodes using the given comparison function.</summary>
     procedure Sort(const ACompareFunc: TEFNodeCompareFunc);
 
     /// <summary>
@@ -834,6 +986,7 @@ type
       const ATranslator: TNameTranslator; const AValueIndex: Integer);
   end;
 
+  /// <summary>Metaclass reference for TEFTree descendants.</summary>
   TEFTreeClass = class of TEFTree;
 
   /// <summary>A tree that stores a file name (or other logical
@@ -846,12 +999,16 @@ type
     function GetPersistentFileName: string; virtual;
     procedure InternalAfterLoad; virtual;
   public
+    /// <summary>Called after the tree is loaded from its persistent store; triggers post-load processing.</summary>
     procedure AfterLoad;
 
+    /// <summary>Makes this tree a copy of ASource, also copying the persistent name.</summary>
     procedure Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc = nil); override;
 
+    /// <summary>Logical identifier (usually the file name without path/extension) of the persistent tree.</summary>
     property PersistentName: string read FPersistentName write FPersistentName;
 
+    /// <summary>Returns True if the tree has a persistent name.</summary>
     property IsPersistent: Boolean read GetIsPersistent;
 
     /// <summary>Returns the full path name of the persistent file.</summary>
@@ -920,10 +1077,14 @@ type
     function CompareValues(const AValue1, AValue2: Variant): Boolean;
     function GetDataType: TEFDataType; virtual;
   public
+    /// <summary>Returns an enumerator over the node's direct children (enables for-in loops).</summary>
     function GetEnumerator: TEnumerator<TEFNode>;
+    /// <summary>Returns whether an empty value should be treated as null, per the node's data type.</summary>
     function GetEmptyAsNull: Boolean; virtual;
   public
+    /// <summary>Returns the root of the tree, walking up through the parent nodes.</summary>
     function GetRoot: TEFTree; override;
+    /// <summary>Finds a node by path relative to this node; an empty path returns the node itself.</summary>
     function FindNode(const APath: string;
       const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
@@ -1020,7 +1181,9 @@ type
     /// <summary>Used for I/O.</summary>
     property ValueAttributes: string read FValueAttributes write FValueAttributes;
 
+    /// <summary>True if the value spans multiple lines or is flagged as folded ('&gt;') in its value attributes.</summary>
     property IsMultiLineValue: Boolean read GetIsMultiLineValue;
+    /// <summary>True if the value contains explicit line breaks or is flagged as literal ('|') in its value attributes.</summary>
     property IsMultiLineWithNLValue: Boolean read GetIsMultiLineWithNLValue;
 
     /// <summary>
@@ -1103,7 +1266,9 @@ type
     /// </summary>
     property AsDecimal: TBcd read GetAsDecimal write SetAsDecimal;
 
+    /// <summary>Node value as a byte array.</summary>
     property AsBytes: TBytes read GetAsBytes write SetAsBytes;
+    /// <summary>Loads the whole content of AStream into the node's value as a byte array.</summary>
     procedure LoadBytesFromStream(const AStream: TStream);
 
     /// <summary>
@@ -1294,6 +1459,7 @@ type
     property Tree: TEFTree read FTree;
     procedure InternalExpand(var AString: string); override;
   public
+    /// <summary>Creates the expander bound to ATree, using ANameSpace as the macro name space prefix.</summary>
     constructor Create(const ATree: TEFTree; const ANameSpace: string); reintroduce;
   end;
 
@@ -1308,7 +1474,9 @@ type
   protected
     class destructor Destroy;
   public
+    /// <summary>Singleton instance of the data type registry.</summary>
     class property Instance: TEFDataTypeRegistry read GetInstance;
+    /// <summary>Returns the registered data type class with the given Id.</summary>
     function GetClass(const AId: string): TEFDataTypeClass;
   end;
 
@@ -1321,10 +1489,14 @@ type
     class var FInstance: TEFDataTypeFactory;
     class function GetInstance: TEFDataTypeFactory; static;
   public
+    /// <summary>Frees the singleton instance at unit finalization.</summary>
     class destructor Destroy;
+    /// <summary>Creates the internal dictionary of instantiated data types.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees all instantiated data types and the factory.</summary>
     destructor Destroy; override;
   public
+    /// <summary>Singleton instance of the data type factory.</summary>
     class property Instance: TEFDataTypeFactory read GetInstance;
 
     /// <summary>

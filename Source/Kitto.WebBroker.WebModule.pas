@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,11 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Standard WebModule for KittoX WebBroker deployments (ISAPI/Apache). Adding
+///  this unit to an empty WebBroker project routes every request to the shared
+///  TKWebBrokerHandler, with no application-specific code required.
+/// </summary>
 unit Kitto.WebBroker.WebModule;
 
 {$I Kitto.Defines.inc}
@@ -32,11 +37,14 @@ type
   ///  and it will hook into the system through the WebModuleClass global variable.
   /// </summary>
   TKWebModule = class(TWebModule)
+    /// <summary>Default action: delegates every request to TKWebBrokerHandler.Current.</summary>
     procedure WebModule1DefaultHandlerAction(Sender: TObject;
       Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
   end;
 
 var
+  /// <summary>WebBroker entry point: the component class the framework instantiates
+  /// as the web module (set to TKWebModule).</summary>
   WebModuleClass: TComponentClass = TKWebModule;
 
 implementation

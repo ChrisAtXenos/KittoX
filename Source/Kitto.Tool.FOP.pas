@@ -32,6 +32,11 @@ uses
   Kitto.Html.Files;
 
 type
+  /// <summary>
+  ///  Download-file tool controller that generates a PDF (or RTF) from the
+  ///  view-table store/record by applying an XSL-FO transform through the
+  ///  Apache FOP engine.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TFOPToolController = class(TKXDownloadFileController)
   strict private

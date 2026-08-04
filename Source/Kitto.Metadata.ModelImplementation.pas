@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,11 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  The default model implementation. Provides TKDefaultModel, which performs
+///  record I/O against a database through SQL, plus class helpers that let code
+///  build models dynamically (add/delete fields and detail references).
+/// </summary>
 unit Kitto.Metadata.ModelImplementation;
 
 {$I Kitto.Defines.inc}
@@ -27,20 +32,31 @@ uses
   Kitto.Metadata.DataView;
 
 type
+  /// <summary>Class helper exposing mutation operations on a model field (used to
+  /// build models dynamically).</summary>
   TKModelFieldHelper = class helper for TKModelField
   private
   public
+    /// <summary>Sets the field's YAML spec string from the individual attributes
+    /// (data type, size, scale, required, key, referenced model).</summary>
     procedure SetFieldSpec(const ADataType: string; const ASize, AScale: Integer;
       const AIsRequired, AIsKey: Boolean; const AReferencedModel: string);
 
+    /// <summary>Sets or clears the primary-key flag in the field's spec.</summary>
     procedure SetIsKey(const AValue: Boolean);
+    /// <summary>Adds AField as a sub-field of this field.</summary>
     procedure AddField(const AField: TKModelField);
+    /// <summary>Removes and frees the given sub-field of this field.</summary>
     procedure DeleteField(const AField: TKModelField);
   end;
 
+  /// <summary>Class helper exposing add/delete operations on a model's detail
+  /// references (used to build models dynamically).</summary>
   TKModelDetailReferencesHelper = class helper for TKModelDetailReferences
   public
+    /// <summary>Adds a detail reference to the collection.</summary>
     procedure AddDetailReference(const ADetailReference: TKModelDetailReference);
+    /// <summary>Removes and frees the given detail reference.</summary>
     procedure DeleteDetailReference(const ADetailReference: TKModelDetailReference);
   end;
 

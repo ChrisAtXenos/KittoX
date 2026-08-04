@@ -104,12 +104,19 @@ type
     procedure FetchTableForeignKeys(const ATable: TEFDBTableInfo);
     procedure FetchTablePrimaryKey(const ATable: TEFDBTableInfo);
   public
+    /// <summary>Creates the metadata reader bound to the given FireDAC connection.</summary>
     constructor Create(const AConnection: TFDConnection);
+    /// <summary>The FireDAC connection used to read the database metadata.</summary>
     property Connection: TFDConnection read FConnection write FConnection;
   end;
 
+  /// <summary>Metaclass reference to a TEFDBFDQuery descendant.</summary>
   TEFDBFDQueryClass = class of TEFDBFDQuery;
 
+  ///	<summary>TEFDBConnection implementation over a FireDAC TFDConnection.
+  ///	Applies per-driver connection parameters (MSSQL, FB/IB, Oracle, PostgreSQL,
+  ///	MySQL) and registers a pooled FDManager connection definition so each query
+  ///	can run on its own connection.</summary>
   TEFDBFDConnection = class(TEFDBConnection)
   private
     FConnection: TFDConnection;
@@ -134,23 +141,42 @@ type
     function InternalCreateDBInfo: TEFDBInfo; override;
     property Isolation: string read GetIsolation;
   public
+    /// <summary>The FireDAC DriverID for this connection (read from the
+    /// Connection/DriverID config: e.g. MSSQL, FB, IB, Ora, PG, MySQL).</summary>
     property DriverId: string read GetDriverId;
+    /// <summary>Creates the underlying TFDConnection (login prompt disabled) and
+    /// the connection-string list.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the underlying TFDConnection and the connection-string list.</summary>
     destructor Destroy; override;
   public
+    /// <summary>Returns True if the underlying TFDConnection is connected.</summary>
     function IsOpen: Boolean; override;
+    /// <summary>Executes the statement via TFDConnection.ExecSQL and returns the
+    /// number of affected rows; wraps errors in EEFDBError.</summary>
     function ExecuteImmediate(const AStatement: string): Integer; override;
+    /// <summary>Starts a transaction on the underlying TFDConnection.</summary>
     procedure InternalStartTransaction; override;
+    /// <summary>Commits the current transaction on the underlying TFDConnection.</summary>
     procedure InternalCommitTransaction; override;
+    /// <summary>Rolls back the current transaction on the underlying TFDConnection.</summary>
     procedure InternalRollbackTransaction; override;
+    /// <summary>Returns True if the underlying TFDConnection is in a transaction.</summary>
     function IsInTransaction: Boolean; override;
+    /// <summary>Sequence generators are not currently supported; always returns 0.</summary>
     function FetchSequenceGeneratorValue(const ASequenceName: string): Int64; override;
+    /// <summary>Auto-inc value retrieval is not currently supported; always returns 0.</summary>
     function GetLastAutoincValue(const ATableName: string = ''): Int64; override;
+    /// <summary>Creates a TEFDBFDCommand linked to this connection.</summary>
     function CreateDBCommand: TEFDBCommand; override;
+    /// <summary>Creates a query (of GetQueryClass) linked to this connection.</summary>
     function CreateDBQuery: TEFDBQuery; override;
+    /// <summary>Returns the underlying FireDAC TFDConnection object.</summary>
     function GetConnection: TObject; override;
   end;
 
+  ///	<summary>TEFDBCommand implementation wrapping a FireDAC TFDQuery, used to
+  ///	execute statements that do not return a dataset.</summary>
   TEFDBFDCommand = class(TEFDBCommand)
   private
     FCommand: TFDQuery;
@@ -169,12 +195,20 @@ type
     function GetParams: TParams; override;
     procedure SetParams(const AValue: TParams); override;
   public
+    /// <summary>Creates the internal TFDQuery and parameter list.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the internal TFDQuery and parameter list.</summary>
     destructor Destroy; override;
   public
+    /// <summary>Executes the command and returns the number of affected rows;
+    /// wraps errors in EEFDBError.</summary>
     function Execute: Integer; override;
   end;
 
+  ///	<summary>TEFDBQuery implementation wrapping a FireDAC TFDQuery. Outside a
+  ///	transaction it acquires a private pooled TFDConnection so concurrent
+  ///	queries stay isolated; inside a transaction it shares the parent
+  ///	connection.</summary>
   TEFDBFDQuery = class(TEFDBQuery)
   private
     FQuery: TFDQuery;
@@ -207,18 +241,27 @@ type
     function GetMasterSource: TDataSource; override;
     procedure SetMasterSource(const AValue: TDataSource); override;
   public
+    /// <summary>Creates the internal TFDQuery and parameter list.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the internal TFDQuery, the owned connection and the
+    /// parameter list.</summary>
     destructor Destroy; override;
   public
     ///	<summary>Execute and Open are synonims in this class. Execute always
     ///	returns 0.</summary>
     function Execute: Integer; override;
+    /// <summary>Opens the underlying TFDQuery, expanding macros and binding
+    /// parameters; wraps errors in EEFDBError.</summary>
     procedure Open; override;
+    /// <summary>Closes the underlying TFDQuery.</summary>
     procedure Close; override;
+    /// <summary>Returns True if the underlying TFDQuery is active.</summary>
     function IsOpen: Boolean; override;
   end;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  ///	<summary>Data access adapter that creates FireDAC-based connections.
+  ///	Registered in the adapter registry under the id 'FD'.</summary>
   TEFDBFDAdapter = class(TEFDBAdapter)
   private
     function GetConnectionConfig: TEFDBFDConnectionConfig;
@@ -231,6 +274,9 @@ type
   end;
 
 
+  /// <summary>Returns True if the given FireDAC DriverID binds boolean values as
+  /// native boolean parameters (True for MSSQL and PG), False when they must be
+  /// converted to integers (FB, IB, Ora).</summary>
   function GetUseBooleanFields(ADriverID: string) : boolean;
 
 

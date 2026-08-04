@@ -89,7 +89,9 @@ type
     function GetSchema: TEFDBSchemaInfo;
     procedure FetchTables(const ASchema: TEFDBSchemaInfo); virtual; abstract;
   public
+    /// <summary>Creates the schema info object and defaults ViewsAsTables to False.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the schema info object.</summary>
     destructor Destroy; override;
 
     ///	<summary>Gives access to the schema information, read on first
@@ -128,7 +130,9 @@ type
     FTableInfo: TEFDBTableInfo;
     FColumnNames: TStrings;
   public
+    /// <summary>Creates the column-name list.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the column-name list.</summary>
     destructor Destroy; override;
     /// <summary>The table this primary key belongs to.</summary>
     property TableInfo: TEFDBTableInfo read FTableInfo;
@@ -203,7 +207,9 @@ type
     function GetColumnCount: Integer;
     function GetIsRequired: Boolean;
   public
+    /// <summary>Creates the local and foreign column-name lists (case-insensitive).</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the local and foreign column-name lists.</summary>
     destructor Destroy; override;
     /// <summary>The table this foreign key belongs to.</summary>
     property TableInfo: TEFDBTableInfo read FTableInfo;
@@ -235,7 +241,9 @@ type
     function GetForeignKeys(const AIndex: Integer): TEFDBForeignKeyInfo;
     function GetForeignKeyCount: Integer;
   public
+    /// <summary>Creates the columns, primary key and foreign keys sub-objects.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the columns, primary key and foreign keys sub-objects.</summary>
     destructor Destroy; override;
     /// <summary>The schema this table belongs to.</summary>
     property SchemaInfo: TEFDBSchemaInfo read FSchemaInfo;
@@ -277,7 +285,9 @@ type
     function GetTables(const AIndex: Integer): TEFDBTableInfo;
     function GetTableCount: Integer;
   public
+    /// <summary>Creates the tables list.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the tables list.</summary>
     destructor Destroy; override;
   public
     /// <summary>The schema's tables, by index.</summary>
@@ -417,6 +427,11 @@ type
   ///	different DB engines, mainly SQL dialect differences.</summary>
   TEFDBMacroKind = (mkDateDiff, mkDateTimeFrom, mkExtract);
 
+  ///	<summary>Encapsulates the differences among database engines: SQL dialect,
+  ///	identifier delimiting, date/time formatting, limit/paging clauses, boolean
+  ///	literals and macro expansion. The base class implements ANSI/standard SQL
+  ///	behaviour (as used by PostgreSQL and Firebird); a subclass per supported
+  ///	engine overrides the dialect-specific parts.</summary>
   TEFDBEngineType = class(TEFComponent)
   private
     FDelimitIdentifiers: Boolean;
@@ -512,6 +527,9 @@ type
     property DelimitIdentifiers: Boolean read FDelimitIdentifiers write FDelimitIdentifiers;
   end;
 
+  ///	<summary>Microsoft SQL Server (Transact-SQL) dialect: [ ] identifier
+  ///	delimiters, DATEDIFF/DATEPART date functions, '+' string concatenation,
+  ///	1/0 boolean literals and ROW_NUMBER()-based paging.</summary>
   TEFSQLServerDBEngineType = class(TEFDBEngineType)
   protected
     function DelimitName(const AName: string): string; override;
@@ -521,17 +539,27 @@ type
     function GetBoolTrueLiteral: string; override;
     function GetBoolFalseLiteral: string; override;
   public
+    ///	<summary>Adds a SQL Server paging clause, wrapping the select in a
+    ///	ROW_NUMBER() OVER (order by) subquery and filtering on the row range.</summary>
     function AddLimitClause(const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
       const AFrom: Integer; const AFor: Integer): string; override;
+    ///	<summary>Expands macros with SQL Server-specific syntax (getdate(), '+'
+    ///	concatenation) then delegates to the inherited expansion.</summary>
     function ExpandCommandText(const ACommandText: string): string; override;
+    ///	<summary>Formats a TDateTime as a SQL Server-compatible literal
+    ///	(yyyymmdd for a date, ISO yyyy-mm-ddThh:mm:ss.zzz for a date/time).</summary>
     function FormatDateTime(const ADateTimeValue: TDateTime): string; override;
   end;
 
+  ///	<summary>MySQL/MariaDB dialect: overrides only identifier delimiting to use
+  ///	backtick (` `) quoting.</summary>
   TEFMySQLDBEngineType = class(TEFDBEngineType)
   protected
     function DelimitName(const AName: string): string; override;
   end;
 
+  ///	<summary>Oracle dialect: NUMBER-based date arithmetic, 1/0 boolean literals,
+  ///	ROWNUM-based paging and to_date() date literals.</summary>
   TEFOracleDBEngineType = class(TEFDBEngineType)
   protected
     function ExpandDateDiff(const AUnit, AExpr1, AExpr2: string): string; override;
@@ -539,22 +567,36 @@ type
     function GetBoolTrueLiteral: string; override;
     function GetBoolFalseLiteral: string; override;
   public
+    ///	<summary>Adds an Oracle ROWNUM-based top-N paging clause around the
+    ///	select statement.</summary>
     function AddLimitClause(const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
       const AFrom: Integer; const AFor: Integer): string; override;
+    ///	<summary>Formats a TDateTime as an Oracle to_date() literal.</summary>
     function FormatDateTime(const ADateTimeValue: TDateTime): string; override;
   end;
 
+  ///	<summary>Firebird/InterBase dialect: DATEDIFF/DATEADD date functions,
+  ///	RDB$DATABASE as the dummy table, and boolean params converted to integers
+  ///	before execution.</summary>
   TEFFirebirdDBEngineType = class(TEFDBEngineType)
   protected
     function ExpandDateDiff(const AUnit, AExpr1, AExpr2: string): string; override;
     function ExpandDateTimeFrom(const ADateExpr, ATimeExpr: string): string; override;
   public
+    ///	<summary>Converts boolean parameters to integer (1/0) before execution,
+    ///	as required by Firebird/InterBase.</summary>
     procedure BeforeExecute(const ACommandText: string; const AParams: TParams); override;
+    ///	<summary>Expands %DB.FROM_DUAL% to "FROM RDB$DATABASE" then delegates to
+    ///	the inherited expansion.</summary>
     function ExpandCommandText(const ACommandText: string): string; override;
   end;
 
+  ///	<summary>PostgreSQL dialect: uses the ANSI/standard base behaviour and only
+  ///	overrides paging to emit a LIMIT/OFFSET clause.</summary>
   TEFPostgreSQLDBEngineType = class(TEFDBEngineType)
   public
+    ///	<summary>Adds a PostgreSQL "LIMIT n OFFSET m" paging clause to the select
+    ///	statement.</summary>
     function AddLimitClause(const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
       const AFrom: Integer; const AFor: Integer): string; override;
   end;
@@ -580,7 +622,10 @@ type
     procedure InternalCommitTransaction; virtual; abstract;
     procedure InternalRollbackTransaction; virtual; abstract;
   public
+    /// <summary>Initializes the standard (invariant) format settings used for
+    /// SQL literals (dot decimal, dash date and colon time separators).</summary>
     procedure AfterConstruction; override;
+    /// <summary>Closes the connection if open and frees the engine type object.</summary>
     destructor Destroy; override;
   public
     ///	<summary>A sub-object that customizes behaviour according to the
@@ -688,6 +733,7 @@ type
     /// <summary>Creates and returns a new database connection for this adapter's library.</summary>
     function CreateDBConnection: TEFDBConnection;
   end;
+  /// <summary>Metaclass reference to a TEFDBAdapter descendant.</summary>
   TEFDBAdapterClass = class of TEFDBAdapter;
 
   ///	<summary>
@@ -705,8 +751,11 @@ type
     function GetDBAdapterByIndex(const AIndex: Integer): TEFDBAdapter;
     function GetDBAdapterCount: Integer;
   public
+    /// <summary>Frees the singleton instance on unit finalization.</summary>
     class destructor Destroy;
+    /// <summary>Creates the internal adapter dictionary.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees all registered adapters and the internal dictionary.</summary>
     procedure BeforeDestruction; override;
 
     /// <summary>Registers a DB adapter under the given id.</summary>

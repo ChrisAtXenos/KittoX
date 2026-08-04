@@ -46,6 +46,10 @@ type
       AStore: TKViewTableStore; ARecord: TKViewTableRecord): string;
   end;
 
+  /// <summary>
+  ///  Download-file tool controller that applies an XSL stylesheet to the
+  ///  view-table store/record and downloads the resulting HTML file.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TXSLToolController = class(TKXDownloadFileController)
   strict private

@@ -1,3 +1,6 @@
+﻿/// <summary>
+///   Shell/OS helper routines (Windows shell API wrappers).
+/// </summary>
 unit EF.Shell;
 
 interface
@@ -5,6 +8,9 @@ interface
 {
   Deletes all files in APath using the Windows shell API.
 }
+/// <summary>
+///   Deletes all files in APath using the Windows shell API.
+/// </summary>
 procedure ShellDeleteAllFiles(const APath: string);
 
 {
@@ -15,6 +21,11 @@ procedure ShellDeleteAllFiles(const APath: string);
   If AWait is False, the function returns 0 if the call succeeds or -1 in case
   of errors.
 }
+/// <summary>
+///   Opens a document with its default application. When AWait is True, waits
+///   for the launched process to finish and returns its exit code (or -1 on
+///   error); when AWait is False, returns 0 on success or -1 on error.
+/// </summary>
 function OpenDocument(const AFileName: string; const AWait: Boolean = False): Integer;
 
 implementation

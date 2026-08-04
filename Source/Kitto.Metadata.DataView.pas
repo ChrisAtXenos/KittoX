@@ -14,6 +14,12 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  The data-view metadata layer. Defines data views (TKDataView) and their
+///  view tables (TKViewTable) with view fields (TKViewField) that overlay model
+///  metadata, plus the view-aware in-memory store (TKViewTableStore) with its
+///  header, records and fields used to load, edit and persist data.
+/// </summary>
 unit Kitto.Metadata.DataView;
 
 {$I Kitto.Defines.inc}
@@ -40,6 +46,7 @@ type
 
   TKViewTable = class;
 
+  /// <summary>The collection of detail (child) tables of a view table.</summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   [YamlChildType('Table', '', 'Detail table')]
   TKViewTables = class(TKMetadataItem)
@@ -57,14 +64,24 @@ type
 
   TKViewField = class;
 
+  /// <summary>An array of view fields.</summary>
   TKViewFieldArray = TArray<TKViewField>;
 
+  /// <summary>Describes a reference-field lookup constrained by another field:
+  /// the destination (reference) field, the source field supplying the value,
+  /// and the foreign field name it matches in the referenced model.</summary>
   TKFilterByViewField = record
     DestinationField: TKViewField;
     SourceField: TKViewField;
     ForeignFieldName: string;
   end;
 
+  /// <summary>
+  ///  A field of a view table. Overlays the underlying model field with
+  ///  view-specific metadata (labels, visibility, editability, formatting,
+  ///  rules) and adds reference/lookup helpers. May also be an expression-only
+  ///  field with no model field behind it.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKViewField = class(TKMetadataItem)
   private
@@ -131,9 +148,13 @@ type
   public
     /// <summary>True if the view field maps to a model field (not expression-only).</summary>
     function HasModelField: boolean;
+    /// <summary>Returns the effective EmptyAsNull setting (delegates to the model field).</summary>
     function GetEmptyAsNull: Boolean; override;
+    /// <summary>Finds a child node, transparently resolving nodes inherited from the model field.</summary>
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
+    /// <summary>Returns True if access is granted to this field in the given mode.</summary>
     function IsAccessGranted(const AMode: string): Boolean; override;
+    /// <summary>The access-control resource URI identifying this field.</summary>
     function GetResourceURI: string; override;
     /// <summary>True if the field is editable in the given operation (insert vs update), per ACL and Can* flags.</summary>
     function CanEditField(const AInsertOperation: Boolean): Boolean;
@@ -428,6 +449,7 @@ type
     class function IsURLFieldName(const AFieldName: string): Boolean;
   end;
 
+  /// <summary>The collection of fields of a view table.</summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   [YamlChildType('Field', '', 'View field referencing a model field')]
   TKViewFields = class(TKMetadataItem)
@@ -451,6 +473,11 @@ type
 
   TKViewTableHeader = class;
 
+  /// <summary>
+  ///  A view-aware in-memory store for a view table: loads a set or page of
+  ///  records from the database (with count), appends and locates records by
+  ///  key, and carries the master record when it is a detail store.
+  /// </summary>
   TKViewTableStore = class(TKStore)
   strict private
     FMasterRecord: TKViewTableRecord;
@@ -515,12 +542,14 @@ type
     /// </param>
     function GetRecord(const AKey: TEFTree; const AFormatSettings: TFormatSettings;
       const AValueIndex: Integer = -1): TKViewTableRecord;
+    /// <summary>Like GetRecord, but returns nil instead of raising when the record is not found.</summary>
     function FindRecord(const AKey: TEFTree; const AFormatSettings: TFormatSettings;
       const AValueIndex: Integer = -1): TKViewTableRecord;
   end;
 
   TKViewTableHeaderField = class;
 
+  /// <summary>The header (field descriptors) of a view-table store.</summary>
   TKViewTableHeader = class(TKHeader)
   private
     function GetField(I: Integer): TKViewTableHeaderField;
@@ -537,6 +566,8 @@ type
     function FieldByName(const AFieldName: string): TKViewTableHeaderField;
   end;
 
+  /// <summary>A header field of a view-table store, bound to a view field (and
+  /// the underlying model field), caching a few view-level display flags.</summary>
   TKViewTableHeaderField = class(TKHeaderField)
   strict private
     FViewField: TKViewField;
@@ -567,6 +598,8 @@ type
     property ModelField: TKModelField read FModelField;
   end;
 
+  /// <summary>A field of a record in a view-table store, aware of its view field
+  /// and applying view-level rendering (password masking, display template).</summary>
   TKViewTableField = class(TKField)
   strict private
     function GetParentRecord: TKViewTableRecord;
@@ -577,6 +610,7 @@ type
   strict protected
     function GetDecimalPrecision: Integer; override;
   public
+    /// <summary>Returns the effective EmptyAsNull setting (delegates to the view field).</summary>
     function GetEmptyAsNull: Boolean; override;
     /// <summary>View-aware JSON value: applies password masking and DisplayTemplate expansion.</summary>
     function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True;
@@ -597,6 +631,12 @@ type
     function IsPhysicalPartOfReference: Boolean;
   end;
 
+  /// <summary>
+  ///  A record in a view-table store. Adds view-aware behavior on top of
+  ///  TKRecord: detail stores, reference/derived-value refresh, rule application
+  ///  (new/edit/duplicate/before/after), field-value expansion and typed field
+  ///  access.
+  /// </summary>
   TKViewTableRecord = class(TKRecord)
   strict private
     function GetRecords: TKViewTableRecords;
@@ -612,8 +652,10 @@ type
     function GetXMLTagName: string; override;
     function TranslateFieldName(const AFieldName: string): string; override;
   public
+    /// <summary>Called before a field's value changes; can veto the change via ADoIt.</summary>
     procedure FieldChanging(const AField: TKField; const AOldValue: Variant;
       var ANewValue: Variant; var ADoIt: Boolean); override;
+    /// <summary>Called after a field's value changed; refreshes derived reference values.</summary>
     procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); override;
     /// <summary>The record collection this record belongs to (typed).</summary>
     property Records: TKViewTableRecords read GetRecords;
@@ -705,6 +747,7 @@ type
     procedure ExpandExpression(var AExpression: string); override;
   end;
 
+  /// <summary>The collection of records of a view-table store (typed).</summary>
   TKViewTableRecords = class(TKRecords)
   strict private
     function GetStore: TKViewTableStore;
@@ -728,6 +771,12 @@ type
     function GetRecord(const AValues: TEFNode): TKViewTableRecord; overload;
   end;
 
+  /// <summary>
+  ///  A table within a data view: selects a model, its fields (as view fields),
+  ///  detail tables, filtering/sorting and controller configuration. The main
+  ///  table drives the view; detail tables form master-detail relationships.
+  ///  Creates the stores used to load and persist its data.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKViewTable = class(TKMetadataItem)
   strict private
@@ -766,6 +815,7 @@ type
     /// <summary>The default display label (the model's, beautified).</summary>
     function GetDefaultDisplayLabel: string;
 
+    /// <summary>Finds a child node, transparently resolving values inherited from the model.</summary>
     function FindNode(const APath: string;
       const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
@@ -929,8 +979,10 @@ type
     /// </remarks>
     function GetDefaultValues(const AKeyOnly: Boolean = False): TEFNode;
 
+    /// <summary>The access-control resource URI identifying this view table.</summary>
     function GetResourceURI: string; override;
 
+    /// <summary>Returns True if access is granted to this view table in the given mode.</summary>
     function IsAccessGranted(const AMode: string): Boolean; override;
 
     [YamlContainer('Rules', TKRule, 'Business rules applied to this table')]
@@ -963,6 +1015,11 @@ type
     property ControllerConfig: TKViewTableControllerConfig read GetControllerConfig;
   end;
 
+  /// <summary>
+  ///  A data view: a view whose controller works on a main data table (and its
+  ///  detail tables). The most common view kind, used by list and form
+  ///  controllers.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKDataView = class(TKView)
   private
@@ -978,15 +1035,18 @@ type
     property MainTable: TKViewTable read GetMainTable;
     /// <summary>The database connection name for this view (from the model/config).</summary>
     property DatabaseName: string read GetDatabaseName;
+    /// <summary>Returns True if access is granted to this view in the given mode.</summary>
     function IsAccessGranted(const AMode: string): Boolean; override;
   end;
 
+  /// <summary>Data type for a file-reference field: stores a reference to an external file.</summary>
   TKFileReferenceDataType = class(TEFStringDataType)
   public
     /// <summary>Returns the type name under which this data type is registered.</summary>
     class function GetTypeName: string; override;
   end;
 
+  /// <summary>Data type for a memo field whose content is HTML (rich text).</summary>
   TKHTMLMemoDataType = class(TEFMemoDataType)
   public
     /// <summary>Returns the type name under which this data type is registered.</summary>

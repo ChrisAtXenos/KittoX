@@ -14,6 +14,15 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Main application route for KittoX. TKWebApplication is the top-level handler
+///  that owns the app configuration, authenticator and access controller,
+///  resolves resource/image URLs, serves the Home and Login pages, exposes the
+///  helpers shared with the attribute-based endpoint handlers (view lookup, ACL
+///  gating, record population from POST, downloads, JWT hydration) and registers
+///  the routing and static-resource routes. Also defines the application macro
+///  expander (%SESSION_ID%, %LANGUAGE_ID%, %Auth:*%, %IMAGE(...)%).
+/// </summary>
 unit Kitto.Web.Application;
 
 interface
@@ -44,6 +53,12 @@ type
 
   TKWebApplication = class;
 
+  /// <summary>
+  ///  Macro expander bound to an application. Adds the KittoX runtime macros on
+  ///  top of the inherited tree expansion: %SESSION_ID%, %LANGUAGE_ID%, the
+  ///  %Auth:*% session auth-data macros, and %IMAGE(name)% resolved to a
+  ///  resource URL.
+  /// </summary>
   TKApplicationMacroExpander = class(TEFTreeMacroExpander)
   private
     FApplication: TKWebApplication;
@@ -54,6 +69,14 @@ type
     constructor Create(const AApplication: TKWebApplication); reintroduce;
   end;
 
+  /// <summary>
+  ///  The main KittoX application route. Owns the application configuration,
+  ///  authenticator and access controller; serves the Home and Login pages and
+  ///  every request under its base path; resolves resource and image
+  ///  URLs/paths; and provides the shared helpers used by the attribute-based
+  ///  endpoint handlers. A per-thread Current instance is set for the duration
+  ///  of each request via ActivateInstance/DeactivateInstance.
+  /// </summary>
   TKWebApplication = class(TKWebRoute)
   strict private
     FConfig: TKConfig;
@@ -323,6 +346,8 @@ type
     /// </summary>
     procedure ServeViewAsPage(const AView: TKView; const ADefaultControllerType: string = '');
 
+    /// <summary>Logs the current user out via the authenticator and triggers a
+    /// full client-side page reload (back to the login page).</summary>
     procedure Logout;
 
     /// <summary>Returns the current authenticator instance, creating it
@@ -1551,15 +1576,20 @@ begin
       begin
         ATemplate.SetData('lang', TValue.From<string>(TKWebSession.Current.Language));
         ATemplate.SetData('charset', TValue.From<string>('utf-8'));
+        var LBodyClass := '';
         if TKWebSession.Current.IsMobileBrowser then
-          ATemplate.SetData('bodyClass', TValue.From<string>('kx-mobile'))
-        else
-          ATemplate.SetData('bodyClass', TValue.From<string>(''));
+          LBodyClass := 'kx-mobile';
+        // Marker used by the client to enable the notification bell only on the
+        // authenticated home (never on the login page, which shares this skeleton).
+        if TKAuthenticator.Current.IsAuthenticated then
+          LBodyClass := Trim(LBodyClass + ' kx-authenticated');
+        ATemplate.SetData('bodyClass', TValue.From<string>(LBodyClass));
         ATemplate.SetData('appTitle', TValue.From<string>(_(Config.AppTitle)));
         ATemplate.SetData('iconLink', TValue.From<string>(LIconLink));
         ATemplate.SetData('appleIconLink', TValue.From<string>(LAppleIconLink));
         ATemplate.SetData('manifestLink', TValue.From<string>(LManifestLink));
         ATemplate.SetData('resPath', TValue.From<string>(FResourcePath));
+        ATemplate.SetData('iconStyle', TValue.From<string>(GetIconStyle));
         ATemplate.SetData('loadingImageURL', TValue.From<string>(LLoadingImageURL));
         ATemplate.SetData('loadingMessage', TValue.From<string>(Format(_('Loading %s...'), [Config.AppTitle])));
         ATemplate.SetData('themeAttr', TValue.From<string>(LThemeAttr));

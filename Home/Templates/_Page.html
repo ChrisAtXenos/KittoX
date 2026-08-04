@@ -51,6 +51,7 @@
   <script src="{{:resPath}}/js/kxfilters.js"></script>
   <script src="{{:resPath}}/js/kxtiles.js"></script>
   <script src="{{:resPath}}/js/kxwizard.js"></script>
+  <script src="{{:resPath}}/js/kxnotify.js"></script>
 {{:dynamicScripts$}}
   <script src="{{:resPath}}/js/alpine.min.js" defer></script>
 </head>
@@ -71,6 +72,9 @@
 
     // Configure HTMX timeout from Config.yaml AjaxTimeout (ms)
     htmx.config.timeout = {{:ajaxTimeout}};
+
+    // Client config: resource base path and active Material icon style.
+    window.KX_CFG = { resPath: '{{:resPath}}', iconStyle: '{{:iconStyle}}' };
 
     // Localized strings for client-side JS (injected from Delphi via _() translation)
     window.KX_STRINGS = {

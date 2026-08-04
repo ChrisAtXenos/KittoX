@@ -30,6 +30,10 @@ uses
 
 type
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  Controller that renders a footer status bar with an optional icon and
+  ///  configurable text. Registered as controller type 'StatusBar'.
+  /// </summary>
   TKXStatusBarController = class(TKXComponent, IKXController)
   strict private
     function GetText: string;

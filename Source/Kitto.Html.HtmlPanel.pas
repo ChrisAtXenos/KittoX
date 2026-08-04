@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +30,11 @@ uses
   EF.YAML.Attributes;
 
 type
+  /// <summary>
+  ///  Panel controller that renders inline HTML (Html) or loads it from a
+  ///  resource file (FileName). Inherits dialog/overlay support from
+  ///  TKXPanelControllerBase.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXHtmlPanelController = class(TKXPanelControllerBase)
   strict private

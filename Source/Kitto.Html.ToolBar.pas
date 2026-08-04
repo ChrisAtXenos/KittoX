@@ -32,6 +32,11 @@ uses
 
 type
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  Controller that renders a TreeView as a horizontal menu bar: leaf nodes
+  ///  become clickable items (data views open in tabs, others via HTMX),
+  ///  folders become dropdown menus. Registered as controller type 'ToolBar'.
+  /// </summary>
   TKXToolBarController = class(TKXComponent, IKXController)
   strict private
     function RenderToolBarItems(const ANodes: IKTreeViewNodes;

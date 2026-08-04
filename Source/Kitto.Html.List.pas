@@ -39,6 +39,13 @@ const
   DEFAULT_PAGE_RECORD_COUNT = 20;
 
 type
+  /// <summary>
+  ///  Data grid list controller. Renders a collapsible filter panel, a CRUD
+  ///  toolbar, sortable column headers, data rows and a pager, with HTMX-driven
+  ///  search, sorting and server-side paging. Supports lookup mode (Select/
+  ///  Cancel bar) and card/template rendering via TemplateFileName. Base class
+  ///  for TKXGroupingListController.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXListPanelController = class(TKXDataPanelController)
   strict protected

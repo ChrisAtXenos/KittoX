@@ -854,7 +854,16 @@ var kxGrid = {
             if (autoRefresh) kxGrid.refreshData(viewName);
           });
         } else {
-          // Non-download tool: check for HTML response (error dialog or toast)
+          // Non-download tool: honor an HX-Trigger showToast header (e.g. a
+          // background job that was started), then any inline HTML fragment.
+          var trig = response.headers.get('HX-Trigger');
+          if (trig) {
+            try {
+              var evt = JSON.parse(trig);
+              if (evt && evt.showToast)
+                kxGrid.showToast(window.KX_STRINGS.appTitle || '', evt.showToast);
+            } catch (e) { /* ignore malformed trigger */ }
+          }
           return response.text().then(function(html) {
             if (html && html.trim()) {
               var div = document.createElement('div');

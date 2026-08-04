@@ -73,8 +73,12 @@ type
   /// <summary>Default serializer built on the RTL System.JSON DOM (correct escaping, zero deps).</summary>
   TKXSystemJSONSerializer = class(TInterfacedObject, IKXApiSerializer)
   public
+    /// <summary>Serializes a store page as a JSON list envelope { "data": [...], "total": N }.</summary>
     function SerializeStore(const AStore: TKViewTableStore; const ATotal: Integer): string;
+    /// <summary>Serializes a single record as a JSON object.</summary>
     function SerializeRecord(const ARecord: TKViewTableRecord): string;
+    /// <summary>Parses a JSON object body and applies its members to the record's
+    /// fields (via TKXDataService.ApplyFieldValue); unknown members are ignored.</summary>
     procedure ParseInto(const AJSON: string; const ARecord: TKViewTableRecord;
       const AIsInsert: Boolean);
   end;
@@ -155,8 +159,12 @@ type
   /// </summary>
   TKXCorsFilter = class(TInterfacedObject, IKXRequestFilter)
   public
+    /// <summary>For an allowed cross-origin /api request, emits the CORS response
+    /// headers and, on an OPTIONS preflight, answers 204 and short-circuits the chain.</summary>
     procedure BeforeInvoke(const AContext: IKXRequestContext);
+    /// <summary>No-op.</summary>
     procedure AfterInvoke(const AContext: IKXRequestContext);
+    /// <summary>Does not handle exceptions (always returns False).</summary>
     function OnException(const AContext: IKXRequestContext; E: Exception): Boolean;
   end;
 
@@ -169,8 +177,12 @@ type
   /// </summary>
   TKXApiErrorFilter = class(TInterfacedObject, IKXRequestFilter)
   public
+    /// <summary>No-op.</summary>
     procedure BeforeInvoke(const AContext: IKXRequestContext);
+    /// <summary>No-op.</summary>
     procedure AfterInvoke(const AContext: IKXRequestContext);
+    /// <summary>For an /api request, renders E as a JSON error envelope { error, code, field? }
+    /// with a real HTTP status and returns True; returns False for any other path.</summary>
     function OnException(const AContext: IKXRequestContext; E: Exception): Boolean;
   end;
 

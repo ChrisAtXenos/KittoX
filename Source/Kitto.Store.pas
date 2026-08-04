@@ -14,6 +14,15 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///  Kitto's in-memory data store, holding record sets between the database and
+///  the UI/serialization layers. Defines TKStore (a record container with a
+///  header, key and change tracking), TKRecords (its record collection),
+///  TKRecord (a single row with New/Clean/Dirty/Deleted state and optional
+///  detail stores), TKField (a typed value with modified tracking and JSON/XML
+///  rendering) and the supporting header and key node classes. All classes are
+///  built on the EF.Tree node model.
+/// </summary>
 unit Kitto.Store;
 
 {$I Kitto.Defines.inc}
@@ -38,6 +47,7 @@ const
 type
   TKKey = class;
 
+  /// <summary>A single field of a key definition (TKKey), identified by name.</summary>
   TKKeyField = class(TEFNode)
   private
     function GetKey: TKKey;
@@ -49,6 +59,7 @@ type
     property FieldName: string read GetFieldName;
   end;
 
+  /// <summary>Ordered set of fields that make up a store/record key.</summary>
   TKKey = class(TEFNode)
   private
     function GetFieldCount: Integer;
@@ -71,10 +82,16 @@ type
 
   TKField = class;
 
+  /// <summary>Event fired after a field's value changes, carrying the old and new value.</summary>
   TKFieldChangeEvent = procedure(const AField: TKField; const AOldValue, ANewValue: Variant) of object;
 
   TKHeaderField = class;
 
+  /// <summary>
+  ///  A single typed field value within a TKRecord. Wraps an EF.Tree node,
+  ///  tracks its modified state, resolves its datatype and name from its
+  ///  TKHeaderField, and renders itself as a JSON or XML value.
+  /// </summary>
   TKField = class(TEFNode)
   strict private
     FHeaderField: TKHeaderField;
@@ -127,10 +144,18 @@ type
   TKStore = class;
   TKRecords = class;
 
+  /// <summary>Persistence state of a record: new, clean, dirty or deleted.</summary>
   TKRecordState = (rsNew, rsClean, rsDirty, rsDeleted);
 
+  /// <summary>Predicate deciding whether a field is included in JSON/XML output.</summary>
   TKFieldFilterFunc = TFunc<TKField, Boolean>;
 
+  /// <summary>
+  ///  A single record (row) held by a store. Owns its TKField children, tracks
+  ///  its persistence state (New/Clean/Dirty/Deleted) driving the save
+  ///  instruction, supports value backup/restore, optional detail (child)
+  ///  stores, and JSON/XML rendering.
+  /// </summary>
   TKRecord = class(TEFNode)
   strict private
     FBackup: TEFNode;
@@ -169,7 +194,9 @@ type
 
     function GetXMLTagName: string; virtual;
   public
+    /// <summary>Initializes the record in the New state.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the record's detail stores and value backup.</summary>
     destructor Destroy; override;
     /// <summary>Fires before a field value changes; a handler may alter ANewValue or veto via ADoIt.</summary>
     procedure FieldChanging(const AField: TKField; const AOldValue: Variant;
@@ -294,8 +321,10 @@ type
       read FOnSetTransientProperty write FOnSetTransientProperty;
   end;
 
+  /// <summary>Comparison function used to sort records (returns negative, zero or positive).</summary>
   TKRecordCompareFunc = TFunc<TKRecord, TKRecord, Integer>;
 
+  /// <summary>The collection of records held by a TKStore, sharing a common key.</summary>
   TKRecords = class(TEFNode)
   private
     FKey: TKKey;
@@ -307,7 +336,9 @@ type
     function GetXMLTagName: string; virtual;
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
+    /// <summary>Creates the record collection's key object.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the record collection's key object.</summary>
     destructor Destroy; override;
   public
     /// <summary>Removes and frees all records.</summary>
@@ -368,6 +399,7 @@ type
     procedure MarkAsClean;
   end;
 
+  /// <summary>A field definition in a store header (its name and datatype).</summary>
   TKHeaderField = class(TEFNode)
   private
     function GetFieldName: string;
@@ -376,6 +408,10 @@ type
     property FieldName: string read GetFieldName;
   end;
 
+  /// <summary>
+  ///  Describes the fields of a store (name + datatype). Apply creates the
+  ///  matching field nodes on a record.
+  /// </summary>
   TKHeader = class(TEFNode)
   private
     function GetField(I: Integer): TKHeaderField;
@@ -408,8 +444,15 @@ type
     function FieldByName(const AFieldName: string): TKHeaderField;
   end;
 
+  /// <summary>Predicate over a record, used to filter records during store iteration.</summary>
   TKRecordPredicate = TPredicate<TKRecord>;
 
+  /// <summary>
+  ///  In-memory container of records with a header (field definitions) and a
+  ///  key. Loads records from the database, tracks pending changes, supports
+  ///  predicate-based iteration and aggregation (Count/Sum/Min/Max/Avg),
+  ///  sorting, and JSON/XML rendering.
+  /// </summary>
   TKStore = class(TEFTree)
   strict private
     FChangeNotificationsDisabledCount: Integer;
@@ -424,6 +467,7 @@ type
     function GetIsEmpty: Boolean; protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
+    /// <summary>Frees the store's header.</summary>
     destructor Destroy; override;
   public
     /// <summary>Suspends change notifications (reentrant; pair with EnableChangeNotifications).</summary>

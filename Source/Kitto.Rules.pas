@@ -74,8 +74,10 @@ uses
   Kitto.Store;
 
 type
+  /// <summary>Base exception for rule failures (raised when a rule aborts an operation).</summary>
   EKRuleError = class(EKError);
 
+  /// <summary>Rule error signalling a failed data validation; shown to the user and aborting the operation.</summary>
   EKValidationError = class(EKRuleError);
 
   /// <summary>
@@ -135,7 +137,9 @@ type
     /// </summary>
     procedure AfterAddOrUpdate(const ARecord: TKRecord); virtual;
   public
+    /// <summary>Creates the cache of referenced-model stores used by GetReferencedModelInstance.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the cached referenced-model stores.</summary>
     destructor Destroy; override;
   public
     /// <summary>The rule metadata node this implementation was created from (holds its parameters).</summary>
@@ -354,13 +358,16 @@ type
     procedure AfterRefreshReferenceField(const AField: TKField); virtual;
 
   end;
+  /// <summary>Metaclass reference to TKRuleImpl, used by the rule registry/factory.</summary>
   TKRuleImplClass = class of TKRuleImpl;
 
+  /// <summary>Registry of rule-implementation classes, keyed by rule id.</summary>
   TKRuleImplRegistry = class(TEFRegistry)
   private
     class var FInstance: TKRuleImplRegistry;
     class function GetInstance: TKRuleImplRegistry; static;
   public
+    /// <summary>Frees the singleton registry instance.</summary>
     class destructor Destroy;
     /// <summary>The singleton registry of rule-implementation classes.</summary>
     class property Instance: TKRuleImplRegistry read GetInstance;
@@ -369,11 +376,13 @@ type
     procedure RegisterClass(const AId: string; const AClass: TKRuleImplClass);
   end;
 
+  /// <summary>Creates rule implementations by id from the registered classes.</summary>
   TKRuleImplFactory = class(TEFFactory)
   private
     class var FInstance: TKRuleImplFactory;
     class function GetInstance: TKRuleImplFactory; static;
   public
+    /// <summary>Frees the singleton factory instance.</summary>
     class destructor Destroy;
     /// <summary>The singleton factory that creates rule implementations by id.</summary>
     class property Instance: TKRuleImplFactory read GetInstance;
@@ -386,6 +395,8 @@ type
     function CreateObject(const AClassId: string): TKRuleImpl;
   end;
 
+  /// <summary>Predefined rule enforcing that the field named by param From is
+  /// less than or equal to the field named by param To.</summary>
   TKEnforceRange = class(TKRuleImpl)
   protected
     procedure SetRule(const AValue: TKRule); override;

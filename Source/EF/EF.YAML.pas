@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +28,7 @@ uses
   EF.Tree;
 
 type
+  ///	<summary>Kind of a parsed YAML value: single-line, multi-line preserving line breaks ('|'), or multi-line folding line breaks into spaces ('&gt;').</summary>
   TEFYAMLValueType = (vtSingleLine, vtMultiLineWithNL, vtMultiLineWithSpace);
 
   ///	<summary>
@@ -44,7 +45,9 @@ type
     FMultiLineFirstLineIndent: Integer;
     FLastValueQuoted: Boolean;
   public
+    ///	<summary>Creates the internal indent and annotation lists and resets the parser.</summary>
     procedure AfterConstruction; override;
+    ///	<summary>Frees the internal indent and annotation lists.</summary>
     destructor Destroy; override;
   public
     ///	<summary>
@@ -93,22 +96,32 @@ type
     class var FFormatSettings: TFormatSettings;
     function GetParser: TEFYAMLParser;
   public
+    ///	<summary>Class constructor that initializes the default format settings shared by all readers.</summary>
     class constructor Create;
+    ///	<summary>Frees the internal parser.</summary>
     destructor Destroy; override;
   public
+    ///	<summary>The underlying line parser, created on first access.</summary>
     property Parser: TEFYAMLParser read GetParser;
 
     ///	<summary>
     ///	 Format settings used to parse values.
     ///	</summary>
     class property FormatSettings: TFormatSettings read FFormatSettings write FFormatSettings;
+    ///	<summary>Loads YAML from the specified file into ATree, replacing its current children.</summary>
     procedure LoadTreeFromFile(const ATree: TEFTree; const AFileName: string);
+    ///	<summary>Loads YAML read from AStream into ATree, replacing its current children.</summary>
     procedure LoadTreeFromStream(const ATree: TEFTree; const AStream: TStream);
+    ///	<summary>Loads YAML contained in AString into ATree, replacing its current children.</summary>
     procedure LoadTreeFromString(const ATree: TEFTree; const AString: string); overload;
 
+    ///	<summary>Creates a new tree and loads it from the specified YAML file.</summary>
     class function LoadTree(const AFileName: string): TEFTree; overload;
+    ///	<summary>Creates a new tree and loads it from the specified YAML string.</summary>
     class function LoadTreeFromString(const AString: string): TEFTree; overload;
+    ///	<summary>Loads the specified YAML file into the given tree, using a temporary reader instance.</summary>
     class procedure LoadTree(const ATree: TEFTree; const AFileName: string); overload;
+    ///	<summary>Loads the specified YAML string into the given tree, using a temporary reader instance.</summary>
     class procedure ReadTree(const ATree: TEFTree; const AString: string);
   end;
 
@@ -122,22 +135,31 @@ type
     procedure WriteNode(const ANode: TEFNode; const AWriter: TTextWriter;
       const AIndent: Integer);
   public
+    ///	<summary>Initializes the default indentation (2 chars) and value spacing (1 char).</summary>
     procedure AfterConstruction; override;
   public
+    ///	<summary>Writes ATree as YAML to the specified file, creating the target directory if needed.</summary>
     procedure SaveTreeToFile(const ATree: TEFTree; const AFileName: string);
+    ///	<summary>Writes ATree as YAML (UTF-8) to the specified stream.</summary>
     procedure SaveTreeToStream(const ATree: TEFTree; const AStream: TStream);
 
+    ///	<summary>Writes ATree as YAML to the specified file, using a temporary writer instance.</summary>
     class procedure SaveTree(const ATree: TEFTree; const AFileName: string);
+    ///	<summary>Returns ATree serialized as a YAML string (without the encoding preamble).</summary>
     class function TreeAsString(const ATree: TEFTree): string;
   end;
 
+  ///	<summary>Class helper that adds YAML load/save convenience methods to TEFTree.</summary>
   TEFTreeHelper = class helper for TEFTree
   private
     function GetAsYamlString: string;
     procedure SetAsYamlString(const AValue: string);
   public
+    ///	<summary>Loads this tree from the specified YAML file and returns Self.</summary>
     function LoadFromYamlFile(const AFileName: string): TEFTree;
+    ///	<summary>Saves this tree to the specified YAML file and returns Self.</summary>
     function SaveToYamlFile(const AFileName: string): TEFTree;
+    ///	<summary>The tree serialized as / deserialized from a YAML string.</summary>
     property AsYamlString: string read GetAsYamlString write SetAsYamlString;
   end;
 

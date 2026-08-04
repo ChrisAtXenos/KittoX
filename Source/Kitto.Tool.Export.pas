@@ -34,6 +34,11 @@ type
 
   TExportTextToolControllerClass = class of TExportTextToolController;
 
+  /// <summary>
+  ///  Base download-file tool controller that exports the view-table store to a
+  ///  plain-text file, either delimited (with quote/delimiter chars) or
+  ///  fixed-length columns, optionally with a header row.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TExportTextToolController = class(TKXDownloadFileController)
   strict private
@@ -66,6 +71,10 @@ type
     property UseDisplayLabels: boolean read GetUseDisplayLabels;
   end;
 
+  /// <summary>
+  ///  Exports the view-table store to a delimited CSV file (headers included by
+  ///  default, non-fixed-length).
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TExportCSVToolController = class(TExportTextToolController)
   strict protected
@@ -76,6 +85,10 @@ type
     class function GetDefaultIncludeHeader: boolean; override;
   end;
 
+  /// <summary>
+  ///  Exports the current record (if any) or the whole view-table store to an
+  ///  XML file, optionally prefixed with the XML header declaration.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TExportXMLToolController = class(TKXDownloadFileController)
   strict private
@@ -100,7 +113,9 @@ uses
   EF.XML,
   EF.Tree,
   EF.StrUtils,
+  EF.Localization,
   Kitto.Config,
+  Kitto.Notification.Jobs,
   Kitto.Html.Controller;
 
 { TExportCSVToolController }
@@ -244,6 +259,21 @@ begin
   // Rows.
   for LRecordIndex := 0 to LStore.RecordCount -1 do
   begin
+    {$IFDEF __DEBUG__}
+    // For DEBUG only: slow the export down so the background-job progress bar is
+    // observable in the notification center. Remove/disable in production.
+    TThread.Sleep(100);
+    {$ENDIF}
+    // When running as a background job: honour cancellation (abort without
+    // producing a file) and report progress. No-op on a request thread.
+    if TKXJobContext.Current <> nil then
+    begin
+      if TKXJobContext.Current.IsCancelled then
+        Abort; // job cancelled: stop producing
+      TKXJobContext.Current.ReportProgress(
+        Round((LRecordIndex + 1) / LStore.RecordCount * 100),
+        Format(_('Exporting record %d of %d'), [LRecordIndex + 1, LStore.RecordCount]));
+    end;
     LRecord := LStore.Records[LRecordIndex];
     if not LRecord.IsDeleted then
     begin

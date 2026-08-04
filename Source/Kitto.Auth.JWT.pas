@@ -99,12 +99,23 @@ type
     procedure InternalAfterAuthenticate(const AAuthData: TEFNode); override;
     function GetIsClearPassword: Boolean; override;
   public
+    /// <summary>Defers app-name/config resolution to the first request (see the
+    /// implementation note); does not build the Inner authenticator yet.</summary>
     procedure AfterConstruction; override;
+    /// <summary>Frees the JWT config and the wrapped Inner authenticator.</summary>
     destructor Destroy; override;
 
+    /// <summary>Clears the JWT cookie and logs out the wrapped Inner
+    /// authenticator.</summary>
     procedure Logout; override;
+    /// <summary>Delegates the password reset to the wrapped Inner
+    /// authenticator.</summary>
     procedure ResetPassword(const AParams: TEFNode); override;
+    /// <summary>Delegates QR-code (OTP) generation to the wrapped Inner
+    /// authenticator.</summary>
     procedure QRGenerate(const AParams: TEFNode); override;
+    /// <summary>Delegates password matching to the wrapped Inner
+    /// authenticator.</summary>
     function IsPasswordMatching(const ASuppliedPasswordHash: string;
       const AStoredPasswordHash: string): Boolean; override;
 

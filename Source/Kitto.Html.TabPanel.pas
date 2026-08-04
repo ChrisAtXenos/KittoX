@@ -34,6 +34,11 @@ uses
   Kitto.Metadata.Views;
 
 type
+  /// <summary>
+  ///  Tab panel container controller. Renders SubViews as lazy-loaded, closable
+  ///  tabs (via the kxTabs JS module and HTMX) and hosts child controllers added
+  ///  through IKXContainer.AddController.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXTabPanelController = class(TKXComponent, IKXController, IKXContainer)
   strict private

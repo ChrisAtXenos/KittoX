@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,16 +60,38 @@ type
     property AdditionalInfo: string read FAdditionalInfo;
   end;
 
+  ///	<summary>
+  ///	  A key/value string pair.
+  ///	</summary>
   TEFPair = TPair<string, string>;
+  ///	<summary>
+  ///	  A dynamic array of string key/value pairs.
+  ///	</summary>
   TEFPairs = array of TEFPair;
 
+  ///	<summary>
+  ///	  A triple of string values, useful where a key/value pair is not enough.
+  ///	</summary>
   TEFTriple = record
+    ///	<summary>First value of the triple.</summary>
     Value1: string;
+    ///	<summary>Second value of the triple.</summary>
     Value2: string;
+    ///	<summary>Third value of the triple.</summary>
     Value3: string;
+    ///	<summary>
+    ///	  Creates a triple from three string values.
+    ///	</summary>
     constructor Create(const AValue1, AVAlue2, AVAlue3: string);
+    ///	<summary>
+    ///	  Fills the triple from a pair: Value1 and Value2 take the pair's key and
+    ///	  value; Value3 is set to ''.
+    ///	</summary>
     procedure AssignPair({$IFDEF D15+}const {$ENDIF}APair: TEFPair);
   end;
+  ///	<summary>
+  ///	  A dynamic array of string triples.
+  ///	</summary>
   TEFTriples = array of TEFTriple;
 
   ///	<summary>
@@ -112,7 +134,13 @@ type
     ///	</summary>
     procedure ClassNotFound(const AClassId: string);
   public
+    ///	<summary>
+    ///	  Creates the registry with a case-insensitive Id lookup.
+    ///	</summary>
     constructor Create;
+    ///	<summary>
+    ///	  Destroys the registry and its internal list of classes.
+    ///	</summary>
     destructor Destroy; override;
   public
     ///	<summary>
@@ -201,19 +229,41 @@ type
     function HasClass(const AId: string): Boolean;
   end;
 
+  ///	<summary>
+  ///	  Extends the RTL TArray with helpers to search open arrays for an item.
+  ///	</summary>
   TEFArray = class(System.Generics.Collections.TArray)
   public
+    ///	<summary>
+    ///	  Returns True if Item is found in Values using the given equality
+    ///	  comparer, setting ItemIndex to its position (or -1 if not found).
+    ///	</summary>
     class function Contains<T>(const Values: array of T; const Item: T;
       const Comparer: IEqualityComparer<T>; out ItemIndex: Integer): Boolean;
       overload; static;
+    ///	<summary>
+    ///	  Returns True if Item is found in Values using the default comparer,
+    ///	  setting ItemIndex to its position (or -1 if not found).
+    ///	</summary>
     class function Contains<T>(const Values: array of T; const Item: T;
       out ItemIndex: Integer): Boolean; overload; static;
     {$If CompilerVersion <=35} //Delphi 11
+    ///	<summary>
+    ///	  Returns True if Item is found in Values using the default comparer.
+    ///	</summary>
     class function Contains<T>(const Values: array of T; const Item: T): Boolean;
       overload; static;
     {$Endif}
+    ///	<summary>
+    ///	  Returns the index of Item in Values using the given equality comparer,
+    ///	  or -1 if not found.
+    ///	</summary>
     class function IndexOf<T>(const Values: array of T; const Item: T;
       const Comparer: IEqualityComparer<T>): Integer; overload; static;
+    ///	<summary>
+    ///	  Returns the index of Item in Values using the default comparer, or -1
+    ///	  if not found.
+    ///	</summary>
     class function IndexOf<T>(const Values: array of T; const Item: T): Integer;
       overload; static;
   end;

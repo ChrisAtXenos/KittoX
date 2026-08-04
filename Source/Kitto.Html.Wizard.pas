@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,6 +60,11 @@ type
   TKXWizardRuleConfig = class(TEFNode)
   end;
 
+  /// <summary>
+  ///  Multi-step wizard controller for data entry. Renders steps (Model fields
+  ///  or custom HTML) with Back/Next navigation and per-step validation;
+  ///  Finish saves the record to the database.
+  /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXWizardController = class(TKXDataPanelController)
   strict private
@@ -115,6 +120,7 @@ type
     procedure DoDisplay; override;
     function RenderContent: string; override;
   public
+    /// <summary>Frees the internal store created for the new wizard record.</summary>
     destructor Destroy; override;
     [YamlContainer('Steps', TKXWizardStepConfig, 'Wizard steps (each Step node defines a page)')]
     property Steps: TEFNode read GetSteps;

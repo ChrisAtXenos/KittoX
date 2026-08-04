@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+ï»¿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ interface
 type
   /// <summary>
   ///  Marks a read-only property as mapped to an optional YAML node.
-  ///  This is the most common attribute — used for scalar values like
+  ///  This is the most common attribute â€” used for scalar values like
   ///  IsVisible, DisplayWidth, PhysicalName, Expression, etc.
   /// </summary>
   /// <example>
@@ -118,6 +118,9 @@ type
     FChildClass: TClass;
     FDescription: string;
   public
+    /// <summary>
+    ///  Creates the attribute for the container at ANodePath whose children are instances of AChildClass.
+    /// </summary>
     constructor Create(const ANodePath: string; AChildClass: TClass;
       const ADescription: string);
     /// <summary>
@@ -137,7 +140,7 @@ type
 
   /// <summary>
   ///  Marks a read-only property as a single sub-object with a fixed set of properties.
-  ///  Unlike YamlContainer, this node has no "Add" button — it is a single config block.
+  ///  Unlike YamlContainer, this node has no "Add" button â€” it is a single config block.
   ///  KIDE navigates into the SubNodeClass via RTTI to show its properties.
   ///  Examples: HTMLEditor, PreviewWindow, Thumbnail, MobileSettings.
   /// </summary>
@@ -151,6 +154,9 @@ type
     FSubNodeClass: TClass;
     FDescription: string;
   public
+    /// <summary>
+    ///  Creates the attribute for the single sub-object at ANodePath, described by ASubNodeClass.
+    /// </summary>
     constructor Create(const ANodePath: string; ASubNodeClass: TClass;
       const ADescription: string);
     /// <summary>
@@ -185,6 +191,9 @@ type
     FYamlValue: string;
     FDescription: string;
   public
+    /// <summary>
+    ///  Creates the attribute mapping the enum ordinal it decorates to the YAML string AYamlValue.
+    /// </summary>
     constructor Create(const AYamlValue: string; const ADescription: string = '');
     /// <summary>
     ///  The string value as written in the YAML file (e.g. 'Top', 'Left', 'Right').
@@ -213,6 +222,9 @@ type
     FDefaultValue: string;
     FDescription: string;
   public
+    /// <summary>
+    ///  Creates the attribute declaring an addable child named AName, with an optional default value and description.
+    /// </summary>
     constructor Create(const AName: string; const ADefaultValue: string = '';
       const ADescription: string = '');
     /// <summary>

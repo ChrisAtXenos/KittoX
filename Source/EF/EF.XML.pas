@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,9 +29,21 @@ uses
   EF.Types;
 
 const
+  /// <summary>
+  ///   Standard XML declaration header (UTF-8).
+  /// </summary>
   XMLHeader = '<?xml version="1.0" encoding="UTF-8" ?>';
+  /// <summary>
+  ///   Format string for an XML element: tag name, content, tag name.
+  /// </summary>
   XMLTagFormat = '<%s>%s</%s>';
+  /// <summary>
+  ///   Opening text of a DOCTYPE declaration.
+  /// </summary>
   DocTypeHeader = '<!DOCTYPE';
+  /// <summary>
+  ///   Opening text of an xmlns namespace attribute.
+  /// </summary>
   XmlNameSpace = 'xmlns="';
 
 /// <summary>
@@ -56,6 +68,10 @@ function XMLHeaderPos(const AText: string): Integer;
 /// </summary>
 function ClearDOCTYPE(var Text: string): boolean;
 
+/// <summary>
+///   Removes all xmlns namespace attributes from an XML string (recursively).
+///   Returns true if at least one namespace was found and removed.
+/// </summary>
 function ClearXmlNameSpaces(var Text: string): boolean;
 
 implementation

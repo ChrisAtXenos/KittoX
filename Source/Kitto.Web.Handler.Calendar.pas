@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    This file is part of KittoX Enterprise Edition.
@@ -6,6 +6,11 @@
    See LICENSE-ENTERPRISE for details.
 -------------------------------------------------------------------------------}
 
+/// <summary>
+///   Attribute-routed handler for calendar data requests. Returns a JSON array
+///   of events (FullCalendar format) for CalendarPanel controllers, optionally
+///   filtered by the visible date range.
+/// </summary>
 unit Kitto.Web.Handler.Calendar;
 
 {$I Kitto.Defines.inc}
@@ -18,9 +23,14 @@ uses
   Kitto.Metadata.DataView;
 
 type
+  /// <summary>Serves the calendar-data endpoint for a data view configured with
+  /// a CalendarPanel controller.</summary>
   [TKXPath('/kx/view/{ViewName}')]
   TKXCalendarHandler = class
   public
+    /// <summary>Loads the view's records (filtered to the start/end date range
+    /// when both query params are supplied) and returns them as a JSON array of
+    /// calendar events with id, title, start/end, color and key metadata.</summary>
     [TKXPath('/calendar-data')]
     [TKXGET]
     procedure HandleCalendarData(
