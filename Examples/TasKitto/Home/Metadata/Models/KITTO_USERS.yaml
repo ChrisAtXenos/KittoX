@@ -1,23 +1,25 @@
 ﻿ModelName: KITTO_USERS
 ImageName: person
-DisplayLabel: User
-PluralDisplayLabel: Users
+DisplayLabel: _(User)
+PluralDisplayLabel: _(Users)
 Fields:
   USER_NAME: String(20) not null primary key
+    DisplayLabel: _(User Name)
     Rules:
       SubType: alphanum
   PASSWORD_HASH: String(60) not null
-    DisplayLabel: Password
+    DisplayLabel: _(Password)
     IsPassword: True
   IS_ACTIVE: Boolean
+    DisplayLabel: _(Is Active)
   FIRST_NAME: String(50)
-    DisplayLabel: First Name
+    DisplayLabel: _(First Name)
   LAST_NAME: String(50)
-    DisplayLabel: Last Name
+    DisplayLabel: _(Last Name)
   EMAIL_ADDRESS: String(100)
-    DisplayLabel: Email Address
+    DisplayLabel: _(Email Address)
   MUST_CHANGE_PASSWORD: Boolean
-    DisplayLabel: Must Change Password
+    DisplayLabel: _(Must Change Password)
     IsVisible: False
 Rules:
   KittoUserCheck:

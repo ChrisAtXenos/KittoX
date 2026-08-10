@@ -1,17 +1,17 @@
-Type: Data
+﻿Type: Data
 DisplayLabel: _(Activity Report)
 ImageName: summarize
 Controller: TemplateDataPanel
   TemplateFileName: ActivityReport.html
 
   Filters:
-    DisplayLabel: Search panel
+    DisplayLabel: _(Search panel)
     LabelWidth: 90
     Connector: and
     Items:
-      FreeSearch: Description
+      FreeSearch: _(Description)
         ExpressionTemplate: (UPPER(Activity.Description) like UPPER('%{value}%'))
-      DynaList: Activity Type
+      DynaList: _(Activity Type)
         Width: 20
         CommandText: |
           select '%' TYPE_ID, '(All)' TYPE_NAME %DB.FROM_DUAL%
@@ -21,13 +21,13 @@ Controller: TemplateDataPanel
         ExpressionTemplate: Activity.TYPE_ID like '{value}'
       ColumnBreak:
         LabelWidth: 50
-      DateSearch: From
+      DateSearch: _(From)
         ExpressionTemplate: ACTIVITY_DATE >= '{value}'
-      DateSearch: To
+      DateSearch: _(To)
         ExpressionTemplate: ACTIVITY_DATE <= '{value}'
       ColumnBreak:
         LabelWidth: 80
-      List: Period
+      List: _(Period)
         Items:
           Today: Today
             Expression: (ACTIVITY_DATE > %DB.CURRENT_DATE%-1)
@@ -42,7 +42,7 @@ Controller: TemplateDataPanel
           All: Whole Archive
             Expression: 1=1
             IsDefault: True
-      FreeSearch: Last N Days
+      FreeSearch: _(Last N Days)
         ExpressionTemplate: ACTIVITY_DATE >= (%DB.CURRENT_DATE% - {value})
 
 MainTable:
@@ -50,24 +50,24 @@ MainTable:
   Controller:
     ToolViews:
       DownloadText:
-        DisplayLabel: Download in TXT
+        DisplayLabel: _(Download in TXT)
         Controller: ExportTextTool
           RequireSelection: False
           IncludeHeader: False
           ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
       DownloadCSV:
-        DisplayLabel: Download in CSV
+        DisplayLabel: _(Download in CSV)
         ImageName: download
         Controller: ExportCSVTool
           RequireSelection: False
       DownloadExcel:
-        DisplayLabel: Download in Excel
+        DisplayLabel: _(Download in Excel)
         Controller: ExportExcelTool
           ClientFileName: ActivityList.xls
           TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
           RequireSelection: False
       TestDownload:
-        DisplayLabel: Download a file
+        DisplayLabel: _(Download a file)
         ImageName: download
         Controller: DownloadFile
           ConfirmationMessage: Are you sure you want to download the file?

@@ -1,49 +1,61 @@
 ﻿ModelName: ACTIVITY
+DisplayLabel: _(Activity)
+PluralDisplayLabel: _(Activities)
 ImageName: task
 Fields:
   ACTIVITY_ID: String(32) not null primary key
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   DESCRIPTION: String(80) not null
+    DisplayLabel: _(Description)
     DisplayWidth: 50
-    Hint: Insert the activity description
+    Hint: _(Insert the activity description)
   PHASE: Reference(PHASE) not null
+    DisplayLabel: _(Phase)
     Fields:
       PHASE_ID:
-    Hint: Select Phase
+    Hint: _(Select Phase)
   EMPLOYEE: Reference(EMPLOYEE) not null
+    DisplayLabel: _(Employee)
     Fields:
       EMPLOYEE_ID:
-    Hint: Search and select the Employee
+    Hint: _(Search and select the Employee)
   ROLE: Reference(OPERATOR_ROLE) not null
+    DisplayLabel: _(Role)
     Fields:
       ROLE_ID:
-    Hint: Select the Role
+    Hint: _(Select the Role)
   TYPE: Reference(ACTIVITY_TYPE) not null
+    DisplayLabel: _(Type)
     Fields:
       TYPE_ID:
-    Hint: Select the Activity Type
+    Hint: _(Select the Activity Type)
   ACTIVITY_DATE: Date not null
+    DisplayLabel: _(Activity Date)
     NotifyChange: True
-    Hint: Date
+    Hint: _(Date)
   START_TIME: Time
+    DisplayLabel: _(Start Time)
     NotifyChange: True
-    Hint: Start
+    Hint: _(Start)
     Rules:
       ActivityRules:    
   END_TIME: Time
-    Hint: End
+    DisplayLabel: _(End Time)
+    Hint: _(End)
   STATUS: String(12)
+    DisplayLabel: _(Status)
     DisplayWidth: 10
-    Hint: Select status
+    Hint: _(Select status)
     AllowedValues:
-      Inserted: Inserted
-      Approved: Approved
-      Billed: Billed
-      NotBillable: Not Billable
-      Internal: Internal
-      Done: Done
+      Inserted: _(Inserted)
+      Approved: _(Approved)
+      Billed: _(Billed)
+      NotBillable: _(Not Billable)
+      Internal: _(Internal)
+      Done: _(Done)
   DURATION: Float
+    DisplayLabel: _(Duration)
     DisplayWidth: 8
     Expression: |
       case

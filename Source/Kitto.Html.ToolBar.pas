@@ -83,7 +83,7 @@ begin
     for I := 0 to ANodes.TreeViewNodeCount - 1 do
     begin
       LNode := ANodes.TreeViewNodes[I];
-      LTabLabel := GetDisplayLabelFromNode(LNode, AViews);
+      LTabLabel := _(GetDisplayLabelFromNode(LNode, AViews));
       LDisplayLabel := _(LNode.GetString('DisplayLabel', LTabLabel));
 
       if LNode is TKTreeViewFolder then

@@ -1,0 +1,534 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"POT-Creation-Date: 2020-02-09 13:26\n"
+"PO-Revision-Date: 2026-08-07 12:00+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.9\n"
+"X-Poedit-Basepath: ../../../../Source\n"
+"X-Poedit-SearchPath-0: .\n"
+
+msgid "Wrong authentication query text: %s"
+msgstr "Texto de consulta de autenticación incorrecto: %s"
+
+msgid "UserName not specified."
+msgstr "Nombre de usuario no especificado."
+
+msgid "E-mail address not specified."
+msgstr "Dirección de correo electrónico no especificada."
+
+msgid "Error: user name and email address not found."
+msgstr "Error: nombre de usuario o dirección de correo no encontrados."
+
+msgid "Error changing password."
+msgstr "Error al cambiar la contraseña."
+
+msgid "File %s not found."
+msgstr "Archivo %s no encontrado."
+
+msgid "Help..."
+msgstr "Ayuda..."
+
+msgid "Help guide for \"%s\"..."
+msgstr "Ayuda para \"%s\"..."
+
+msgid "DB connection type \"%s\" for database \"%s\" not available"
+msgstr "Tipo de conexión de BD \"%s\" para la base de datos \"%s\" no disponible"
+
+msgid "Resource %s not found."
+msgstr "Recurso %s no encontrado."
+
+msgid "Access denied. The user is not allowed to perform this operation."
+msgstr ""
+"Acceso denegado. El usuario no tiene permiso para realizar esta operación."
+
+msgid "Resource URI: %s; access mode: %s."
+msgstr "URI del recurso: %s; modo de acceso: %s."
+
+msgid "DetailStore %s not found."
+msgstr "DetailStore %s no encontrado."
+
+msgid "Model %s has no primary key."
+msgstr "El modelo %s no tiene clave primaria."
+
+msgid "Duplicate object %s."
+msgstr "Objeto %s duplicado."
+
+msgid "Object %s not found."
+msgstr "Objeto %s no encontrado."
+
+msgid "Search %s"
+msgstr "Buscar %s"
+
+msgid "Free Search"
+msgstr "Búsqueda libre"
+
+msgid "Rule %s failed."
+msgstr "Regla %s incumplida."
+
+msgid "%s must be greater than or equal to %s."
+msgstr "%s debe ser mayor o igual que %s."
+
+msgid "Value too small. Minimum value is %s."
+msgstr "Valor demasiado pequeño. El valor mínimo es %s."
+
+msgid "Value too large. Maximum value is %s."
+msgstr "Valor demasiado grande. El valor máximo es %s."
+
+msgid "Value too short. Minimum length is %s characters."
+msgstr "Valor demasiado corto. La longitud mínima es de %s caracteres."
+
+msgid "Value too long. Maximum length is %s characters."
+msgstr "Valor demasiado largo. La longitud máxima es de %s caracteres."
+
+msgid "Record not found for predicate {%s}."
+msgstr "No se encontró ningún registro para la condición {%s}."
+
+msgid "Field %s not found."
+msgstr "Campo %s no encontrado."
+
+msgid "Unspecified Statement text."
+msgstr "Texto de la instrucción no especificado."
+
+msgid "Error %s using query: %s"
+msgstr "Error %s en la consulta: %s"
+
+msgid "Missing sender name or email address."
+msgstr "Falta el nombre o la dirección de correo del remitente."
+
+msgid "Error deleting files from folder \"%s\"."
+msgstr "Error al eliminar los archivos de la carpeta \"%s\"."
+
+msgid "Unspecified table name."
+msgstr "Nombre de tabla no especificado."
+
+msgid "Unspecified key field name list."
+msgstr "Lista de nombres de campos clave no especificada."
+
+msgid "Unspecified field name list."
+msgstr "Lista de nombres de campos no especificada."
+
+msgid "List length mismatch between \"%s\" and \"%s\"."
+msgstr "Las listas \"%s\" y \"%s\" deben tener la misma longitud."
+
+msgid "Unmatched SQL skip marker pair in \"%s\"."
+msgstr "Marcadores SQL no coincidentes en \"%s\"."
+
+msgid "Node %s not found."
+msgstr "Nodo %s no encontrado."
+
+msgid "%s: Unknown class \"%s\"."
+msgstr "%s: Clase desconocida \"%s\"."
+
+msgid "Error %s while loading file %s."
+msgstr "Error %s al cargar el archivo %s."
+
+msgid "Add %s"
+msgstr "Añadir %s"
+
+msgid "Edit %s"
+msgstr "Editar %s"
+
+msgid "View %s"
+msgstr "Ver %s"
+
+msgid "Duplicate %s"
+msgstr "Duplicar %s"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Confirm"
+msgstr "Confirmar"
+
+msgid "Save All"
+msgstr "Guardar todo"
+
+msgid "Save & Clone"
+msgstr "Guardar y duplicar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Add"
+msgstr "Añadir"
+
+msgid "Upload"
+msgstr "Subir"
+
+msgid "Download"
+msgstr "Descargar"
+
+msgid "Clear"
+msgstr "Limpiar"
+
+msgid "Preview"
+msgstr "Vista previa"
+
+msgid "General"
+msgstr "General"
+
+msgid "Yes"
+msgstr "Sí"
+
+msgid "No"
+msgstr "No"
+
+msgid "Selected %s will be deleted. Are you sure?"
+msgstr "El registro seleccionado de tipo %s se eliminará. ¿Está seguro?"
+
+msgid "Confirm operation"
+msgstr "Confirmar operación"
+
+msgid "Filters"
+msgstr "Filtros"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "No records found."
+msgstr "No se encontraron registros."
+
+msgid "No records"
+msgstr "Sin registros"
+
+msgid "Showing %d-%d of %d"
+msgstr "Mostrando %d-%d de %d"
+
+msgid "Select"
+msgstr "Seleccionar"
+
+msgid "Refresh"
+msgstr "Actualizar"
+
+msgid "Refresh data"
+msgstr "Actualizar datos"
+
+msgid "Search"
+msgstr "Buscar"
+
+msgid "No data to display."
+msgstr "No hay datos para mostrar."
+
+msgid "Choose %s"
+msgstr "Elegir %s"
+
+msgid "Delete %s"
+msgstr "Eliminar %s"
+
+msgid "User Name"
+msgstr "Nombre de usuario"
+
+msgid "Password"
+msgstr "Contraseña"
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Remember Credentials"
+msgstr "Recordar credenciales"
+
+msgid "Remember User Name"
+msgstr "Recordar nombre de usuario"
+
+msgid "Login"
+msgstr "Acceder"
+
+msgid "Logging in..."
+msgstr "Accediendo..."
+
+msgid "Logout"
+msgstr "Cerrar sesión"
+
+msgid "Invalid login."
+msgstr "Credenciales de acceso incorrectas."
+
+msgid "Password forgotten?"
+msgstr "¿Olvidó la contraseña?"
+
+msgid "New User? Register..."
+msgstr "¿Usuario nuevo? Regístrese..."
+
+msgid "Privacy policy..."
+msgstr "Política de privacidad..."
+
+msgid "Caps On"
+msgstr "Mayúsculas"
+
+msgid "Change Password"
+msgstr "Cambiar contraseña"
+
+msgid "Old Password"
+msgstr "Contraseña anterior"
+
+msgid "New Password"
+msgstr "Contraseña nueva"
+
+msgid "Confirm New Password"
+msgstr "Confirmar contraseña nueva"
+
+msgid "Change password"
+msgstr "Cambiar contraseña"
+
+msgid "Changing password..."
+msgstr "Cambiando la contraseña..."
+
+msgid "Email address"
+msgstr "Dirección de correo electrónico"
+
+msgid "Send"
+msgstr "Enviar"
+
+msgid "Generating new password..."
+msgstr "Generando nueva contraseña..."
+
+msgid "Reset Password"
+msgstr "Restablecer contraseña"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Session lost or expired, please restart!"
+msgstr "Sesión perdida o caducada, ¡reinicie!"
+
+msgid "Load error:"
+msgstr "Error de carga:"
+
+msgid "Data saved"
+msgstr "Datos guardados"
+
+msgid "Data deleted"
+msgstr "Datos eliminados"
+
+msgid "Server is not responding"
+msgstr "El servidor no responde"
+
+msgid "Retry"
+msgstr "Reintentar"
+
+msgid "Reset"
+msgstr "Reiniciar"
+
+msgid "Server error"
+msgstr "Error del servidor"
+
+msgid "Resource not found"
+msgstr "Recurso no encontrado"
+
+msgid "Internal server error"
+msgstr "Error interno del servidor"
+
+msgid "Loading %s..."
+msgstr "Cargando %s..."
+
+msgid "Detail record not found."
+msgstr "Registro de detalle no encontrado."
+
+msgid "Missing record key."
+msgstr "Falta la clave del registro."
+
+msgid "Invalid record key."
+msgstr "Clave del registro no válida."
+
+msgid "Record not found."
+msgstr "Registro no encontrado."
+
+msgid ""
+"Password changed successfully. You will be redirected to the login page."
+msgstr ""
+"Contraseña cambiada correctamente. Será redirigido a la página de acceso."
+
+msgid "Select: %s"
+msgstr "Seleccionar: %s"
+
+msgid ""
+"A new temporary password was generated and sent to the specified e-mail "
+"address."
+msgstr ""
+"Se generó una nueva contraseña temporal y se envió a la dirección de correo "
+"indicada."
+
+msgid "Old Password is wrong."
+msgstr "La contraseña anterior es incorrecta."
+
+msgid "New Password must be different than old password."
+msgstr "La contraseña nueva debe ser distinta de la anterior."
+
+msgid "Confirm New Password is wrong."
+msgstr "La confirmación de la contraseña nueva no coincide."
+
+msgid "Back"
+msgstr "Atrás"
+
+msgid "Home"
+msgstr "Inicio"
+
+msgid "Build date: %s"
+msgstr "Fecha de compilación: %s"
+
+msgid "Home URL: %s"
+msgstr "URL de inicio: %s"
+
+msgid "Application: %s"
+msgstr "Aplicación: %s"
+
+msgid "Sessions"
+msgstr "Sesiones"
+
+msgid "Log"
+msgstr "Registro"
+
+msgid "None"
+msgstr "Ninguno"
+
+msgid "Command executed succesfully."
+msgstr "Comando ejecutado correctamente."
+
+msgid "E-mail message sent successfully."
+msgstr "Mensaje de correo enviado correctamente."
+
+msgid "Command %s executed succesfully!"
+msgstr "¡Comando %s ejecutado correctamente!"
+
+msgid "Error executing command %s!"
+msgstr "¡Error al ejecutar el comando %s!"
+
+msgid "First page"
+msgstr "Primera página"
+
+msgid "Previous page"
+msgstr "Página anterior"
+
+msgid "Next page"
+msgstr "Página siguiente"
+
+msgid "Last page"
+msgstr "Última página"
+
+msgid "LDAP authenticator: bind failed (error %d)."
+msgstr "Autenticador LDAP: fallo de bind (error %d)."
+
+msgid "LDAP authenticator: cannot initialize a connection to \"%s\"."
+msgstr "Autenticador LDAP: no se puede inicializar la conexión con \"%s\"."
+
+msgid "LDAP authenticator: the \"Host\" parameter is required."
+msgstr "Autenticador LDAP: el parámetro \"Host\" es obligatorio."
+
+msgid "PIN/QR authentication is not supported by the LDAP authenticator."
+msgstr "El autenticador LDAP no admite la autenticación PIN/QR."
+
+msgid ""
+"Password reset is not supported by the LDAP authenticator. Manage passwords "
+"in the directory (Active Directory)."
+msgstr ""
+"El autenticador LDAP no admite el restablecimiento de contraseñas. Gestione "
+"las contraseñas en el directorio (Active Directory)."
+
+msgid ""
+"I could not find a specific page for your question. Browse the "
+"[documentation](%s)."
+msgstr ""
+"No encontré una página específica para tu pregunta. Consulta la "
+"[documentación](%s)."
+
+msgid "Read more"
+msgstr "Leer más"
+
+msgid "See also:"
+msgstr "Véase también:"
+
+msgid "The help index is not available. See the [documentation](%s)."
+msgstr ""
+"El índice de ayuda no está disponible. Consulta la [documentación](%s)."
+
+msgid "Sorry, I have no elements to help you on this topic at the moment."
+msgstr ""
+"Lo siento, por ahora no tengo información para ayudarte con este tema."
+
+msgid "How can I use the \"%s\" screen?"
+msgstr "¿Cómo se usa la pantalla \"%s\"?"
+
+msgid ""
+"RunMode: Background is supported only for download-file tools in this "
+"version."
+msgstr ""
+"RunMode: Background solo se admite para herramientas de descarga de archivos"
+" en esta versión."
+
+msgid "The tool did not produce any file."
+msgstr "La herramienta no generó ningún archivo."
+
+msgid "Tool \"%s\" not found in view \"%s\"."
+msgstr "Herramienta \"%s\" no encontrada en la vista \"%s\"."
+
+msgid "Tool: data view \"%s\" not found."
+msgstr "Herramienta: vista de datos \"%s\" no encontrada."
+
+msgid "Tool: view \"%s\" has no main table."
+msgstr "Herramienta: la vista \"%s\" no tiene tabla principal."
+
+msgid "Hi! Ask me anything about how to use the application."
+msgstr "¡Hola! Pregúntame lo que quieras sobre cómo usar la aplicación."
+
+msgid "Done"
+msgstr "Completado"
+
+msgid "Failed"
+msgstr "Fallido"
+
+msgid "Interrupted"
+msgstr "Interrumpido"
+
+msgid "No operations."
+msgstr "Sin operaciones."
+
+msgid "Queued"
+msgstr "En cola"
+
+msgid "Remove"
+msgstr "Quitar"
+
+msgid "The application restarted while this was running; please re-launch it."
+msgstr ""
+"La aplicación se reinició mientras esta operación estaba en curso; vuelve a "
+"lanzarla."
+
+msgid "Notification center"
+msgstr "Centro de notificaciones"
+
+msgid "Clear all"
+msgstr "Borrar todo"
+
+msgid "ready"
+msgstr "listo"
+
+msgid "Operation ready"
+msgstr "Operación lista"
+
+msgid "Help assistant"
+msgstr "Asistente de ayuda"
+
+msgid "Help"
+msgstr "Ayuda"
+
+msgid "Ask about the application..."
+msgstr "Pregunta sobre la aplicación..."
+
+msgid "Environment"
+msgstr "Entorno"

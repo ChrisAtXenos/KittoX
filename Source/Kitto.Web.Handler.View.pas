@@ -2209,7 +2209,7 @@ begin
     // Use the TKDataView-typed variable: TKDataView.DisplayLabel already resolves
     // the view title, falling back to MainTable.PluralDisplayLabel (e.g.
     // "Activities") when the view has no explicit DisplayLabel.
-    LTitle := LDataView.DisplayLabel + ' - ' + LToolNode.GetExpandedString('DisplayLabel', AToolName);
+    LTitle := _(LDataView.DisplayLabel) + ' - ' + _(LToolNode.GetString('DisplayLabel', AToolName));
     LUser := TKAuthenticator.Current.UserName;
     // Build the store here on the request thread (field ACL needs the per-request
     // auth context); ownership is transferred to the job, which runs it on a worker.

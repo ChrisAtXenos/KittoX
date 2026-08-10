@@ -16,12 +16,21 @@ Controller: BorderPanel
       CenterView:
         Controller: TreePanel
           TreeView: MainMenu
-      # User-selectable theme switcher at the bottom of the left menu panel
-      # (Light / Auto / Dark). Renders only when Theme: Auto /
-      # UserSelection: True; otherwise the band collapses.
+      # Chrome band at the bottom of the left menu: the Light/Auto/Dark
+      # ThemeSwitcher on the left, with the language flag dropdown
+      # (LanguageSwitcher) to its right. Both are controllers, each renders only
+      # when its feature is enabled, so the band collapses gracefully otherwise.
       SouthView:
         Height: 44
-        Controller: ThemeSwitcher
+        Controller: BorderPanel
+          Border: False
+          Header: False
+          Split: False
+          WestView:
+            Width: 112
+            Controller: ThemeSwitcher
+          CenterView:
+            Controller: LanguageSwitcher
 
   CenterView:
     Controller: TabPanel

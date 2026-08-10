@@ -6,7 +6,7 @@ Controller: List
   Filters:
     DisplayLabel: _(Employee Filter)
     Items:
-      FreeSearch: Search Name
+      FreeSearch: _(Search Name)
         # ExpressionTemplate should contain a {value} placeholder for the search term.
         ExpressionTemplate: >
           upper(EMPLOYEE_NAME) like upper('%{value}%')

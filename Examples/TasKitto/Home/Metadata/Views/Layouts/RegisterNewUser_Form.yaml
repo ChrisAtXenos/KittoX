@@ -1,5 +1,5 @@
-Field: USER_NAME
-  DisplayLabel: User Name
+﻿Field: USER_NAME
+  DisplayLabel: _(User Name)
   CharWidth: 20
 Field: EMAIL_ADDRESS
   CharWidth: 20

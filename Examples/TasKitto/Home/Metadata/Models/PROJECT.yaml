@@ -1,18 +1,23 @@
 ﻿ModelName: PROJECT
+DisplayLabel: _(Project)
+PluralDisplayLabel: _(Projects)
 ImageName: view_kanban
 Fields:
   PROJECT_ID: String(32) not null primary key
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   PROJECT_NAME: String(40) not null
+    DisplayLabel: _(Project Name)
   CUSTOMER: Reference(CUSTOMER) not null
+    DisplayLabel: _(Customer)
     Fields:
       CUSTOMER_ID:
   STATUS: String(12)
+    DisplayLabel: _(Status)
     AllowedValues:
-      Offered: Offered
-      Open: Open
-      Stopped: Stopped
-      Terminated: Terminated
+      Offered: _(Offered)
+      Open: _(Open)
+      Stopped: _(Stopped)
+      Terminated: _(Terminated)
 DetailReferences:
   PHASE: PHASE

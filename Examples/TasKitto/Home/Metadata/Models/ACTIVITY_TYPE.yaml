@@ -1,8 +1,11 @@
 ﻿ModelName: ACTIVITY_TYPE
+DisplayLabel: _(Activity type)
+PluralDisplayLabel: _(Activity types)
 ImageName: category
 Fields:
   TYPE_ID: String(32) not null primary key
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   TYPE_NAME: String(20) not null
+    DisplayLabel: _(Type Name)
     DisplayWidth: 10

@@ -1,20 +1,74 @@
+# #-#-#-#-#  B03U9265.po (PACKAGE VERSION)  #-#-#-#-#
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+# #-#-#-#-#  default.po  #-#-#-#-#
+# #-#-#-#-#  836DEN4F.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+# #-#-#-#-#  default.po  #-#-#-#-#
+# #-#-#-#-#  OXHS0BQQ.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+# #-#-#-#-#  default.po  #-#-#-#-#
+# #-#-#-#-#  W4ZMXMJJ.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+# #-#-#-#-#  default.po  #-#-#-#-#
+# #-#-#-#-#  568W30C0.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+# #-#-#-#-#  default.po  #-#-#-#-#
+# #-#-#-#-#  J1M3Q588.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+# #-#-#-#-#  default.po  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2018-10-10 17:48\n"
 "PO-Revision-Date: 2018-10-10 17:51+0200\n"
 "Last-Translator: Somebody <your.email@address.com>\n"
+"Language-Team: \n"
+"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 2.2\n"
-"Language-Team: \n"
-"Language: it\n"
+
+#. For this demo, if the SMTP parameters are not configured we just log it.
+#. For this demo, if the SMTP parameters are not configured we just log it.
+#: Auth.pas:188 Rules.pas:185
+#, object-pascal-format
+msgid "Password generated for user %s: %s"
+msgstr "Password generata per l'utente %s: %s"
+
+#: Rules.pas:73
+msgid "An e-mail with login instructions has been sent"
+msgstr "È stata inviata un'e-mail con le istruzioni di accesso"
 
 #. For this demo, if the SMTP parameters are not configured we just log it.
 #: Auth.pas:68
@@ -125,3 +179,533 @@ msgstr "Ripristina password"
 #: UserAddForm.yaml
 msgid "Modify Account"
 msgstr "Modifica account"
+
+#: OPERATOR_ROLE.yaml
+msgid "Roles"
+msgstr "Ruoli"
+
+#: ActivityBarChart.yaml
+msgid "Duration in hours"
+msgstr "Durata in ore"
+
+#: ChangePassword.yaml
+msgid "Change password"
+msgstr "Cambia password"
+
+#: Dashboard.yaml
+msgid "Activity Dashboard"
+msgstr "Cruscotto attività"
+
+#: Dashboard.yaml
+msgid "Current calendar month"
+msgstr "Mese di calendario corrente"
+
+#: Dashboard.yaml
+msgid "All projects with Open status"
+msgstr "Tutti i progetti con stato Aperto"
+
+#: Dashboard.yaml
+msgid "Distinct customers with activities this month"
+msgstr "Clienti distinti con attività questo mese"
+
+#: Dashboard.yaml
+msgid "Activities grouped by status in the current month"
+msgstr "Attività raggruppate per stato nel mese corrente"
+
+#: Dashboard.yaml
+msgid "Total hours grouped by activity type, all time"
+msgstr "Ore totali raggruppate per tipo di attività (tutto il periodo)"
+
+#: Dashboard.yaml
+msgid "Daily hours from 15 days before to 15 days after today"
+msgstr "Ore giornaliere da 15 giorni prima a 15 giorni dopo oggi"
+
+#: DashDailyChart.yaml
+msgid "Daily Activity Trend"
+msgstr "Andamento giornaliero delle attività"
+
+#: DashDailyChart.yaml
+msgid "Hours"
+msgstr "Ore"
+
+#: DashDailyChart.yaml
+msgid "Daily Hours"
+msgstr "Ore giornaliere"
+
+#: DashKpiActivities.yaml
+msgid "Monthly Activities"
+msgstr "Attività mensili"
+
+#: DashKpiCustomers.yaml
+msgid "Active Customers"
+msgstr "Clienti attivi"
+
+#: DashKpiHours.yaml
+msgid "Monthly Hours"
+msgstr "Ore mensili"
+
+#: DashKpiProjects.yaml
+msgid "Active Projects"
+msgstr "Progetti attivi"
+
+#: DashStatusPie.yaml
+msgid "Activities by Status"
+msgstr "Attività per stato"
+
+#: DashStatusPie.yaml
+msgid "Count"
+msgstr "Conteggio"
+
+#: DashTypePie.yaml
+msgid "Hours by Type"
+msgstr "Ore per tipo"
+
+#: NewActivity.yaml
+msgid "Project & Phase"
+msgstr "Progetto e fase"
+
+#: NewActivity.yaml
+msgid "Activity Details"
+msgstr "Dettagli attività"
+
+#: NewActivity.yaml
+msgid "Date & Time"
+msgstr "Data e ora"
+
+#: NewActivity.yaml
+msgid "Create Activity"
+msgstr "Crea attività"
+
+#: NewActivity.yaml
+msgid "New Activity Wizard"
+msgstr "Creazione guidata attività"
+
+#: PrivacyPolicy.yaml
+msgid "Privacy notes"
+msgstr "Note privacy"
+
+#. TasKitto model labels
+msgid "Activity type"
+msgstr "Tipo di attività"
+
+#. TasKitto model labels
+msgid "Activity types"
+msgstr "Tipi di attività"
+
+#. TasKitto model labels
+msgid "Customer"
+msgstr "Cliente"
+
+#. TasKitto model labels
+msgid "Employee"
+msgstr "Dipendente"
+
+#. TasKitto model labels
+msgid "Employees"
+msgstr "Dipendenti"
+
+#. TasKitto model labels
+msgid "Phase"
+msgstr "Fase"
+
+#. TasKitto model labels
+msgid "Phases"
+msgstr "Fasi"
+
+#. TasKitto model labels
+msgid "Project"
+msgstr "Progetto"
+
+#. TasKitto model labels
+msgid "Projects"
+msgstr "Progetti"
+
+#. TasKitto model labels
+msgid "Permission"
+msgstr "Permesso"
+
+#. TasKitto model labels
+msgid "Permissions"
+msgstr "Permessi"
+
+#. TasKitto model labels
+msgid "Users"
+msgstr "Utenti"
+
+#. TasKitto model labels
+msgid "User role"
+msgstr "Ruolo utente"
+
+#. TasKitto model labels
+msgid "User roles"
+msgstr "Ruoli utente"
+
+#. TasKitto Activities view labels
+msgid "Description"
+msgstr "Descrizione"
+
+#. TasKitto Activities view labels
+msgid "Activity Date"
+msgstr "Data attività"
+
+#. TasKitto Activities view labels
+msgid "Start Time"
+msgstr "Ora di inizio"
+
+#. TasKitto Activities view labels
+msgid "End Time"
+msgstr "Ora di fine"
+
+#. TasKitto Activities view labels
+msgid "Status"
+msgstr "Stato"
+
+#. TasKitto Activities view labels
+msgid "Type"
+msgstr "Tipo"
+
+#. TasKitto Activities view labels
+msgid "From"
+msgstr "Da"
+
+#. TasKitto Activities view labels
+msgid "To"
+msgstr "A"
+
+#. TasKitto Activities view labels
+msgid "Period"
+msgstr "Periodo"
+
+#. TasKitto Activities view labels
+msgid "Last N Days"
+msgstr "Ultimi N giorni"
+
+#. TasKitto Activities view labels
+msgid "Download"
+msgstr "Scarica"
+
+#. TasKitto Activities view labels
+msgid "Download in TXT"
+msgstr "Scarica in TXT"
+
+#. TasKitto Activities view labels
+msgid "Download in CSV"
+msgstr "Scarica in CSV"
+
+#. TasKitto Activities view labels
+msgid "Download in Excel"
+msgstr "Scarica in Excel"
+
+#. TasKitto Activities view labels
+msgid "Download a file"
+msgstr "Scarica un file"
+
+#. TasKitto app labels
+msgid "Access modes"
+msgstr "Modalità di accesso"
+
+#. TasKitto app labels
+msgid "Activities by Type"
+msgstr "Attività per tipo"
+
+#. TasKitto app labels
+msgid "Activity Type"
+msgstr "Tipo di attività"
+
+#. TasKitto app labels
+msgid "Activity report PDF"
+msgstr "Report attività (PDF)"
+
+#. TasKitto app labels
+msgid "Customer Map"
+msgstr "Mappa clienti"
+
+#. TasKitto app labels
+msgid "Download content in XML"
+msgstr "Scarica contenuto in XML"
+
+#. TasKitto app labels
+msgid "Email Address"
+msgstr "Indirizzo email"
+
+#. TasKitto app labels
+msgid "End"
+msgstr "Fine"
+
+#. TasKitto app labels
+msgid "First Name"
+msgstr "Nome"
+
+#. TasKitto app labels
+msgid "Grant value"
+msgstr "Valore concessione"
+
+#. TasKitto app labels
+msgid "Grantee name"
+msgstr "Nome beneficiario"
+
+#. TasKitto app labels
+msgid "Last Name"
+msgstr "Cognome"
+
+#. TasKitto app labels
+msgid "Must Change Password"
+msgstr "Deve cambiare password"
+
+#. TasKitto app labels
+msgid "Name"
+msgstr "Nome"
+
+#. TasKitto app labels
+msgid "Operator roles"
+msgstr "Ruoli operatore"
+
+#. TasKitto app labels
+msgid "Password"
+msgstr "Password"
+
+#. TasKitto app labels
+msgid "Register new User"
+msgstr "Registra nuovo utente"
+
+#. TasKitto app labels
+msgid "Resource URI pattern"
+msgstr "Pattern URI risorsa"
+
+#. TasKitto app labels
+msgid "Role name"
+msgstr "Nome ruolo"
+
+#. TasKitto app labels
+msgid "Search Name"
+msgstr "Cerca per nome"
+
+#. TasKitto app labels
+msgid "Search and select the Employee"
+msgstr "Cerca e seleziona il dipendente"
+
+#. TasKitto app labels
+msgid "Select Phase"
+msgstr "Seleziona la fase"
+
+#. TasKitto app labels
+msgid "Select status"
+msgstr "Seleziona lo stato"
+
+#. TasKitto app labels
+msgid "Select the Activity Type"
+msgstr "Seleziona il tipo di attività"
+
+#. TasKitto app labels
+msgid "Select the Role"
+msgstr "Seleziona il ruolo"
+
+#. TasKitto app labels
+msgid "Start"
+msgstr "Inizio"
+
+#. TasKitto app labels
+msgid "Upload Excel File"
+msgstr "Carica file Excel"
+
+#. TasKitto app labels
+msgid "Upload a file"
+msgstr "Carica un file"
+
+#. TasKitto app labels
+msgid "Upload image"
+msgstr "Carica immagine"
+
+#. TasKitto app labels
+msgid "User Name"
+msgstr "Nome utente"
+
+#. TasKitto app labels
+msgid "User name"
+msgstr "Nome utente"
+
+#. TasKitto AllowedValues
+msgid "Inserted"
+msgstr "Inserito"
+
+#. TasKitto AllowedValues
+msgid "Approved"
+msgstr "Approvato"
+
+#. TasKitto AllowedValues
+msgid "Billed"
+msgstr "Fatturato"
+
+#. TasKitto AllowedValues
+msgid "Not Billable"
+msgstr "Non fatturabile"
+
+#. TasKitto AllowedValues
+msgid "Internal"
+msgstr "Interno"
+
+#. TasKitto AllowedValues
+msgid "Done"
+msgstr "Completato"
+
+#. TasKitto AllowedValues
+msgid "Prospect"
+msgstr "Potenziale"
+
+#. TasKitto AllowedValues
+msgid "Active"
+msgstr "Attivo"
+
+#. TasKitto AllowedValues
+msgid "Inactive"
+msgstr "Inattivo"
+
+#. TasKitto AllowedValues
+msgid "System Operator"
+msgstr "Operatore di sistema"
+
+#. TasKitto AllowedValues
+msgid "Accountant"
+msgstr "Contabile"
+
+#. TasKitto AllowedValues
+msgid "Programmer"
+msgstr "Programmatore"
+
+#. TasKitto AllowedValues
+msgid "Project Manager"
+msgstr "Responsabile di progetto"
+
+#. TasKitto AllowedValues
+msgid "Analyst Programmer"
+msgstr "Analista programmatore"
+
+#. TasKitto AllowedValues
+msgid "Started"
+msgstr "Avviata"
+
+#. TasKitto AllowedValues
+msgid "Finished"
+msgstr "Conclusa"
+
+#. TasKitto AllowedValues
+msgid "Invoiced"
+msgstr "Fatturata"
+
+#. TasKitto AllowedValues
+msgid "Killed"
+msgstr "Annullata"
+
+#. TasKitto AllowedValues
+msgid "Waiting"
+msgstr "In attesa"
+
+#. TasKitto AllowedValues
+msgid "Offered"
+msgstr "Offerto"
+
+#. TasKitto AllowedValues
+msgid "Open"
+msgstr "Aperto"
+
+#. TasKitto AllowedValues
+msgid "Stopped"
+msgstr "Sospeso"
+
+#. TasKitto AllowedValues
+msgid "Terminated"
+msgstr "Terminato"
+
+msgid "Apply search"
+msgstr "Applica ricerca"
+
+#. TasKitto field labels
+msgid "Activity Count"
+msgstr "Numero attività"
+
+#. TasKitto field labels
+msgid "Address"
+msgstr "Indirizzo"
+
+#. TasKitto field labels
+msgid "City"
+msgstr "Città"
+
+#. TasKitto field labels
+msgid "Customer Name"
+msgstr "Nome cliente"
+
+#. TasKitto field labels
+msgid "Email"
+msgstr "Email"
+
+#. TasKitto field labels
+msgid "Employee Name"
+msgstr "Nome dipendente"
+
+#. TasKitto field labels
+msgid "Employee Type"
+msgstr "Tipo dipendente"
+
+#. TasKitto field labels
+msgid "End Date"
+msgstr "Data fine"
+
+#. TasKitto field labels
+msgid "Event Id"
+msgstr "ID evento"
+
+#. TasKitto field labels
+msgid "Event Type"
+msgstr "Tipo evento"
+
+#. TasKitto field labels
+msgid "Fee"
+msgstr "Tariffa"
+
+#. TasKitto field labels
+msgid "Is Active"
+msgstr "Attivo"
+
+#. TasKitto field labels
+msgid "Notes"
+msgstr "Note"
+
+#. TasKitto field labels
+msgid "Phase Name"
+msgstr "Nome fase"
+
+#. TasKitto field labels
+msgid "Phone"
+msgstr "Telefono"
+
+#. TasKitto field labels
+msgid "Project Name"
+msgstr "Nome progetto"
+
+#. TasKitto field labels
+msgid "Role Name"
+msgstr "Nome ruolo"
+
+#. TasKitto field labels
+msgid "Start Date"
+msgstr "Data inizio"
+
+#. TasKitto field labels
+msgid "Title"
+msgstr "Titolo"
+
+#. TasKitto field labels
+msgid "Total Hours"
+msgstr "Ore totali"
+
+#. TasKitto field labels
+msgid "Type Name"
+msgstr "Nome tipo"
+
+msgid ""
+"A sample activity-tracking application built with KittoX, HTMX, YAML "
+"metadata and server-generated HTML."
+msgstr ""
+"Un'applicazione di esempio per il tracciamento delle attività costruita con "
+"KittoX, HTMX, metadati YAML e HTML generato dal server."

@@ -39,5 +39,5 @@ Controller: BorderPanel
   SouthView:
     Controller: StatusBar
       Text: |
-        Connected to: <b>EMPLOYEE</b> &nbsp;&mdash;&nbsp; User: <b>%Auth:UserName%</b> &nbsp;&mdash;&nbsp; FullName: <b>%Auth:FULL_NAME%</b> &nbsp;&mdash;&nbsp; <b>EMail: %Auth:EMAIL_ADDRESS%</b> - Authenticated by: ldap.forumsys.com
+        Connected to: <b>EMPLOYEE</b> &nbsp;&mdash;&nbsp; User: <b>%Auth:UserName%</b> &nbsp;&mdash;&nbsp; FullName: <b>%Auth:FULL_NAME%</b> &nbsp;&mdash;&nbsp; <b>EMail: %Auth:EMAIL_ADDRESS%</b> - Authenticated by: <b>%Auth:LDAP_HOST%</b>
       ImageName: person

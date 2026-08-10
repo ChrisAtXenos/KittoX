@@ -14,13 +14,16 @@ Fields:
       ForceUpperCase:
       SubType: alpha_space
   Age: Integer not null
+    DisplayLabel: _(Age)
     DefaultValue: 10
     Rules:
       MinValue: 8
       MaxValue: 18
   Hair: Reference(Hair) not null
+    DisplayLabel: _(Hair)
     Fields:
       Hair_Id:
   Phone: String(16)
+    DisplayLabel: _(Phone)
     Rules:
       SubType: phone_number

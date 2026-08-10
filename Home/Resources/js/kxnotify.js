@@ -25,14 +25,29 @@
     return e;
   }
 
+  // Localized label from KX_STRINGS (injected server-side from gettext _()),
+  // with an English fallback.
+  function t(key, fallback) {
+    return (window.KX_STRINGS && window.KX_STRINGS[key]) || fallback;
+  }
+
+  // Themed Material SVG icon (CSS mask, currentColor) as an HTML string — same
+  // mechanism and icon set as the server-rendered icons, so it matches the theme.
+  function iconHtml(name, sizeCls) {
+    var cfg = window.KX_CFG || { resPath: '', iconStyle: 'filled' };
+    var url = (cfg.resPath || '') + '/icons/' + (cfg.iconStyle || 'filled') + '/' + name + '.svg';
+    return '<span class="kx-icon ' + (sizeCls || 'kx-icon-sm') +
+      '" style="-webkit-mask-image:url(\'' + url + '\');mask-image:url(\'' + url + '\')"></span>';
+  }
+
   function build() {
     var wrap = el('div', 'kx-notif');
     wrap.id = 'kx-notif';
 
     var btn = el('button', 'kx-notif-bell');
     btn.type = 'button';
-    btn.title = 'Notification center';
-    btn.setAttribute('aria-label', 'Notification center');
+    btn.title = t('notifCenter', 'Notification center');
+    btn.setAttribute('aria-label', t('notifCenter', 'Notification center'));
 
     // Themed Material SVG icon via CSS mask — same mechanism (and same icon set /
     // IconStyle) as the framework's server-rendered icons, so it matches the theme.
@@ -50,7 +65,13 @@
     var panel = el('div', 'kx-notif-panel');
     panel.style.display = 'none';
     panel.innerHTML =
-      '<div class="kx-notif-header">Notification center</div>' +
+      '<div class="kx-notif-header">' +
+        '<span class="kx-notif-title">' + t('notifCenter', 'Notification center') + '</span>' +
+        '<span class="kx-notif-hactions">' +
+          '<button type="button" class="kx-notif-hbtn" data-haction="clear" title="' + t('clearAll', 'Clear all') + '">' + iconHtml('delete_sweep') + '</button>' +
+          '<button type="button" class="kx-notif-hbtn" data-haction="close" title="' + t('close', 'Close') + '">' + iconHtml('close') + '</button>' +
+        '</span>' +
+      '</div>' +
       '<div class="kx-notif-body"><div class="kx-notif-empty">…</div></div>';
 
     wrap.appendChild(btn);
@@ -68,6 +89,14 @@
     });
     panel.addEventListener('click', function (ev) {
       ev.stopPropagation(); // keep the panel open on inner clicks
+      var hb = ev.target.closest('.kx-notif-hbtn');
+      if (hb) {
+        ev.preventDefault();
+        var act = hb.getAttribute('data-haction');
+        if (act === 'close') { isOpen = false; panel.style.display = 'none'; }
+        else if (act === 'clear') { clearAll(); }
+        return;
+      }
       var rm = ev.target.closest('.kx-notif-btn[data-action="remove"]');
       if (rm) {
         ev.preventDefault();
@@ -76,9 +105,11 @@
       }
       var dl = ev.target.closest('a.kx-notif-download');
       if (dl) {
-        // Let the browser download the file; a downloaded job leaves the list,
-        // so refresh shortly after so it disappears from the panel/badge.
-        setTimeout(poll, 1500);
+        // Download via fetch (not a top-level navigation) so a failure surfaces
+        // an error dialog instead of replacing the app with a blank error page.
+        ev.preventDefault();
+        downloadJob(dl.getAttribute('href'));
+        return;
       }
     });
 
@@ -92,9 +123,60 @@
       headers: { 'X-KittoX': 'true' },
       credentials: 'same-origin'
     })
-      .then(function (r) { return r.ok ? r.text() : null; })
-      .then(function (t) { if (t != null) { render(t); } else { poll(); } })
-      .catch(function () { poll(); });
+      .then(function (r) { if (!r.ok) { kxReportRequestError(r, function () { removeJob(id); }); return null; } return r.text(); })
+      .then(function (t) { if (t != null) { render(t); } })
+      .catch(function () { kxReportRequestError(undefined, function () { removeJob(id); }); });
+  }
+
+  function clearAll() {
+    fetch('kx/notifications/clear', {
+      method: 'POST',
+      headers: { 'X-KittoX': 'true' },
+      credentials: 'same-origin'
+    })
+      .then(function (r) { if (!r.ok) { kxReportRequestError(r, clearAll); return null; } return r.text(); })
+      .then(function (t) { if (t != null) { render(t); } })
+      .catch(function () { kxReportRequestError(undefined, clearAll); });
+  }
+
+  // Content-Disposition -> filename (handles filename*=UTF-8'' and filename="…").
+  function filenameFromDisposition(cd) {
+    if (!cd) { return ''; }
+    var m = /filename\*=UTF-8''([^;]+)/i.exec(cd);
+    if (m) { try { return decodeURIComponent(m[1]); } catch (e) { /* ignore */ } }
+    m = /filename="?([^";]+)"?/i.exec(cd);
+    return m ? m[1] : '';
+  }
+
+  function triggerBlobDownload(blob, filename) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'download';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  // Download a completed job's artifact via fetch (not a top-level navigation),
+  // so a failure (404 / connection) surfaces an error dialog and keeps the app
+  // instead of replacing it with a blank browser error page.
+  function downloadJob(url) {
+    if (!url) { return; }
+    fetch(url, { headers: { 'X-KittoX': 'true' }, credentials: 'same-origin' })
+      .then(function (r) {
+        if (!r.ok) { kxReportRequestError(r, function () { downloadJob(url); }); return null; }
+        var fn = filenameFromDisposition(r.headers.get('Content-Disposition'));
+        return r.blob().then(function (b) { return { blob: b, fn: fn }; });
+      })
+      .then(function (res) {
+        if (!res) { return; }
+        triggerBlobDownload(res.blob, res.fn);
+        // A downloaded job leaves the list; refresh shortly after.
+        setTimeout(poll, 800);
+      })
+      .catch(function () { kxReportRequestError(undefined, function () { downloadJob(url); }); });
   }
 
   function toast(msg) {
@@ -118,7 +200,7 @@
       seenNow[id] = st;
       if (prevStatus[id] && prevStatus[id] !== 'completed' && st === 'completed') {
         var title = (items[i].querySelector('.kx-notif-title') || {}).textContent || '';
-        toast(title ? (title + ' — ready') : 'Operation ready');
+        toast(title ? (title + ' — ' + t('ready', 'ready')) : t('operationReady', 'Operation ready'));
       }
     }
     prevStatus = seenNow;
@@ -150,6 +232,7 @@
 
   function start() {
     if (!document.body.classList.contains('kx-authenticated')) { return; }
+    if (!window.KX_CFG || window.KX_CFG.notifications !== true) { return; }
     ui = build();
     poll();
     setInterval(poll, POLL_MS);

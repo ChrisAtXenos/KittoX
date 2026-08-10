@@ -178,6 +178,45 @@ function kxFetchWithTimeout(url, options) {
 }
 
 /**
+ * Builds the standard server-error message for a given HTTP status, using the
+ * localized KX_STRINGS (same wording as the global htmx:responseError handler).
+ */
+function kxServerErrorText(status) {
+  var S = window.KX_STRINGS || {};
+  var msg = S.serverError || 'Server error';
+  if (status === 404) { msg += ': ' + (S.serverNotFound || 'Resource not found'); }
+  else if (status === 500) { msg += ': ' + (S.serverInternalError || 'Internal server error'); }
+  else if (status > 0) { msg += ' (HTTP ' + status + ')'; }
+  return msg;
+}
+
+/**
+ * Surfaces a failed user-initiated request with the standard error dialog,
+ * offering [Retry]/[Reset] like the global htmx error handler. Pass the failing
+ * Response (its .status drives the message) or nothing / an Error for a
+ * network/connection failure, and optionally a retry callback that re-runs the
+ * action (Retry falls back to a full reload when none is given; Reset always
+ * reloads). Use this for actions triggered by a user click; background polling
+ * should stay silent.
+ */
+function kxReportRequestError(errOrResponse, onRetry) {
+  var S = window.KX_STRINGS || {};
+  var msg;
+  if (errOrResponse && typeof errOrResponse.status === 'number' && errOrResponse.status > 0) {
+    msg = kxServerErrorText(errOrResponse.status);
+  } else {
+    msg = S.serverNotResponding || 'Server is not responding';
+  }
+  var reload = function() { window.location.reload(); };
+  kxGrid.showConfirm(
+    S.errorTitle || 'Error', msg,
+    S.retry || 'Retry', S.reset || 'Reset',
+    (typeof onRetry === 'function') ? onRetry : reload,
+    reload
+  );
+}
+
+/**
  * Draggable dialog support — event delegation on document.
  * Drag starts on mousedown on .kx-dialog-header, moves the .kx-dialog via
  * absolute positioning within the .kx-dialog-overlay.
@@ -696,11 +735,10 @@ var kxGrid = {
     if (loadingEl) loadingEl.classList.add('kx-busy');
     kxFetchWithTimeout(url, { headers: { 'X-KittoX': 'true' } })
       .then(function(r) {
-        // Skip non-2xx responses (e.g. 404 from ACL deny / view not found).
-        // Without this guard the engine's fallback HTML body would be parsed
-        // and its <html> element appended to document.body, accumulating one
-        // orphan tree per click.
-        if (!r.ok) return null;
+        // Non-2xx (e.g. 404 from ACL deny / view not found, or a transport
+        // failure): surface the error to the user instead of silently parsing
+        // the engine's fallback HTML body (which would append an orphan <html>).
+        if (!r.ok) { kxReportRequestError(r); return null; }
         return r.text();
       })
       .then(function(html) {
@@ -726,7 +764,7 @@ var kxGrid = {
         }
       })
       .catch(function(err) {
-        kxGrid.showConfirm('Error', err.message, 'OK', '', null);
+        kxReportRequestError(err);
       })
       .finally(function() {
         if (loadingEl) loadingEl.classList.remove('kx-busy');
@@ -875,7 +913,7 @@ var kxGrid = {
           });
         }
       }).catch(function(err) {
-        kxGrid.showConfirm('Error', err.message || 'Tool execution error', 'OK', '', null);
+        kxReportRequestError(err);
       }).finally(function() {
         // Hide loading overlay
         if (loadingEl) loadingEl.classList.remove('kx-busy');
@@ -1187,7 +1225,7 @@ var kxForm = {
       body: body,
       headers: headers
     })
-    .then(function(r) { return r.text(); })
+    .then(function(r) { if (!r.ok) { kxReportRequestError(r); return null; } return r.text(); })
     .then(function(html) {
       if (html && html.trim()) {
         var div = document.createElement('div');
@@ -1209,7 +1247,7 @@ var kxForm = {
       }
     })
     .catch(function(err) {
-      kxGrid.showConfirm('Error', err.message || 'Save failed', 'OK', '', null);
+      kxReportRequestError(err);
     })
     .finally(function() {
       if (loadingEl) loadingEl.classList.remove('kx-busy');
@@ -1345,7 +1383,7 @@ var kxForm = {
       }
     })
     .catch(function(err) {
-      kxGrid.showConfirm('Error', err.message || 'Save cache failed', 'OK', '', null);
+      kxReportRequestError(err);
     })
     .finally(function() {
       if (loadingEl) loadingEl.classList.remove('kx-busy');
@@ -1542,7 +1580,7 @@ var kxForm = {
       }
     })
     .catch(function(err) {
-      kxGrid.showConfirm('Error', err.message || 'Detail save failed', 'OK', '', null);
+      kxReportRequestError(err);
     })
     .finally(function() {
       if (loadingEl) loadingEl.classList.remove('kx-busy');
@@ -1689,8 +1727,9 @@ var kxForm = {
     var loadingEl = document.getElementById('kx-loading');
     if (loadingEl) loadingEl.classList.add('kx-busy');
     kxFetchWithTimeout(url, { headers: { 'X-KittoX': 'true' } })
-      .then(function(r) { return r.text(); })
+      .then(function(r) { if (!r.ok) { kxReportRequestError(r); return null; } return r.text(); })
       .then(function(html) {
+        if (html === null) return;
         var div = document.createElement('div');
         div.innerHTML = html;
         var overlay = div.firstElementChild;
@@ -1713,7 +1752,7 @@ var kxForm = {
         }
       })
       .catch(function(err) {
-        kxGrid.showConfirm('Error', err.message || 'Failed to open lookup', 'OK', '', null);
+        kxReportRequestError(err);
       })
       .finally(function() {
         if (loadingEl) loadingEl.classList.remove('kx-busy');
@@ -1974,7 +2013,7 @@ var kxForm = {
       }
     })
     .then(function(r) {
-      if (!r.ok) return null;
+      if (!r.ok) { kxReportRequestError(r); return null; }
       return r.json();
     })
     .then(function(data) {
@@ -2276,7 +2315,7 @@ var kxForm = {
         }
       })
       .catch(function(err) {
-        kxGrid.showConfirm('Error', err.message, 'OK', '', null);
+        kxReportRequestError(err);
       })
       .finally(function() {
         if (loadingEl) loadingEl.classList.remove('kx-busy');
@@ -2735,7 +2774,7 @@ var kxChart = {
       if (grid && data.gridHtml) grid.innerHTML = data.gridHtml;
     })
     .catch(function(err) {
-      kxGrid.showConfirm('Error', err.message, 'OK', '', null);
+      kxReportRequestError(err);
     })
     .finally(function() {
       if (loadingEl) loadingEl.classList.remove('kx-busy');
@@ -3038,13 +3077,14 @@ var kxCalendar = {
         },
         body: 'key=' + encodeURIComponent(key)
       })
-      .then(function() {
+      .then(function(r) {
+        if (!r.ok) { kxReportRequestError(r); return; }
         kxCalendar._selectedKey[viewName] = '';
         kxCalendar._updateToolbarButtons(viewName);
         kxCalendar.refresh(viewName);
       })
       .catch(function(err) {
-        kxGrid.showConfirm('Error', err.message, 'OK', '', null);
+        kxReportRequestError(err);
       })
       .finally(function() {
         if (loadingEl) loadingEl.classList.remove('kx-busy');
@@ -3072,7 +3112,7 @@ var kxCalendar = {
         }
       })
       .catch(function(err) {
-        kxGrid.showConfirm('Error', err.message, 'OK', '', null);
+        kxReportRequestError(err);
       })
       .finally(function() {
         if (loadingEl) loadingEl.classList.remove('kx-busy');

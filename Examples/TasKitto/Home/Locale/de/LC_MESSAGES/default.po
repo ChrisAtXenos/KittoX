@@ -1,0 +1,501 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2018-10-10 17:48\n"
+"PO-Revision-Date: 2018-10-10 17:51+0200\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2\n"
+
+msgid "Password generated for user %s: %s"
+msgstr "Passwort für Benutzer %s erzeugt: %s"
+
+msgid "An e-mail with login instructions has been sent"
+msgstr "Eine E-Mail mit Anmeldeanweisungen wurde gesendet"
+
+msgid "Password generated: %s"
+msgstr "Passwort erzeugt: %s"
+
+msgid "Insert the activity description"
+msgstr "Geben Sie die Tätigkeitsbeschreibung ein"
+
+msgid "Activity"
+msgstr "Tätigkeit"
+
+msgid "User"
+msgstr "Benutzer"
+
+msgid "Role"
+msgstr "Rolle"
+
+msgid "Quick Add Activity"
+msgstr "Tätigkeit schnell hinzufügen"
+
+msgid "Bar Chart"
+msgstr "Balkendiagramm"
+
+msgid "Duration in minutes"
+msgstr "Dauer in Minuten"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Activity Calendar"
+msgstr "Tätigkeitskalender"
+
+msgid "Search panel"
+msgstr "Suchbereich"
+
+msgid "Pie Chart"
+msgstr "Kreisdiagramm"
+
+msgid "Activities By Type"
+msgstr "Tätigkeiten nach Typ"
+
+msgid "Duration"
+msgstr "Dauer"
+
+msgid "Activity Report"
+msgstr "Tätigkeitsbericht"
+
+msgid "Customer Filter"
+msgstr "Kundenfilter"
+
+msgid "Employee Filter"
+msgstr "Mitarbeiterfilter"
+
+msgid "Main Menu"
+msgstr "Hauptmenü"
+
+msgid "%Config:AppTitle%"
+msgstr "%Config:AppTitle%"
+
+msgid "Tables"
+msgstr "Tabellen"
+
+msgid "Customers"
+msgstr "Kunden"
+
+msgid "Activities"
+msgstr "Tätigkeiten"
+
+msgid "Statistics"
+msgstr "Statistiken"
+
+msgid "Maintenance"
+msgstr "Verwaltung"
+
+msgid "Project Filter"
+msgstr "Projektfilter"
+
+msgid "Reset password"
+msgstr "Passwort zurücksetzen"
+
+msgid "Modify Account"
+msgstr "Konto bearbeiten"
+
+msgid "Roles"
+msgstr "Rollen"
+
+msgid "Duration in hours"
+msgstr "Dauer in Stunden"
+
+msgid "Change password"
+msgstr "Passwort ändern"
+
+msgid "Activity Dashboard"
+msgstr "Tätigkeits-Dashboard"
+
+msgid "Current calendar month"
+msgstr "Aktueller Kalendermonat"
+
+msgid "All projects with Open status"
+msgstr "Alle Projekte mit Status „Offen“"
+
+msgid "Distinct customers with activities this month"
+msgstr "Verschiedene Kunden mit Tätigkeiten in diesem Monat"
+
+msgid "Activities grouped by status in the current month"
+msgstr "Tätigkeiten nach Status im laufenden Monat gruppiert"
+
+msgid "Total hours grouped by activity type, all time"
+msgstr "Gesamtstunden nach Tätigkeitstyp gruppiert (gesamter Zeitraum)"
+
+msgid "Daily hours from 15 days before to 15 days after today"
+msgstr "Tagesstunden von 15 Tagen vor bis 15 Tage nach heute"
+
+msgid "Daily Activity Trend"
+msgstr "Täglicher Tätigkeitsverlauf"
+
+msgid "Hours"
+msgstr "Stunden"
+
+msgid "Daily Hours"
+msgstr "Tagesstunden"
+
+msgid "Monthly Activities"
+msgstr "Monatliche Tätigkeiten"
+
+msgid "Active Customers"
+msgstr "Aktive Kunden"
+
+msgid "Monthly Hours"
+msgstr "Monatsstunden"
+
+msgid "Active Projects"
+msgstr "Aktive Projekte"
+
+msgid "Activities by Status"
+msgstr "Tätigkeiten nach Status"
+
+msgid "Count"
+msgstr "Anzahl"
+
+msgid "Hours by Type"
+msgstr "Stunden nach Typ"
+
+msgid "Project & Phase"
+msgstr "Projekt und Phase"
+
+msgid "Activity Details"
+msgstr "Tätigkeitsdetails"
+
+msgid "Date & Time"
+msgstr "Datum und Uhrzeit"
+
+msgid "Create Activity"
+msgstr "Tätigkeit erstellen"
+
+msgid "New Activity Wizard"
+msgstr "Assistent für neue Tätigkeit"
+
+msgid "Privacy notes"
+msgstr "Datenschutzhinweise"
+
+msgid "Activity type"
+msgstr "Tätigkeitstyp"
+
+msgid "Activity types"
+msgstr "Tätigkeitstypen"
+
+msgid "Customer"
+msgstr "Kunde"
+
+msgid "Employee"
+msgstr "Mitarbeiter"
+
+msgid "Employees"
+msgstr "Mitarbeiter"
+
+msgid "Phase"
+msgstr "Phase"
+
+msgid "Phases"
+msgstr "Phasen"
+
+msgid "Project"
+msgstr "Projekt"
+
+msgid "Projects"
+msgstr "Projekte"
+
+msgid "Permission"
+msgstr "Berechtigung"
+
+msgid "Permissions"
+msgstr "Berechtigungen"
+
+msgid "Users"
+msgstr "Benutzer"
+
+msgid "User role"
+msgstr "Benutzerrolle"
+
+msgid "User roles"
+msgstr "Benutzerrollen"
+
+msgid "Description"
+msgstr "Beschreibung"
+
+msgid "Activity Date"
+msgstr "Tätigkeitsdatum"
+
+msgid "Start Time"
+msgstr "Startzeit"
+
+msgid "End Time"
+msgstr "Endzeit"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "From"
+msgstr "Von"
+
+msgid "To"
+msgstr "Bis"
+
+msgid "Period"
+msgstr "Zeitraum"
+
+msgid "Last N Days"
+msgstr "Letzte N Tage"
+
+msgid "Download"
+msgstr "Herunterladen"
+
+msgid "Download in TXT"
+msgstr "Als TXT herunterladen"
+
+msgid "Download in CSV"
+msgstr "Als CSV herunterladen"
+
+msgid "Download in Excel"
+msgstr "Als Excel herunterladen"
+
+msgid "Download a file"
+msgstr "Eine Datei herunterladen"
+
+msgid "Access modes"
+msgstr "Zugriffsmodi"
+
+msgid "Activities by Type"
+msgstr "Tätigkeiten nach Typ"
+
+msgid "Activity Type"
+msgstr "Tätigkeitstyp"
+
+msgid "Activity report PDF"
+msgstr "Tätigkeitsbericht (PDF)"
+
+msgid "Customer Map"
+msgstr "Kundenkarte"
+
+msgid "Download content in XML"
+msgstr "Inhalt als XML herunterladen"
+
+msgid "Email Address"
+msgstr "E-Mail-Adresse"
+
+msgid "End"
+msgstr "Ende"
+
+msgid "First Name"
+msgstr "Vorname"
+
+msgid "Grant value"
+msgstr "Berechtigungswert"
+
+msgid "Grantee name"
+msgstr "Name des Berechtigten"
+
+msgid "Last Name"
+msgstr "Nachname"
+
+msgid "Must Change Password"
+msgstr "Muss Passwort ändern"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Operator roles"
+msgstr "Bedienerrollen"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Register new User"
+msgstr "Neuen Benutzer registrieren"
+
+msgid "Resource URI pattern"
+msgstr "Ressourcen-URI-Muster"
+
+msgid "Role name"
+msgstr "Rollenname"
+
+msgid "Search Name"
+msgstr "Nach Namen suchen"
+
+msgid "Search and select the Employee"
+msgstr "Mitarbeiter suchen und auswählen"
+
+msgid "Select Phase"
+msgstr "Phase auswählen"
+
+msgid "Select status"
+msgstr "Status auswählen"
+
+msgid "Select the Activity Type"
+msgstr "Tätigkeitstyp auswählen"
+
+msgid "Select the Role"
+msgstr "Rolle auswählen"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Upload Excel File"
+msgstr "Excel-Datei hochladen"
+
+msgid "Upload a file"
+msgstr "Eine Datei hochladen"
+
+msgid "Upload image"
+msgstr "Bild hochladen"
+
+msgid "User Name"
+msgstr "Benutzername"
+
+msgid "User name"
+msgstr "Benutzername"
+
+msgid "Inserted"
+msgstr "Erfasst"
+
+msgid "Approved"
+msgstr "Genehmigt"
+
+msgid "Billed"
+msgstr "Abgerechnet"
+
+msgid "Not Billable"
+msgstr "Nicht abrechenbar"
+
+msgid "Internal"
+msgstr "Intern"
+
+msgid "Done"
+msgstr "Erledigt"
+
+msgid "Prospect"
+msgstr "Interessent"
+
+msgid "Active"
+msgstr "Aktiv"
+
+msgid "Inactive"
+msgstr "Inaktiv"
+
+msgid "System Operator"
+msgstr "Systembediener"
+
+msgid "Accountant"
+msgstr "Buchhalter"
+
+msgid "Programmer"
+msgstr "Programmierer"
+
+msgid "Project Manager"
+msgstr "Projektleiter"
+
+msgid "Analyst Programmer"
+msgstr "Analytiker-Programmierer"
+
+msgid "Started"
+msgstr "Gestartet"
+
+msgid "Finished"
+msgstr "Abgeschlossen"
+
+msgid "Invoiced"
+msgstr "Fakturiert"
+
+msgid "Killed"
+msgstr "Abgebrochen"
+
+msgid "Waiting"
+msgstr "Wartend"
+
+msgid "Offered"
+msgstr "Angeboten"
+
+msgid "Open"
+msgstr "Offen"
+
+msgid "Stopped"
+msgstr "Angehalten"
+
+msgid "Terminated"
+msgstr "Beendet"
+
+msgid "Apply search"
+msgstr "Suche anwenden"
+
+msgid "Activity Count"
+msgstr "Anzahl Tätigkeiten"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "City"
+msgstr "Stadt"
+
+msgid "Customer Name"
+msgstr "Kundenname"
+
+msgid "Email"
+msgstr "E-Mail"
+
+msgid "Employee Name"
+msgstr "Mitarbeitername"
+
+msgid "Employee Type"
+msgstr "Mitarbeitertyp"
+
+msgid "End Date"
+msgstr "Enddatum"
+
+msgid "Event Id"
+msgstr "Ereignis-ID"
+
+msgid "Event Type"
+msgstr "Ereignistyp"
+
+msgid "Fee"
+msgstr "Honorar"
+
+msgid "Is Active"
+msgstr "Aktiv"
+
+msgid "Notes"
+msgstr "Notizen"
+
+msgid "Phase Name"
+msgstr "Phasenname"
+
+msgid "Phone"
+msgstr "Telefon"
+
+msgid "Project Name"
+msgstr "Projektname"
+
+msgid "Role Name"
+msgstr "Rollenname"
+
+msgid "Start Date"
+msgstr "Startdatum"
+
+msgid "Title"
+msgstr "Titel"
+
+msgid "Total Hours"
+msgstr "Gesamtstunden"
+
+msgid "Type Name"
+msgstr "Typname"
+
+msgid ""
+"A sample activity-tracking application built with KittoX, HTMX, YAML "
+"metadata and server-generated HTML."
+msgstr ""
+"Eine Beispielanwendung zur Tätigkeitserfassung, erstellt mit KittoX, HTMX, "
+"YAML-Metadaten und servergeneriertem HTML."

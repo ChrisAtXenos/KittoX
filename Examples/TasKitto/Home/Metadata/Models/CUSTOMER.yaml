@@ -1,22 +1,30 @@
 ﻿ModelName: CUSTOMER
+DisplayLabel: _(Customer)
+PluralDisplayLabel: _(Customers)
 ImageName: shopping_bag
 Fields:
   CUSTOMER_ID: String(32) not null primary key
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   CUSTOMER_NAME: String(40) not null
+    DisplayLabel: _(Customer Name)
   ADDRESS: String(60)
+    DisplayLabel: _(Address)
   CITY: String(60)
+    DisplayLabel: _(City)
   PHONE: String(20)
+    DisplayLabel: _(Phone)
   EMAIL: String(60)
+    DisplayLabel: _(Email)
     Colors:
       FFFF00: ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$
       FF0000: .*
   STATUS: String(10)
+    DisplayLabel: _(Status)
     AllowedValues:
-      Prospect: Prospect
-      Active: Active
-      Inactive: Inactive
+      Prospect: _(Prospect)
+      Active: _(Active)
+      Inactive: _(Inactive)
 
 DetailReferences:
   PROJECT: PROJECT

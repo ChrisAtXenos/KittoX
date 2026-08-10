@@ -3,7 +3,7 @@ Folder: _(Tables)
   View: Employees
   View: Build AutoList
     Model: OPERATOR_ROLE
-    DisplayLabel: Operator roles
+    DisplayLabel: _(Operator roles)
   View:
     Type: Data
     Controller: List

@@ -268,7 +268,7 @@ var
   LShowImage: Boolean;
   LImagePosition: string;
 begin
-  LTabLabel := GetDisplayLabelFromNode(ANode, AViews);
+  LTabLabel := _(GetDisplayLabelFromNode(ANode, AViews));
   LDisplayLabel := _(ANode.GetString('DisplayLabel', LTabLabel));
   LViewName := AView.PersistentName;
   if (LViewName = '') and (AView is TKDataView)

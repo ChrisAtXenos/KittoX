@@ -1,46 +1,60 @@
 ﻿ModelName: ACTIVITY_CALENDAR
-DisplayLabel: Activity
-PluralDisplayLabel: Activities
+DisplayLabel: _(Activity)
+PluralDisplayLabel: _(Activities)
 PhysicalName: ACTIVITY
 Fields:
   Title:
+    DisplayLabel: _(Title)
     Expression: Employee.EMPLOYEE_NAME %DB.CONCAT% ' - ' %DB.CONCAT% Phase.PHASE_NAME
   EventId: String(32) primary key
+    DisplayLabel: _(Event Id)
     PhysicalName: ACTIVITY_ID
     DefaultValue: %COMPACT_GUID%
   Employee: Reference(EMPLOYEE) not null
+    DisplayLabel: _(Employee)
     Fields:
       EMPLOYEE_ID:
   Phase: Reference(PHASE) not null
+    DisplayLabel: _(Phase)
     Fields:
       PHASE_ID:
   StartDate: DateTime
+    DisplayLabel: _(Start Date)
     Expression: %DB.DATETIME_FROM({Q}ACTIVITY_DATE, {Q}START_TIME)%
   EndDate: DateTime
+    DisplayLabel: _(End Date)
     Expression: %DB.DATETIME_FROM({Q}ACTIVITY_DATE, {Q}END_TIME)%
   Notes: String(80)
+    DisplayLabel: _(Notes)
     PhysicalName: DESCRIPTION
     DisplayWidth: 50
   Role: Reference(OPERATOR_ROLE) not null
+    DisplayLabel: _(Role)
     Fields:
       ROLE_ID:
   EventType: Reference(ACTIVITY_TYPE) not null
+    DisplayLabel: _(Event Type)
     Fields:
       TYPE_ID:
   ActivityDate: Date
+    DisplayLabel: _(Activity Date)
     PhysicalName: ACTIVITY_DATE
   START_TIME: Time
+    DisplayLabel: _(Start Time)
   END_TIME: Time
+    DisplayLabel: _(End Time)
   STATUS: String(12)
+    DisplayLabel: _(Status)
     DisplayWidth: 6
     AllowedValues:
-      Inserted: Inserted
-      Approved: Approved
-      Billed: Billed
-      NotBillable: Not Billable
-      Internal: Internal
-      Done: Done
+      Inserted: _(Inserted)
+      Approved: _(Approved)
+      Billed: _(Billed)
+      NotBillable: _(Not Billable)
+      Internal: _(Internal)
+      Done: _(Done)
   DURATION: Float
+    DisplayLabel: _(Duration)
     DisplayWidth: 8
     Expression: |
       case

@@ -5,13 +5,13 @@ Controller: List
     DisplayLabel: _(Project Filter)
     Connector: and
     Items:
-      FreeSearch: Name
+      FreeSearch: _(Name)
         Width: 30
         # ExpressionTemplate should contain a {value} placeholder for the search term.
         ExpressionTemplate: >
           upper({Q}PROJECT_NAME) like                  
                   upper('%{value}%')
-      DynaList: Customer
+      DynaList: _(Customer)
         Width: 40
         # CommandText must select the value field and the display field as the first two fields.
         CommandText: |
@@ -32,7 +32,7 @@ MainTable:
     LabelAlign: left
     ToolViews:
       DownloadText:
-        DisplayLabel: Download content in XML
+        DisplayLabel: _(Download content in XML)
         Controller: ExportXMLTool
           RequireSelection: False
           IncludeHeader: False
@@ -40,13 +40,13 @@ MainTable:
   Controller:
     ToolViews:
       UploadFile:
-        DisplayLabel: Upload a file
+        DisplayLabel: _(Upload a file)
         Controller: UploadFile
           RequireSelection: False
           Path: %APP_PATH%\Documents\Uploaded
           WildCard: *.*
       DownloadFile:
-        DisplayLabel: Download a file
+        DisplayLabel: _(Download a file)
         Controller: DownloadFile
           ConfirmationMessage: Are you sure you want to download the file?
           RequireSelection: False

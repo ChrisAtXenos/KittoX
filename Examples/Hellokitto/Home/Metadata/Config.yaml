@@ -221,8 +221,10 @@ Theme:
 
 AjaxTimeout: 100000
 
-# No language Id specified means try to use the language requested by the browser.
-LanguageId: en
+# No language Id specified means try to use the language requested by the browser
+# (Accept-Language). Leave it empty so the browser language is honored at login;
+# the LanguageSwitcher lets the user pick any shipped language.
+LanguageId:
 LanguagePerSession: True
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
@@ -248,6 +250,12 @@ Server:
   Port: 3621
   # default 20
   ThreadPoolSize: 15
+
+# Help chat assistant (bubble, bottom-right). The 'docsearch' provider answers
+# from the bundled KittoX documentation index, linking to ethea.it/docs/kittox.
+HelpChat:
+  Enabled: True
+  Provider: docsearch
 
 Engine:
   Session:

@@ -353,7 +353,10 @@ begin
   begin
     Result := _(LView.DisplayLabel);
     if Result = '' then
-      Result := CallViewControllerStringMethod(LView, 'GetDefaultDisplayLabel', Result);
+      // Fallback (e.g. a DataView without an explicit DisplayLabel resolves to the
+      // model's plural label): translate it too, otherwise it would be shown raw
+      // (untranslated) as the tab caption / data-tab-label.
+      Result := _(CallViewControllerStringMethod(LView, 'GetDefaultDisplayLabel', Result));
     if Result = '' then
       Result := _(LView.ControllerType);
   end

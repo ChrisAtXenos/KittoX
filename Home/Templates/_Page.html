@@ -52,6 +52,7 @@
   <script src="{{:resPath}}/js/kxtiles.js"></script>
   <script src="{{:resPath}}/js/kxwizard.js"></script>
   <script src="{{:resPath}}/js/kxnotify.js"></script>
+  <script src="{{:resPath}}/js/kxchat.js"></script>
 {{:dynamicScripts$}}
   <script src="{{:resPath}}/js/alpine.min.js" defer></script>
 </head>
@@ -74,7 +75,7 @@
     htmx.config.timeout = {{:ajaxTimeout}};
 
     // Client config: resource base path and active Material icon style.
-    window.KX_CFG = { resPath: '{{:resPath}}', iconStyle: '{{:iconStyle}}' };
+    window.KX_CFG = { resPath: '{{:resPath}}', iconStyle: '{{:iconStyle}}', helpChat: {{:helpChatEnabled}}, notifications: {{:notificationsEnabled}} };
 
     // Localized strings for client-side JS (injected from Delphi via _() translation)
     window.KX_STRINGS = {
@@ -87,7 +88,17 @@
       dataDeleted: '{{:msgDataDeleted}}',
       serverError: '{{:msgServerError}}',
       serverNotFound: '{{:msgNotFound}}',
-      serverInternalError: '{{:msgInternalError}}'
+      serverInternalError: '{{:msgInternalError}}',
+      notifCenter: '{{:lblNotifCenter}}',
+      clearAll: '{{:lblClearAll}}',
+      close: '{{:lblClose}}',
+      ready: '{{:lblReady}}',
+      operationReady: '{{:lblOperationReady}}',
+      helpAssistant: '{{:lblHelpAssistant}}',
+      help: '{{:lblHelp}}',
+      clear: '{{:lblClear}}',
+      send: '{{:lblSend}}',
+      chatPlaceholder: '{{:lblChatPlaceholder}}'
     };
 
     document.body.addEventListener("htmx:afterSettle", function(evt) {

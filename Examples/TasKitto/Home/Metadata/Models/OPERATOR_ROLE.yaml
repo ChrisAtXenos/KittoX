@@ -7,8 +7,10 @@ Fields:
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   ROLE_NAME: String(20) not null
+    DisplayLabel: _(Role Name)
     #DisplayWidth: 10
   FEE: Currency
+    DisplayLabel: _(Fee)
     Rules:
       MinValue: 0
     #DisplayWidth: 10

@@ -15,9 +15,11 @@ Fields:
     DisplayLabel: _(Birth Date)
     DefaultValue: {date}
   Hair: Reference(Hair)
+    DisplayLabel: _(Hair)
     Fields:
       Hair_Id:
   Dress_Size: String(4)
+    DisplayLabel: _(Dress Size)
     DisplayWidth: 8
     AllowedValues:
       XS: _(Extra Small)
@@ -33,6 +35,7 @@ Fields:
       Phone: Mom_Phone
         DisplayLabel: _(Mom's Phone)
   Aspect: Memo
+    DisplayLabel: _(Aspect)
     DisplayWidth: 40
     Rules:
       MaxLength: 1024

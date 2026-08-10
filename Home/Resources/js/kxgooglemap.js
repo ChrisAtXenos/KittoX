@@ -394,8 +394,12 @@ var kxGoogleMap = {
     fetch(baseUrl + 'kx/view/' + viewName + '/map-data', {
       headers: { 'X-KittoX': 'true' }
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      if (!r.ok) { kxReportRequestError(r); return null; }
+      return r.json();
+    })
     .then(function(data) {
+      if (!data) { return; }
       kxGoogleMap._clearMarkers(viewName);
       if (data.markers && data.markers.length > 0) {
         kxGoogleMap._geocodeAndPlaceMarkers(viewName, data.markers);
@@ -408,7 +412,7 @@ var kxGoogleMap = {
         }
       }
     })
-    .catch(function(err) { console.error('kxGoogleMap refresh error:', err); });
+    .catch(function(err) { console.error('kxGoogleMap refresh error:', err); kxReportRequestError(); });
   },
 
   /**

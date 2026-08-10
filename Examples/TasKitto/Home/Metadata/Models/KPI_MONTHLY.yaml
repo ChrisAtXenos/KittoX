@@ -1,8 +1,12 @@
-Fields:
+﻿Fields:
   ACTIVITY_COUNT: Integer primary key
+    DisplayLabel: _(Activity Count)
   TOTAL_HOURS: Decimal(9, 2)
+    DisplayLabel: _(Total Hours)
   ACTIVE_PROJECTS: Integer
+    DisplayLabel: _(Active Projects)
   ACTIVE_CUSTOMERS: Integer
+    DisplayLabel: _(Active Customers)
 PhysicalName: VW_KPI_MONTHLY
 # Backed by a SQL view: read-only (no REST write endpoints).
 IsReadOnly: True

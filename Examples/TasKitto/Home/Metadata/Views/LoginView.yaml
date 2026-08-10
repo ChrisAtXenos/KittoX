@@ -2,7 +2,7 @@
   Title: %Config:AppTitle% %APP_VERSION_FULL%
   Style: opacity:0.9
   FormPanel:
-    UserName: Account/UserName
+    UserName: _(User Name)
   BorderPanel:
     # Logo + short app description + copyright on the LEFT of the form
     # (WestView hosts a single controller, so it's all one HtmlPanel).
@@ -15,9 +15,7 @@
             <img src="%IMAGE(taskitto_logo_150)%"></img>
             <p style="margin: 14px 0 0; font-size: 13px; line-height: 1.5; color: var(--kx-text);">
               <b>%Config:AppTitle%</b><br>
-              A sample activity-tracking application built with
-              Kitto<sup>x</sup> &mdash; HTMX, YAML metadata and
-              server-generated HTML.
+              _(A sample activity-tracking application built with KittoX, HTMX, YAML metadata and server-generated HTML.)
             </p>
             <p style="margin: 18px 0 0; font-size: 11px; color: var(--kx-text-muted);">
               &copy; 2012-2026 Ethea S.r.l.

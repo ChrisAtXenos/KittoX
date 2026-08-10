@@ -7,4 +7,5 @@ Fields:
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   Hair_Color: String(80) not null
+    DisplayLabel: _(Hair Color)
     DisplayWidth: 20

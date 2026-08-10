@@ -1,10 +1,10 @@
-Type: Data
+﻿Type: Data
 ImageName: checklist
 
 Controller: GroupingList
 
 MainTable:
-  PluralDisplayLabel: Activities by Type
+  PluralDisplayLabel: _(Activities by Type)
   Model: ACTIVITY
   EditController:
     CloneButton:

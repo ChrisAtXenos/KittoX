@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "POT-Creation-Date: 2020-02-09 13:26\n"
-"PO-Revision-Date: 2026-04-17 15:31+0200\n"
+"PO-Revision-Date: 2026-08-07 12:00+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
@@ -59,7 +59,8 @@ msgstr "Risorsa %s non trovata."
 
 #: Kitto.Config.pas
 msgid "Access denied. The user is not allowed to perform this operation."
-msgstr "Accesso negato. L'utente non ha il permesso di effettuare questa operazione."
+msgstr ""
+"Accesso negato. L'utente non ha il permesso di effettuare questa operazione."
 
 #: Kitto.Config.pas
 msgid "Resource URI: %s; access mode: %s."
@@ -472,16 +473,23 @@ msgid "Record not found."
 msgstr "Record non trovato."
 
 #: Kitto.Web.Application.pas
-msgid "Password changed successfully. You will be redirected to the login page."
-msgstr "Password modificata con successo. Verrai reindirizzato alla pagina di accesso."
+msgid ""
+"Password changed successfully. You will be redirected to the login page."
+msgstr ""
+"Password modificata con successo. Verrai reindirizzato alla pagina di "
+"accesso."
 
 #: Kitto.Web.Application.pas
 msgid "Select: %s"
 msgstr "Seleziona: %s"
 
 #: Kitto.Web.Application.pas
-msgid "A new temporary password was generated and sent to the specified e-mail address."
-msgstr "Una nuova password temporanea e' stata generata ed inviata all'indirizzo mail specificato."
+msgid ""
+"A new temporary password was generated and sent to the specified e-mail "
+"address."
+msgstr ""
+"Una nuova password temporanea e' stata generata ed inviata all'indirizzo "
+"mail specificato."
 
 #: Kitto.Web.Application.pas
 msgid "Old Password is wrong."
@@ -563,3 +571,146 @@ msgstr "Pagina successiva"
 #: Kitto.Html.List.pas
 msgid "Last page"
 msgstr "Ultima pagina"
+
+#. KittoX 4.1 — added by locale update
+msgid "LDAP authenticator: bind failed (error %d)."
+msgstr "Authenticator LDAP: bind fallito (errore %d)."
+
+#. KittoX 4.1 — added by locale update
+msgid "LDAP authenticator: cannot initialize a connection to \"%s\"."
+msgstr "Authenticator LDAP: impossibile inizializzare la connessione a \"%s\"."
+
+#. KittoX 4.1 — added by locale update
+msgid "LDAP authenticator: the \"Host\" parameter is required."
+msgstr "Authenticator LDAP: il parametro \"Host\" è obbligatorio."
+
+#. KittoX 4.1 — added by locale update
+msgid "PIN/QR authentication is not supported by the LDAP authenticator."
+msgstr "L'autenticazione PIN/QR non è supportata dall'authenticator LDAP."
+
+#. KittoX 4.1 — added by locale update
+msgid ""
+"Password reset is not supported by the LDAP authenticator. Manage passwords "
+"in the directory (Active Directory)."
+msgstr ""
+"Il reset della password non è supportato dall'authenticator LDAP. Gestisci "
+"le password nella directory (Active Directory)."
+
+#. KittoX 4.1 — added by locale update
+msgid ""
+"I could not find a specific page for your question. Browse the "
+"[documentation](%s)."
+msgstr ""
+"Non ho trovato una pagina specifica per la tua domanda. Consulta la "
+"[documentazione](%s)."
+
+#. KittoX 4.1 — added by locale update
+msgid "Read more"
+msgstr "Approfondisci"
+
+#. KittoX 4.1 — added by locale update
+msgid "See also:"
+msgstr "Vedi anche:"
+
+#. KittoX 4.1 — added by locale update
+msgid "The help index is not available. See the [documentation](%s)."
+msgstr ""
+"L'indice della guida non è disponibile. Consulta la [documentazione](%s)."
+
+#. KittoX 4.1 — added by locale update
+msgid "Sorry, I have no elements to help you on this topic at the moment."
+msgstr ""
+"Spiacente, al momento non ho elementi per aiutarti su questo argomento."
+
+#. KittoX 4.1 — added by locale update
+msgid "How can I use the \"%s\" screen?"
+msgstr "Come si usa la schermata \"%s\"?"
+
+#. KittoX 4.1 — added by locale update
+msgid ""
+"RunMode: Background is supported only for download-file tools in this "
+"version."
+msgstr ""
+"RunMode: Background è supportato solo per i tool di tipo download-file in "
+"questa versione."
+
+#. KittoX 4.1 — added by locale update
+msgid "The tool did not produce any file."
+msgstr "Il tool non ha prodotto alcun file."
+
+#. KittoX 4.1 — added by locale update
+msgid "Tool \"%s\" not found in view \"%s\"."
+msgstr "Tool \"%s\" non trovato nella vista \"%s\"."
+
+#. KittoX 4.1 — added by locale update
+msgid "Tool: data view \"%s\" not found."
+msgstr "Tool: vista dati \"%s\" non trovata."
+
+#. KittoX 4.1 — added by locale update
+msgid "Tool: view \"%s\" has no main table."
+msgstr "Tool: la vista \"%s\" non ha una tabella principale."
+
+#. KittoX 4.1 — added by locale update
+msgid "Hi! Ask me anything about how to use the application."
+msgstr "Ciao! Chiedimi pure come usare l'applicazione."
+
+#. KittoX 4.1 — added by locale update
+msgid "Done"
+msgstr "Completato"
+
+#. KittoX 4.1 — added by locale update
+msgid "Failed"
+msgstr "Fallito"
+
+#. KittoX 4.1 — added by locale update
+msgid "Interrupted"
+msgstr "Interrotto"
+
+#. KittoX 4.1 — added by locale update
+msgid "No operations."
+msgstr "Nessuna operazione."
+
+#. KittoX 4.1 — added by locale update
+msgid "Queued"
+msgstr "In coda"
+
+#. KittoX 4.1 — added by locale update
+msgid "Remove"
+msgstr "Rimuovi"
+
+#. KittoX 4.1 — added by locale update
+msgid "The application restarted while this was running; please re-launch it."
+msgstr ""
+"L'applicazione è stata riavviata mentre l'operazione era in corso; "
+"rilanciala."
+
+#. KittoX 4.1 chrome
+msgid "Notification center"
+msgstr "Centro notifiche"
+
+#. KittoX 4.1 chrome
+msgid "Clear all"
+msgstr "Pulisci tutto"
+
+#. KittoX 4.1 chrome
+msgid "ready"
+msgstr "pronto"
+
+#. KittoX 4.1 chrome
+msgid "Operation ready"
+msgstr "Operazione pronta"
+
+#. KittoX 4.1 chrome
+msgid "Help assistant"
+msgstr "Assistente"
+
+#. KittoX 4.1 chrome
+msgid "Help"
+msgstr "Aiuto"
+
+#. KittoX 4.1 chrome
+msgid "Ask about the application..."
+msgstr "Chiedi qualcosa sull'applicazione..."
+
+msgid "Environment"
+msgstr "Ambiente"

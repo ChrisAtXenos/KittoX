@@ -658,20 +658,40 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   border: none;
-  border-radius: 6px;
+  border-radius: 5px;
   background: transparent;
   color: var(--kx-text-secondary, currentColor);
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease;
 }
 
+/* Square buttons; the inline SVGs ship at 20px, shrink them a touch so the
+   toggle group stays about as tall as the LanguageSwitcher combo. */
+.kx-theme-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 .kx-theme-btn:hover {
   background: var(--kx-hover-bg, rgba(0,0,0,0.06));
   color: var(--kx-text, currentColor);
+}
+
+/* On the chrome south bar, force the ThemeSwitcher group and the LanguageSwitcher
+   combo to the SAME box-sized height so they line up exactly. The theme buttons
+   keep their fixed square size (align-items:center prevents them stretching), so
+   only the outer boxes are equalised. */
+.kx-region-south .kx-theme-switcher,
+.kx-region-south .kx-lang-switcher > summary.kx-lang-current {
+  box-sizing: border-box;
+  height: 28px;
+}
+.kx-region-south .kx-theme-switcher {
+  align-items: center;
 }
 
 /* On the chrome south bar the same buttons need light icons + light hover */
@@ -696,6 +716,150 @@ html, body {
 .kx-theme-btn:focus-visible {
   outline: 2px solid var(--kx-accent);
   outline-offset: 2px;
+}
+
+/* ===== Language switcher (flag dropdown) ===== */
+/* Native <details>/<summary> dropdown: the language is a server-side
+   per-session setting, so an option posts to kx/setlang and reloads. */
+.kx-lang-switcher {
+  position: relative;
+  display: inline-block;
+}
+
+/* Trigger: current flag + native name + caret. Remove the default marker. */
+.kx-lang-switcher > summary.kx-lang-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 24px 4px 8px;   /* right space reserved for the drop-down arrow */
+  border-radius: 8px;
+  border: 1px solid var(--kx-border, rgba(0,0,0,0.10));
+  background: var(--kx-card-bg, rgba(0,0,0,0.04));
+  color: var(--kx-text-secondary, currentColor);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  transition: background 120ms ease, color 120ms ease;
+}
+.kx-lang-switcher > summary.kx-lang-current::-webkit-details-marker { display: none; }
+.kx-lang-switcher > summary.kx-lang-current::marker { content: ''; }
+.kx-lang-switcher > summary.kx-lang-current:hover {
+  background: var(--kx-hover-bg, rgba(0,0,0,0.06));
+  color: var(--kx-text, currentColor);
+}
+.kx-lang-switcher > summary.kx-lang-current:focus-visible {
+  outline: 2px solid var(--kx-accent);
+  outline-offset: 2px;
+}
+
+.kx-lang-flag {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.kx-lang-name { font-size: 13px; white-space: nowrap; }
+
+/* Match the native <select> arrow (e.g. the Environment combo): hide the SVG
+   triangle and draw a thin, STATIC chevron with a CSS pseudo-element. It is
+   absolutely positioned a fixed distance from the right edge -- exactly like a
+   <select> drop-down arrow -- rather than sitting in the flex flow (which left
+   it further from the edge). No rotate-on-open. */
+.kx-lang-caret { display: none; }
+.kx-lang-current { position: relative; }
+.kx-lang-current::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-65%) rotate(45deg);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Popover list. Opens downward by default; upward on a bottom chrome band. */
+.kx-lang-menu {
+  position: absolute;
+  z-index: 1100;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border-radius: 8px;
+  border: 1px solid var(--kx-border, rgba(0,0,0,0.12));
+  background: var(--kx-surface, var(--kx-card-bg, #fff));
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+}
+
+.kx-lang-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--kx-text, currentColor);
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.kx-lang-opt:hover { background: var(--kx-hover-bg, rgba(0,0,0,0.06)); }
+.kx-lang-opt-active { font-weight: 600; background: var(--kx-hover-bg, rgba(0,0,0,0.05)); }
+.kx-lang-opt:focus-visible { outline: 2px solid var(--kx-accent); outline-offset: -2px; }
+
+/* On a bottom chrome band (login south / left-menu south) open upward and
+   match the chrome text colour like the theme switcher does. */
+.kx-login-south .kx-lang-menu,
+.kx-region-south .kx-lang-menu {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+.kx-region-south .kx-lang-switcher > summary.kx-lang-current {
+  color: var(--kx-chrome-text, currentColor);
+}
+.kx-region-south .kx-lang-switcher > summary.kx-lang-current:hover {
+  background: var(--kx-chrome-btn-hover, rgba(255,255,255,0.15));
+  color: var(--kx-chrome-text, currentColor);
+}
+
+/* When the south chrome band lays the ThemeSwitcher + LanguageSwitcher out
+   side by side via a nested BorderPanel, that nested panel must be fully
+   transparent so the band's green (var(--kx-chrome)) background and white text
+   stay intact -- otherwise the nested regions paint their own light surface
+   over the band and the white chrome text becomes invisible. It must also drop
+   the 100vh page-panel height and never clip the language pop-up menu. */
+.kx-region-south .kx-border-panel {
+  height: auto;
+  min-height: 0;
+  width: 100%;
+  background: transparent;
+  overflow: visible;
+}
+.kx-region-south .kx-border-panel .kx-region-north,
+.kx-region-south .kx-border-panel .kx-region-west,
+.kx-region-south .kx-border-panel .kx-region-center,
+.kx-region-south .kx-border-panel .kx-region-east,
+.kx-region-south .kx-border-panel .kx-region-south {
+  background: transparent;
+  border: none;
+  overflow: visible;
+}
+/* Center the two controls vertically within the short band. */
+.kx-region-south .kx-border-panel .kx-region-west,
+.kx-region-south .kx-border-panel .kx-region-center {
+  display: flex;
+  align-items: center;
 }
 
 /* ===== HTML Panel ===== */
@@ -1205,6 +1369,43 @@ body.kx-mobile .kx-dialog {
 select.kx-login-field-input {
   appearance: auto;
 }
+
+/* Cell hosting the LanguageSwitcher flag dropdown inside a login field row,
+   aligned like the text inputs (label on the left, control filling the rest). */
+.kx-login-lang-cell {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* In the login form the flag dropdown must look like the other controls
+   (e.g. the Environment combo): full width, same border, radius, padding and
+   colours as .kx-login-field-input -- NOT the pill style used on the home
+   chrome band. */
+.kx-login-lang-cell .kx-lang-switcher { width: 100%; }
+.kx-login-lang-cell .kx-lang-switcher > summary.kx-lang-current {
+  width: 100%;
+  box-sizing: border-box;
+  gap: 8px;
+  padding: 6px 24px 6px 10px;   /* right space reserved for the drop-down arrow */
+  border: 1px solid var(--kx-input-border);
+  border-radius: 4px;
+  background: var(--kx-input-bg);
+  color: var(--kx-text);
+  font-size: var(--kx-font-size);
+}
+.kx-login-lang-cell .kx-lang-switcher > summary .kx-lang-name {
+  flex: 1;                 /* push the caret to the right edge, like a <select> */
+  font-size: var(--kx-font-size);
+}
+.kx-login-lang-cell .kx-lang-switcher[open] > summary.kx-lang-current,
+.kx-login-lang-cell .kx-lang-switcher > summary.kx-lang-current:focus-visible {
+  border-color: var(--kx-accent);
+  box-shadow: 0 0 0 2px var(--kx-accent-ring);
+  outline: none;
+}
+.kx-login-lang-cell .kx-lang-menu { min-width: 100%; }
 
 .kx-login-checkbox-row {
   margin-top: 2px;
@@ -3833,18 +4034,26 @@ body.kx-mobile .kx-flex-item {
 .kx-notif-bell { position: relative; display: flex; align-items: center; justify-content: center;
   width: calc(var(--kx-font-size, 13px) + 18px); height: calc(var(--kx-font-size, 13px) + 18px);
   border: none; border-radius: 50%;
-  background: var(--kx-surface, #fff); color: var(--kx-text, #222);
-  box-shadow: 0 1px 4px rgba(0,0,0,.2); cursor: pointer; font-size: var(--kx-font-size, 13px); line-height: 1; }
-.kx-notif-bell:hover { background: var(--kx-hover, #f0f0f0); }
+  background: var(--kx-accent); color: var(--kx-chrome-text, #fff);
+  box-shadow: 0 1px 4px rgba(0,0,0,.2); cursor: pointer; font-size: var(--kx-font-size, 13px); line-height: 1;
+  transition: background 120ms ease, color 120ms ease, filter 120ms ease; }
+.kx-notif-bell:hover { filter: brightness(1.08); }
+/* Inverted badge (light fill, accent number) so it stands out on the accent bell. */
 .kx-notif-badge { position: absolute; top: -4px; right: -4px; min-width: 15px; height: 15px; padding: 0 3px;
-  border-radius: 8px; background: var(--kx-accent, #d9534f); color: #fff; font-size: 9px; line-height: 15px;
-  text-align: center; font-weight: 600; }
+  border-radius: 8px; background: var(--kx-chrome-text, #fff); color: var(--kx-accent); font-size: 9px; line-height: 15px;
+  text-align: center; font-weight: 700; }
 .kx-notif-panel { position: absolute; top: calc(var(--kx-font-size, 13px) + 21px); right: 0; width: 320px; overflow: hidden;
   background: var(--kx-surface, #fff); color: var(--kx-text, #222); border: 1px solid var(--kx-border, #ddd);
   border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
 /* Same chrome as a form/dialog title bar (green/white in the TasKitto theme). */
-.kx-notif-header { padding: 10px 12px; font-weight: 600; font-size: var(--kx-font-size, 13px);
+.kx-notif-header { display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px 8px 12px; font-weight: 600; font-size: var(--kx-font-size, 13px);
   background: var(--kx-chrome-dark, #2c3e50); color: var(--kx-chrome-text, #fff); }
+.kx-notif-hactions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.kx-notif-hbtn { display: inline-flex; align-items: center; justify-content: center; background: transparent;
+  border: none; color: inherit; cursor: pointer; padding: 3px; border-radius: 4px; opacity: .85; }
+.kx-notif-hbtn:hover { opacity: 1; background: rgba(255,255,255,.15); }
+.kx-notif-hbtn .kx-icon { width: 16px; height: 16px; }
 .kx-notif-body { max-height: 55vh; overflow-y: auto; }
 .kx-notif-item { display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 10px 12px; border-bottom: 1px solid var(--kx-border, #eee); }
@@ -3855,9 +4064,11 @@ body.kx-mobile .kx-flex-item {
 .kx-notif-download { font-size: 12px; font-weight: 600; color: var(--kx-link, #337ab7); text-decoration: none; white-space: nowrap; }
 .kx-notif-download:hover { text-decoration: underline; }
 .kx-notif-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.kx-notif-btn { border: none; background: transparent; color: var(--kx-text-muted, #888);
-  cursor: pointer; font-size: 13px; line-height: 1; padding: 2px 5px; border-radius: 3px; }
+.kx-notif-btn { display: inline-flex; align-items: center; justify-content: center; border: none;
+  background: transparent; color: var(--kx-text-muted, #888);
+  cursor: pointer; line-height: 1; padding: 3px 5px; border-radius: 3px; }
 .kx-notif-btn:hover { background: var(--kx-hover, #eee); color: var(--kx-accent, #d9534f); }
+.kx-notif-btn .kx-icon { width: 14px; height: 14px; }
 .kx-notif-empty { padding: 16px 12px; text-align: center; color: var(--kx-text-muted, #888); font-size: 13px; }
 .kx-notif-completed .kx-notif-title { font-weight: 600; }
 .kx-notif-toast { position: fixed; bottom: 20px; right: 20px; z-index: 3100; max-width: 320px; padding: 12px 16px;
@@ -3865,3 +4076,78 @@ body.kx-mobile .kx-flex-item {
   opacity: 0; transform: translateY(10px); transition: opacity .3s ease, transform .3s ease; font-size: 14px;
   border-left: 4px solid var(--kx-success, #5cb85c); }
 .kx-notif-toast-show { opacity: 1; transform: translateY(0); }
+
+/* ============================================================================
+   Help chat — floating assistant button (bottom-right) + drawer
+   ========================================================================== */
+.kx-chat { position: fixed; bottom: 20px; right: 20px; z-index: 3000; }
+
+/* Same diameter as the notification bell; selected-theme-button look (accent bg,
+   chrome text), theme-aware. Hover = subtle brightness, no vertical shift. */
+.kx-chat-fab { display: flex; align-items: center; justify-content: center;
+  width: calc(var(--kx-font-size, 13px) + 18px); height: calc(var(--kx-font-size, 13px) + 18px);
+  border: none; border-radius: 50%;
+  background: var(--kx-accent); color: var(--kx-chrome-text, #fff);
+  cursor: pointer; font-size: var(--kx-font-size, 13px); line-height: 1;
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+  transition: background 120ms ease, color 120ms ease, filter 120ms ease; }
+.kx-chat-fab:hover { filter: brightness(1.08); }
+
+.kx-chat-panel { position: absolute; bottom: calc(var(--kx-font-size, 13px) + 30px); right: 0; display: none;
+  flex-direction: column; width: 380px; height: 70vh; max-height: 560px; overflow: hidden;
+  background: var(--kx-surface, #fff); border: 1px solid var(--kx-border, #ddd); border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.28); }
+.kx-chat-open .kx-chat-panel { display: flex; }
+
+.kx-chat-header { display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; background: var(--kx-chrome-dark, #2e7d32); color: var(--kx-chrome-text, #fff);
+  flex-shrink: 0; }
+.kx-chat-title { font-weight: 600; font-size: 14px; }
+.kx-chat-actions { display: flex; gap: 4px; }
+.kx-chat-hbtn { display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: none; color: inherit; cursor: pointer;
+  line-height: 1; padding: 3px; border-radius: 4px; opacity: .85; }
+.kx-chat-hbtn:hover { opacity: 1; background: rgba(255,255,255,.15); }
+.kx-chat-hbtn .kx-icon { width: 16px; height: 16px; }
+
+.kx-chat-body { flex: 1; min-height: 0; overflow-y: auto; padding: 12px;
+  display: flex; flex-direction: column; gap: 8px; background: var(--kx-bg, #f7f7f7); }
+
+.kx-chat-msg { display: flex; }
+.kx-chat-user { justify-content: flex-end; }
+.kx-chat-assistant { justify-content: flex-start; }
+.kx-chat-bubble { max-width: 80%; padding: 8px 11px; border-radius: 12px; font-size: 13.5px;
+  line-height: 1.4; white-space: normal; word-wrap: break-word; }
+.kx-chat-user .kx-chat-bubble { background: var(--kx-accent, #d9534f); color: #fff; border-bottom-right-radius: 0; }
+.kx-chat-assistant .kx-chat-bubble { background: var(--kx-surface, #fff); color: var(--kx-text, #222);
+  border: 1px solid var(--kx-border, #e2e2e2); border-bottom-left-radius: 0; }
+.kx-chat-msg-error .kx-chat-bubble { background: var(--kx-danger-bg, #fdecea); color: var(--kx-danger, #b71c1c);
+  border-color: var(--kx-danger, #b71c1c); }
+.kx-chat-bubble a { color: inherit; text-decoration: underline; font-weight: 600; }
+.kx-chat-assistant .kx-chat-bubble a { color: var(--kx-link, #337ab7); }
+.kx-chat-bubble code { font-family: ui-monospace, Consolas, monospace; font-size: .92em;
+  background: rgba(0,0,0,.07); padding: 0 3px; border-radius: 3px; }
+
+/* "typing" indicator (three bouncing dots) */
+.kx-chat-typing { display: inline-flex; gap: 3px; align-items: center; height: 14px; }
+.kx-chat-typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--kx-text-muted, #999);
+  animation: kx-chat-bounce 1.2s infinite ease-in-out both; }
+.kx-chat-typing span:nth-child(1) { animation-delay: -.24s; }
+.kx-chat-typing span:nth-child(2) { animation-delay: -.12s; }
+@keyframes kx-chat-bounce { 0%, 80%, 100% { transform: scale(.6); opacity: .5; } 40% { transform: scale(1); opacity: 1; } }
+
+.kx-chat-footer { display: flex; align-items: flex-end; gap: 6px; padding: 8px;
+  border-top: 1px solid var(--kx-border, #ddd); background: var(--kx-surface, #fff); flex-shrink: 0; }
+.kx-chat-input { flex: 1; resize: none; max-height: 120px; padding: 8px 10px; font: inherit; font-size: 13.5px;
+  border: 1px solid var(--kx-border, #ccc); border-radius: 8px; background: var(--kx-input-bg, #fff);
+  color: var(--kx-text, #222); outline: none; }
+.kx-chat-input:focus { border-color: var(--kx-accent, #d9534f); }
+.kx-chat-send { display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; width: 36px; height: 36px; border: none; border-radius: 8px;
+  background: var(--kx-accent, #d9534f); color: #fff; cursor: pointer; line-height: 1; }
+.kx-chat-send:hover { filter: brightness(1.08); }
+.kx-chat-send .kx-icon { width: 17px; height: 17px; }
+
+@media (max-width: 520px) {
+  .kx-chat-panel { width: calc(100vw - 24px); height: calc(100vh - 96px); }
+}

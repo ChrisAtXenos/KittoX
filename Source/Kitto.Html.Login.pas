@@ -100,6 +100,7 @@ uses
   Kitto.Config,
   Kitto.Web.Application,
   Kitto.Web.Session,
+  Kitto.Html.LanguageSwitcher,
   Kitto.Html.TemplateEngine,
   Kitto.Html.Utils;
 
@@ -184,19 +185,16 @@ end;
 
 function TKXLoginPanelController.RenderFields: string;
 var
-  LUserNameLabel, LPasswordLabel, LLanguageLabel: string;
+  LUserNameLabel, LPasswordLabel: string;
   LLabelWidth: Integer;
-  LInputStyle, LAppName: string;
-  LLanguagePerSession: Boolean;
+  LInputStyle: string;
   LStyleAttr, LLabelStyleAttr: string;
+  LLangHtml: string;
 begin
   LUserNameLabel := Config.GetString('FormPanel/UserName', _('User Name'));
   LPasswordLabel := Config.GetString('FormPanel/Password', _('Password'));
-  LLanguageLabel := Config.GetString('FormPanel/Language', _('Language'));
   LLabelWidth := Config.GetInteger('FormPanel/LabelWidth', 100);
   LInputStyle := Config.GetString('FormPanel/InputStyle', '');
-  LAppName := GetAppName;
-  LLanguagePerSession := TKWebApplication.Current.Config.LanguagePerSession;
 
   LLabelStyleAttr := Format(' style="min-width: %dpx; width: %0:dpx;"', [LLabelWidth]);
 
@@ -225,18 +223,19 @@ begin
         LStyleAttr + '>' +
     '</div>';
 
-  if LLanguagePerSession then
-  begin
+  // Language selector: the reusable LanguageSwitcher (flag dropdown) embedded
+  // as a labelled field row, in the same spot the old hardcoded combo used to
+  // occupy ("Language" label on the left). The same controller also renders on
+  // the Home page. Emits nothing when LanguagePerSession is off or only one
+  // language ships.
+  LLangHtml := TKXLanguageCatalog.RenderSwitcherHtml('kx-login-language');
+  if LLangHtml <> '' then
     Result := Result +
       '<div class="kx-login-field-row">' +
-        '<label class="kx-login-field-label" for="kx-login-language"' + LLabelStyleAttr + '>' +
-          TNetEncoding.HTML.Encode(LLanguageLabel) + '</label>' +
-        '<select id="kx-login-language" name="Language" class="kx-login-field-input"' + LStyleAttr + '>' +
-          '<option value="it"' + IfThen(TKWebSession.Current.Language = 'it', ' selected', '') + '>Italiano</option>' +
-          '<option value="en"' + IfThen(TKWebSession.Current.Language = 'en', ' selected', '') + '>English</option>' +
-        '</select>' +
+        '<label class="kx-login-field-label"' + LLabelStyleAttr + '>' +
+          TNetEncoding.HTML.Encode(_('Language')) + '</label>' +
+        '<div class="kx-login-lang-cell">' + LLangHtml + '</div>' +
       '</div>';
-  end;
 
   // LocalStorage checkbox
   Result := Result + RenderLocalStorageCheckbox;
@@ -248,7 +247,7 @@ var
   LChoicesRaw: string;
   LChoiceList: TArray<string>;
   LCurrent: string;
-  LName, LLabel, LSelected: string;
+  LName, LLabel, LSelected, LOptions: string;
   LDbNode: TEFNode;
   LLabelText: string;
   I: Integer;
@@ -281,15 +280,21 @@ begin
 
   LLabelText := Config.GetString('FormPanel/Database', _('Environment'));
 
-  Result :=
-    '<div class="kx-login-field-row">' +
-      '<label class="kx-login-field-label" for="kx-login-database"' + ALabelStyleAttr + '>' +
-        TNetEncoding.HTML.Encode(LLabelText) + '</label>' +
-      '<select id="kx-login-database" name="DatabaseName" class="kx-login-field-input"' + AStyleAttr + '>';
+  // Build the <option> list first, skipping any choice that is not actually
+  // usable: either its Databases/<Name> block is commented out, or the DB
+  // adapter it references is not compiled into this build (its EF.DB.* unit is
+  // not in the app's uses — e.g. an optional back-end like ODAC_Oracle). This
+  // lets a config list optional databases that appear in the combo only when
+  // they are enabled, instead of offering a selection that would fail to connect.
+  LOptions := '';
   for I := 0 to High(LChoiceList) do
   begin
     LName := Trim(LChoiceList[I]);
     if LName = '' then
+      Continue;
+    // Skip choices whose database is not available (block disabled or adapter
+    // unit not compiled in).
+    if not TKWebApplication.Current.Config.IsDatabaseAvailable(LName) then
       Continue;
     // Optional per-database display label: Databases/<Name>/DisplayLabel.
     // Falls back to the raw config name.
@@ -303,11 +308,22 @@ begin
       LSelected := ' selected'
     else
       LSelected := '';
-    Result := Result +
+    LOptions := LOptions +
       '<option value="' + TNetEncoding.HTML.Encode(LName) + '"' + LSelected + '>' +
         TNetEncoding.HTML.Encode(LLabel) + '</option>';
   end;
-  Result := Result + '</select></div>';
+
+  // No selectable database (all choices disabled) → render no combo.
+  if LOptions = '' then
+    Exit;
+
+  Result :=
+    '<div class="kx-login-field-row">' +
+      '<label class="kx-login-field-label" for="kx-login-database"' + ALabelStyleAttr + '>' +
+        TNetEncoding.HTML.Encode(LLabelText) + '</label>' +
+      '<select id="kx-login-database" name="DatabaseName" class="kx-login-field-input"' + AStyleAttr + '>' +
+      LOptions +
+      '</select></div>';
 end;
 
 function TKXLoginPanelController.RenderLocalStorageCheckbox: string;

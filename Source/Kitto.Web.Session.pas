@@ -425,18 +425,36 @@ end;
 
 procedure TKWebSession.SetDefaultLanguage(const AValue: string);
 var
-  I: Integer;
-  LNewLanguage: string;
+  LTag: string;
+  P: Integer;
 begin
-  if Language = '' then
-  begin
-    LNewLanguage := AValue;
-    I := Pos('-', LNewLanguage);
-    if I <> 0 then
-      // Convert language code
-      LNewLanguage := Copy(LNewLanguage, I - 2, 2) + '_' + Uppercase(Copy(LNewLanguage, I + 1, 2));
-    Language := LNewLanguage;
-  end;
+  if Language <> '' then
+    Exit;
+  // AValue is a raw Accept-Language header, e.g.
+  //   "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7"  or  "it,en-US;q=0.7,en;q=0.3".
+  // Parse the FIRST (highest priority) tag only. The previous implementation
+  // scanned for the first '-' in the WHOLE header, so for a header whose first
+  // tag has no region (e.g. "it,en-US;...") it grabbed the "-US" of a LATER tag
+  // and silently selected the wrong language (English) despite Italian being
+  // preferred.
+  LTag := Trim(AValue);
+  P := Pos(',', LTag);
+  if P > 0 then
+    LTag := Copy(LTag, 1, P - 1);
+  P := Pos(';', LTag);              // drop the ";q=..." quality value
+  if P > 0 then
+    LTag := Copy(LTag, 1, P - 1);
+  LTag := Trim(LTag).Replace('_', '-');
+  if LTag = '' then
+    Exit;
+  // Split base language and optional region ("it-IT" -> "it_IT"; "it" -> "it").
+  // gnugettext falls back "it_IT" -> "it" when no regional catalog exists.
+  P := Pos('-', LTag);
+  if P > 0 then
+    Language := LowerCase(Copy(LTag, 1, P - 1)) + '_' +
+                UpperCase(Copy(LTag, P + 1, Length(LTag)))
+  else
+    Language := LowerCase(LTag);
 end;
 
 class function TKWebSession.GetCurrent: TKWebSession;

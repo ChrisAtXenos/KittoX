@@ -4,7 +4,7 @@ Controller: List
   Filters:
     DisplayLabel: _(Customer Filter)
     Items:
-      FreeSearch: Search Name
+      FreeSearch: _(Search Name)
         # ExpressionTemplate should contain a {value} placeholder for the search term.
         ExpressionTemplate: >
           upper(CUSTOMER_NAME) like upper('%{value}%')

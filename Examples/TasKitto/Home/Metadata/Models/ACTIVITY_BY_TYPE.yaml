@@ -1,6 +1,8 @@
 ﻿Fields:
   TYPE_NAME: String(20) primary key
+    DisplayLabel: _(Type Name)
   DURATION: Decimal(9, 2)
+    DisplayLabel: _(Duration)
 ImageName: calendar_today
 # Backed by the SQL view ACTIVITY_BY_TYPE: read-only (no REST write endpoints).
 IsReadOnly: True

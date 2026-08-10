@@ -1,0 +1,249 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"#-#-#-#-#  C: \\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
+"X-Generator: Poedit 1.7.3\n"
+
+msgid "Cannot invite the same girl twice."
+msgstr "No se puede invitar a la misma niña dos veces."
+
+msgid "Choose Mom"
+msgstr "Elegir mamá"
+
+msgid "Address"
+msgstr "Dirección"
+
+msgid "Age"
+msgstr "Edad"
+
+msgid "Aspect"
+msgstr "Aspecto"
+
+msgid "Birth Date"
+msgstr "Fecha de nacimiento"
+
+msgid "Black"
+msgstr "Negro"
+
+msgid "Blond"
+msgstr "Rubio"
+
+msgid "Doll"
+msgstr "Muñeca"
+
+msgid "Dolls"
+msgstr "Muñecas"
+
+msgid "Girl"
+msgstr "Niña"
+
+msgid "Girls"
+msgstr "Niñas"
+
+msgid "Dress Size"
+msgstr "Talla"
+
+msgid "Enter a catchy name"
+msgstr "Introduzca un nombre atractivo"
+
+msgid "Girls Filter"
+msgstr "Filtro de niñas"
+
+msgid "Hair"
+msgstr "Cabello"
+
+msgid "Hair Color"
+msgstr "Color del cabello"
+
+msgid "Hair Types"
+msgstr "Tipos de cabello"
+
+msgid "Mom"
+msgstr "Mamá"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Name/Address"
+msgstr "Nombre/Dirección"
+
+msgid "Other options (samples)"
+msgstr "Otras opciones (ejemplos)"
+
+msgid "Parties"
+msgstr "Fiestas"
+
+msgid "Party"
+msgstr "Fiesta"
+
+msgid "Party Date"
+msgstr "Fecha de la fiesta"
+
+msgid "Party Name"
+msgstr "Nombre de la fiesta"
+
+msgid "Party Time"
+msgstr "Hora de la fiesta"
+
+msgid "Peoria Dolls"
+msgstr "Las muñecas de Peoria"
+
+msgid "Phone"
+msgstr "Teléfono"
+
+msgid "Red"
+msgstr "Rojo"
+
+msgid "Search Parties"
+msgstr "Buscar fiestas"
+
+msgid "Silver"
+msgstr "Plateado"
+
+msgid "Walnut"
+msgstr "Nogal"
+
+msgid "Extra Small"
+msgstr "Muy pequeña"
+
+msgid "Small"
+msgstr "Pequeña"
+
+msgid "Medium"
+msgstr "Mediana"
+
+msgid "Large"
+msgstr "Grande"
+
+msgid "Extra Large"
+msgstr "Muy grande"
+
+msgid "Invitation"
+msgstr "Invitación"
+
+msgid "Invitations"
+msgstr "Invitaciones"
+
+msgid "Photo"
+msgstr "Foto"
+
+msgid "Select a picture"
+msgstr "Seleccione una imagen"
+
+msgid "Mom's Phone"
+msgstr "Teléfono de mamá"
+
+msgid "Main menu"
+msgstr "Menú principal"
+
+msgid "Options"
+msgstr "Opciones"
+
+msgid "Lookup tables"
+msgstr "Tablas de referencia"
+
+msgid "User"
+msgstr "Usuario"
+
+msgid "Download in CSV"
+msgstr "Descargar en CSV"
+
+msgid "Download in Excel"
+msgstr "Descargar en Excel"
+
+msgid "User: %Auth:UserName%"
+msgstr "Usuario: %Auth:UserName%"
+
+msgid "Download in TXT"
+msgstr "Descargar en TXT"
+
+msgid "{[values.rs.length]} Dolls have {text} hair"
+msgstr "{[values.rs.length]} muñecas tienen el pelo {text}"
+
+msgid "Platinum"
+msgstr "Platino"
+
+msgid "New Doll"
+msgstr "Nueva muñeca"
+
+msgid "New Girl"
+msgstr "Nueva niña"
+
+msgid "Girl list"
+msgstr "Lista de niñas"
+
+msgid "Doll list"
+msgstr "Lista de muñecas"
+
+msgid "Legend"
+msgstr "Leyenda"
+
+msgid "Doll Catalog"
+msgstr "Catálogo de muñecas"
+
+msgid "Hair Type"
+msgstr "Tipo de cabello"
+
+msgid "%Config:AppTitle%"
+msgstr "%Config:AppTitle%"
+
+msgid "Dolls Card"
+msgstr "Ficha de muñecas"
+
+msgid "menu"
+msgstr "menú"
+
+msgid "Period"
+msgstr "Periodo"
+
+msgid "Characteristics"
+msgstr "Características"
+
+msgid "Search Hair Types"
+msgstr "Buscar tipos de cabello"
+
+msgid "Free search"
+msgstr "Búsqueda libre"
+
+msgid "Accepted"
+msgstr "Aceptado"
+
+msgid "Email Address"
+msgstr "Dirección de correo electrónico"
+
+msgid "Girl Name"
+msgstr "Nombre de la niña"
+
+msgid "Invitee"
+msgstr "Invitada"
+
+msgid "Is Active"
+msgstr "Activo"
+
+msgid "Name of Girl"
+msgstr "Nombre de la niña"
+
+msgid "Password Hash"
+msgstr "Hash de contraseña"
+
+msgid "User Name"
+msgstr "Nombre de usuario"
+
+msgid "Main Menu"
+msgstr "Menú principal"
+
+msgid "Dolls List"
+msgstr "Lista de muñecas"
+
+msgid "Peoria Girls and their Dolls"
+msgstr "Las niñas de Peoria y sus muñecas"

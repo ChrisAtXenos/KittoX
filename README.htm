@@ -39,7 +39,7 @@ td{
 <h1>Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX</h1>
 <p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a>
 <a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
-<p><strong>Latest Version 4.0.13 - 04 Aug 2026</strong></p>
+<p><strong>Latest Version 4.0.14 - 10 Aug 2026</strong></p>
 <p><img src="./images/kittoX_logo_200.png" alt="KittoX_logo.png"/></p>
 <p><strong>Kitto<sup>x</sup></strong> allows to create <strong>Rich Internet Applications</strong> based on a data model that can be mapped onto any database. The client-side part uses <strong>HTMX</strong> (through webbroker technology) to create a fully <strong>AJAX</strong> application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.</p>
 <p><strong>Kitto<sup>x</sup></strong> is aimed at <strong>Delphi</strong> developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.</p>
@@ -78,6 +78,35 @@ td{
 <p>Visit <a href="https://ethea.it/Kitto-Demo/">this site</a> for online demos.</p>
 <hr />
 <h1>Release Notes</h1>
+<h2>10 Aug 2026: ver. 4.0.14 Beta</h2>
+<h3>Localization — full multi-language support</h3>
+<ul>
+<li>New <strong>LanguageSwitcher</strong> controller (flag dropdown) on both the login and the home, alongside the ThemeSwitcher (Takitto and HelloKitto demos).</li>
+<li>Interface language <strong>auto-detected from the browser</strong> (<code>Accept-Language</code>) when <code>LanguageId</code> is left empty</li>
+<li>Examples now shipped in <strong>English, Italian, German, Spanish and Portuguese</strong>; framework and app translation catalogs completed</li>
+</ul>
+<h3>Help Chat — new</h3>
+<ul>
+<li>In-app help assistant: a floating bubble + drawer, enabled per app with <code>HelpChat/Enabled</code></li>
+<li>Pluggable provider model with a deterministic <strong>docsearch</strong> provider that answers from the KittoX documentation index and links back to the doc pages</li>
+<li>Runs on a dedicated async worker pool (separate from the HTTP threads and the notification job runner); attribute-routed endpoints; XSS-safe markdown replies</li>
+<li>Contextual <strong>?</strong> button on List/Form toolbars opens the chat anchored to the current screen</li>
+</ul>
+<h3>Notification Center — refinements</h3>
+<ul>
+<li>Now <strong>opt-in</strong> via <code>Notifications/Enabled</code> (default off)</li>
+<li>Header with close and <strong>clear-all</strong> (finished jobs only), themed SVG icons, per-job remove; new <code>POST /kx/notifications/clear</code></li>
+<li>Downloads via fetch + blob — no more top-level navigation closing the app on a 404</li>
+</ul>
+<h3>Client error handling</h3>
+<ul>
+<li>New <code>[Retry]/[Reset]</code> error dialog (like htmx) for every <strong>user-initiated</strong> fetch action; background polling stays silent</li>
+</ul>
+<h3>Bug fixes</h3>
+<ul>
+<li>Toast messages with accented / non-ASCII text no longer corrupted (the <code>HX-Trigger</code> header is now ASCII-escaped)</li>
+<li>Help button no longer appears on display-only panels (e.g. dashboard KPI); added the <code>PreventHelp</code> flag</li>
+</ul>
 <h2>04 Aug 2026: ver. 4.0.13 Beta</h2>
 <h3>Notification Center &amp; background tools — new</h3>
 <ul>

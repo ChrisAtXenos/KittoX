@@ -1,11 +1,11 @@
-Fields:
+﻿Fields:
   STATUS: String(12) primary key
-    DisplayLabel: Status
+    DisplayLabel: _(Status)
     DisplayWidth: 12
   ACTIVITY_COUNT: Integer
-    DisplayLabel: Count
+    DisplayLabel: _(Count)
   TOTAL_HOURS: Decimal(9, 2)
-    DisplayLabel: Hours
+    DisplayLabel: _(Hours)
 PhysicalName: VW_ACTIVITY_BY_STATUS
 # Backed by a SQL view: read-only (no REST write endpoints).
 IsReadOnly: True

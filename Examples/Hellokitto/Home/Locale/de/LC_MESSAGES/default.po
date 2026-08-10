@@ -1,0 +1,249 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"#-#-#-#-#  C: \\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
+"X-Generator: Poedit 1.7.3\n"
+
+msgid "Cannot invite the same girl twice."
+msgstr "Dasselbe Mädchen kann nicht zweimal eingeladen werden."
+
+msgid "Choose Mom"
+msgstr "Mama auswählen"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Age"
+msgstr "Alter"
+
+msgid "Aspect"
+msgstr "Aussehen"
+
+msgid "Birth Date"
+msgstr "Geburtsdatum"
+
+msgid "Black"
+msgstr "Schwarz"
+
+msgid "Blond"
+msgstr "Blond"
+
+msgid "Doll"
+msgstr "Puppe"
+
+msgid "Dolls"
+msgstr "Puppen"
+
+msgid "Girl"
+msgstr "Mädchen"
+
+msgid "Girls"
+msgstr "Mädchen"
+
+msgid "Dress Size"
+msgstr "Kleidergröße"
+
+msgid "Enter a catchy name"
+msgstr "Geben Sie einen einprägsamen Namen ein"
+
+msgid "Girls Filter"
+msgstr "Mädchenfilter"
+
+msgid "Hair"
+msgstr "Haare"
+
+msgid "Hair Color"
+msgstr "Haarfarbe"
+
+msgid "Hair Types"
+msgstr "Haartypen"
+
+msgid "Mom"
+msgstr "Mama"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Name/Address"
+msgstr "Name/Adresse"
+
+msgid "Other options (samples)"
+msgstr "Weitere Optionen (Beispiele)"
+
+msgid "Parties"
+msgstr "Partys"
+
+msgid "Party"
+msgstr "Party"
+
+msgid "Party Date"
+msgstr "Party-Datum"
+
+msgid "Party Name"
+msgstr "Party-Name"
+
+msgid "Party Time"
+msgstr "Party-Uhrzeit"
+
+msgid "Peoria Dolls"
+msgstr "Die Puppen von Peoria"
+
+msgid "Phone"
+msgstr "Telefon"
+
+msgid "Red"
+msgstr "Rot"
+
+msgid "Search Parties"
+msgstr "Partys suchen"
+
+msgid "Silver"
+msgstr "Silber"
+
+msgid "Walnut"
+msgstr "Walnuss"
+
+msgid "Extra Small"
+msgstr "Sehr klein"
+
+msgid "Small"
+msgstr "Klein"
+
+msgid "Medium"
+msgstr "Mittel"
+
+msgid "Large"
+msgstr "Groß"
+
+msgid "Extra Large"
+msgstr "Sehr groß"
+
+msgid "Invitation"
+msgstr "Einladung"
+
+msgid "Invitations"
+msgstr "Einladungen"
+
+msgid "Photo"
+msgstr "Foto"
+
+msgid "Select a picture"
+msgstr "Wählen Sie ein Bild"
+
+msgid "Mom's Phone"
+msgstr "Telefon der Mama"
+
+msgid "Main menu"
+msgstr "Hauptmenü"
+
+msgid "Options"
+msgstr "Optionen"
+
+msgid "Lookup tables"
+msgstr "Nachschlagetabellen"
+
+msgid "User"
+msgstr "Benutzer"
+
+msgid "Download in CSV"
+msgstr "Als CSV herunterladen"
+
+msgid "Download in Excel"
+msgstr "Als Excel herunterladen"
+
+msgid "User: %Auth:UserName%"
+msgstr "Benutzer: %Auth:UserName%"
+
+msgid "Download in TXT"
+msgstr "Als TXT herunterladen"
+
+msgid "{[values.rs.length]} Dolls have {text} hair"
+msgstr "{[values.rs.length]} Puppen haben {text} Haare"
+
+msgid "Platinum"
+msgstr "Platin"
+
+msgid "New Doll"
+msgstr "Neue Puppe"
+
+msgid "New Girl"
+msgstr "Neues Mädchen"
+
+msgid "Girl list"
+msgstr "Mädchenliste"
+
+msgid "Doll list"
+msgstr "Puppenliste"
+
+msgid "Legend"
+msgstr "Legende"
+
+msgid "Doll Catalog"
+msgstr "Puppenkatalog"
+
+msgid "Hair Type"
+msgstr "Haartyp"
+
+msgid "%Config:AppTitle%"
+msgstr "%Config:AppTitle%"
+
+msgid "Dolls Card"
+msgstr "Puppenkarte"
+
+msgid "menu"
+msgstr "Menü"
+
+msgid "Period"
+msgstr "Zeitraum"
+
+msgid "Characteristics"
+msgstr "Merkmale"
+
+msgid "Search Hair Types"
+msgstr "Haartypen suchen"
+
+msgid "Free search"
+msgstr "Freie Suche"
+
+msgid "Accepted"
+msgstr "Angenommen"
+
+msgid "Email Address"
+msgstr "E-Mail-Adresse"
+
+msgid "Girl Name"
+msgstr "Mädchenname"
+
+msgid "Invitee"
+msgstr "Eingeladene"
+
+msgid "Is Active"
+msgstr "Aktiv"
+
+msgid "Name of Girl"
+msgstr "Name des Mädchens"
+
+msgid "Password Hash"
+msgstr "Passwort-Hash"
+
+msgid "User Name"
+msgstr "Benutzername"
+
+msgid "Main Menu"
+msgstr "Hauptmenü"
+
+msgid "Dolls List"
+msgstr "Puppenliste"
+
+msgid "Peoria Girls and their Dolls"
+msgstr "Die Mädchen von Peoria und ihre Puppen"

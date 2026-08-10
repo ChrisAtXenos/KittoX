@@ -61,6 +61,13 @@ type
     [TKXPath('/job/{JobId}/remove')]
     [TKXPOST]
     procedure HandleJobRemove([TKXPathParam('JobId')] const AJobId: string);
+
+    /// <summary>Removes every job of the current user in one go (the "clear all"
+    /// trash in the panel header), deleting their artifacts, and returns the
+    /// refreshed (empty) notifications partial.</summary>
+    [TKXPath('/notifications/clear')]
+    [TKXPOST]
+    procedure HandleClearAll;
   end;
 
 implementation
@@ -74,6 +81,7 @@ uses
   Kitto.Config,
   Kitto.Web.Application,
   Kitto.Web.Response,
+  Kitto.Html.Utils,
   Kitto.Notification.Types,
   Kitto.Notification.Jobs,
   Kitto.Web.Routing.Registry;
@@ -97,11 +105,12 @@ begin
   Result := TNetEncoding.HTML.Encode(AText);
 end;
 
-// Small "remove/cancel" button (the ✕ close glyph) posting to the remove endpoint.
+// Small "remove/cancel" button posting to the remove endpoint. Uses the themed
+// Material SVG "close" icon (theme-adaptive via CSS mask), like the rest of the UI.
 function RemoveButton(const AJobId, ATitle: string): string;
 begin
   Result := '<button type="button" class="kx-notif-btn" data-action="remove" data-jobid="' +
-    AJobId + '" title="' + Enc(ATitle) + '">&#x2715;</button>';
+    AJobId + '" title="' + Enc(ATitle) + '">' + GetIconHTML('close', isSmall) + '</button>';
 end;
 
 function RenderNotificationsPartial: string;
@@ -181,6 +190,22 @@ begin
   if TryUrlToJobId(AJobId, LGuid) and TKXJobQueue.Instance.TryGetInfo(LGuid, LInfo)
     and SameText(LInfo.OwnerUser, TKAuthenticator.Current.UserName) then
     TKXJobQueue.Instance.RemoveJob(LGuid);
+  WritePartial(RenderNotificationsPartial);
+end;
+
+procedure TKXNotificationHandler.HandleClearAll;
+var
+  LJobs: TArray<TKXJobInfo>;
+  LInfo: TKXJobInfo;
+begin
+  // "Clear all" in the panel header: remove only the finished jobs (completed /
+  // failed / cancelled / interrupted), deleting their artifacts. Jobs still
+  // pending or running are left untouched so an in-progress operation is never
+  // cancelled by a bulk cleanup.
+  LJobs := TKXJobQueue.Instance.GetUserJobs(TKAuthenticator.Current.UserName);
+  for LInfo in LJobs do
+    if LInfo.Status in [jsCompleted, jsFailed, jsCancelled, jsInterrupted] then
+      TKXJobQueue.Instance.RemoveJob(LInfo.JobId);
   WritePartial(RenderNotificationsPartial);
 end;
 

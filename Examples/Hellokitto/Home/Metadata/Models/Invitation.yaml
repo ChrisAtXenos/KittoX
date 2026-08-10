@@ -5,11 +5,14 @@ Fields:
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   Party: Reference(Party) not null
+    DisplayLabel: _(Party)
     Fields:
       Party_Id:
   Invitee: Reference(Girl) not null
+    DisplayLabel: _(Invitee)
     Fields:
       Invitee_Id:
   Accepted: Boolean
+    DisplayLabel: _(Accepted)
 Rules:
   CheckDuplicateInvitations:

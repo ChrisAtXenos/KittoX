@@ -1694,27 +1694,51 @@ begin
 
   Result := '<div class="kx-form-toolbar">';
 
-  // Help button (always visible if configured, before all other buttons)
+  // Help button (before all other buttons). With HelpChat enabled it opens the
+  // in-app assistant with a contextual question about this form (anchored to the
+  // Form controller docs); otherwise (legacy) it opens the configured help URL.
   var LShowHelp: Boolean;
   var LHelpHRef, LHelpHRefStyle, LHelpShort, LHelpLong: string;
   TKConfig.Instance.GetHelpSupport(LShowHelp, LHelpHRef, LHelpHRefStyle, LHelpShort, LHelpLong);
-  if LShowHelp then
+  var LHelpChatEnabled := TKConfig.Instance.Config.GetBoolean('HelpChat/Enabled', False);
+  if LHelpChatEnabled or LShowHelp then
   begin
-    var LHelpUrl: string;
-    if Assigned(View) and (View.PersistentName <> '') then
-      LHelpUrl := Format(LHelpHRef, [View.PersistentName])
-    else if Assigned(ViewTable) then
-      LHelpUrl := Format(LHelpHRef, [ViewTable.ModelName]);
-    // Append table model name after colon (for detail context)
-    if Assigned(ViewTable) and (ViewTable.ModelName <> '') then
-      LHelpUrl := LHelpUrl + ':' + ViewTable.ModelName;
     LHelpLong := Format(LHelpLong, [LDisplayLabel]);
-    Result := Result +
-      '<button type="button" class="kx-form-btn kx-form-btn-help"' +
-      ' title="' + TNetEncoding.HTML.Encode(LHelpLong) + '"' +
-      ' onclick="window.open(''' + TNetEncoding.HTML.Encode(LHelpUrl) + ''',''_blank'')">' +
-      GetIconHTML('help', isMedium) + ' ' + TNetEncoding.HTML.Encode(LHelpShort) +
-      '</button>';
+    if LHelpChatEnabled then
+    begin
+      var LHelpView := '';
+      if Assigned(View) and (View.PersistentName <> '') then
+        LHelpView := View.PersistentName
+      else if Assigned(ViewTable) then
+        LHelpView := ViewTable.ModelName;
+      var LQuestion := Format(_('How can I use the "%s" screen?'), [LDisplayLabel]);
+      Result := Result +
+        '<button type="button" class="kx-form-btn kx-form-btn-help kx-help-chat-btn"' +
+        ' title="' + TNetEncoding.HTML.Encode(LHelpLong) + '"' +
+        ' data-view="' + TNetEncoding.HTML.Encode(LHelpView) + '"' +
+        ' data-label="' + TNetEncoding.HTML.Encode(LDisplayLabel) + '"' +
+        ' data-ctype="Form"' +
+        ' data-question="' + TNetEncoding.HTML.Encode(LQuestion) + '">' +
+        GetIconHTML('help', isMedium) + ' ' + TNetEncoding.HTML.Encode(LHelpShort) +
+        '</button>';
+    end
+    else
+    begin
+      var LHelpUrl: string;
+      if Assigned(View) and (View.PersistentName <> '') then
+        LHelpUrl := Format(LHelpHRef, [View.PersistentName])
+      else if Assigned(ViewTable) then
+        LHelpUrl := Format(LHelpHRef, [ViewTable.ModelName]);
+      // Append table model name after colon (for detail context)
+      if Assigned(ViewTable) and (ViewTable.ModelName <> '') then
+        LHelpUrl := LHelpUrl + ':' + ViewTable.ModelName;
+      Result := Result +
+        '<button type="button" class="kx-form-btn kx-form-btn-help"' +
+        ' title="' + TNetEncoding.HTML.Encode(LHelpLong) + '"' +
+        ' onclick="window.open(''' + TNetEncoding.HTML.Encode(LHelpUrl) + ''',''_blank'')">' +
+        GetIconHTML('help', isMedium) + ' ' + TNetEncoding.HTML.Encode(LHelpShort) +
+        '</button>';
+    end;
   end;
 
   // ===== ViewMode buttons =====

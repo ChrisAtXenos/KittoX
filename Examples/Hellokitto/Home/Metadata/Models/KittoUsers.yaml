@@ -2,13 +2,17 @@
 PhysicalName: KITTO_USERS
 Fields:
   UserName: String(32) not null primary key
+    DisplayLabel: _(User Name)
     PhysicalName: USER_NAME
   PasswordHash: String(32)
+    DisplayLabel: _(Password Hash)
     PhysicalName: PASSWORD_HASH
   IsActive: Boolean
+    DisplayLabel: _(Is Active)
     PhysicalName: IS_ACTIVE
   MustChangePassword: Boolean
     PhysicalName: MUST_CHANGE_PASSWORD
     IsVisible: False
   EmailAddress: String(100)
+    DisplayLabel: _(Email Address)
     PhysicalName: EMAIL_ADDRESS

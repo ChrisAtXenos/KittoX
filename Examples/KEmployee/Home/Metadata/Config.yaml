@@ -190,6 +190,12 @@ Server:
   # default 20
   ThreadPoolSize: 15
 
+# Help chat assistant (bubble, bottom-right). The 'docsearch' provider answers
+# from the bundled KittoX documentation index, linking to ethea.it/docs/kittox.
+HelpChat:
+  Enabled: True
+  Provider: docsearch
+
 Engine:
   Session:
     # Minutes after which an inactive session is cleaned up. Defaults to 10.

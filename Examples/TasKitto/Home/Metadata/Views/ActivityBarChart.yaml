@@ -17,7 +17,7 @@ Controller: List
           Type: Bar
           XField: TYPE_NAME
           YField: DURATION
-          .DisplayName: _(Date)
+          .DisplayName: _(Duration in hours)
           .Style:
             Color: 6709248
           Highlight:

@@ -2,7 +2,7 @@
 [![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
 
-**Latest Version 4.0.13 - 04 Aug 2026**
+**Latest Version 4.0.14 - 10 Aug 2026**
 
 ![KittoX_logo.png](./images/kittoX_logo_200.png)
 
@@ -53,6 +53,31 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 ---
 
 # Release Notes
+
+## 10 Aug 2026: ver. 4.0.14 Beta
+
+### Localization — full multi-language support
+- New **LanguageSwitcher** controller (flag dropdown) on both the login and the home, alongside the ThemeSwitcher (Takitto and HelloKitto demos).
+- Interface language **auto-detected from the browser** (`Accept-Language`) when `LanguageId` is left empty
+- Examples now shipped in **English, Italian, German, Spanish and Portuguese**; framework and app translation catalogs completed
+
+### Help Chat — new
+- In-app help assistant: a floating bubble + drawer, enabled per app with `HelpChat/Enabled`
+- Pluggable provider model with a deterministic **docsearch** provider that answers from the KittoX documentation index and links back to the doc pages
+- Runs on a dedicated async worker pool (separate from the HTTP threads and the notification job runner); attribute-routed endpoints; XSS-safe markdown replies
+- Contextual **?** button on List/Form toolbars opens the chat anchored to the current screen
+
+### Notification Center — refinements
+- Now **opt-in** via `Notifications/Enabled` (default off)
+- Header with close and **clear-all** (finished jobs only), themed SVG icons, per-job remove; new `POST /kx/notifications/clear`
+- Downloads via fetch + blob — no more top-level navigation closing the app on a 404
+
+### Client error handling
+- New `[Retry]/[Reset]` error dialog (like htmx) for every **user-initiated** fetch action; background polling stays silent
+
+### Bug fixes
+- Toast messages with accented / non-ASCII text no longer corrupted (the `HX-Trigger` header is now ASCII-escaped)
+- Help button no longer appears on display-only panels (e.g. dashboard KPI); added the `PreventHelp` flag
 
 ## 04 Aug 2026: ver. 4.0.13 Beta
 

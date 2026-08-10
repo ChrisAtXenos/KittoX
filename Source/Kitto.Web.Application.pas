@@ -1590,6 +1590,18 @@ begin
         ATemplate.SetData('manifestLink', TValue.From<string>(LManifestLink));
         ATemplate.SetData('resPath', TValue.From<string>(FResourcePath));
         ATemplate.SetData('iconStyle', TValue.From<string>(GetIconStyle));
+        // Marker used by the client to enable the help-chat assistant button
+        // (only when HelpChat/Enabled is set, and only on the authenticated home).
+        var LHelpChatEnabled := 'false';
+        if Config.Config.GetBoolean('HelpChat/Enabled', False) then
+          LHelpChatEnabled := 'true';
+        ATemplate.SetData('helpChatEnabled', TValue.From<string>(LHelpChatEnabled));
+        // Marker used by the client to enable the notification-center bell
+        // (only when Notifications/Enabled is set, e.g. apps that run background tools).
+        var LNotificationsEnabled := 'false';
+        if Config.Config.GetBoolean('Notifications/Enabled', False) then
+          LNotificationsEnabled := 'true';
+        ATemplate.SetData('notificationsEnabled', TValue.From<string>(LNotificationsEnabled));
         ATemplate.SetData('loadingImageURL', TValue.From<string>(LLoadingImageURL));
         ATemplate.SetData('loadingMessage', TValue.From<string>(Format(_('Loading %s...'), [Config.AppTitle])));
         ATemplate.SetData('themeAttr', TValue.From<string>(LThemeAttr));
@@ -1607,6 +1619,18 @@ begin
         ATemplate.SetData('msgServerError', TValue.From<string>(_('Server error')));
         ATemplate.SetData('msgNotFound', TValue.From<string>(_('Resource not found')));
         ATemplate.SetData('msgInternalError', TValue.From<string>(_('Internal server error')));
+        // Notification center / help chat UI labels (client-side chrome, localized
+        // through KX_STRINGS since JS cannot call gettext directly).
+        ATemplate.SetData('lblNotifCenter', TValue.From<string>(_('Notification center')));
+        ATemplate.SetData('lblClearAll', TValue.From<string>(_('Clear all')));
+        ATemplate.SetData('lblClose', TValue.From<string>(_('Close')));
+        ATemplate.SetData('lblReady', TValue.From<string>(_('ready')));
+        ATemplate.SetData('lblOperationReady', TValue.From<string>(_('Operation ready')));
+        ATemplate.SetData('lblHelpAssistant', TValue.From<string>(_('Help assistant')));
+        ATemplate.SetData('lblHelp', TValue.From<string>(_('Help')));
+        ATemplate.SetData('lblClear', TValue.From<string>(_('Clear')));
+        ATemplate.SetData('lblSend', TValue.From<string>(_('Send')));
+        ATemplate.SetData('lblChatPlaceholder', TValue.From<string>(_('Ask about the application...')));
         // Dynamic scripts/stylesheets registered by modules
         ATemplate.SetData('dynamicStyles', TValue.From<string>(
           TKXScriptRegistry.Instance.GetStylesheetTags(FResourcePath)));
@@ -1635,13 +1659,42 @@ begin
     Result := '';
 end;
 
-procedure TKWebApplication.Toast(const AMessage: string);
+// Escapes S for embedding inside a JSON double-quoted string AND makes it
+// pure ASCII: every control char and every char above U+007F is emitted as a
+// \uXXXX escape. This matters because the toast text travels in an HTTP
+// RESPONSE HEADER (HX-Trigger), and header values are not UTF-8 safe -- a raw
+// accented byte gets mangled by the header transport. Keeping the header pure
+// ASCII lets HTMX's JSON.parse reconstruct the original Unicode intact on the
+// client, so localized toasts display correctly in every language.
+function EncodeHeaderJSONString(const S: string): string;
 var
-  LSafeMessage: string;
+  Ch: Char;
 begin
-  // In KittoX, toast notifications are triggered via HTMX event headers.
-  LSafeMessage := ReplaceStr(ReplaceStr(AMessage, '\', '\\'), '"', '\"');
-  TKWebResponse.Current.SetCustomHeader('HX-Trigger', '{"showToast": "' + LSafeMessage + '"}');
+  Result := '';
+  for Ch in S do
+    case Ch of
+      '"': Result := Result + '\"';
+      '\': Result := Result + '\\';
+      #8:  Result := Result + '\b';
+      #9:  Result := Result + '\t';
+      #10: Result := Result + '\n';
+      #12: Result := Result + '\f';
+      #13: Result := Result + '\r';
+    else
+      if (Ch < #32) or (Ch > #126) then
+        Result := Result + '\u' + IntToHex(Ord(Ch), 4)
+      else
+        Result := Result + Ch;
+    end;
+end;
+
+procedure TKWebApplication.Toast(const AMessage: string);
+begin
+  // In KittoX, toast notifications are triggered via HTMX event headers. The
+  // message is JSON-escaped to pure ASCII (\uXXXX) so accented / non-Latin text
+  // survives the HTTP header channel (see EncodeHeaderJSONString).
+  TKWebResponse.Current.SetCustomHeader('HX-Trigger',
+    '{"showToast": "' + EncodeHeaderJSONString(AMessage) + '"}');
 end;
 
 procedure TKWebApplication.Navigate(const AURL: string);

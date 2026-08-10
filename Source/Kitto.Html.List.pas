@@ -941,18 +941,43 @@ begin
       'kxGrid.refreshData(''' + AViewName + ''')',
       False);
 
-    // Help button (visible only if Defaults/Help/HRef is configured)
+    // Help button. With HelpChat enabled it opens the in-app assistant with a
+    // contextual question about this screen (anchored to the List controller
+    // docs); otherwise (legacy) it opens the configured help URL in a new tab.
+    // Shown when either the chat or a Help/HRef is available.
     var LShowHelp: Boolean;
     var LHelpHRef, LHelpHRefStyle, LHelpShort, LHelpLong: string;
     TKConfig.Instance.GetHelpSupport(LShowHelp, LHelpHRef, LHelpHRefStyle, LHelpShort, LHelpLong);
-    if LShowHelp and Assigned(View) then
+    var LHelpChatEnabled := TKConfig.Instance.Config.GetBoolean('HelpChat/Enabled', False);
+    // Suppress the help button on display-only panels (e.g. dashboard KPI
+    // TemplateDataPanel, where IsActionSupported is False for everything) so a
+    // lone "?" doesn't sit in an otherwise-empty toolbar; also honor an explicit
+    // Controller/PreventHelp opt-out on any data view.
+    var LHelpSupported := IsActionSupported('Help')
+      and not ViewTable.GetBoolean('Controller/PreventHelp')
+      and not GetConfigBoolean('PreventHelp');
+    if (LHelpChatEnabled or LShowHelp) and Assigned(View) and LHelpSupported then
     begin
-      var LHelpUrl := Format(LHelpHRef, [View.PersistentName]);
       LHelpLong := Format(LHelpLong, [LDisplayLabel]);
-      SB.Append('<button class="kx-toolbar-btn"');
-      SB.Append(' title="').Append(TNetEncoding.HTML.Encode(LHelpLong)).Append('"');
-      SB.Append(' onclick="window.open(''').Append(TNetEncoding.HTML.Encode(LHelpUrl)).Append(''',''_blank'')"');
-      SB.Append('>').Append(GetIconHTML('help'));
+      if LHelpChatEnabled then
+      begin
+        var LQuestion := Format(_('How can I use the "%s" screen?'), [LDisplayLabel]);
+        SB.Append('<button type="button" class="kx-toolbar-btn kx-help-chat-btn"');
+        SB.Append(' title="').Append(TNetEncoding.HTML.Encode(LHelpLong)).Append('"');
+        SB.Append(' data-view="').Append(TNetEncoding.HTML.Encode(View.PersistentName)).Append('"');
+        SB.Append(' data-label="').Append(TNetEncoding.HTML.Encode(LDisplayLabel)).Append('"');
+        SB.Append(' data-ctype="List"');
+        SB.Append(' data-question="').Append(TNetEncoding.HTML.Encode(LQuestion)).Append('"');
+        SB.Append('>').Append(GetIconHTML('help'));
+      end
+      else
+      begin
+        var LHelpUrl := Format(LHelpHRef, [View.PersistentName]);
+        SB.Append('<button class="kx-toolbar-btn"');
+        SB.Append(' title="').Append(TNetEncoding.HTML.Encode(LHelpLong)).Append('"');
+        SB.Append(' onclick="window.open(''').Append(TNetEncoding.HTML.Encode(LHelpUrl)).Append(''',''_blank'')"');
+        SB.Append('>').Append(GetIconHTML('help'));
+      end;
       if LShowLabels then
         SB.Append(' <span class="kx-btn-label">').Append(TNetEncoding.HTML.Encode(LHelpShort)).Append('</span>');
       SB.Append('</button>');

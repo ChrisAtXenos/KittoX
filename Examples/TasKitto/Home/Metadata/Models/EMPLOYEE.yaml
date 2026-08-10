@@ -1,4 +1,6 @@
 ﻿ModelName: EMPLOYEE
+DisplayLabel: _(Employee)
+PluralDisplayLabel: _(Employees)
 ImageName: group
 IsLarge: True
 Fields:
@@ -6,11 +8,13 @@ Fields:
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   EMPLOYEE_NAME: String(40) not null
+    DisplayLabel: _(Employee Name)
     DisplayWidth: 20
   EMPLOYEE_TYPE: String(20)
+    DisplayLabel: _(Employee Type)
     AllowedValues:
-      SYSTEM: System Operator
-      ACCT: Accountant
-      PROG: Programmer
-      PROJ_MGR: Project Manager
-      AN_PROG: Analyst Programmer
+      SYSTEM: _(System Operator)
+      ACCT: _(Accountant)
+      PROG: _(Programmer)
+      PROJ_MGR: _(Project Manager)
+      AN_PROG: _(Analyst Programmer)

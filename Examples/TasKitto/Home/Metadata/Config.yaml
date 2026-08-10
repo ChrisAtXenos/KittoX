@@ -138,7 +138,7 @@ Auth: JWT
     # defined under the Databases node above. The chosen value is exposed as
     # %Auth:DatabaseName% AND embedded in the JWT 'db' claim, replacing the
     # legacy kx_db cookie.
-    DatabaseChoices: FireDAC_MSSQL, FireDAC_PostgreSQL, FireDAC_Firebird, FireDAC_Oracle
+    DatabaseChoices: FireDAC_MSSQL, FireDAC_PostgreSQL, FireDAC_Firebird, FireDAC_Oracle, ODAC_Oracle
     .Defaults:
       UserName: administrator
       Password: password
@@ -259,8 +259,10 @@ Theme:
 
 AjaxTimeout: 100000
 
-# No language Id specified means try to use the language requested by the browser.
-LanguageId: en
+# No language Id specified means try to use the language requested by the browser
+# (Accept-Language). Leave it empty so an Italian browser gets the Italian login
+# straight away; the LanguageSwitcher lets the user pick any shipped language.
+LanguageId:
 LanguagePerSession: True
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
@@ -294,6 +296,17 @@ Server:
   # CORS:
   #   AllowedOrigins: https://app.example.com, http://localhost:9999
   #   AllowCredentials: True
+
+# Notification center (bell, top-right): opt-in, shown only when enabled — e.g.
+# apps that run tools in background (RunMode: Background), as TasKitto does.
+Notifications:
+  Enabled: True
+
+# Help chat assistant (bubble, bottom-right). The 'docsearch' provider answers
+# from the bundled KittoX documentation index, linking to ethea.it/docs/kittox.
+HelpChat:
+  Enabled: True
+  Provider: docsearch
 
 Engine:
   Session:

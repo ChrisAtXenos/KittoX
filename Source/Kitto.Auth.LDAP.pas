@@ -349,6 +349,11 @@ begin
 
     Result := True;
 
+    // Record the directory that authenticated the user, so it is available as
+    // the %Auth:LDAP_HOST% macro (e.g. shown on the Home page) instead of being
+    // hard-coded. Set on every successful bind, independent of the attribute read.
+    AAuthData.SetString('LDAP_HOST', LHost);
+
     // Optionally read the user's display attributes.
     LSearchBase := Config.GetString('SearchBase');
     if LSearchBase <> '' then

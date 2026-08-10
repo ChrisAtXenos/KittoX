@@ -86,8 +86,9 @@ begin
       LNode := ANodes.TreeViewNodes[I];
       // LTabLabel: always the view's own DisplayLabel chain (no node-level override).
       // Used as the tab caption to match Kitto1 behaviour where the panel controller
-      // set its own title independently from the menu item label.
-      LTabLabel := GetDisplayLabelFromNode(LNode, AViews);
+      // set its own title independently from the menu item label. Translated (like
+      // the menu label) so the tab caption is localized too.
+      LTabLabel := _(GetDisplayLabelFromNode(LNode, AViews));
       // LDisplayLabel: honours a node-level DisplayLabel override (shorter menu text).
       LDisplayLabel := _(LNode.GetString('DisplayLabel', LTabLabel));
       if LNode is TKTreeViewFolder then

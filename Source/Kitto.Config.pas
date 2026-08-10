@@ -312,6 +312,17 @@ type
     property DBConnectionNames: TStringDynArray read GetDBConnectionNames;
 
     /// <summary>
+    ///  True if <c>ADatabaseName</c> can actually be used: its
+    ///  <c>Databases/&lt;Name&gt;</c> block is defined AND the DB adapter it
+    ///  references (FD, ODAC, DBX, ADO, ...) is registered — i.e. the matching
+    ///  <c>EF.DB.*</c> unit is compiled into this build. Returns False for a
+    ///  commented-out block or for an adapter whose unit is not in the app's
+    ///  uses. Used e.g. by the login "Environment" combo to hide choices that
+    ///  would fail to connect.
+    /// </summary>
+    function IsDatabaseAvailable(const ADatabaseName: string): Boolean;
+
+    /// <summary>
     ///  Helper function that invokes the specified anonymous method with the
     ///  cached per-request connection for the given database. The connection
     ///  is borrowed from the thread-local cache; it is not freed at the end
@@ -655,6 +666,19 @@ begin
     raise EKError.CreateFmt(_('DB connection type "%s" for database "%s" not available'),
       [LDbAdapterKey, ADatabaseName]);
   end;
+end;
+
+function TKConfig.IsDatabaseAvailable(const ADatabaseName: string): Boolean;
+var
+  LDbAdapterKey: string;
+begin
+  // The Databases/<Name> block must exist (not commented out) ...
+  if not Assigned(Config.FindNode('Databases/' + ADatabaseName)) then
+    Exit(False);
+  // ... and the adapter it references (the node value: FD, ODAC, DBX, ADO, ...)
+  // must be registered, i.e. its EF.DB.* unit is compiled into this build.
+  LDbAdapterKey := Config.GetExpandedString('Databases/' + ADatabaseName);
+  Result := (LDbAdapterKey <> '') and TEFDBAdapterRegistry.Instance.HasDBAdapter(LDbAdapterKey);
 end;
 
 function TKConfig.GetMacroExpansionEngine: TEFMacroExpansionEngine;

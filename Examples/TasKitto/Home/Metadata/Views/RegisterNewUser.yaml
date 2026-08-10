@@ -1,4 +1,4 @@
-DisplayLabel: Register new User
+﻿DisplayLabel: _(Register new User)
 # Empty ACName allows the view to be opened when no user is logged in.
 ACName:
 Type: Data

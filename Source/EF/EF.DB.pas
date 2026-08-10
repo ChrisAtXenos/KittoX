@@ -762,6 +762,11 @@ type
     procedure RegisterDBAdapter(const AId: string; const ADBAdapter: TEFDBAdapter);
     /// <summary>Removes the DB adapter registered under the given id.</summary>
     procedure UnregisterDBAdapter(const AId: string);
+    /// <summary>True if an adapter is registered under the given id. Unlike
+    /// <c>DBAdapters[AId]</c>, this never raises — use it to probe whether a
+    /// back-end (e.g. its <c>EF.DB.*</c> unit) is actually compiled into the
+    /// build before attempting to use it.</summary>
+    function HasDBAdapter(const AId: string): Boolean;
 
     ///	<summary>
     ///	 Returns an adapter by its Id. If you pass '' and only one adapter is
@@ -849,6 +854,11 @@ begin
     Result := FDefaultAdapter
   else
     Result := FDBAdapters[AId];
+end;
+
+function TEFDBAdapterRegistry.HasDBAdapter(const AId: string): Boolean;
+begin
+  Result := FDBAdapters.ContainsKey(AId);
 end;
 
 function TEFDBAdapterRegistry.GetDBAdapterByIndex(
