@@ -531,3 +531,15 @@ msgstr "Pergunte sobre a aplicação..."
 
 msgid "Environment"
 msgstr "Ambiente"
+
+msgid "Theme"
+msgstr "Tema"
+
+msgid "Light"
+msgstr "Claro"
+
+msgid "Dark"
+msgstr "Escuro"
+
+msgid "Auto (follow OS preference)"
+msgstr "Auto (seguir a preferência do sistema)"

@@ -30,6 +30,7 @@ uses
   EF.StrUtils,
   EF.YAML.Attributes,
   Web.HTTPApp,
+  Kitto.Metadata.Types,
   Kitto.Html.Tools;
 
 type
@@ -79,6 +80,7 @@ type
     FJobResultContentType: string;
     function GetContentType: string;
     function GetFileName: string;
+    function GetRunMode: TKRunMode;
     procedure PersistFile(const AStream: TStream);
   strict protected
     function GetClientFileName: string; virtual;
@@ -121,6 +123,8 @@ type
     property ContentType: string read GetContentType;
     [YamlNode('PersistentFileName', 'Server path to persist a copy of the file before download')]
     property PersistentFileName: string read GetPersistentFileName;
+    [YamlNode('RunMode', 'Foreground', 'Execution mode: Foreground (inline) or Background (job + Notification Center)')]
+    property RunMode: TKRunMode read GetRunMode;
   end;
 
   /// <summary>Uploads a file provided via HTTP upload.</summary>
@@ -401,6 +405,14 @@ end;
 function TKXDownloadFileController.GetFileName: string;
 begin
   Result := ExpandServerRecordValues(Config.GetExpandedString('FileName', GetDefaultFileName));
+end;
+
+function TKXDownloadFileController.GetRunMode: TKRunMode;
+begin
+  if SameText(Config.GetString('RunMode'), 'Background') then
+    Result := rmBackground
+  else
+    Result := rmForeground;
 end;
 
 procedure TKXDownloadFileController.PrepareFile(const AFileName: string);

@@ -1452,9 +1452,11 @@ var kxForm = {
 
   /**
    * Called by server after save with _clone flag.
-   * Refreshes grid, resets form to add mode, clears key fields, keeps other values.
+   * The copy has already been inserted server-side: refreshes the grid and
+   * rebinds the open form to the copy (edit mode, new key), keeping the values.
+   * newKey is the copy's key as "name=value&..." (URL-encoded values).
    */
-  onCloneSuccess: function(viewName) {
+  onCloneSuccess: function(viewName, newKey) {
     // Refresh underlying grid/calendar
     if (typeof kxCalendar !== 'undefined' && kxCalendar._instances[viewName]) {
       kxCalendar.refresh(viewName);
@@ -1463,18 +1465,26 @@ var kxForm = {
     }
     var form = document.getElementById('kx-form-' + viewName);
     if (form) {
-      // Switch to add mode
+      // The copy is persisted: stay in edit mode on it, so a further Save
+      // updates the copy instead of inserting yet another record.
       var opInput = form.querySelector('input[name="_op"]');
-      if (opInput) opInput.value = 'add';
+      if (opInput) opInput.value = 'edit';
       var keyInput = form.querySelector('input[name="_key"]');
-      if (keyInput) keyInput.value = '';
+      if (keyInput) keyInput.value = newKey || '';
       // Remove _clone flag so next normal Save works as expected
       var cloneInput = form.querySelector('input[name="_clone"]');
       if (cloneInput) cloneInput.remove();
-      // Clear key fields (keep non-key values for the clone)
-      form.querySelectorAll('[data-iskey="true"]').forEach(function(inp) {
-        inp.value = '';
-      });
+      // Show the copy's own key in any visible key editor
+      if (newKey) {
+        newKey.split('&').forEach(function(pair) {
+          var eq = pair.indexOf('=');
+          if (eq < 0) return;
+          var n = decodeURIComponent(pair.substring(0, eq));
+          var v = decodeURIComponent(pair.substring(eq + 1));
+          var inp = form.querySelector('[name="' + n + '"][data-iskey="true"]');
+          if (inp) inp.value = v;
+        });
+      }
       // Re-enable save button
       var saveBtn = form.querySelector('.kx-form-btn-save');
       if (saveBtn) saveBtn.disabled = false;

@@ -2,7 +2,7 @@
 [![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
 
-**Latest Version 4.0.14 - 10 Aug 2026**
+**Latest Version 4.0.15 - 12 Aug 2026**
 
 ![KittoX_logo.png](./images/kittoX_logo_200.png)
 
@@ -53,6 +53,14 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 ---
 
 # Release Notes
+
+## 12 Aug 2026: ver. 4.0.15 Beta
+
+### Localization — full multi-language support
+- Updated some views of Examples
+
+### Bug fixes
+- Fixed Clone Record function.
 
 ## 10 Aug 2026: ver. 4.0.14 Beta
 

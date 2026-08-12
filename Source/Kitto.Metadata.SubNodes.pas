@@ -263,6 +263,54 @@ type
   end;
 
   /// <summary>
+  ///  Background job runner settings (Notification Center / background tools).
+  ///  YAML path: Server/Jobs
+  /// </summary>
+  /// <example>
+  ///  Server:
+  ///    Jobs:
+  ///      PoolSize: 4
+  /// </example>
+  TKJobsConfig = class(TEFNode)
+  private
+    function GetPoolSize: Integer;
+    function GetArtifactRetentionHours: Integer;
+    function GetDirectory: string;
+  public
+    [YamlNode('PoolSize', '4', 'Number of worker threads for background tool jobs')]
+    property PoolSize: Integer read GetPoolSize;
+
+    [YamlNode('ArtifactRetentionHours', '24', 'Hours a produced job artifact is kept before automatic cleanup')]
+    property ArtifactRetentionHours: Integer read GetArtifactRetentionHours;
+
+    [YamlNode('Directory', 'Directory where background job artifacts are stored. Empty = default temp/app path')]
+    property Directory: string read GetDirectory;
+  end;
+
+  /// <summary>
+  ///  CORS settings for the REST API (/api/v4). Absent/empty AllowedOrigins
+  ///  disables CORS.
+  ///  YAML path: Server/CORS
+  /// </summary>
+  /// <example>
+  ///  Server:
+  ///    CORS:
+  ///      AllowedOrigins: https://app.example.com, http://localhost:9999
+  ///      AllowCredentials: True
+  /// </example>
+  TKCORSConfig = class(TEFNode)
+  private
+    function GetAllowedOrigins: string;
+    function GetAllowCredentials: Boolean;
+  public
+    [YamlNode('AllowedOrigins', 'Comma-separated list of allowed origins, or * for any. Absent/empty disables CORS')]
+    property AllowedOrigins: string read GetAllowedOrigins;
+
+    [YamlNode('AllowCredentials', 'True', 'Emit Access-Control-Allow-Credentials: true')]
+    property AllowCredentials: Boolean read GetAllowCredentials;
+  end;
+
+  /// <summary>
   ///  Server settings from Config.yaml.
   ///  YAML path: Server
   /// </summary>
@@ -272,6 +320,8 @@ type
     function GetSessionTimeOut: Integer;
     function GetThreadPoolSize: Integer;
     function GetBindAddress: string;
+    function GetJobs: TKJobsConfig;
+    function GetCORS: TKCORSConfig;
   public
     [YamlNode('Port', '8080', 'HTTP server port')]
     property Port: Integer read GetPort;
@@ -284,6 +334,73 @@ type
 
     [YamlNode('BindAddress', 'Bind to specific interface (e.g. 127.0.0.1 for loopback only). Empty = all interfaces')]
     property BindAddress: string read GetBindAddress;
+
+    [YamlSubNode('Jobs', TKJobsConfig, 'Background job runner settings (Notification Center)')]
+    property Jobs: TKJobsConfig read GetJobs;
+
+    [YamlSubNode('CORS', TKCORSConfig, 'CORS settings for the REST API (/api/v4)')]
+    property CORS: TKCORSConfig read GetCORS;
+  end;
+
+  /// <summary>
+  ///  Notification Center settings (bell, top-right). Opt-in.
+  ///  YAML path: Notifications
+  /// </summary>
+  /// <example>
+  ///  Notifications:
+  ///    Enabled: True
+  /// </example>
+  TKNotificationsConfig = class(TEFNode)
+  private
+    function GetEnabled: Boolean;
+  public
+    [YamlNode('Enabled', 'True', 'Enable the Notification Center (bell, top-right)')]
+    property Enabled: Boolean read GetEnabled;
+  end;
+
+  /// <summary>
+  ///  Help Chat assistant settings (bubble, bottom-right). Opt-in.
+  ///  YAML path: HelpChat
+  /// </summary>
+  /// <example>
+  ///  HelpChat:
+  ///    Enabled: True
+  ///    Provider: docsearch
+  /// </example>
+  TKHelpChatConfig = class(TEFNode)
+  private
+    function GetEnabled: Boolean;
+    function GetProvider: string;
+    function GetPoolSize: Integer;
+    function GetMessageMaxLength: Integer;
+    function GetHistoryMaxMessages: Integer;
+    function GetGreeting: string;
+    function GetDocIndex: string;
+    function GetDocBaseUrl: string;
+  public
+    [YamlNode('Enabled', 'True', 'Enable the in-app Help Chat assistant (bubble, bottom-right)')]
+    property Enabled: Boolean read GetEnabled;
+
+    [YamlNode('Provider', 'stub', 'Chat provider id (e.g. stub, docsearch)')]
+    property Provider: string read GetProvider;
+
+    [YamlNode('PoolSize', '2', 'Number of worker threads for the chat runner')]
+    property PoolSize: Integer read GetPoolSize;
+
+    [YamlNode('MessageMaxLength', '4000', 'Maximum length in characters of a user message')]
+    property MessageMaxLength: Integer read GetMessageMaxLength;
+
+    [YamlNode('HistoryMaxMessages', '50', 'Maximum number of messages kept in the conversation history')]
+    property HistoryMaxMessages: Integer read GetHistoryMaxMessages;
+
+    [YamlNode('Greeting', 'Initial assistant greeting message shown when the chat opens', True)]
+    property Greeting: string read GetGreeting;
+
+    [YamlNode('DocIndex', 'Path to the documentation index JSON (docsearch provider)')]
+    property DocIndex: string read GetDocIndex;
+
+    [YamlNode('DocBaseUrl', 'Base URL prefix for documentation links (docsearch provider)')]
+    property DocBaseUrl: string read GetDocBaseUrl;
   end;
 
   /// <summary>
@@ -982,6 +1099,94 @@ end;
 function TKServerConfig.GetBindAddress: string;
 begin
   Result := GetString('BindAddress');
+end;
+
+function TKServerConfig.GetJobs: TKJobsConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKServerConfig.GetCORS: TKCORSConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+{ TKJobsConfig }
+
+function TKJobsConfig.GetPoolSize: Integer;
+begin
+  Result := GetInteger('PoolSize', 4);
+end;
+
+function TKJobsConfig.GetArtifactRetentionHours: Integer;
+begin
+  Result := GetInteger('ArtifactRetentionHours', 24);
+end;
+
+function TKJobsConfig.GetDirectory: string;
+begin
+  Result := GetString('Directory');
+end;
+
+{ TKCORSConfig }
+
+function TKCORSConfig.GetAllowedOrigins: string;
+begin
+  Result := GetString('AllowedOrigins');
+end;
+
+function TKCORSConfig.GetAllowCredentials: Boolean;
+begin
+  Result := GetBoolean('AllowCredentials');
+end;
+
+{ TKNotificationsConfig }
+
+function TKNotificationsConfig.GetEnabled: Boolean;
+begin
+  Result := GetBoolean('Enabled');
+end;
+
+{ TKHelpChatConfig }
+
+function TKHelpChatConfig.GetEnabled: Boolean;
+begin
+  Result := GetBoolean('Enabled');
+end;
+
+function TKHelpChatConfig.GetProvider: string;
+begin
+  Result := GetString('Provider', 'stub');
+end;
+
+function TKHelpChatConfig.GetPoolSize: Integer;
+begin
+  Result := GetInteger('PoolSize', 2);
+end;
+
+function TKHelpChatConfig.GetMessageMaxLength: Integer;
+begin
+  Result := GetInteger('MessageMaxLength', 4000);
+end;
+
+function TKHelpChatConfig.GetHistoryMaxMessages: Integer;
+begin
+  Result := GetInteger('HistoryMaxMessages', 50);
+end;
+
+function TKHelpChatConfig.GetGreeting: string;
+begin
+  Result := GetString('Greeting');
+end;
+
+function TKHelpChatConfig.GetDocIndex: string;
+begin
+  Result := GetString('DocIndex');
+end;
+
+function TKHelpChatConfig.GetDocBaseUrl: string;
+begin
+  Result := GetString('DocBaseUrl');
 end;
 
 { TKAuthConfig }

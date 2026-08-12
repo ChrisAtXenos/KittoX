@@ -701,6 +701,15 @@ type
     procedure ApplyAfterShowEditWindowRules;
     /// <summary>Applies the duplicate-record rules (on a clone/duplicate operation).</summary>
     procedure ApplyDuplicateRecordRules;
+    /// <summary>
+    ///  Initializes this (freshly appended) record as a clone of ASource: copies
+    ///  all values except the key fields, whose default values are re-applied so
+    ///  that generated keys (%COMPACT_GUID% and the like) get a fresh value, then
+    ///  fires the new-record rules and events with AIsCloned=True. The record is
+    ///  left in the rsNew state, so persisting it issues an INSERT.
+    ///  Mirrors Kitto1's TKExtFormPanelController.StartOperation (clone branch).
+    /// </summary>
+    procedure InitAsCloneOf(const ASource: TKViewTableRecord);
     /// <summary>Applies the BeforeAddOrUpdate rules (e.g. updating the master from details).</summary>
     procedure ApplyBeforeRules;
     /// <summary>Applies the AfterAddOrUpdate rules (post-persist side effects).</summary>
@@ -3074,6 +3083,51 @@ begin
     begin
       ARuleImpl.DuplicateRecord(Self);
     end);
+end;
+
+procedure TKViewTableRecord.InitAsCloneOf(const ASource: TKViewTableRecord);
+var
+  LValues: TEFNode;
+  LKeyDefaultValues: TEFNode;
+begin
+  Assert(Assigned(ASource));
+
+  LValues := TEFNode.Clone(ASource,
+    // Don't copy PK values: the clone must get a key of its own.
+    procedure (const ASourceNode, ADestinationNode: TEFNode)
+    var
+      LViewField: TKViewField;
+    begin
+      LViewField := ViewTable.FindField(ASourceNode.Name);
+      if Assigned(LViewField) and LViewField.IsKey then
+        ADestinationNode.Value := Null;
+    end);
+  try
+    // Re-apply the default values of the key fields only, so that generated
+    // keys get a fresh value while the other fields keep the source's ones.
+    LKeyDefaultValues := ViewTable.GetDefaultValues(True);
+    try
+      LValues.Merge(LKeyDefaultValues);
+    finally
+      FreeAndNil(LKeyDefaultValues);
+    end;
+
+    // Bulk assignment: no need to fire the FieldChanged cascade for every
+    // field, the derived reference values are refreshed once below.
+    Store.DoWithChangeNotificationsDisabled(
+      procedure
+      begin
+        ReadFromNode(LValues);
+      end);
+  finally
+    FreeAndNil(LValues);
+  end;
+
+  RefreshDerivedReferenceValues;
+
+  // Fires BeforeNewRecord/NewRecord rules/AfterNewRecord and marks the record
+  // as new, so that persisting it issues an INSERT rather than an UPDATE.
+  ApplyNewRecordRulesAndFireEvents(ViewTable, True);
 end;
 
 procedure TKViewTableRecord.ApplyNewRecordRules;

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -146,6 +146,14 @@ type
   [YamlEnumValue('Medium', 'Medium icons (24px, default)')]
   [YamlEnumValue('Large', 'Large icons (32px)')]
   TKIconSize = (izSmall, izMedium, izLarge);
+
+  /// <summary>
+  ///  Execution mode of a download-file tool controller.
+  ///  YAML node: Controller/RunMode (on a tool's Controller node).
+  /// </summary>
+  [YamlEnumValue('Foreground', 'Run the tool synchronously inline and stream the result (default)')]
+  [YamlEnumValue('Background', 'Run the tool as a background job, tracked by the Notification Center')]
+  TKRunMode = (rmForeground, rmBackground);
 
   // --- Chart ---
 

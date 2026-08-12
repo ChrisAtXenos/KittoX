@@ -499,3 +499,15 @@ msgid ""
 msgstr ""
 "Uma aplicação de exemplo para registo de atividades criada com KittoX, HTMX,"
 " metadados YAML e HTML gerado no servidor."
+
+msgid "Activities this month"
+msgstr "Atividades deste mês"
+
+msgid "Hours this month"
+msgstr "Horas deste mês"
+
+msgid "Customers involved"
+msgstr "Clientes envolvidos"
+
+msgid "Active projects"
+msgstr "Projetos ativos"

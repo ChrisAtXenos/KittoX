@@ -499,3 +499,15 @@ msgid ""
 msgstr ""
 "Eine Beispielanwendung zur Tätigkeitserfassung, erstellt mit KittoX, HTMX, "
 "YAML-Metadaten und servergeneriertem HTML."
+
+msgid "Activities this month"
+msgstr "Aktivitäten diesen Monat"
+
+msgid "Hours this month"
+msgstr "Stunden diesen Monat"
+
+msgid "Customers involved"
+msgstr "Beteiligte Kunden"
+
+msgid "Active projects"
+msgstr "Aktive Projekte"

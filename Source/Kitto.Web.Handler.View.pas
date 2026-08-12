@@ -179,6 +179,37 @@ uses
   Kitto.Web.Application,
   Kitto.Web.Routing.Registry;
 
+/// <summary>
+///  Serializes a record's key as the "name=value&..." string used by the form's
+///  _key hidden field and by the grid's openForm calls (URL-encoded values).
+///  Same shape produced by TKXFormPanelController when rendering the form.
+/// </summary>
+function BuildRecordKeyString(const ARecord: TKViewTableRecord;
+  const AViewTable: TKViewTable): string;
+var
+  I: Integer;
+  LField: TKViewField;
+  LRecordField: TKViewTableField;
+begin
+  Assert(Assigned(ARecord));
+  Assert(Assigned(AViewTable));
+
+  Result := '';
+  for I := 0 to AViewTable.FieldCount - 1 do
+  begin
+    LField := AViewTable.Fields[I];
+    if not LField.IsKey then
+      Continue;
+    LRecordField := ARecord.FindField(LField.AliasedName);
+    if not Assigned(LRecordField) then
+      Continue;
+    if Result <> '' then
+      Result := Result + '&';
+    Result := Result + TNetEncoding.URL.Encode(LField.AliasedName) + '=' +
+      TNetEncoding.URL.Encode(LRecordField.AsString);
+  end;
+end;
+
 { TKXViewHandlerBase }
 
 procedure TKXViewHandlerBase.OnBeforeSave(const ARecord: TKViewTableRecord;
@@ -916,6 +947,7 @@ var
   LViewTable: TKViewTable;
   LStore: TKViewTableStore;
   LRecord: TKViewTableRecord;
+  LSourceRecord: TKViewTableRecord;
   LOperation: string;
   LKeyStr, LKeyFilter: string;
   LKeyParts: TArray<string>;
@@ -1002,7 +1034,20 @@ begin
       if SameText(LOperation, 'edit') then
         LRecord.ApplyEditRecordRules
       else if SameText(LOperation, 'dup') then
+      begin
+        // Duplicate: apply the rules to the source record, then work on a brand
+        // new record initialized with its values (key excluded). The source is
+        // dropped from the store so that the form - and the subsequent save -
+        // sees the clone as Records[0]. Mirrors Kitto1's
+        // TKExtFormPanelController.InitFlags ('Dup' branch), where the source
+        // record was cloned into FCloneValues and StoreRecord was replaced by
+        // ServerStore.AppendRecord(nil).
         LRecord.ApplyDuplicateRecordRules;
+        LSourceRecord := LRecord;
+        LRecord := LStore.Records.AppendAndInitialize;
+        LRecord.InitAsCloneOf(LSourceRecord);
+        LStore.Records.Remove(LSourceRecord);
+      end;
     end
     else if SameText(LOperation, 'add') then
     begin
@@ -1216,6 +1261,7 @@ var
   LViewTable: TKViewTable;
   LStore: TKViewTableStore;
   LRecord: TKViewTableRecord;
+  LSourceRecord: TKViewTableRecord;
   LOperation: string;
   LKeyStr, LKeyFilter: string;
   LKeyParts: TArray<string>;
@@ -1225,6 +1271,7 @@ var
   LDefaults: TEFNode;
   I: Integer;
   LHtml: string;
+  LCloneKey: string;
   LOwnsStore: Boolean;
 begin
   LApp := TKWebApplication.Current;
@@ -1262,6 +1309,9 @@ begin
     LStore := LViewTable.CreateStore;
   try
     try
+      // Stays nil for operations handled by neither branch below; the post-save
+      // clone step checks it before using it.
+      LRecord := nil;
       if SameText(LOperation, 'edit') or SameText(LOperation, 'view') then
       begin
         if LOwnsStore then
@@ -1312,6 +1362,15 @@ begin
         if not LOwnsStore and (LStore.RecordCount > 0) then
         begin
           LRecord := LStore.Records[0];
+          // An insert operation must never operate on an already persisted
+          // record: that would silently turn the INSERT into an UPDATE of the
+          // source row (TKDefaultModel.PersistRecord picks the command from the
+          // record state). Reaching this point with a non-new record means the
+          // session store was not prepared correctly upstream.
+          if not LRecord.IsNew then
+            raise Exception.CreateFmt(
+              _('Cannot insert a record that is already persisted (operation "%s").'),
+              [LOperation]);
           LApp.PopulateRecordFromPost(LRecord, LViewTable, True);
         end
         else
@@ -1333,9 +1392,52 @@ begin
 
       // Success: return script based on post-save mode
       if TKWebRequest.Current.GetField('_clone') = 'true' then
-        LHtml := '<script>kxForm.onCloneSuccess(''' + AViewName + ''');</script>'
+      begin
+        // Save & Clone: the record just saved becomes the template for a copy
+        // that is inserted right away, so that a single click does what the
+        // button's caption promises. The form is then left open on the copy -
+        // which is now persisted - in edit mode, so a further Save updates it.
+        // Kitto1 (TKExtFormPanelController.ConfirmChangesAndClone) only
+        // prepared the copy in memory and required a second confirmation.
+        LCloneKey := '';
+        if not LOwnsStore and Assigned(LRecord) then
+        begin
+          LSourceRecord := LRecord;
+          LRecord := LStore.Records.AppendAndInitialize;
+          LRecord.InitAsCloneOf(LSourceRecord);
+          LStore.Records.Remove(LSourceRecord);
+
+          OnBeforeSave(LRecord, True);
+          LViewTable.Model.SaveRecord(LRecord, True, nil);
+          OnAfterSave(LRecord, True);
+
+          LCloneKey := BuildRecordKeyString(LRecord, LViewTable);
+        end;
+        LHtml := '<script>kxForm.onCloneSuccess(''' + AViewName + ''',''' +
+          LCloneKey + ''');</script>';
+      end
       else if TKWebRequest.Current.GetField('_keepopen') = 'true' then
-        LHtml := '<script>kxForm.onSaveKeepOpen(''' + AViewName + ''');</script>'
+      begin
+        // KeepOpenAfterOperation: the client clears the form and switches it to
+        // 'add', so the session store must hold a brand new record - otherwise
+        // the next save would update the record just persisted instead of
+        // inserting a new one. Mirrors Kitto1's
+        // TKExtFormPanelController.ConfirmChanges, which replaced StoreRecord
+        // with ServerStore.AppendRecord(nil) and re-ran StartOperation.
+        if not LOwnsStore and Assigned(LRecord) then
+        begin
+          LStore.Records.Remove(LRecord);
+          LRecord := LStore.Records.AppendAndInitialize;
+          LDefaults := LViewTable.GetDefaultValues;
+          try
+            LRecord.ReadFromNode(LDefaults);
+          finally
+            FreeAndNil(LDefaults);
+          end;
+          LRecord.ApplyNewRecordRulesAndFireEvents(LViewTable, False);
+        end;
+        LHtml := '<script>kxForm.onSaveKeepOpen(''' + AViewName + ''');</script>';
+      end
       else
       begin
         LHtml := '<script>kxForm.onSaveSuccess(''' + AViewName + ''');</script>';

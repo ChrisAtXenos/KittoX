@@ -709,3 +709,15 @@ msgid ""
 msgstr ""
 "Un'applicazione di esempio per il tracciamento delle attività costruita con "
 "KittoX, HTMX, metadati YAML e HTML generato dal server."
+
+msgid "Activities this month"
+msgstr "Attività del mese"
+
+msgid "Hours this month"
+msgstr "Ore del mese"
+
+msgid "Customers involved"
+msgstr "Clienti coinvolti"
+
+msgid "Active projects"
+msgstr "Progetti attivi"

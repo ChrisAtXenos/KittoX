@@ -43,6 +43,7 @@ type
     function GetPreventDeleting: Boolean;
     function GetAllowDuplicating: Boolean;
     function GetAllowViewing: Boolean;
+    function GetPreventHelp: Boolean;
   strict protected
     /// <summary>
     ///  Returns the ViewTable for the current DataView.
@@ -100,6 +101,8 @@ type
     property AllowDuplicating: Boolean read GetAllowDuplicating;
     [YamlNode('AllowViewing', 'True', 'Show the View (read-only) button')]
     property AllowViewing: Boolean read GetAllowViewing;
+    [YamlNode('PreventHelp', 'True', 'Hide the contextual Help button on this data view')]
+    property PreventHelp: Boolean read GetPreventHelp;
   end;
 
 implementation
@@ -252,6 +255,11 @@ end;
 function TKXDataPanelController.GetAllowViewing: Boolean;
 begin
   Result := GetConfigBoolean('AllowViewing');
+end;
+
+function TKXDataPanelController.GetPreventHelp: Boolean;
+begin
+  Result := GetConfigBoolean('PreventHelp');
 end;
 
 function TKXDataPanelController.IsActionVisible(const AActionName: string): Boolean;

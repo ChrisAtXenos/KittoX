@@ -121,6 +121,8 @@ type
     function GetLogTextFile: TKLogTextFileConfig;
     function GetDesktop: TKDesktopConfig;
     function GetTheme: TKThemeConfig;
+    function GetNotifications: TKNotificationsConfig;
+    function GetHelpChat: TKHelpChatConfig;
   strict protected
     function GetUploadPath: string;
     function GetConfigFileName: string; override;
@@ -433,6 +435,12 @@ type
 
     [YamlSubNode('Theme', TKThemeConfig, 'Colour theme: Mode (Auto/Light/Dark), UserSelection, fonts, icons, and per-mode Light/Dark palettes')]
     property Theme: TKThemeConfig read GetTheme;
+
+    [YamlSubNode('Notifications', TKNotificationsConfig, 'Notification Center (bell, top-right): opt-in')]
+    property Notifications: TKNotificationsConfig read GetNotifications;
+
+    [YamlSubNode('HelpChat', TKHelpChatConfig, 'Help Chat assistant (bubble, bottom-right): opt-in provider-based chat')]
+    property HelpChat: TKHelpChatConfig read GetHelpChat;
 
     /// <summary>Access to the current authenticator. Delegates to
     /// TKWebApplication.Current.Authenticator for backward compatibility
@@ -1054,6 +1062,16 @@ end;
 function TKConfig.GetTheme: TKThemeConfig;
 begin
   Result := nil; // RTTI discovery only — runtime uses TKThemeConfig class methods
+end;
+
+function TKConfig.GetNotifications: TKNotificationsConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKConfig.GetHelpChat: TKHelpChatConfig;
+begin
+  Result := nil; // RTTI discovery only
 end;
 
 { TKConfigMacroExpander }
