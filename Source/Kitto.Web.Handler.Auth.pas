@@ -78,6 +78,28 @@ type
     /// GET kx/view/Logout via TKXLogoutController for now.
     [TKXPath('/logout')] [TKXANY] [TKXAnonymous]
     procedure HandleLogout; virtual;
+    /// <summary>Announces a page reload issued by the application, so that the
+    /// root does not end the session when it serves the reloaded page.
+    /// Counterpart of /logout: that one drops the credential, this one keeps it
+    /// across a reload the user did not ask for.
+    ///
+    /// Reaching the root drops the credential on purpose, so that a fresh page
+    /// load starts from the login. Server-side paths that send the user back to
+    /// the home raise ReloadingHome themselves; a reload started from the
+    /// browser cannot, because by the time it reaches the root there is no
+    /// earlier request in which to raise it. This endpoint is that earlier
+    /// request: the client POSTs here and only then calls location.reload().
+    /// It backs the [Reset] / [Retry] buttons of the standard error dialog
+    /// (kxReloadApp in kxgrid.js), which reload to recover from a transient
+    /// failure on a session that is still valid.
+    ///
+    /// It grants nothing: the flag is raised only for an already authenticated
+    /// session and merely stops a valid credential from being dropped. It is
+    /// one-shot, cleared by ServeHomePage, so a second reload — the user
+    /// pressing F5 — signs out as it should. [TKXAnonymous] so the call never
+    /// fails on the login page, where the same dialog can appear.</summary>
+    [TKXPath('/reloadhome')] [TKXPOST] [TKXAnonymous]
+    procedure HandleReloadHome; virtual;
   end;
 
 implementation
@@ -131,7 +153,7 @@ begin
   LApp.DeclareDatabaseMacros(TKWebSession.Current.AuthData);
 
   // Prevent Home from calling Logout on the next (redirect) request.
-  TKWebSession.Current.RefreshingLanguage := True;
+  TKWebSession.Current.ReloadingHome := True;
 
   // Success: hidden marker with the redirect URL; the login form's JS detects
   // it after the HTMX swap and performs the redirect. (We don't use HX-Redirect
@@ -174,7 +196,7 @@ begin
 
   if LLanguage <> '' then
   begin
-    TKWebSession.Current.RefreshingLanguage := True;
+    TKWebSession.Current.ReloadingHome := True;
     TKWebSession.Current.Language := LLanguage;
   end;
 
@@ -280,7 +302,15 @@ var
     if LAuthenticator.IsClearPassword then
       Result := AClearPassword
     else
+    begin
       Result := GetStringHash(AClearPassword);
+      // With BCrypt the stored value is a salted hash that cannot be recomputed
+      // from the clear password: the comparison is delegated to the
+      // authenticator's own verifier, which expects the clear password. Mirrors
+      // Kitto1 (Kitto.Ext.ChangePassword.pas:67-77).
+      if LAuthenticator.IsBCrypted then
+        Result := AClearPassword;
+    end;
   end;
 
   procedure RespondError(const AMsg: string);
@@ -304,9 +334,23 @@ begin
   LOldPasswordHash := GetPasswordHash(LOldPassword);
 
   LErrorMsg := '';
-  if LOldPasswordHash <> LStoredHash then
+  // The old password is neither asked for nor checked when the change is
+  // imposed (first access, or after a reset): the user has never chosen one.
+  // Mirrors Kitto1, where the field was not even rendered and the check was
+  // short-circuited by FShowOldPassword.
+  // Both comparisons go through IsPasswordMatching, which every authenticator
+  // may implement its own way: against a bcrypt credential, which is salted, a
+  // literal comparison of hashes could never succeed. Kitto1 did the same, one
+  // comparison at a time (Kitto.Ext.ChangePassword.pas:81 and 86).
+  // There is nothing to differ from when no password is stored: an account
+  // created without one, or an authenticator that keeps none (OSDB on the
+  // system user name reports every password as matching, so the check would
+  // fire on any new password and make the change impossible).
+  if not LAuthenticator.MustChangePassword
+     and not LAuthenticator.IsPasswordMatching(LOldPasswordHash, LStoredHash) then
     LErrorMsg := _('Old Password is wrong.')
-  else if GetPasswordHash(LNewPassword) = LStoredHash then
+  else if (LStoredHash <> '')
+     and LAuthenticator.IsPasswordMatching(GetPasswordHash(LNewPassword), LStoredHash) then
     LErrorMsg := _('New Password must be different than old password.')
   else if LNewPassword <> LConfirmNewPassword then
     LErrorMsg := _('Confirm New Password is wrong.');
@@ -319,6 +363,12 @@ begin
 
   try
     LAuthenticator.Password := LConfirmNewPassword;
+    // The session is dropped so the user has to log in again with the new
+    // password. The authenticator's own Logout is used here on purpose:
+    // TKWebApplication.Logout also calls Reload, which clears the response
+    // items - and would therefore wipe the confirmation dialog built below,
+    // leaving the user with a silent page reload back to the login screen.
+    LAuthenticator.Logout;
     // Success: info dialog, then redirect to home (forces re-login).
     TKWebResponse.Current.Items.Clear;
     TKWebResponse.Current.SetCustomHeader('HX-Retarget', 'body');
@@ -339,7 +389,6 @@ begin
           '</div>' +
         '</div>' +
       '</div>');
-    LApp.Logout;
   except
     on E: Exception do
       RespondError(E.Message);
@@ -349,6 +398,18 @@ end;
 procedure TKXAuthHandlerBase.HandleLogout;
 begin
   TKWebApplication.Current.Logout;
+end;
+
+procedure TKXAuthHandlerBase.HandleReloadHome;
+begin
+  // Nothing to preserve for a visitor who is not signed in: leave the flag
+  // alone so the reload behaves exactly as a plain page load would.
+  if TKWebSession.Current.IsAuthenticated then
+    TKWebSession.Current.ReloadingHome := True;
+  // Empty 200: the client only reloads, it does not read the body.
+  TKWebResponse.Current.Items.Clear;
+  TKWebResponse.Current.ContentType := 'text/plain; charset=utf-8';
+  TKWebResponse.Current.Items.AddHTML('');
 end;
 
 initialization

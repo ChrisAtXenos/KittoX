@@ -105,7 +105,11 @@ var kxTabs = {
       var overlay = pane.querySelector('.kx-dialog-overlay');
       if (overlay) {
         document.body.appendChild(overlay);
-        self.close(viewName);
+        // The dialog is still open on body: drop only the placeholder tab and
+        // keep the session store, which the view still needs for the notify
+        // cycle and for the save. It is released by kxForm.cancel when the
+        // dialog itself is closed.
+        self.close(viewName, true);
       }
     }, {once: true});
     htmx.ajax('GET', 'kx/view/' + viewName, {target: pane, swap: 'innerHTML'});
@@ -133,8 +137,14 @@ var kxTabs = {
     }
   },
 
-  /** Close the tab for the given view. Activates an adjacent tab if the closed one was active. */
-  close: function(viewName) {
+  /**
+   * Close the tab for the given view. Activates an adjacent tab if the closed
+   * one was active.
+   * Pass keepStore = true to discard the tab without releasing the server-side
+   * session store: the view is still on screen elsewhere (a modal dialog moved
+   * to body), or the caller releases the store itself.
+   */
+  close: function(viewName, keepStore) {
     var btn = document.querySelector('.kx-tab-button[data-view="' + viewName + '"]');
     var pane = document.getElementById('kx-tab-pane-' + viewName);
     var wasActive = btn && btn.classList.contains('kx-tab-active');
@@ -149,9 +159,10 @@ var kxTabs = {
     // Clean up Chart.js instance if this tab had a chart
     if (typeof kxChart !== 'undefined') kxChart.destroy(viewName);
     // Notify server to release session store (fire-and-forget)
-    fetch('kx/view/' + viewName + '/form-close', {
-      method: 'POST', headers: { 'X-KittoX': 'true' }
-    }).catch(function() {});
+    if (!keepStore)
+      fetch('kx/view/' + viewName + '/form-close', {
+        method: 'POST', headers: { 'X-KittoX': 'true' }
+      }).catch(function() {});
     if (nextView) {
       this.activate(nextView);
     } else {

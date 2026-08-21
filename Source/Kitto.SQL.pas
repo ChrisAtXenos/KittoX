@@ -65,6 +65,7 @@ type
     function GetFromClause: string;
     function BuildJoin(const AReferenceField: TKModelField): string;
     function GetSelectWhereClause(const AFilter: string; const ADBQuery: TEFDBQuery): string;
+    function ExpandSortExpressions(const AOrderBy: string): string;
     class function AddDBColumnName(var ADBColumnNames, AValueNames: string;
       const ADBCommand: TEFDBCommand; const ADBColumnName,
       AParamName: string): TParam; static;
@@ -255,6 +256,13 @@ begin
     begin
       if LOrderBy = '' then
         LOrderBy := FViewTable.DefaultSorting;
+      // A sort term that names a field with an Expression must carry the
+      // expression, not its alias: when the query is paged the order by ends up
+      // inside row_number() over (...), and no DB engine resolves there an
+      // alias defined by the same select list — SQL Server answers "Invalid
+      // column name". Unpaged the alias would work, so this only shows up on
+      // views declared IsLarge.
+      LOrderBy := ExpandSortExpressions(LOrderBy);
       ExpandQualification(LOrderBy, AViewTable.Model.DBTableName);
       LOrderByClause := 'order by ' + LOrderBy;
     end;
@@ -1088,6 +1096,53 @@ begin
       FAddedFKColumns.Add(LFields[I].DBColumnName);
     end;
   end;
+end;
+
+function TKSQLBuilder.ExpandSortExpressions(const AOrderBy: string): string;
+var
+  I: Integer;
+  LTerms: TArray<string>;
+  LTerm, LName, LDirection: string;
+  LSpacePos: Integer;
+  LViewField: TKViewField;
+begin
+  Result := AOrderBy;
+  if (AOrderBy = '') or not Assigned(FViewTable) then
+    Exit;
+
+  LTerms := AOrderBy.Split([',']);
+  for I := Low(LTerms) to High(LTerms) do
+  begin
+    LTerm := Trim(LTerms[I]);
+    // Split off a trailing asc/desc, so that "MyField desc" is recognized as a
+    // sort on MyField.
+    LDirection := '';
+    LSpacePos := LastDelimiter(' ', LTerm);
+    if LSpacePos > 0 then
+    begin
+      LName := Copy(LTerm, 1, LSpacePos - 1);
+      LDirection := Copy(LTerm, LSpacePos + 1, MaxInt);
+      if not MatchText(LDirection, ['asc', 'desc']) then
+      begin
+        LName := LTerm;
+        LDirection := '';
+      end;
+    end
+    else
+      LName := LTerm;
+
+    LViewField := FViewTable.FindField(Trim(LName));
+    if Assigned(LViewField) and (LViewField.Expression <> '') then
+    begin
+      LTerm := '(' + LViewField.Expression + ')';
+      if LDirection <> '' then
+        LTerm := LTerm + ' ' + LDirection;
+      LTerms[I] := LTerm;
+    end
+    else
+      LTerms[I] := LTerms[I];
+  end;
+  Result := string.Join(',', LTerms);
 end;
 
 function TKSQLBuilder.GetSelectWhereClause(const AFilter: string;

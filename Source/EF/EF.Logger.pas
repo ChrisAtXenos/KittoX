@@ -177,6 +177,28 @@ type
 
 implementation
 
+uses
+  System.RegularExpressions;
+
+/// <summary>
+///  Masks the value assigned to anything whose name contains "password",
+///  leaving the rest of the message intact. Covers the forms a message can
+///  carry a credential in: Password=value, "Password":"value" and
+///  PASSWORD_HASH: value. A message that merely mentions the word - a marker,
+///  an error, the name of a method - is returned unchanged, so authentication
+///  stays diagnosable.
+/// </summary>
+function MaskPasswordValues(const AString: string): string;
+const
+  // name (optionally quoted) + separator + value (quoted, or up to a delimiter)
+  PASSWORD_VALUE_PATTERN = '(?i)("?\w*password\w*"?\s*[:=]\s*)("[^"]*"|[^\s,;&}\)]+)';
+  MASK = '***';
+begin
+  if Pos('PASSWORD', UpperCase(AString)) = 0 then
+    Exit(AString);
+  Result := TRegEx.Replace(AString, PASSWORD_VALUE_PATTERN, '$1' + MASK);
+end;
+
 { TEFLogger }
 
 procedure TEFLogger.AfterConstruction;
@@ -303,11 +325,12 @@ begin
   if SameText(AContext, '{ConfigChanged}') then
     Configure(TEFLogger(ASubject.AsObject).Config, TEFLogger(ASubject.AsObject).MacroExpansionEngine)
   else
-  begin
-    //prevent logging of password
-    if pos('PASSWORD', UpperCase(AContext)) = 0 then
-      DoLog(AContext);
-  end;
+    // Credentials must not reach the log, but a message is not a credential
+    // just because the word appears in it: dropping the whole line made every
+    // marker mentioning a password invisible, and with it any chance of
+    // diagnosing authentication. Only the value is masked; the message itself
+    // is logged.
+    DoLog(MaskPasswordValues(AContext));
 end;
 
 end.

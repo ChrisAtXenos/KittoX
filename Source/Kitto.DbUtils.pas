@@ -284,7 +284,12 @@ var
   LMatch: TMatch;
 begin
   // Example of enforcement of password strength rules.
-  LValidatePasswordNode := TKConfig.Instance.Config.FindNode('Auth/ValidatePassword');
+  // The node belongs to the authenticator, so it must not be looked up by the
+  // absolute path 'Auth/ValidatePassword': under Auth: JWT the authenticator's
+  // own options live under Auth/Inner, and EffectiveConfigNode returns the right
+  // node either way.
+  LValidatePasswordNode := TKConfig.Instance.Authenticator.EffectiveConfigNode
+    .FindNode('ValidatePassword');
   Assert(Assigned(LValidatePasswordNode));
   LErrorMsg := LValidatePasswordNode.GetExpandedString('Message','Min.8 caratteri con lettere e numeri');
   LRegEx := LValidatePasswordNode.GetExpandedString('RegEx','^[ -~]{8,63}$');

@@ -43,9 +43,29 @@ type
       const AContext: TKXChatContext; const AOnToken: TKXChatTokenProc): string; override;
   end;
 
+  /// <summary>A documentation page returned by the shared search: title, absolute
+  /// URL (base URL already joined) and one-line summary. Used both by the
+  /// docsearch provider and by the Claude provider for RAG grounding.</summary>
+  TKXHelpPage = record
+    Title: string;
+    Url: string;
+    Summary: string;
+  end;
+
 const
   /// <summary>Name of the deterministic documentation-search provider.</summary>
   KX_CHAT_PROVIDER_DOCSEARCH = 'docsearch';
+
+/// <summary>
+///  Searches the bundled documentation index for the pages best matching
+///  <c>AQuery</c> (optionally biased by <c>AControllerType</c>, so a chat opened
+///  from a List/Form view surfaces the matching framework page), most relevant
+///  first, up to <c>AMaxPages</c> (&lt;= 0 defaults to 3). Returns <c>[]</c> when
+///  the index is unavailable or nothing scores. Shared entry point for RAG
+///  grounding: the Claude provider injects these pages into the system prompt.
+/// </summary>
+function KXSearchHelpPages(const AQuery, AControllerType: string;
+  const AMaxPages: Integer): TArray<TKXHelpPage>;
 
 implementation
 
@@ -230,6 +250,65 @@ begin
     'https://ethea.it/docs/kittox/');
   if (Result <> '') and not Result.EndsWith('/') then
     Result := Result + '/';
+end;
+
+function KXSearchHelpPages(const AQuery, AControllerType: string;
+  const AMaxPages: Integer): TArray<TKXHelpPage>;
+var
+  LTokens: TArray<string>;
+  LScores: TArray<Integer>;
+  LUsed: TArray<Boolean>;
+  LBase: string;
+  LMax, LBestIdx, LBestScore, I, J: Integer;
+  LPages: TList<TKXHelpPage>;
+  LPage: TKXHelpPage;
+begin
+  Result := [];
+  EnsureLoaded;
+  if Length(FIndex) = 0 then
+    Exit;
+
+  LTokens := Tokenize(AQuery);
+  if AControllerType <> '' then
+    LTokens := LTokens + Tokenize(AControllerType);
+  if Length(LTokens) = 0 then
+    Exit;
+
+  SetLength(LScores, Length(FIndex));
+  for I := 0 to High(FIndex) do
+    LScores[I] := ScoreEntry(FIndex[I], LTokens);
+
+  LBase := DocBaseUrl;
+  LMax := AMaxPages;
+  if LMax <= 0 then
+    LMax := 3;
+  SetLength(LUsed, Length(FIndex));
+
+  LPages := TList<TKXHelpPage>.Create;
+  try
+    // Greedy top-N by score (score must be > 0 to be relevant at all).
+    for J := 1 to LMax do
+    begin
+      LBestIdx := -1;
+      LBestScore := 0;
+      for I := 0 to High(FIndex) do
+        if (not LUsed[I]) and (LScores[I] > LBestScore) then
+        begin
+          LBestScore := LScores[I];
+          LBestIdx := I;
+        end;
+      if LBestIdx < 0 then
+        Break;
+      LUsed[LBestIdx] := True;
+      LPage.Title := FIndex[LBestIdx].Title;
+      LPage.Url := LBase + FIndex[LBestIdx].Url;
+      LPage.Summary := FIndex[LBestIdx].Summary;
+      LPages.Add(LPage);
+    end;
+    Result := LPages.ToArray;
+  finally
+    LPages.Free;
+  end;
 end;
 
 { TKXDocSearchProvider }

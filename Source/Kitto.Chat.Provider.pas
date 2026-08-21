@@ -95,6 +95,10 @@ type
   /// by default. Descendants override <c>GetName</c> and <c>Generate</c>.</summary>
   TKXChatProviderBase = class abstract (TInterfacedObject, IKXChatProvider)
   public
+    /// <summary>Virtual so providers instantiated polymorphically via the
+    /// registry (LClass.Create) can override it to read their config once at
+    /// creation time (providers are short-lived, one per chat request).</summary>
+    constructor Create; virtual;
     function GetName: string; virtual; abstract;
     function SupportsStreaming: Boolean; virtual;
     function Generate(const AHistory: TArray<TKXChatMessage>;
@@ -151,6 +155,11 @@ uses
   EF.Localization;
 
 { TKXChatProviderBase }
+
+constructor TKXChatProviderBase.Create;
+begin
+  inherited Create;
+end;
 
 function TKXChatProviderBase.SupportsStreaming: Boolean;
 begin

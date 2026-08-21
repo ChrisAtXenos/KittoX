@@ -180,6 +180,29 @@ type
     class function Links: TArray<TKXServerLink>;
   end;
 
+  /// <summary>
+  ///   Registry of optional feature subsystems (Help Chat, Notification Center)
+  ///   that are shipped as opt-in units, i.e. NOT pulled in by Kitto.Html.All.
+  ///   Each such unit declares its feature id in its own initialization; the
+  ///   core reads the flag to fail fast with an actionable message when the
+  ///   feature is enabled in Config.yaml but its unit was not added to the
+  ///   application's UseKitto.pas. Feature ids are case-insensitive.
+  /// </summary>
+  TKXOptionalFeatureRegistry = class
+  strict private
+    class var FFeatures: TDictionary<string, Boolean>;
+    class var FLock: TObject;
+  public
+    class constructor CreateClass;
+    class destructor DestroyClass;
+    /// <summary>Declares that the unit providing AFeatureId is linked. Called
+    /// from that unit's initialization section; idempotent.</summary>
+    class procedure Declare(const AFeatureId: string);
+    /// <summary>True if a unit has declared AFeatureId (i.e. the feature's code
+    /// is linked into the running binary).</summary>
+    class function IsAvailable(const AFeatureId: string): Boolean;
+  end;
+
 implementation
 
 uses
@@ -586,6 +609,40 @@ end;
 class function TKXServerLinkRegistry.Links: TArray<TKXServerLink>;
 begin
   Result := GetLinks.ToArray;
+end;
+
+{ TKXOptionalFeatureRegistry }
+
+class constructor TKXOptionalFeatureRegistry.CreateClass;
+begin
+  FLock := TObject.Create;
+  FFeatures := TDictionary<string, Boolean>.Create;
+end;
+
+class destructor TKXOptionalFeatureRegistry.DestroyClass;
+begin
+  FFeatures.Free;
+  FLock.Free;
+end;
+
+class procedure TKXOptionalFeatureRegistry.Declare(const AFeatureId: string);
+begin
+  TMonitor.Enter(FLock);
+  try
+    FFeatures.AddOrSetValue(AFeatureId.ToLower, True);
+  finally
+    TMonitor.Exit(FLock);
+  end;
+end;
+
+class function TKXOptionalFeatureRegistry.IsAvailable(const AFeatureId: string): Boolean;
+begin
+  TMonitor.Enter(FLock);
+  try
+    Result := FFeatures.ContainsKey(AFeatureId.ToLower);
+  finally
+    TMonitor.Exit(FLock);
+  end;
 end;
 
 end.

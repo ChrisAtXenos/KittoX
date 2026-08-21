@@ -754,7 +754,12 @@ begin
             begin
               LAddedRecord.ReadFromNode(LDefaultValues);
             end);
-          LAddedRecord.ApplyNewRecordRulesAndFireEvents(AViewTable, False);
+          // No AfterFieldChange cascade while the new-record rules run: the
+          // import applied them on a record with no field-change handler
+          // attached in Kitto1 too, and the values come from the file rather
+          // than from a user editing a form.
+          LAddedRecord.ApplyNewRecordRulesAndFireEvents(AViewTable, False,
+            {AFireFieldChangeRules}False);
         finally
           FreeAndNil(LDefaultValues);
         end;
@@ -781,7 +786,8 @@ begin
               LDestField.Value := LFieldValue;
             end;
           end;
-          LAddedRecord.ApplyNewRecordRules;
+          // See above: the import does not fire the AfterFieldChange cascade.
+          LAddedRecord.ApplyNewRecordRules({AFireFieldChangeRules}False);
         except
           on E: Exception do
           begin

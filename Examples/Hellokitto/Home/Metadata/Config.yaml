@@ -255,7 +255,17 @@ Server:
 # from the bundled KittoX documentation index, linking to ethea.it/docs/kittox.
 HelpChat:
   Enabled: True
-  Provider: docsearch
+  # 'docsearch' answers from the bundled documentation index (no key, no network).
+  # 'claude' streams answers from Anthropic's Claude, grounded on the same index
+  # (RAG). To use Claude switch the provider and set the API key below (or the
+  # ANTHROPIC_API_KEY environment variable). Keep the real key out of the public
+  # repo, exactly as for GoogleMapsApiKey.
+  Provider: claude
+  Claude:
+    ApiKey: sk-ant-api03-XYZ
+    Model: claude-haiku-4-5
+    MaxTokens: 1024
+    GroundingMaxPages: 3
 
 Engine:
   Session:

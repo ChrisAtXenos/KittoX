@@ -60,6 +60,11 @@ type
     /// <summary>Appends a placeholder assistant message (Pending) and returns its id;
     /// the runner later completes it in place.</summary>
     function AddPendingAssistant(const AUser: string): string;
+    /// <summary>Appends AToken to the (still pending) assistant message AId,
+    /// leaving it pending. A streaming provider calls this for each token, so the
+    /// poll endpoint returns the growing partial reply and the drawer fills in
+    /// incrementally without any server-push machinery.</summary>
+    procedure AppendAssistantToken(const AUser, AId, AToken: string);
     /// <summary>Marks the pending assistant message AId as completed with AContent.</summary>
     procedure CompleteAssistant(const AUser, AId, AContent: string);
     /// <summary>Marks the pending assistant message AId as failed with an error text.</summary>
@@ -117,7 +122,8 @@ function NewChatId: string;
 implementation
 
 uses
-  Kitto.Config;
+  Kitto.Config,
+  Kitto.Metadata.SubNodes;
 
 type
   TKXChatWorker = class(TThread)
@@ -208,6 +214,33 @@ begin
     FLock.Leave;
   end;
   Result := LMessage.Id;
+end;
+
+procedure TKXChatStore.AppendAssistantToken(const AUser, AId, AToken: string);
+var
+  LList: TList<TKXChatMessage>;
+  LIndex: Integer;
+  LMessage: TKXChatMessage;
+begin
+  if AToken = '' then
+    Exit;
+  FLock.Enter;
+  try
+    if FConversations.TryGetValue(AUser, LList) then
+    begin
+      LIndex := IndexOfId(LList, AId);
+      if LIndex >= 0 then
+      begin
+        LMessage := LList[LIndex];
+        LMessage.Content := LMessage.Content + AToken;
+        // Stays Pending: the client keeps polling and the bubble shows the
+        // partial text until CompleteAssistant flips it.
+        LList[LIndex] := LMessage;
+      end;
+    end;
+  finally
+    FLock.Leave;
+  end;
 end;
 
 procedure TKXChatStore.CompleteAssistant(const AUser, AId, AContent: string);
@@ -410,13 +443,24 @@ end;
 procedure TKXChatRunner.RunRequest(const ARequest: TKXChatRequest);
 var
   LProvider: IKXChatProvider;
-  LReply: string;
+  LReply, LUser, LAssistantId: string;
 begin
   try
     LProvider := TKXChatProviderRegistry.CreateProvider(ARequest.ProviderName);
+    // Copy to locals so the token callback (invoked synchronously during
+    // Generate) does not depend on the const-parameter's lifetime.
+    LUser := ARequest.UserName;
+    LAssistantId := ARequest.AssistantId;
     LReply := LProvider.Generate(
       TKXChatStore.Instance.GetHistory(ARequest.UserName, ARequest.MaxHistory),
-      ARequest.Context, nil);
+      ARequest.Context,
+      // A streaming provider appends each token to the store as it arrives, so
+      // the poll endpoint returns the growing partial. Non-streaming providers
+      // (stub, docsearch) ignore this callback.
+      procedure(const AToken: string)
+      begin
+        TKXChatStore.Instance.AppendAssistantToken(LUser, LAssistantId, AToken);
+      end);
     TKXChatStore.Instance.CompleteAssistant(ARequest.UserName, ARequest.AssistantId, LReply);
   except
     on E: Exception do
@@ -446,7 +490,7 @@ begin
     try
       if FRunnerInstance = nil then
         FRunnerInstance := TKXChatRunner.Create(
-          TKConfig.Instance.Config.GetInteger('HelpChat/PoolSize', 2));
+          TKConfig.Instance.Config.GetInteger('HelpChat/PoolSize', KX_HELPCHAT_DEF_POOLSIZE));
     finally
       FSingletonLock.Leave;
     end;

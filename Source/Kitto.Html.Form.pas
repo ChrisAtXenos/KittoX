@@ -184,12 +184,42 @@ begin
     LNode := AViewField.ModelField.FindNode('NotifyChange');
   if Assigned(LNode) then
     Exit(LNode.AsBoolean);
-  // Reference fields default to True: their selection commonly cascades into
-  // other fields via AfterFieldChange rules.
+
+  // The application can ask for a notification on every field.
+  if TKConfig.Instance.Config.GetBoolean('Defaults/AlwaysNotifyChange', False) then
+    Exit(True);
+
+  // No explicit setting: detect the dependencies that need the server to be
+  // told about the change, as Kitto1 did in IsChangeHandlerNeeded
+  // (Kitto.Ext.Editors.pas). Without the handler the server-side cascade never
+  // runs and the dependent values are silently left stale - a read-only total
+  // fed by an AfterFieldChange rule, for instance, is never computed.
+
+  // Reference fields: their selection commonly cascades into other fields.
   if AViewField.IsReference then
     Exit(True);
-  // Otherwise the global default applies.
-  Result := TKConfig.Instance.Config.GetBoolean('Defaults/AlwaysNotifyChange', False);
+
+  // The following checks read the model field, so they apply only to fields
+  // that have one (an expression-only view field has none).
+  if AViewField.HasModelField then
+  begin
+    // Uploads: the change carries the file name.
+    if AViewField.FileNameField <> '' then
+      Exit(True);
+    // Derived fields must be refreshed from the new value.
+    if AViewField.DerivedFieldsExist then
+      Exit(True);
+    // Rules that run on the server can only be applied there.
+    if AViewField.HasServerSideRules then
+      Exit(True);
+  end;
+
+  // Fields whose lookup is filtered by this one must be cleared and refiltered.
+  Result := Length(AViewField.Table.GetFilterByFields(
+    function (AFilterByViewField: TKFilterByViewField): Boolean
+    begin
+      Result := AFilterByViewField.SourceField = AViewField;
+    end)) > 0;
 end;
 
 // Resolves whether a Reference field renders as a lookup popup instead of

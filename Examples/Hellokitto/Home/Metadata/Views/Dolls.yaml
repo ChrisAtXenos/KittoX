@@ -32,7 +32,6 @@ MainTable:
     Grouping:
       FieldName: Hair
       ShowCount: True
-        Template: _({[values.rs.length]} Dolls have {text} hair)
         PluralItemName:
         ItemName:
       SortFieldNames: Hair Doll_Name

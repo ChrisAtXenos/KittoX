@@ -358,6 +358,92 @@ type
     property Enabled: Boolean read GetEnabled;
   end;
 
+const
+  { Help Chat / Claude provider default values — single source of truth, shared
+    by the config-class getters, the [YamlNode] attributes below, the runtime
+    readers in Kitto.Chat.* / Kitto.Web.Handler.Chat and the KIDE Config designer
+    frame (which uses them to decide whether a value equals the default and can
+    thus be omitted from the YAML). }
+  KX_HELPCHAT_DEF_POOLSIZE = 2;
+  KX_HELPCHAT_DEF_MSGMAXLEN = 4000;
+  KX_HELPCHAT_DEF_HISTMAXMSG = 50;
+  KX_HELPCHAT_DEF_GREETING = 'Hi! Ask me anything about how to use the application.';
+  KX_CLAUDE_DEF_MODEL = 'claude-haiku-4-5';
+  KX_CLAUDE_DEF_MAXTOKENS = 1024;
+  KX_CLAUDE_DEF_GROUNDING = 3;
+  KX_CLAUDE_DEF_VERSION = '2023-06-01';
+  KX_CLAUDE_DEF_BASEURL = 'https://api.anthropic.com';
+  KX_CLAUDE_DEF_CONNECTTIMEOUTMS = 15000;
+  KX_CLAUDE_DEF_RESPONSETIMEOUTMS = 120000;
+
+type
+  /// <summary>
+  ///  Typed reader for the Claude help-chat provider settings (Provider: claude).
+  ///  Two roles in one class:
+  ///   (1) runtime — reads every HelpChat/Claude/* value ONCE at construction into
+  ///       fields, so Kitto.Chat.Provider.Claude accesses them as FConfig.Model
+  ///       instead of repeated Config.GetString/GetInteger tree lookups;
+  ///   (2) design-time — the [YamlNode] attributes let KIDE discover the node's
+  ///       schema via RTTI (KIDE reads the attributes, never instantiates the class).
+  ///  It is a plain reader (not a TEFNode): it does not live in the config tree,
+  ///  it reads from it. YAML path: HelpChat/Claude
+  /// </summary>
+  /// <example>
+  ///  HelpChat:
+  ///    Provider: claude
+  ///    Claude:
+  ///      ApiKey: %ENV(ANTHROPIC_API_KEY)%
+  ///      Model: claude-haiku-4-5
+  ///      MaxTokens: 1024
+  ///      GroundingMaxPages: 3
+  /// </example>
+  TKClaudeProviderConfig = class
+  private
+    FApiKey: string;
+    FModel: string;
+    FMaxTokens: Integer;
+    FGroundingMaxPages: Integer;
+    FSystemPrompt: string;
+    FBaseUrl: string;
+    FVersion: string;
+    FConnectTimeoutMs: Integer;
+    FResponseTimeoutMs: Integer;
+  public
+    /// <summary>Reads HelpChat/Claude/* from AConfig once. ApiKey is macro-expanded
+    /// and falls back to the ANTHROPIC_API_KEY env var when empty; BaseUrl is
+    /// normalized (no trailing slash); SystemPrompt is the raw override ('' means
+    /// the provider applies its localized default). AConfig is normally
+    /// TKConfig.Instance.Config.</summary>
+    constructor Create(const AConfig: TEFTree);
+
+    [YamlNode('ApiKey', 'Anthropic API key. Supports %ENV(ANTHROPIC_API_KEY)%; falls back to the ANTHROPIC_API_KEY env var when empty')]
+    property ApiKey: string read FApiKey;
+
+    [YamlNode('Model', KX_CLAUDE_DEF_MODEL, 'Claude model id')]
+    property Model: string read FModel;
+
+    [YamlNode('MaxTokens', KX_CLAUDE_DEF_MAXTOKENS, 'Maximum tokens in the assistant reply')]
+    property MaxTokens: Integer read FMaxTokens;
+
+    [YamlNode('GroundingMaxPages', KX_CLAUDE_DEF_GROUNDING, 'Documentation pages injected as RAG context (0 = off)')]
+    property GroundingMaxPages: Integer read FGroundingMaxPages;
+
+    [YamlNode('SystemPrompt', 'System prompt override (empty = framework default)', True)]
+    property SystemPrompt: string read FSystemPrompt;
+
+    [YamlNode('BaseUrl', KX_CLAUDE_DEF_BASEURL, 'Anthropic API base URL')]
+    property BaseUrl: string read FBaseUrl;
+
+    [YamlNode('Version', KX_CLAUDE_DEF_VERSION, 'Value of the anthropic-version header')]
+    property Version: string read FVersion;
+
+    [YamlNode('ConnectTimeoutMs', KX_CLAUDE_DEF_CONNECTTIMEOUTMS, 'HTTP connect timeout in milliseconds')]
+    property ConnectTimeoutMs: Integer read FConnectTimeoutMs;
+
+    [YamlNode('ResponseTimeoutMs', KX_CLAUDE_DEF_RESPONSETIMEOUTMS, 'HTTP response timeout in milliseconds')]
+    property ResponseTimeoutMs: Integer read FResponseTimeoutMs;
+  end;
+
   /// <summary>
   ///  Help Chat assistant settings (bubble, bottom-right). Opt-in.
   ///  YAML path: HelpChat
@@ -377,6 +463,7 @@ type
     function GetGreeting: string;
     function GetDocIndex: string;
     function GetDocBaseUrl: string;
+    function GetClaude: TKClaudeProviderConfig;
   public
     [YamlNode('Enabled', 'True', 'Enable the in-app Help Chat assistant (bubble, bottom-right)')]
     property Enabled: Boolean read GetEnabled;
@@ -384,16 +471,16 @@ type
     [YamlNode('Provider', 'stub', 'Chat provider id (e.g. stub, docsearch)')]
     property Provider: string read GetProvider;
 
-    [YamlNode('PoolSize', '2', 'Number of worker threads for the chat runner')]
+    [YamlNode('PoolSize', KX_HELPCHAT_DEF_POOLSIZE, 'Number of worker threads for the chat runner')]
     property PoolSize: Integer read GetPoolSize;
 
-    [YamlNode('MessageMaxLength', '4000', 'Maximum length in characters of a user message')]
+    [YamlNode('MessageMaxLength', KX_HELPCHAT_DEF_MSGMAXLEN, 'Maximum length in characters of a user message')]
     property MessageMaxLength: Integer read GetMessageMaxLength;
 
-    [YamlNode('HistoryMaxMessages', '50', 'Maximum number of messages kept in the conversation history')]
+    [YamlNode('HistoryMaxMessages', KX_HELPCHAT_DEF_HISTMAXMSG, 'Maximum number of messages kept in the conversation history')]
     property HistoryMaxMessages: Integer read GetHistoryMaxMessages;
 
-    [YamlNode('Greeting', 'Initial assistant greeting message shown when the chat opens', True)]
+    [YamlNode('Greeting', KX_HELPCHAT_DEF_GREETING, 'Initial assistant greeting message shown when the chat opens', True)]
     property Greeting: string read GetGreeting;
 
     [YamlNode('DocIndex', 'Path to the documentation index JSON (docsearch provider)')]
@@ -401,6 +488,9 @@ type
 
     [YamlNode('DocBaseUrl', 'Base URL prefix for documentation links (docsearch provider)')]
     property DocBaseUrl: string read GetDocBaseUrl;
+
+    [YamlSubNode('Claude', TKClaudeProviderConfig, 'Claude provider settings (when Provider: claude)')]
+    property Claude: TKClaudeProviderConfig read GetClaude;
   end;
 
   /// <summary>
@@ -1161,22 +1251,22 @@ end;
 
 function TKHelpChatConfig.GetPoolSize: Integer;
 begin
-  Result := GetInteger('PoolSize', 2);
+  Result := GetInteger('PoolSize', KX_HELPCHAT_DEF_POOLSIZE);
 end;
 
 function TKHelpChatConfig.GetMessageMaxLength: Integer;
 begin
-  Result := GetInteger('MessageMaxLength', 4000);
+  Result := GetInteger('MessageMaxLength', KX_HELPCHAT_DEF_MSGMAXLEN);
 end;
 
 function TKHelpChatConfig.GetHistoryMaxMessages: Integer;
 begin
-  Result := GetInteger('HistoryMaxMessages', 50);
+  Result := GetInteger('HistoryMaxMessages', KX_HELPCHAT_DEF_HISTMAXMSG);
 end;
 
 function TKHelpChatConfig.GetGreeting: string;
 begin
-  Result := GetString('Greeting');
+  Result := GetString('Greeting', KX_HELPCHAT_DEF_GREETING);
 end;
 
 function TKHelpChatConfig.GetDocIndex: string;
@@ -1187,6 +1277,35 @@ end;
 function TKHelpChatConfig.GetDocBaseUrl: string;
 begin
   Result := GetString('DocBaseUrl');
+end;
+
+function TKHelpChatConfig.GetClaude: TKClaudeProviderConfig;
+begin
+  Result := nil; // RTTI discovery only (KIDE reads the [YamlSubNode] class, never calls this)
+end;
+
+{ TKClaudeProviderConfig }
+
+constructor TKClaudeProviderConfig.Create(const AConfig: TEFTree);
+const
+  PFX = 'HelpChat/Claude/';
+begin
+  inherited Create;
+  // ApiKey: macro-expanded (so %ENV(...)% works), env-var fallback when empty.
+  FApiKey := Trim(AConfig.GetExpandedString(PFX + 'ApiKey'));
+  if FApiKey = '' then
+    FApiKey := Trim(GetEnvironmentVariable('ANTHROPIC_API_KEY'));
+  FModel := AConfig.GetString(PFX + 'Model', KX_CLAUDE_DEF_MODEL);
+  FMaxTokens := AConfig.GetInteger(PFX + 'MaxTokens', KX_CLAUDE_DEF_MAXTOKENS);
+  FGroundingMaxPages := AConfig.GetInteger(PFX + 'GroundingMaxPages', KX_CLAUDE_DEF_GROUNDING);
+  // Raw override; '' means the provider applies its localized default prompt.
+  FSystemPrompt := AConfig.GetExpandedString(PFX + 'SystemPrompt');
+  FBaseUrl := AConfig.GetString(PFX + 'BaseUrl', KX_CLAUDE_DEF_BASEURL);
+  if FBaseUrl.EndsWith('/') then
+    FBaseUrl := FBaseUrl.Substring(0, FBaseUrl.Length - 1);
+  FVersion := AConfig.GetString(PFX + 'Version', KX_CLAUDE_DEF_VERSION);
+  FConnectTimeoutMs := AConfig.GetInteger(PFX + 'ConnectTimeoutMs', KX_CLAUDE_DEF_CONNECTTIMEOUTMS);
+  FResponseTimeoutMs := AConfig.GetInteger(PFX + 'ResponseTimeoutMs', KX_CLAUDE_DEF_RESPONSETIMEOUTMS);
 end;
 
 { TKAuthConfig }

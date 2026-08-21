@@ -57,7 +57,7 @@ type
     FSessionId: string;
     FLanguage: string;
     FDatabaseName: string;
-    FRefreshingLanguage: Boolean;
+    FReloadingHome: Boolean;
     FViewportWidthInInches: Integer;
     FAutoOpenViewName: string;
     FAuthData: TEFNode;
@@ -91,8 +91,13 @@ type
   public
     /// <summary>Sets the session language from the request query, else from config.</summary>
     procedure SetLanguageFromQueriesOrConfig(const AConfig: TKConfig);
-    /// <summary>True while the language is being (re)applied; guards re-entrancy.</summary>
-    property RefreshingLanguage: Boolean read FRefreshingLanguage write FRefreshingLanguage;
+    /// <summary>True when the next request to the application root is a reload
+    /// the application itself has just asked for — the redirect that follows a
+    /// login, a language change, or an operation that sends the user back to
+    /// the home page. Reaching the root normally logs the user out, on purpose:
+    /// this flag tells it apart from a fresh page load by the browser. Home
+    /// clears it once it has served the page.</summary>
+    property ReloadingHome: Boolean read FReloadingHome write FReloadingHome;
 
     /// <summary>The default viewport width (in inches-derived pixels) for mobile layout.</summary>
     function GetDefaultViewportWidth: Integer;

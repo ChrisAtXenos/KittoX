@@ -73,11 +73,15 @@ type
       const AUrlViewName: string = '';
       ALayout: TKLayout = nil): string;
 
-    /// <summary>Builds the grid column headers (with sort links reflecting the current sort/dir).</summary>
+    /// <summary>Builds the grid column headers (with sort links reflecting the
+    /// current sort/dir). AHiddenFieldName, when given, names a field that must
+    /// not get a column: a grouped grid uses it to leave out the field it
+    /// groups by, whose value is already in every group header.</summary>
     class function BuildColumnHeaders(AViewTable: TKViewTable;
       const AViewName, ACurrentSort, ACurrentDir: string;
       const AUrlViewName: string = '';
-      ALayout: TKLayout = nil): string;
+      ALayout: TKLayout = nil;
+      const AHiddenFieldName: string = ''): string;
 
     /// <summary>Builds the pager (page buttons / record range) for the given totals.</summary>
     class function BuildPager(const AViewName: string;
@@ -254,7 +258,10 @@ begin
         // Card container (replaces grid table)
         SB.Append('<div class="kx-template-content" id="kx-list-body-')
           .Append(LViewAlias).Append('"');
-        if IsActionVisible('Edit') and IsActionAllowed('Edit') then
+        // See the grid branch below: in lookup mode a double click selects.
+        if LIsLookup then
+          SB.Append(' data-dblclick="select"')
+        else if IsActionVisible('Edit') and IsActionAllowed('Edit') then
           SB.Append(' data-dblclick="edit"')
         else if IsActionVisible('View') then
           SB.Append(' data-dblclick="view"');
@@ -327,7 +334,13 @@ begin
       SB.Append('<div class="kx-list-grid"><table class="kx-grid-table">');
       SB.Append(BuildColumnHeaders(LViewTable, LViewAlias, LInitialSort, 'asc', LUrlViewName, LGridLayout));
       SB.Append('<tbody id="kx-list-body-').Append(LViewAlias).Append('"');
-      if IsActionVisible('Edit') and IsActionAllowed('Edit') then
+      // In lookup mode a double click picks the row, which is what the user
+      // came here for. Opening a form would be wrong twice over: the grid is
+      // there to choose a value, and the name in scope is the lkp_ alias, which
+      // is not a view - the request would 404.
+      if LIsLookup then
+        SB.Append(' data-dblclick="select"')
+      else if IsActionVisible('Edit') and IsActionAllowed('Edit') then
         SB.Append(' data-dblclick="edit"')
       else if IsActionVisible('View') then
         SB.Append(' data-dblclick="view"');
@@ -1076,10 +1089,12 @@ end;
 
 class function TKXListPanelController.BuildColumnHeaders(
   AViewTable: TKViewTable; const AViewName, ACurrentSort, ACurrentDir: string;
-  const AUrlViewName: string; ALayout: TKLayout): string;
+  const AUrlViewName: string; ALayout: TKLayout;
+  const AHiddenFieldName: string): string;
 var
   I, LCount: Integer;
   LField: TKViewField;
+  LHiddenField: TKViewField;
   LLayoutNode: TEFNode;
   LLabel: string;
   LAlign: string;
@@ -1111,6 +1126,8 @@ var
       AField := AViewTable.FindField(LName);
       if not Assigned(AField) then
         Exit;
+      if Assigned(LHiddenField) and (AField = LHiddenField) then
+        Exit;
       ALayoutNode := LNode;
       Result := True;
     end
@@ -1121,11 +1138,18 @@ var
       AField := AViewTable.Fields[AIndex];
       if not AField.IsVisible or (AField.IsBlob and not (AField.DataType is TEFMemoDataType)) then
         Exit;
+      if Assigned(LHiddenField) and (AField = LHiddenField) then
+        Exit;
       Result := True;
     end;
   end;
 
 begin
+  if AHiddenFieldName <> '' then
+    LHiddenField := AViewTable.FindField(AHiddenFieldName)
+  else
+    LHiddenField := nil;
+
   if AUrlViewName <> '' then
     LUrlName := AUrlViewName
   else

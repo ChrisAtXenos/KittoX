@@ -64,7 +64,18 @@ uses
 procedure TKXSetLangHandler.HandleSetLang(const ALang: string);
 begin
   if TKXLanguageCatalog.IsAvailable(ALang) then
+  begin
     TKWebSession.Current.Language := TKXLanguageCatalog.NormalizeCode(ALang);
+    // kxlang.js reloads the current page right after this call, and on the Home
+    // page that URL IS the application root. Reaching the root logs the user out
+    // on purpose (a fresh page load must land on the login), so without this
+    // flag switching language from inside Home would sign the user out. Same
+    // guard used by the login success path and by the legacy login language
+    // combo (Kitto.Web.Handler.Auth). It also stops ServeHomePage from
+    // re-deriving the language from the query string / Config, which would undo
+    // the choice just made. The flag is one-shot: ServeHomePage clears it.
+    TKWebSession.Current.ReloadingHome := True;
+  end;
   // Empty 200: the client only checks r.ok, then reloads the current page.
   TKWebResponse.Current.Items.Clear;
   TKWebResponse.Current.ContentType := 'text/plain; charset=utf-8';

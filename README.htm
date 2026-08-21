@@ -39,7 +39,7 @@ td{
 <h1>Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX</h1>
 <p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a>
 <a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
-<p><strong>Latest Version 4.0.15 - 12 Aug 2026</strong></p>
+<p><strong>Latest Version 4.0.16 - 21 Aug 2026</strong></p>
 <p><img src="./images/kittoX_logo_200.png" alt="KittoX_logo.png"/></p>
 <p><strong>Kitto<sup>x</sup></strong> allows to create <strong>Rich Internet Applications</strong> based on a data model that can be mapped onto any database. The client-side part uses <strong>HTMX</strong> (through webbroker technology) to create a fully <strong>AJAX</strong> application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.</p>
 <p><strong>Kitto<sup>x</sup></strong> is aimed at <strong>Delphi</strong> developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.</p>
@@ -78,6 +78,31 @@ td{
 <p>Visit <a href="https://ethea.it/Kitto-Demo/">this site</a> for online demos.</p>
 <hr />
 <h1>Release Notes</h1>
+<h2>21 Aug 2026: ver. 4.0.16 Beta</h2>
+<h3>Help Chat — AI provider (Claude)</h3>
+<ul>
+<li>New <strong><code>claude</code></strong> provider: streams answers from Anthropic's Claude, grounded on the documentation index (RAG); the reply fills in <strong>token by token</strong> via the existing client polling (no server-push), on every deployment mode</li>
+<li>Assistant replies rendered from Markdown to safe HTML with the <strong>MarkdownProcessor</strong> library (headings, lists, tables, code blocks)</li>
+<li>Help Chat and Notification Center are now <strong>opt-in units</strong> added to <code>UseKitto.pas</code> (no longer forced by <code>Kitto.Html.All</code>); a clear startup error names the missing unit when a feature is enabled in config but not linked</li>
+<li>API key kept out of the public repo (config macro / <code>ANTHROPIC_API_KEY</code> environment variable)</li>
+</ul>
+<h3>Forms &amp; data — bug fixes</h3>
+<ul>
+<li><strong>Save &amp; Clone / Dup</strong> now insert a new record instead of updating the source</li>
+<li>A <strong>validation error</strong> no longer leaves the record unusable for further editing</li>
+<li>Fields with <strong>server-side rules</strong> notify their change again — the <code>AfterFieldChange</code> cascade (computed totals, derived data) works even with <code>AlwaysNotifyChange: False</code>; form rules run again on standalone <strong>Add</strong> Form views</li>
+<li><strong>Currency</strong> fields select their content on focus; <strong>double-click</strong> in a lookup window selects the row</li>
+<li><strong>GroupingList</strong> honours the Grid layout in headers and rows, with column aggregates in the group headers</li>
+</ul>
+<h3>Authentication</h3>
+<ul>
+<li>Restored the <strong>first-access</strong> authentication chain and <strong>logout on root</strong> / return-to-home after logout</li>
+<li><strong>Change password</strong> no longer asks for the old one when the change is enforced</li>
+</ul>
+<h3>Other</h3>
+<ul>
+<li>Fixed the languages offered by the <strong>LanguageSwitcher</strong> and the related application reloads</li>
+</ul>
 <h2>12 Aug 2026: ver. 4.0.15 Beta</h2>
 <h3>Localization — full multi-language support</h3>
 <ul>

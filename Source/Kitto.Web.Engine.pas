@@ -346,7 +346,7 @@ var
   LCreated: Boolean;
   LWasAuthenticated: Boolean;
   LAuthDataCopy: TEFNode;
-  LRefreshingLanguage: Boolean;
+  LReloadingHome: Boolean;
   LLanguage: string;
   LDatabaseName: string;
 begin
@@ -380,7 +380,7 @@ begin
     // Preserve authentication state across session refresh so that
     // login redirects (KittoX) and manual F5 don't lose the auth.
     LWasAuthenticated := LSession.IsAuthenticated;
-    LRefreshingLanguage := LSession.RefreshingLanguage;
+    LReloadingHome := LSession.ReloadingHome;
     LLanguage := LSession.Language;
     LDatabaseName := LSession.DatabaseName;
     LAuthDataCopy := TEFNode.Create;
@@ -397,7 +397,7 @@ begin
         LSession.IsAuthenticated := True;
         LSession.AuthData.Assign(LAuthDataCopy);
       end;
-      LSession.RefreshingLanguage := LRefreshingLanguage;
+      LSession.ReloadingHome := LReloadingHome;
       LSession.Language := LLanguage;
       LSession.DatabaseName := LDatabaseName;
     finally

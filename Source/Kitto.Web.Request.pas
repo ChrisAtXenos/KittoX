@@ -60,6 +60,7 @@ type
     function GetAcceptLanguage: string;
     function GetLanguage: string;
     function GetRemoteAddr: string;
+    function GetHost: string;
     function GetUserAgent: string;
     function GetTimestamp: TDateTime;
     function GetFiles: TAbstractWebRequestFiles;
@@ -162,6 +163,9 @@ type
     property UserAgent: string read GetUserAgent;
     /// <summary>The client's remote (IP) address.</summary>
     property RemoteAddr: string read GetRemoteAddr;
+    /// <summary>The host the client addressed the request to (Host header),
+    /// including the port when the client sent one.</summary>
+    property Host: string read GetHost;
     /// <summary>The request timestamp (falls back to Now if the request has no date).</summary>
     property Timestamp: TDateTime read GetTimestamp;
     /// <summary>The uploaded files of a multipart request.</summary>
@@ -360,6 +364,16 @@ end;
 function TKWebRequest.GetRemoteAddr: string;
 begin
   Result := FRequest.RemoteAddr;
+end;
+
+function TKWebRequest.GetHost: string;
+begin
+  Result := FRequest.Host;
+  // Same fallback as GetHeaderField uses for Authorization: not every
+  // TWebRequest implementation fills the dedicated property, and the header is
+  // mandatory in HTTP/1.1 anyway.
+  if Result = '' then
+    Result := FRequest.GetFieldByName('Host');
 end;
 
 function TKWebRequest.GetTimestamp: TDateTime;

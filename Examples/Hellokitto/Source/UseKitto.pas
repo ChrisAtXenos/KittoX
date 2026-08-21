@@ -61,6 +61,14 @@ uses
   , Kitto.Tool.ADO
   //Debenu Quick PDF Engine + Tool: requires Debenu Quick PDF (only 32bit)
   , Kitto.Tool.DebenuQuickPDF
+
+  // Optional feature subsystems (opt-in, gated by Config.yaml; NOT part of
+  // Kitto.Html.All). If a feature is Enabled in Config but its unit is missing
+  // here, the core raises a clear startup error naming the unit to add.
+  // Help Chat (HelpChat/Enabled) — endpoints plus the provider in use:
+  , Kitto.Web.Handler.Chat
+  //, Kitto.Chat.DocSearch          // provider 'docsearch' (offline docs search)
+  , Kitto.Chat.Provider.Claude    // provider 'claude' (Anthropic AI, streaming)
   //ReportBuilder engine + 'ReportBuilderTool' controller: requires ReportBuilder
   //, Kitto.ReportBuilder
   //, Kitto.Ext.FOPTools //For FOP Engine

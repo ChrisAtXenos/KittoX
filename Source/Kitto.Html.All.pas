@@ -35,10 +35,14 @@ uses
   Kitto.Html.Login,
   Kitto.Web.Handler.Auth,
   Kitto.Web.Handler.View,
-  Kitto.Web.Handler.Notification,
   Kitto.Web.Handler.SetLang,
-  Kitto.Chat.DocSearch,
-  Kitto.Web.Handler.Chat,
+  // NOTE: the optional feature subsystems are NOT included here — they are
+  // opt-in units added to each app's UseKitto.pas only when the feature is used
+  // (and gated by Config.yaml). The core startup guard raises a clear error if a
+  // feature is Enabled in Config but its unit is missing:
+  //   Help Chat          -> Kitto.Web.Handler.Chat + a provider
+  //                         (Kitto.Chat.DocSearch and/or Kitto.Chat.Provider.Claude)
+  //   Notification Center -> Kitto.Web.Handler.Notification
   Kitto.Html.FormController,
   Kitto.Html.ResetPassword,
   Kitto.Html.ChangePassword,

@@ -243,6 +243,10 @@ end;
 
 initialization
   TKXResourceRegistry.Instance.RegisterResource(TKXNotificationHandler);
+  // Signals to the core that the Notification Center subsystem is linked, so the
+  // startup guard can tell an app that enabled Notifications but forgot to add
+  // this unit to its UseKitto.pas.
+  TKXOptionalFeatureRegistry.Declare('Notifications');
 
 finalization
   TKXResourceRegistry.Instance.UnregisterResource(TKXNotificationHandler);

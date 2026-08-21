@@ -4127,6 +4127,28 @@ body.kx-mobile .kx-flex-item {
 .kx-chat-assistant .kx-chat-bubble a { color: var(--kx-link, #337ab7); }
 .kx-chat-bubble code { font-family: ui-monospace, Consolas, monospace; font-size: .92em;
   background: rgba(0,0,0,.07); padding: 0 3px; border-radius: 3px; }
+/* Markdown block elements produced by the MarkdownProcessor (headings, paragraphs,
+   lists, code blocks, tables): kept compact so they read well inside the small
+   chat bubble. CommonMark emits real heading levels (# -> h1, ## -> h2, ...). */
+.kx-chat-bubble h1, .kx-chat-bubble h2, .kx-chat-bubble h3,
+.kx-chat-bubble h4, .kx-chat-bubble h5, .kx-chat-bubble h6 {
+  margin: .5em 0 .25em; line-height: 1.25; font-weight: 700; }
+.kx-chat-bubble h1 { font-size: 1.25em; }
+.kx-chat-bubble h2 { font-size: 1.15em; }
+.kx-chat-bubble h3 { font-size: 1.08em; }
+.kx-chat-bubble h4, .kx-chat-bubble h5, .kx-chat-bubble h6 { font-size: 1em; }
+.kx-chat-bubble p { margin: .35em 0; }
+.kx-chat-bubble > :first-child { margin-top: 0; }
+.kx-chat-bubble > :last-child { margin-bottom: 0; }
+.kx-chat-bubble ul, .kx-chat-bubble ol { margin: .25em 0; padding-left: 1.4em; }
+.kx-chat-bubble li { margin: .12em 0; }
+.kx-chat-bubble pre { margin: .4em 0; padding: 8px 10px; border-radius: 6px;
+  overflow-x: auto; background: rgba(0,0,0,.07); }
+.kx-chat-bubble pre code { background: none; padding: 0; border-radius: 0;
+  display: block; white-space: pre; font-size: .9em; }
+.kx-chat-bubble table { border-collapse: collapse; margin: .35em 0; }
+.kx-chat-bubble th, .kx-chat-bubble td { border: 1px solid var(--kx-border, #e2e2e2);
+  padding: 2px 6px; text-align: left; }
 
 /* "typing" indicator (three bouncing dots) */
 .kx-chat-typing { display: inline-flex; gap: 3px; align-items: center; height: 14px; }

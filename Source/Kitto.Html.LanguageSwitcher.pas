@@ -26,12 +26,22 @@
 ///  the anonymous endpoint /kx/setlang/{Lang} (TKXSetLangHandler) and reloads
 ///  the current page in the chosen language.
 ///
-///  The list of offered languages is DISCOVERED, not configured: every
-///  sub-folder of &lt;AppHome&gt;\Locale and &lt;SystemHome&gt;\Locale that carries a
-///  gettext catalog is offered, plus English (the source language, which needs
-///  no catalog). Each language id is mapped to a native display name and an ISO
-///  country code for the flag SVG under Resources\flags. Adding a language is
-///  therefore just a matter of dropping its Locale folder in place.
+///  The list of offered languages is DISCOVERED, not configured: a language is
+///  offered when &lt;AppHome&gt;\Locale\&lt;code&gt;\LC_MESSAGES holds at least one
+///  COMPILED catalog (*.mo), plus English (the source language, which needs no
+///  catalog). Two rules matter here:
+///
+///  - the folder must really carry a .mo. A bare folder, or one holding only
+///    .po sources, translates nothing: offering it would let the user pick a
+///    language and see the page unchanged.
+///  - only &lt;AppHome&gt; counts. &lt;SystemHome&gt;\Locale is NOT scanned, because
+///    KittoX ships framework catalogs (Kitto.mo) for de/es/it/pt and offering a
+///    language on their strength alone yields a half-translated UI: framework
+///    chrome translated, every application label still in the source language.
+///
+///  Each language id is mapped to a native display name and an ISO country code
+///  for the flag SVG under Resources\flags. Adding a language is therefore a
+///  matter of dropping the application's compiled catalog in place.
 ///
 ///  Renders only when Config.yaml has LanguagePerSession: True and at least two
 ///  languages are available; otherwise it emits nothing.
@@ -176,6 +186,19 @@ class function TKXLanguageCatalog.AvailableCodes: TArray<string>;
 var
   LFound: TStringList;
 
+  /// <summary>True when ALangDir actually carries a compiled gettext catalog
+  /// (LC_MESSAGES\*.mo). A bare language folder — or one holding only .po
+  /// sources — translates nothing, so it must not add an entry to the
+  /// switcher: the user would pick a language and see no change.</summary>
+  function HasCompiledCatalog(const ALangDir: string): Boolean;
+  var
+    LMessagesDir: string;
+  begin
+    LMessagesDir := TPath.Combine(ALangDir, 'LC_MESSAGES');
+    Result := TDirectory.Exists(LMessagesDir) and
+      (Length(TDirectory.GetFiles(LMessagesDir, '*.mo')) > 0);
+  end;
+
   procedure ScanLocaleDir(const ABaseHome: string);
   var
     LLocaleDir, LSub, LCode: string;
@@ -190,7 +213,7 @@ var
     for LSub in LDirs do
     begin
       LCode := TKXLanguageCatalog.NormalizeCode(ExtractFileName(ExcludeTrailingPathDelimiter(LSub)));
-      if (LCode <> '') and (LFound.IndexOf(LCode) < 0) then
+      if (LCode <> '') and HasCompiledCatalog(LSub) and (LFound.IndexOf(LCode) < 0) then
         LFound.Add(LCode);
     end;
   end;
@@ -205,8 +228,13 @@ begin
     LFound.CaseSensitive := False;
     // English is always offered (source language, no catalog needed).
     LFound.Add('en');
+    // Only the APPLICATION's catalogs decide which languages are offered.
+    // SystemHome is deliberately NOT scanned: KittoX ships framework catalogs
+    // (Kitto.mo) for de/es/it/pt, and offering a language on their strength
+    // alone produced a half-translated UI — framework chrome translated,
+    // every application label still in the source language. A language is
+    // usable only when the application itself ships a catalog for it.
     ScanLocaleDir(TKConfig.AppHomePath);
-    ScanLocaleDir(TKConfig.SystemHomePath);
 
     // Emit in the preferred order first, then any remaining alphabetically.
     LOrdered := TStringList.Create;

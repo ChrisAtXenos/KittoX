@@ -34,6 +34,14 @@ LanguageIds:
 Charsets:
   Item: utf-8
   Item: iso-8859-1
+HelpChatProviders:
+  Item: stub
+  Item: docsearch
+  Item: claude
+ClaudeModels:
+  Item: claude-haiku-4-5
+  Item: claude-sonnet-5
+  Item: claude-opus-5
 DetailTablesControllerStyle:
   item: Tabs
   item: Popup

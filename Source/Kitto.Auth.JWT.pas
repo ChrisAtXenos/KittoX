@@ -111,6 +111,14 @@ type
     /// <summary>Delegates the password reset to the wrapped Inner
     /// authenticator.</summary>
     procedure ResetPassword(const AParams: TEFNode); override;
+    /// <summary>Delegates the password change to the wrapped Inner
+    /// authenticator. Without this the inherited no-op would run and the new
+    /// password would be silently discarded, with no error raised.</summary>
+    procedure SetPassword(const AValue: string); override;
+    /// <summary>Delegates to the wrapped Inner authenticator, which may define
+    /// its own condition (KittoSCM reads PRIVACY_CONFIRM, not the base's
+    /// MUST_CONFIRM_ACCESS): without this its override would never run.</summary>
+    function GetMustConfirmAccess: Boolean; override;
     /// <summary>Delegates QR-code (OTP) generation to the wrapped Inner
     /// authenticator.</summary>
     procedure QRGenerate(const AParams: TEFNode); override;
@@ -521,6 +529,12 @@ begin
   FInner.ResetPassword(AParams);
 end;
 
+procedure TKJWTAuthenticator.SetPassword(const AValue: string);
+begin
+  EnsureInner;
+  FInner.Password := AValue;
+end;
+
 procedure TKJWTAuthenticator.QRGenerate(const AParams: TEFNode);
 begin
   EnsureInner;
@@ -538,6 +552,12 @@ function TKJWTAuthenticator.GetIsClearPassword: Boolean;
 begin
   EnsureInner;
   Result := FInner.IsClearPassword;
+end;
+
+function TKJWTAuthenticator.GetMustConfirmAccess: Boolean;
+begin
+  EnsureInner;
+  Result := FInner.MustConfirmAccess;
 end;
 
 function TKJWTAuthenticator.GetLoginUIMode: TKLoginUIMode;

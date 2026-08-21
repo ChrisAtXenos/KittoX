@@ -346,6 +346,20 @@ type
     /// </summary>
     procedure ServeViewAsPage(const AView: TKView; const ADefaultControllerType: string = '');
 
+    /// <summary>
+    ///  Gives a standalone Form view (a view whose own Controller is a Form)
+    ///  its server-side record: creates the store, loads it for edit/view or
+    ///  appends an initialized one for add, hands it to the controller and
+    ///  registers the store in the session under AViewName, so that the notify
+    ///  cycle, the blob and detail endpoints and the save all find it.
+    ///  Does nothing for any other kind of view or controller.
+    ///  Must be called before the controller's Display. Shared by the
+    ///  kx/view route and by the home page renderer, which serve the same
+    ///  views through different paths.
+    /// </summary>
+    procedure PrepareStandaloneFormRecord(const AViewName: string;
+      const AView: TKView; const AController: IKXController);
+
     /// <summary>Logs the current user out via the authenticator and triggers a
     /// full client-side page reload (back to the login page).</summary>
     procedure Logout;
@@ -396,8 +410,50 @@ uses
   Kitto.Web.Routing.Scripts,
   Kitto.Web.Routing.Filters,
   Kitto.Web.Routing.AppFilters,
+  Kitto.Web.Routing.Registry,
+  Kitto.Chat.Provider,
   EF.JSON,
   Web.HTTPApp;
+
+{ Optional-feature startup guard }
+
+function ChatProviderUnitHint(const AName: string): string;
+begin
+  if SameText(AName, 'docsearch') then
+    Result := 'Kitto.Chat.DocSearch'
+  else if SameText(AName, 'claude') then
+    Result := 'Kitto.Chat.Provider.Claude'
+  else if SameText(AName, KX_CHAT_PROVIDER_STUB) then
+    Result := 'Kitto.Chat.Provider'
+  else
+    Result := _('the unit that registers it');
+end;
+
+// Fail fast when an optional feature (Help Chat, Notification Center) is enabled
+// in Config.yaml but its opt-in unit was not added to the app's UseKitto.pas —
+// these subsystems are no longer pulled in by Kitto.Html.All. Raises EKError
+// naming the exact unit(s) to add.
+procedure CheckOptionalFeatureUnits;
+var
+  LProvider: string;
+begin
+  if TKConfig.Instance.Config.GetBoolean('HelpChat/Enabled', False) then
+  begin
+    if not TKXOptionalFeatureRegistry.IsAvailable('HelpChat') then
+      raise EKError.Create(_('HelpChat is enabled in Config.yaml but its units are not linked ' +
+        'into this application. Add "Kitto.Web.Handler.Chat" and a provider unit (e.g. ' +
+        '"Kitto.Chat.DocSearch" and/or "Kitto.Chat.Provider.Claude") to your project''s UseKitto.pas.'));
+    LProvider := TKConfig.Instance.Config.GetString('HelpChat/Provider', KX_CHAT_PROVIDER_STUB);
+    if not TKXChatProviderRegistry.IsRegistered(LProvider) then
+      raise EKError.CreateFmt(_('The HelpChat provider "%s" is configured in Config.yaml but is ' +
+        'not registered. Add the unit %s to your project''s UseKitto.pas.'),
+        [LProvider, ChatProviderUnitHint(LProvider)]);
+  end;
+  if TKConfig.Instance.Config.GetBoolean('Notifications/Enabled', False) then
+    if not TKXOptionalFeatureRegistry.IsAvailable('Notifications') then
+      raise EKError.Create(_('Notifications is enabled in Config.yaml but its units are not linked ' +
+        'into this application. Add "Kitto.Web.Handler.Notification" to your project''s UseKitto.pas.'));
+end;
 
 { TKApplicationMacroExpander }
 
@@ -431,6 +487,16 @@ begin
     // Expand %Auth:*%.
     if Assigned(TKWebSession.Current.AuthData) then
       ExpandTreeMacros(AString, TKWebSession.Current.AuthData);
+  end;
+
+  // These two describe the client, so they come from the request rather than
+  // from the session, and expand only while one is being served. Kitto1 had all
+  // four together because its session exposed the request headers
+  // (Kitto.Ext.Session.pas:1529-1532).
+  if TKWebRequest.Current <> nil then
+  begin
+    ExpandMacros(AString, '%SESSION_HOST%', TKWebRequest.Current.Host);
+    ExpandMacros(AString, '%SESSION_REMOTE_ADDR%', TKWebRequest.Current.RemoteAddr);
   end;
 
   if FApplication <> nil then
@@ -1325,11 +1391,14 @@ var
 begin
   LNewLanguageId := TKWebRequest.Current.Language;
   if (LNewLanguageId <> '') and (LNewLanguageId <> TKWebSession.Current.Language) then
-  begin
-    TKWebSession.Current.RefreshingLanguage := True;
     TKWebSession.Current.Language := LNewLanguageId;
-  end;
-  // In KittoX, after login redirect to home for a full page refresh.
+  // This method brings an already authenticated user back to the home page
+  // (after login, or after an operation such as the privacy confirmation), so
+  // the redirect below must not be mistaken for a fresh page load: reaching the
+  // root logs the user out on purpose, and without this flag the redirect would
+  // land on the login. Same guard the login success path sets for its own
+  // redirect (Kitto.Web.Handler.Auth, AfterAuthenticateSuccess).
+  TKWebSession.Current.ReloadingHome := True;
   TKWebResponse.Current.SetCustomHeader('HX-Redirect', FPath + '/');
 end;
 
@@ -1351,8 +1420,80 @@ begin
     LController := TKXControllerFactory.Instance.CreateController(AView, nil, nil, ADefaultControllerType)
   else
     LController := TKXControllerFactory.Instance.CreateController(AView);
+  // A data view served as a page (the home page shows ChangePassword or
+  // ConfirmAccess this way) needs its record just as much as one opened
+  // through the kx/view route.
+  PrepareStandaloneFormRecord(AView.PersistentName, AView, LController);
   LController.Display;
   Result := LController.Render;
+end;
+
+procedure TKWebApplication.PrepareStandaloneFormRecord(const AViewName: string;
+  const AView: TKView; const AController: IKXController);
+var
+  LFormController: TKXFormPanelController;
+  LViewTable: TKViewTable;
+  LStore: TKViewTableStore;
+  LRecord: TKViewTableRecord;
+  LOperation, LDefaultFilter: string;
+  LDefaults: TEFNode;
+begin
+  if not (AView is TKDataView) then
+    Exit;
+  if not (AController is TKXFormPanelController) then
+    Exit;
+  LFormController := TKXFormPanelController(AController);
+
+  LViewTable := TKDataView(AView).MainTable;
+  if not Assigned(LViewTable) then
+    Exit;
+
+  LOperation := AView.GetExpandedString('Controller/Operation', 'edit');
+  LStore := LViewTable.CreateStore;
+  if MatchText(LOperation, ['edit', 'view']) then
+  begin
+    LDefaultFilter := AView.GetExpandedString('Controller/FilterExpression');
+    if LDefaultFilter = '' then
+      LDefaultFilter := LViewTable.DefaultFilter;
+    LStore.Load(LDefaultFilter, '', 0, 0);
+    if LStore.RecordCount < 1 then
+    begin
+      FreeAndNil(LStore);
+      Exit;
+    end;
+    LRecord := LStore.Records[0];
+    // Master-detail transactional save: init detail stores.
+    if LViewTable.DetailTableCount > 0 then
+    begin
+      LRecord.EnsureDetailStores;
+      LRecord.LoadDetailStores;
+    end;
+  end
+  else if SameText(LOperation, 'add') then
+  begin
+    LRecord := LStore.Records.AppendAndInitialize;
+    LDefaults := LViewTable.GetDefaultValues;
+    try
+      LRecord.ReadFromNode(LDefaults);
+    finally
+      FreeAndNil(LDefaults);
+    end;
+    LRecord.ApplyNewRecordRules;
+    // Prepare the detail stores but do not load them: there is nothing to load
+    // for a record that does not exist yet.
+    if LViewTable.DetailTableCount > 0 then
+      LRecord.EnsureDetailStores;
+  end
+  else
+  begin
+    FreeAndNil(LStore);
+    Exit;
+  end;
+
+  LFormController.FormRecord := LRecord;
+  LFormController.Operation := LOperation;
+  LFormController.Config.SetString('Operation', LOperation);
+  TKWebSession.Current.RegisterStore(AViewName, LStore);
 end;
 
 procedure TKWebApplication.ServeViewAsPage(const AView: TKView;
@@ -1370,6 +1511,11 @@ begin
   begin
     LView := Config.Views.ViewByName('ChangePassword');
     TKWebSession.Current.AutoOpenViewName := '';
+  end
+  else if TKAuthenticator.Current.MustConfirmAccess then
+  begin
+    LView := Config.Views.ViewByName('ConfirmAccess');
+    TKWebSession.Current.AutoOpenViewName := 'ConfirmAccess';
   end
   else
     LView := GetHomeView;
@@ -1400,13 +1546,20 @@ begin
     raise Exception.Create('Cannot call Home page in an Ajax request.');
 
   LAuthenticator := GetAuthenticator;
-  if not TKWebSession.Current.RefreshingLanguage then
+  // Reaching the application root drops the current credential, on purpose:
+  // a full page load starts a new session, so a page refresh takes the user
+  // back to the login. Same as Kitto1 (Kitto.Ext.Session.pas:714). The one
+  // exception is a reload the application itself asked for (ReloadingHome),
+  // which must leave the user where they were.
+  if not TKWebSession.Current.ReloadingHome then
     LAuthenticator.Logout;
 
   TKWebSession.Current.HomeViewNodeName := TKWebRequest.Current.GetQueryField('home');
   DetectScreenSize;
 
-  if not TKWebSession.Current.RefreshingLanguage then
+  // On an application-issued reload the language has already been settled by
+  // whoever asked for it, so it must not be re-derived from the query string.
+  if not TKWebSession.Current.ReloadingHome then
     TKWebSession.Current.SetLanguageFromQueriesOrConfig(Config);
 
   TKWebSession.Current.AutoOpenViewName := TKWebRequest.Current.GetQueryField('view');
@@ -1417,6 +1570,11 @@ begin
   begin
     if TKAuthenticator.Current.MustChangePassword then
       LView := Config.Views.ViewByName('ChangePassword')
+    else if TKAuthenticator.Current.MustConfirmAccess then
+    begin
+      LView := Config.Views.ViewByName('ConfirmAccess');
+      TKWebSession.Current.AutoOpenViewName := 'ConfirmAccess';
+    end
     else
       LView := GetHomeView;
   end
@@ -1427,7 +1585,7 @@ begin
   // RenderViewAsPage falls back to the 'Login' controller type in that case.
   LBodyContent := RenderViewAsPage(LView, 'Login');
 
-  TKWebSession.Current.RefreshingLanguage := False;
+  TKWebSession.Current.ReloadingHome := False;
   ServeHomePage(LBodyContent);
 end;
 
@@ -1590,6 +1748,9 @@ begin
         ATemplate.SetData('manifestLink', TValue.From<string>(LManifestLink));
         ATemplate.SetData('resPath', TValue.From<string>(FResourcePath));
         ATemplate.SetData('iconStyle', TValue.From<string>(GetIconStyle));
+        // Guard: if an optional feature is enabled in Config but its opt-in unit
+        // is missing from UseKitto.pas, fail fast here with an actionable error.
+        CheckOptionalFeatureUnits;
         // Marker used by the client to enable the help-chat assistant button
         // (only when HelpChat/Enabled is set, and only on the authenticated home).
         var LHelpChatEnabled := 'false';

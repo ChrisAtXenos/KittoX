@@ -67,6 +67,20 @@ type
     constructor Create(const ANodePath: string; const ADefaultValue: string;
       const ADescription: string; const AIsLocalizable: Boolean = False); overload;
     /// <summary>
+    ///  Optional node with an explicit Integer default value. Lets a declaration
+    ///  reference a shared Integer constant instead of duplicating the literal
+    ///  as a string, e.g. [YamlNode('MaxTokens', KX_CLAUDE_DEF_MAXTOKENS, '...')].
+    ///  The value is stored as its string representation.
+    /// </summary>
+    constructor Create(const ANodePath: string; const ADefaultValue: Integer;
+      const ADescription: string; const AIsLocalizable: Boolean = False); overload;
+    /// <summary>
+    ///  Optional node with an explicit Boolean default value (stored as
+    ///  'True'/'False'). Lets a declaration reference a shared Boolean constant.
+    /// </summary>
+    constructor Create(const ANodePath: string; const ADefaultValue: Boolean;
+      const ADescription: string; const AIsLocalizable: Boolean = False); overload;
+    /// <summary>
     ///  Slash-separated path to the YAML node (e.g. 'IsVisible', 'PreviewWindow/Width').
     /// </summary>
     property NodePath: string read FNodePath;
@@ -244,6 +258,9 @@ type
 
 implementation
 
+uses
+  System.SysUtils;
+
 { YamlNodeAttribute }
 
 constructor YamlNodeAttribute.Create(const ANodePath, ADescription: string;
@@ -264,6 +281,31 @@ begin
   inherited Create;
   FNodePath := ANodePath;
   FDefaultValue := ADefaultValue;
+  FHasDefaultValue := True;
+  FDescription := ADescription;
+  FIsLocalizable := AIsLocalizable;
+end;
+
+constructor YamlNodeAttribute.Create(const ANodePath: string;
+  const ADefaultValue: Integer; const ADescription: string;
+  const AIsLocalizable: Boolean);
+begin
+  inherited Create;
+  FNodePath := ANodePath;
+  FDefaultValue := IntToStr(ADefaultValue);
+  FHasDefaultValue := True;
+  FDescription := ADescription;
+  FIsLocalizable := AIsLocalizable;
+end;
+
+constructor YamlNodeAttribute.Create(const ANodePath: string;
+  const ADefaultValue: Boolean; const ADescription: string;
+  const AIsLocalizable: Boolean);
+begin
+  inherited Create;
+  FNodePath := ANodePath;
+  // Stored as 'True'/'False' to match the string form used across the codebase.
+  FDefaultValue := BoolToStr(ADefaultValue, True);
   FHasDefaultValue := True;
   FDescription := ADescription;
   FIsLocalizable := AIsLocalizable;

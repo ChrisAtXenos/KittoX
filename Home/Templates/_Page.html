@@ -121,9 +121,7 @@
         function() {
           htmx.ajax(rc.verb, rc.path, {target: rc.target, swap: rc.swapStyle || 'innerHTML'});
         },
-        function() {
-          window.location.reload();
-        }
+        kxReloadHome
       );
     }
     document.body.addEventListener("htmx:timeout", kxTimeoutHandler);
@@ -152,9 +150,7 @@
             htmx.ajax(rc.verb, rc.path, {target: rc.target, swap: rc.swapStyle || 'innerHTML'});
           }
         },
-        function() {
-          window.location.reload();
-        }
+        kxReloadHome
       );
     });
   </script>

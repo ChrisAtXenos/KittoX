@@ -2,7 +2,7 @@
 [![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
 
-**Latest Version 4.0.15 - 12 Aug 2026**
+**Latest Version 4.0.16 - 21 Aug 2026**
 
 ![KittoX_logo.png](./images/kittoX_logo_200.png)
 
@@ -53,6 +53,28 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 ---
 
 # Release Notes
+
+## 21 Aug 2026: ver. 4.0.16 Beta
+
+### Help Chat — AI provider (Claude)
+- New **`claude`** provider: streams answers from Anthropic's Claude, grounded on the documentation index (RAG); the reply fills in **token by token** via the existing client polling (no server-push), on every deployment mode
+- Assistant replies rendered from Markdown to safe HTML with the **MarkdownProcessor** library (headings, lists, tables, code blocks)
+- Help Chat and Notification Center are now **opt-in units** added to `UseKitto.pas` (no longer forced by `Kitto.Html.All`); a clear startup error names the missing unit when a feature is enabled in config but not linked
+- API key kept out of the public repo (config macro / `ANTHROPIC_API_KEY` environment variable)
+
+### Forms & data — bug fixes
+- **Save & Clone / Dup** now insert a new record instead of updating the source
+- A **validation error** no longer leaves the record unusable for further editing
+- Fields with **server-side rules** notify their change again — the `AfterFieldChange` cascade (computed totals, derived data) works even with `AlwaysNotifyChange: False`; form rules run again on standalone **Add** Form views
+- **Currency** fields select their content on focus; **double-click** in a lookup window selects the row
+- **GroupingList** honours the Grid layout in headers and rows, with column aggregates in the group headers
+
+### Authentication
+- Restored the **first-access** authentication chain and **logout on root** / return-to-home after logout
+- **Change password** no longer asks for the old one when the change is enforced
+
+### Other
+- Fixed the languages offered by the **LanguageSwitcher** and the related application reloads
 
 ## 12 Aug 2026: ver. 4.0.15 Beta
 

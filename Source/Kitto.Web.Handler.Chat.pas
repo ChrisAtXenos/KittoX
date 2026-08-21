@@ -71,17 +71,19 @@ implementation
 uses
   System.SysUtils,
   System.StrUtils,
-  System.RegularExpressions,
   System.NetEncoding,
   EF.Tree,
   EF.Localization,
   Kitto.Auth,
   Kitto.Config,
+  Kitto.Metadata.SubNodes,
   Kitto.Web.Request,
   Kitto.Web.Response,
   Kitto.Chat.Provider,
   Kitto.Chat.Runner,
-  Kitto.Web.Routing.Registry;
+  Kitto.Web.Routing.Registry,
+  MarkdownProcessor,
+  MarkdownUtils;
 
 function RoleToClass(const ARole: TKXChatRole): string;
 begin
@@ -102,21 +104,31 @@ begin
   Result := StringReplace(Result, #13, '<br>', [rfReplaceAll]);
 end;
 
-// Minimal, XSS-safe markdown for assistant replies: the text is HTML-encoded
-// first, then a restricted set of markdown is turned into tags — links
-// [text](http(s)://url), **bold**, `code` and newlines. Because everything is
-// encoded before the tags are injected, no raw HTML from the provider (or an AI)
-// can reach the DOM; only http/https links are produced.
+// Renders the assistant's Markdown reply to a safe HTML fragment using Ethea's
+// MarkdownProcessor (vendored under Source\ThirdParty\MarkdownProcessor):
+// CommonMark dialect in safe mode (AllowUnsafe = False), so active HTML
+// (script/iframe/object/applet/frame...) is escaped and AI-produced content
+// cannot inject markup. Tolerant of partial input, so it also renders the
+// growing partial while a streaming provider is still producing the reply. On
+// any error it falls back to plain HTML-encoded text.
 function MarkdownToSafeHtml(const AText: string): string;
+var
+  LProcessor: TMarkdownProcessor;
 begin
-  Result := TNetEncoding.HTML.Encode(AText);
-  Result := TRegEx.Replace(Result, '\[([^\]]+)\]\((https?://[^)\s]+)\)',
-    '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  Result := TRegEx.Replace(Result, '\*\*(.+?)\*\*', '<b>$1</b>');
-  Result := TRegEx.Replace(Result, '`([^`]+)`', '<code>$1</code>');
-  Result := StringReplace(Result, #13#10, '<br>', [rfReplaceAll]);
-  Result := StringReplace(Result, #10, '<br>', [rfReplaceAll]);
-  Result := StringReplace(Result, #13, '<br>', [rfReplaceAll]);
+  if Trim(AText) = '' then
+    Exit('');
+  try
+    LProcessor := TMarkdownProcessor.CreateDialect(mdCommonMark);
+    try
+      LProcessor.AllowUnsafe := False;
+      Result := LProcessor.Process(AText);
+    finally
+      LProcessor.Free;
+    end;
+  except
+    on E: Exception do
+      Result := TextToHtml(AText);
+  end;
 end;
 
 // Renders one message as a chat bubble. A pending assistant message shows a
@@ -128,8 +140,15 @@ begin
   LExtra := '';
   if AMessage.Pending then
   begin
+    // The client keeps polling while data-pending is set. A streaming provider
+    // fills Content token by token: show the partial reply (same restricted
+    // markdown as the final bubble) once there is any text, otherwise the
+    // typing indicator.
     LExtra := ' data-pending="1"';
-    LBody := '<span class="kx-chat-typing"><span></span><span></span><span></span></span>';
+    if AMessage.Content <> '' then
+      LBody := MarkdownToSafeHtml(AMessage.Content)
+    else
+      LBody := '<span class="kx-chat-typing"><span></span><span></span><span></span></span>';
   end
   else if AMessage.IsError then
   begin
@@ -137,7 +156,7 @@ begin
     LBody := TextToHtml(AMessage.Content);
   end
   else if AMessage.Role = crAssistant then
-    // Completed assistant reply: render the restricted markdown (links, bold, code).
+    // Completed assistant reply: render its Markdown as safe HTML.
     LBody := MarkdownToSafeHtml(AMessage.Content)
   else
     LBody := TextToHtml(AMessage.Content);
@@ -154,6 +173,9 @@ function GreetingHtml: string;
 var
   LGreeting: string;
 begin
+  // NB: keep the literal here (not KX_HELPCHAT_DEF_GREETING) so dxgettext can
+  // extract it for translation. The constant carries the same text and is used
+  // by the config class, the [YamlNode] default and the KIDE frame.
   LGreeting := TKConfig.Instance.Config.GetExpandedString('HelpChat/Greeting',
     _('Hi! Ask me anything about how to use the application.'));
   Result :=
@@ -204,7 +226,7 @@ begin
   LControllerType := Trim(TKWebRequest.Current.GetContentFields.Values['controllerType']);
 
   LConfig := TKConfig.Instance.Config;
-  LMaxLen := LConfig.GetInteger('HelpChat/MessageMaxLength', 4000);
+  LMaxLen := LConfig.GetInteger('HelpChat/MessageMaxLength', KX_HELPCHAT_DEF_MSGMAXLEN);
   if (LText = '') then
   begin
     WritePartial('');
@@ -225,7 +247,7 @@ begin
 
   TKXChatRunner.Instance.Submit(LUser, LAssistantId,
     LConfig.GetString('HelpChat/Provider', KX_CHAT_PROVIDER_STUB),
-    LContext, LConfig.GetInteger('HelpChat/HistoryMaxMessages', 50));
+    LContext, LConfig.GetInteger('HelpChat/HistoryMaxMessages', KX_HELPCHAT_DEF_HISTMAXMSG));
 
   // Return both bubbles: the user message and the pending assistant placeholder
   // (the client starts polling the latter by its id).
@@ -251,6 +273,10 @@ end;
 
 initialization
   TKXResourceRegistry.Instance.RegisterResource(TKXChatHandler);
+  // Signals to the core that the Help Chat subsystem is linked, so the startup
+  // guard can tell an app that enabled HelpChat but forgot to add this unit (and
+  // a provider) to its UseKitto.pas.
+  TKXOptionalFeatureRegistry.Declare('HelpChat');
 
 finalization
   TKXResourceRegistry.Instance.UnregisterResource(TKXChatHandler);

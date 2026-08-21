@@ -158,7 +158,8 @@ type
   /// </summary>
   TKRecord = class(TEFNode)
   strict private
-    FBackup: TEFNode;
+    // A record, not a plain node: see Backup.
+    FBackup: TKRecord;
     FState: TKRecordState;
     FPreviousState: TKRecordState;
     FDetailStores: TObjectList<TKStore>;
@@ -1268,7 +1269,15 @@ end;
 procedure TKRecord.Backup;
 begin
   if not Assigned(FBackup) then
-    FBackup := TEFNode.Create;
+    // The backup must be a record, not a plain node. TEFTree.Assign builds the
+    // copy by cloning each child through the *destination's* GetChildClass, so
+    // only a TKRecord yields TKField children - the sole class able to carry
+    // over the header field, which is what gives a field its name, data type
+    // and view field. With a plain TEFNode the copy would hold anonymous
+    // nodes, and Restore would clone our fields back from them, leaving every
+    // field headerless (TKField.Assign can only take the header from another
+    // TKField).
+    FBackup := TKRecord.Create;
   FBackup.Assign(Self);
 end;
 
@@ -1612,6 +1621,10 @@ procedure TKRecord.Restore;
 begin
   Assert(Assigned(FBackup));
 
+  // Fields are re-created by cloning the backup's ones, which carry the header
+  // field along (see Backup): the restored record is therefore fully usable,
+  // as Restore runs while an exception is propagating and the record lives on
+  // in the session store.
   Assign(FBackup);
 end;
 

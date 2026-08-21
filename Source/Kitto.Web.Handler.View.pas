@@ -180,6 +180,19 @@ uses
   Kitto.Web.Routing.Registry;
 
 /// <summary>
+///  Records a failed save in the log. Without this the message reaches the
+///  browser and nowhere else, which leaves nothing to look at once the dialog
+///  is closed - and nothing at all when the failure is reported second-hand.
+///  Logged at the LOG_HIGH level, so it shows up without turning the log up to
+///  its most verbose setting.
+/// </summary>
+procedure LogSaveError(const AException: Exception);
+begin
+  TEFLogger.Instance.LogFmt('Save failed: %s: %s',
+    [AException.ClassName, AException.Message], TEFLogger.LOG_HIGH);
+end;
+
+/// <summary>
 ///  Serializes a record's key as the "name=value&..." string used by the form's
 ///  _key hidden field and by the grid's openForm calls (URL-encoded values).
 ///  Same shape produced by TKXFormPanelController when rendering the form.
@@ -256,11 +269,6 @@ var
   LHtml: string;
   LControllerNode, LCenterNode: TEFNode;
   LControllerType: string;
-  LDataView: TKDataView;
-  LViewTable: TKViewTable;
-  LStore: TKViewTableStore;
-  LFormController: TKXFormPanelController;
-  LOperation, LDefaultFilter: string;
 
   procedure AdjustForContext;
   begin
@@ -296,35 +304,14 @@ begin
         LControllerType := LControllerNode.AsString;
       if SameText(LControllerType, 'Form') and (LView is TKDataView) then
       begin
-        LDataView := TKDataView(LView);
-        LViewTable := LDataView.MainTable;
-        LOperation := LView.GetExpandedString('Controller/Operation', 'edit');
         LController := TKXControllerFactory.Instance.CreateController(LView);
         if LController is TKXFormPanelController then
         begin
-          LFormController := TKXFormPanelController(LController);
-          if MatchText(LOperation, ['edit', 'view']) then
-          begin
-            LStore := LViewTable.CreateStore;
-            LDefaultFilter := LView.GetExpandedString('Controller/FilterExpression');
-            if LDefaultFilter = '' then
-              LDefaultFilter := LViewTable.DefaultFilter;
-            LStore.Load(LDefaultFilter, '', 0, 0);
-            if LStore.RecordCount >= 1 then
-            begin
-              LFormController.FormRecord := LStore.Records[0];
-              // Master-detail transactional save: init detail stores.
-              if (LViewTable.DetailTableCount > 0) and MatchText(LOperation, ['edit', 'view']) then
-              begin
-                LStore.Records[0].EnsureDetailStores;
-                LStore.Records[0].LoadDetailStores;
-              end;
-              // Register store for subsequent blob/save/detail requests.
-              TKWebSession.Current.RegisterStore(AViewName, LStore);
-            end;
-          end;
-          LFormController.Operation := LOperation;
-          LFormController.Config.SetString('Operation', LOperation);
+          // Record, store and session registration are prepared by the
+          // application, which does the same for a view served as the home
+          // page (ChangePassword, ConfirmAccess): the two paths must not
+          // diverge.
+          LApp.PrepareStandaloneFormRecord(AViewName, LView, LController);
           LController.Display;
           AdjustForContext;
           LHtml := LController.Render;
@@ -541,7 +528,7 @@ begin
       // Build grouped rows only (no pager OOB)
       LHtml := TKXGroupingListController.BuildGroupedRows(
         LStore, LViewTable, LViewAlias, LGroupingFieldName,
-        LGroupingNode, LUrlViewName) +
+        LGroupingNode, LUrlViewName, LViewTable.FindLayout('Grid')) +
         // OOB: hidden state (update filter state, no paging)
         TKXListPanelController.BuildHiddenState(LViewAlias, 0, '', '', LUrlViewName);
 
@@ -821,7 +808,8 @@ begin
       LHtml := TKXGroupingListController.BuildGroupedRows(
         LStore, LViewTable, AViewName,
         LViewTable.GetExpandedString('Controller/Grouping/FieldName'),
-        LViewTable.FindNode('Controller/Grouping')) +
+        LViewTable.FindNode('Controller/Grouping'), '',
+        LViewTable.FindLayout('Grid')) +
         TKXListPanelController.BuildHiddenState(AViewName, 0, '', '');
 
       LHtml := ReplaceStr(LHtml,
@@ -1234,6 +1222,7 @@ begin
   except
     on E: Exception do
     begin
+      LogSaveError(E);
       LHtml :=
         '<div class="kx-msgbox-overlay" onclick="this.remove()">' +
           '<div class="kx-msgbox-dialog kx-msgbox-error" onclick="event.stopPropagation()">' +
@@ -1375,6 +1364,11 @@ begin
         end
         else
         begin
+          // Reached only when the session store is gone (an expired session, or
+          // a save posted without the form having been opened first): rebuild a
+          // throw-away record the same way HandleForm and HandleView do, so the
+          // NewRecord rules run here too. AppendAndInitialize already yields a
+          // record in the rsNew state.
           LRecord := LStore.Records.AppendAndInitialize;
           LDefaults := LViewTable.GetDefaultValues;
           try
@@ -1382,7 +1376,7 @@ begin
           finally
             FreeAndNil(LDefaults);
           end;
-          LRecord.MarkAsNew;
+          LRecord.ApplyNewRecordRules;
           LApp.PopulateRecordFromPost(LRecord, LViewTable, True);
         end;
         OnBeforeSave(LRecord, True);
@@ -1447,6 +1441,7 @@ begin
     except
       on E: Exception do
       begin
+        LogSaveError(E);
         LHtml :=
           '<div class="kx-msgbox-overlay" onclick="this.remove()">' +
             '<div class="kx-msgbox-dialog kx-msgbox-error" onclick="event.stopPropagation()">' +
@@ -1599,6 +1594,7 @@ begin
     except
       on E: Exception do
       begin
+        LogSaveError(E);
         LHtml :=
           '<div class="kx-msgbox-overlay" onclick="this.remove()">' +
             '<div class="kx-msgbox-dialog kx-msgbox-error" onclick="event.stopPropagation()">' +
@@ -2105,6 +2101,7 @@ begin
   except
     on E: Exception do
     begin
+      LogSaveError(E);
       LHtml :=
         '<div class="kx-msgbox-overlay" onclick="this.remove()">' +
           '<div class="kx-msgbox-dialog kx-msgbox-error" onclick="event.stopPropagation()">' +

@@ -42,6 +42,10 @@ type
   TKXChangePasswordController = class(TKXFormController)
   strict private
     function GetLabelWidth: Integer;
+    /// <summary>False when the change is imposed on the user
+    /// (MustChangePassword): the old password is not asked for, because the
+    /// user has never chosen one.</summary>
+    function ShowOldPassword: Boolean;
   strict protected
     procedure DoDisplay; override;
     function RenderFormBody: string; override;
@@ -66,6 +70,7 @@ uses
   System.Math,
   System.NetEncoding,
   EF.Localization,
+  Kitto.Auth,
   Kitto.Html.Utils;
 
 { TKXChangePasswordController }
@@ -108,11 +113,21 @@ begin
   Result := '#kx-chgpw-status';
 end;
 
+function TKXChangePasswordController.ShowOldPassword: Boolean;
+begin
+  // The dialog is imposed on the user when the password must be changed (first
+  // access after registration, or after a reset): asking for the old one makes
+  // no sense there, because the user has never chosen it. Mirrors Kitto1's
+  // FShowOldPassword := not MustChangePassword.
+  Result := not TKAuthenticator.Current.MustChangePassword;
+end;
+
 function TKXChangePasswordController.RenderFormBody: string;
 var
   LOldPwLabel, LNewPwLabel, LConfirmPwLabel: string;
   LLabelStyleAttr: string;
   LLabelWidth: Integer;
+  LOldPwRow: string;
 begin
   LOldPwLabel := _('Old Password');
   LNewPwLabel := _('New Password');
@@ -120,15 +135,21 @@ begin
   LLabelWidth := Config.GetInteger('LabelWidth', 100);
   LLabelStyleAttr := Format(' style="min-width: %dpx; width: %0:dpx;"', [LLabelWidth]);
 
-  Result :=
-    '<div class="kx-rp-fields">' +
+  if ShowOldPassword then
+    LOldPwRow :=
       '<div class="kx-login-field-row">' +
         '<label class="kx-login-field-label" for="kx-chgpw-old"' +
           LLabelStyleAttr + '>' +
           TNetEncoding.HTML.Encode(LOldPwLabel) + '</label>' +
         '<input type="password" id="kx-chgpw-old" name="OldPassword" ' +
           'class="kx-login-field-input" autocomplete="current-password" required>' +
-      '</div>' +
+      '</div>'
+  else
+    LOldPwRow := '';
+
+  Result :=
+    '<div class="kx-rp-fields">' +
+      LOldPwRow +
       '<div class="kx-login-field-row">' +
         '<label class="kx-login-field-label" for="kx-chgpw-new"' +
           LLabelStyleAttr + '>' +
@@ -169,6 +190,9 @@ end;
 
 function TKXChangePasswordController.RenderFormScript: string;
 begin
+  // The old-password field is absent when the change is imposed (see
+  // ShowOldPassword), so every reference to it is guarded and the focus goes to
+  // the first field actually rendered.
   Result :=
     '(function() {' +
     '  var oldEl = document.getElementById("kx-chgpw-old");' +
@@ -176,14 +200,14 @@ begin
     '  var confEl = document.getElementById("kx-chgpw-confirm");' +
     '  var btnEl = document.getElementById("kx-chgpw-btn");' +
     '  function updateBtn() {' +
-    '    btnEl.disabled = (oldEl.value === "" || newEl.value === "" || ' +
+    '    btnEl.disabled = ((oldEl && oldEl.value === "") || newEl.value === "" || ' +
     '      newEl.value !== confEl.value);' +
     '  }' +
-    '  oldEl.addEventListener("input", updateBtn);' +
+    '  if (oldEl) oldEl.addEventListener("input", updateBtn);' +
     '  newEl.addEventListener("input", updateBtn);' +
     '  confEl.addEventListener("input", updateBtn);' +
     '  updateBtn();' +
-    '  oldEl.focus();' +
+    '  (oldEl || newEl).focus();' +
     '})();';
 end;
 

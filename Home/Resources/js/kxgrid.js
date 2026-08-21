@@ -156,6 +156,18 @@ function kxFetchWithTimeout(url, options) {
   return fetch(url, fetchOpts)
     .then(function(response) {
       clearTimeout(timeoutId);
+      // Honour HX-Redirect on this channel too. The server speaks it from
+      // TKWebApplication.Navigate and ReloadOrDisplayHomeView (a rule returning
+      // the user to the home page, for instance); htmx obeys it natively, while
+      // fetch reads only the body, so without this the redirect was silently
+      // dropped and the caller was left showing nothing.
+      var redirect = response.headers.get('HX-Redirect');
+      if (redirect) {
+        window.location.href = redirect;
+        // Never-resolving promise: the page is navigating away, callers must
+        // not go on to swap content into a document that is being replaced.
+        return new Promise(function() {});
+      }
       return response;
     })
     .catch(function(err) {
@@ -169,12 +181,38 @@ function kxFetchWithTimeout(url, options) {
             S.retry || 'Retry',
             S.reset || 'Reset',
             function() { kxFetchWithTimeout(url, options).then(resolve, reject); },
-            function() { window.location.reload(); }
+            kxReloadHome
           );
         });
       }
       throw err;
     });
+}
+
+/**
+ * Reloads the current page as an APPLICATION-issued reload, keeping the session.
+ *
+ * Reaching the application root drops the credential on purpose, so that a fresh
+ * page load starts from the login. A plain location.reload() on the home is
+ * indistinguishable from that, and would sign the user out — which is wrong for
+ * the reloads that exist to recover from a transient failure ([Reset], and
+ * [Retry] when the caller has no way to re-issue the request): the session is
+ * still valid, only the last request failed.
+ *
+ * So we tell the server first — POST kx/reloadhome raises the one-shot
+ * ReloadingHome flag on the session — and only then reload. Same shape kxlang.js
+ * uses around kx/setlang. If the POST cannot get through, the reload happens
+ * anyway and lands on the login: with the server unreachable that is the honest
+ * outcome. A user pressing F5 sends no POST, so it still signs out, as intended.
+ */
+function kxReloadHome() {
+  fetch('kx/reloadhome', {
+    method: 'POST',
+    headers: { 'X-KittoX': 'true' },
+    credentials: 'same-origin'
+  })
+    .catch(function () { /* server unreachable: reload anyway, land on login */ })
+    .then(function () { window.location.reload(); });
 }
 
 /**
@@ -196,8 +234,9 @@ function kxServerErrorText(status) {
  * Response (its .status drives the message) or nothing / an Error for a
  * network/connection failure, and optionally a retry callback that re-runs the
  * action (Retry falls back to a full reload when none is given; Reset always
- * reloads). Use this for actions triggered by a user click; background polling
- * should stay silent.
+ * reloads). Both reloads go through kxReloadHome, so recovering from the error
+ * does not sign the user out. Use this for actions triggered by a user click;
+ * background polling should stay silent.
  */
 function kxReportRequestError(errOrResponse, onRetry) {
   var S = window.KX_STRINGS || {};
@@ -207,12 +246,11 @@ function kxReportRequestError(errOrResponse, onRetry) {
   } else {
     msg = S.serverNotResponding || 'Server is not responding';
   }
-  var reload = function() { window.location.reload(); };
   kxGrid.showConfirm(
     S.errorTitle || 'Error', msg,
     S.retry || 'Retry', S.reset || 'Reset',
-    (typeof onRetry === 'function') ? onRetry : reload,
-    reload
+    (typeof onRetry === 'function') ? onRetry : kxReloadHome,
+    kxReloadHome
   );
 }
 
@@ -547,6 +585,11 @@ var kxGrid = {
     var container = row.closest('[data-dblclick]');
     if (!container) return;
     var op = container.dataset.dblclick;
+    if (op === 'select') {
+      // Lookup grid: a double click picks the row, same as the Select button.
+      kxForm.onLookupSelect(viewName);
+      return;
+    }
     if (container.dataset.detailView) {
       kxForm.openDetailForm(
         container.dataset.detailView, op,
@@ -1150,7 +1193,29 @@ var kxForm = {
    * On success: server returns a script tag that calls onSaveSuccess.
    * On error: server returns an error dialog overlay.
    */
-  save: function(viewName, op) {
+  // Adds the one-shot save flags to the request body. They are not form inputs,
+  // so they must be appended explicitly; both a FormData and a URLSearchParams
+  // body expose the same append().
+  _appendSaveFlags: function(body, flags) {
+    if (!flags) return;
+    if (flags.saveAll) body.append('_saveAll', 'true');
+    if (flags.clone) body.append('_clone', 'true');
+  },
+
+  /**
+   * Saves the form to the database.
+   * The optional flags object carries the intent of this single click:
+   *   { saveAll: true } persist the master plus the pending detail changes;
+   *   { clone: true }   persist, then insert a copy of the record.
+   * Omitting it means a plain save, which on a master-detail form is a
+   * save-cache. The intent is passed as an argument on purpose and never
+   * stored in the form: it belongs to one request, whereas a hidden input
+   * would outlive a failed or aborted attempt and silently change the meaning
+   * of the next click (a Confirm would persist and close the form).
+   */
+  save: function(viewName, op, flags) {
+    flags = flags || {};
+
     // If this form was opened from a detail grid context (any style: Tabs/Bottom/Popup),
     // redirect to saveDetail (detail records save to in-memory store, not to DB).
     // All detail styles use the session store.
@@ -1160,12 +1225,11 @@ var kxForm = {
       return;
     }
 
-    // Master form with detail tables (any style): Save goes to SaveCache (no DB persist)
-    // unless _saveAll is set (Save All button triggers full DB persist).
+    // Master form with detail tables (any style): Save goes to SaveCache (no DB
+    // persist) unless this is a Save All, which persists everything.
     // All detail styles use SaveCache + SaveAll.
     var form = document.getElementById('kx-form-' + viewName);
-    var saveAllInput = form ? form.querySelector('input[name="_saveAll"]') : null;
-    if (form && form.dataset.hasDetails === 'true' && !(saveAllInput && saveAllInput.value === 'true')) {
+    if (form && form.dataset.hasDetails === 'true' && !flags.saveAll) {
       kxForm.saveCache(viewName, op);
       return;
     }
@@ -1201,6 +1265,7 @@ var kxForm = {
           body.append(inp.name, inp.value);
         }
       });
+      kxForm._appendSaveFlags(body, flags);
       // Browser sets Content-Type with multipart boundary automatically
       headers = { 'X-KittoX': 'true' };
     } else {
@@ -1214,6 +1279,7 @@ var kxForm = {
           body.append(inp.name, inp.value);
         }
       });
+      kxForm._appendSaveFlags(body, flags);
       headers = { 'Content-Type': 'application/x-www-form-urlencoded', 'X-KittoX': 'true' };
     }
 
@@ -1265,8 +1331,9 @@ var kxForm = {
     if (overlay) {
       overlay.remove();
     } else if (typeof kxTabs !== 'undefined' && document.getElementById('kx-tab-pane-' + viewName)) {
-      // Standalone form in tab: close the tab
-      kxTabs.close(viewName);
+      // Standalone form in tab: close the tab. The store is released by the
+      // form-close below, so the tab must not send a second one.
+      kxTabs.close(viewName, true);
     } else {
       var el = document.getElementById('kx-' + viewName);
       if (el) el.remove();
@@ -1413,41 +1480,19 @@ var kxForm = {
   },
 
   /**
-   * Saves form data with a _clone flag.
-   * After successful save, the server returns onCloneSuccess instead of onSaveSuccess.
+   * Saves the record, then asks the server to insert a copy of it.
+   * After a successful save the server returns onCloneSuccess instead of
+   * onSaveSuccess.
    */
   saveAndClone: function(viewName, op) {
-    var form = document.getElementById('kx-form-' + viewName);
-    if (!form) return;
-    // Inject or update the _clone hidden input
-    var cloneInput = form.querySelector('input[name="_clone"]');
-    if (!cloneInput) {
-      cloneInput = document.createElement('input');
-      cloneInput.type = 'hidden';
-      cloneInput.name = '_clone';
-      form.appendChild(cloneInput);
-    }
-    cloneInput.value = 'true';
-    // Trigger the normal save flow (which will pick up _clone from form inputs)
-    kxForm.save(viewName, op);
+    kxForm.save(viewName, op, { clone: true });
   },
 
   /**
    * Saves the master record plus all pending detail changes in one transaction.
-   * Injects a _saveAll=true hidden field and triggers the normal save flow.
    */
   saveAll: function(viewName, op) {
-    var form = document.getElementById('kx-form-' + viewName);
-    if (!form) return;
-    var saveAllInput = form.querySelector('input[name="_saveAll"]');
-    if (!saveAllInput) {
-      saveAllInput = document.createElement('input');
-      saveAllInput.type = 'hidden';
-      saveAllInput.name = '_saveAll';
-      form.appendChild(saveAllInput);
-    }
-    saveAllInput.value = 'true';
-    kxForm.save(viewName, op);
+    kxForm.save(viewName, op, { saveAll: true });
   },
 
   /**
@@ -1471,9 +1516,6 @@ var kxForm = {
       if (opInput) opInput.value = 'edit';
       var keyInput = form.querySelector('input[name="_key"]');
       if (keyInput) keyInput.value = newKey || '';
-      // Remove _clone flag so next normal Save works as expected
-      var cloneInput = form.querySelector('input[name="_clone"]');
-      if (cloneInput) cloneInput.remove();
       // Show the copy's own key in any visible key editor
       if (newKey) {
         newKey.split('&').forEach(function(pair) {
@@ -2674,16 +2716,24 @@ var kxForm = {
   },
 
   /**
-   * On focus: strips the currency symbol so the user edits the raw number.
+   * On focus: strips the currency symbol so the user edits the raw number, then
+   * selects the content so that typing overwrites the amount straight away.
+   * Assigning value collapses the selection the browser makes when the field is
+   * reached with Tab - which is why a currency field, unlike a plain text or
+   * date one, used to be entered with the caret at the end. select() restores
+   * it, and holds for a mouse click too: however the field is entered, its
+   * content is selected and ready to be overwritten.
    * @param {HTMLInputElement} input - The input element
    * @param {string} symbol - Currency symbol (e.g. '€')
    */
   focusCurrency: function(input, symbol) {
-    if (!symbol) return;
-    var val = input.value.trim();
-    if (val.indexOf(symbol) === 0) {
-      input.value = val.substring(symbol.length).trim();
+    if (symbol) {
+      var val = input.value.trim();
+      if (val.indexOf(symbol) === 0) {
+        input.value = val.substring(symbol.length).trim();
+      }
     }
+    input.select();
   },
 
   /**

@@ -644,6 +644,11 @@ type
     function GetStore: TKViewTableStore;
     function GetViewTable: TKViewTable;
     function GetField(I: Integer): TKViewTableField;
+    /// <summary>OnFieldChange handler that runs the AfterFieldChange rules of
+    /// the changed field. Installed by ApplyNewRecordRules for the duration of
+    /// the new-record rules.</summary>
+    procedure FieldChangeRulesHandler(const AField: TKField;
+      const AOldValue, ANewValue: Variant);
   private
     FReferenceViewFieldBeingChanged: TKViewField;
   strict protected
@@ -691,10 +696,22 @@ type
     /// <summary>Executes the deferred file-deletion instructions for FileReference fields.</summary>
     procedure HandleDeleteFileInstructions;
 
-    /// <summary>Applies the model/view new-record rules (defaults, computed values).</summary>
-    procedure ApplyNewRecordRules;
+    /// <summary>Applies the model/view new-record rules (defaults, computed
+    /// values). AFireFieldChangeRules keeps the AfterFieldChange cascade alive
+    /// while they run, so that a value a NewRecord rule assigns triggers the
+    /// rules that depend on it; pass False for batch paths that must not run
+    /// them (see the remarks).</summary>
+    /// <remarks>In Kitto1 the cascade was on for a record being prepared for a
+    /// form, because the form controller installed its field-change handler
+    /// before applying these rules (Kitto.Ext.Form.pas, EnableFieldChangeHandler
+    /// then ApplyNewRecordRules) and kept it for the whole life of the form,
+    /// and off for the Excel import, which applied the rules on a record with
+    /// no handler attached (Kitto.Excel.pas). The default preserves the first,
+    /// far more common case.</remarks>
+    procedure ApplyNewRecordRules(const AFireFieldChangeRules: Boolean = True);
     /// <summary>Same as ApplyNewRecordRules but also fires the model's Before/AfterNewRecord events.</summary>
-    procedure ApplyNewRecordRulesAndFireEvents(const AViewTable: TKViewTable; const AIsCloned: Boolean);
+    procedure ApplyNewRecordRulesAndFireEvents(const AViewTable: TKViewTable;
+      const AIsCloned: Boolean; const AFireFieldChangeRules: Boolean = True);
     /// <summary>Applies the edit-record rules (on transition to edit mode).</summary>
     procedure ApplyEditRecordRules;
     /// <summary>Applies the rules to run after the edit window is shown.</summary>
@@ -3130,22 +3147,63 @@ begin
   ApplyNewRecordRulesAndFireEvents(ViewTable, True);
 end;
 
-procedure TKViewTableRecord.ApplyNewRecordRules;
+procedure TKViewTableRecord.FieldChangeRulesHandler(const AField: TKField;
+  const AOldValue, ANewValue: Variant);
+var
+  LField: TKViewTableField;
+  LOldValue, LNewValue: Variant;
 begin
-  ViewTable.ApplyRules(
-    procedure (ARuleImpl: TKRuleImpl)
+  // Same body as Kitto1's TKExtFormPanelController.FieldChange: enumerate the
+  // rules of the changed field's ViewField and invoke AfterFieldChange.
+  if not (AField is TKViewTableField) then
+    Exit;
+  LField := TKViewTableField(AField);
+  if LField.IsPartOfCompositeField then
+    Exit;
+  LOldValue := AOldValue;
+  LNewValue := ANewValue;
+  LField.ViewField.EnumRules(
+    function (ARuleImpl: TKRuleImpl): Boolean
     begin
-      ARuleImpl.NewRecord(Self);
+      ARuleImpl.AfterFieldChange(AField, LOldValue, LNewValue);
+      Result := False; // Continue with the next rule.
     end);
+end;
+
+procedure TKViewTableRecord.ApplyNewRecordRules(const AFireFieldChangeRules: Boolean);
+var
+  LPreviousHandler: TKFieldChangeEvent;
+begin
+  // A NewRecord rule that assigns a field must trigger the AfterFieldChange
+  // rules of that field: applications rely on it to derive a whole block of
+  // values from one assignment. KittoSCM, for instance, sets the id of the
+  // user doing the insert and expects the parent's name, surname, phone,
+  // e-mail and address to be read from the registry
+  // (RulesIscrizione.pas, TIscriviFiglio.NewRecord and TIscrizioneSetGenitore),
+  // which is why that value is assigned there instead of being declared as a
+  // model default.
+  LPreviousHandler := OnFieldChange;
+  if AFireFieldChangeRules then
+    OnFieldChange := FieldChangeRulesHandler;
+  try
+    ViewTable.ApplyRules(
+      procedure (ARuleImpl: TKRuleImpl)
+      begin
+        ARuleImpl.NewRecord(Self);
+      end);
+  finally
+    OnFieldChange := LPreviousHandler;
+  end;
   MarkAsNew;
 end;
 
-procedure TKViewTableRecord.ApplyNewRecordRulesAndFireEvents(const AViewTable: TKViewTable; const AIsCloned: Boolean);
+procedure TKViewTableRecord.ApplyNewRecordRulesAndFireEvents(const AViewTable: TKViewTable;
+  const AIsCloned: Boolean; const AFireFieldChangeRules: Boolean);
 begin
   Assert(Assigned(AViewTable));
 
   AViewTable.Model.BeforeNewRecord(Self, AIsCloned);
-  Self.ApplyNewRecordRules;
+  Self.ApplyNewRecordRules(AFireFieldChangeRules);
   AViewTable.Model.AfterNewRecord(Self);
 end;
 

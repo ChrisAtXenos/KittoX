@@ -701,6 +701,11 @@ type
     /// <summary>The default plural model name (the English plural of ModelName).</summary>
     property DefaultPluralModelName: string read GetDefaultPluralModelName;
 
+    /// <summary>Plural form of ModelName. This is an identifier, not a caption:
+    /// its only consumer is TKViewTableRecords.GetXMLTagName, which uses it as the
+    /// name of the XML element wrapping a record set in TKRecords.GetAsXML (read by
+    /// the XML export and FOP report tools). Do not localize it - the plural caption
+    /// is PluralDisplayLabel.</summary>
     [YamlNode('PluralModelName', 'Plural form of model name')]
     property PluralModelName: string read GetPluralModelName;
 
@@ -724,7 +729,7 @@ type
 
     [YamlNode('PluralDisplayLabel', '', 'Plural label shown in the UI', True)]
     property PluralDisplayLabel: string read GetPluralDisplayLabel;
-    /// <summary>The default plural display label (a beautified PluralModelName).</summary>
+    /// <summary>The default plural display label (the English plural of DisplayLabel).</summary>
     property DefaultPluralDisplayLabel: string read GetDefaultPluralDisplayLabel;
     /// <summary>The default icon name when ImageName is not set.</summary>
     property DefaultImageName: string read GetDefaultImageName;
