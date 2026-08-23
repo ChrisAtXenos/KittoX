@@ -266,6 +266,10 @@ type
     /// <summary>Returns the application's login view.</summary>
     function GetLoginView: TKView;
     /// <summary>Renders and serves the home view page.</summary>
+    /// <summary>Returns the view an imposed step is completed through, with a
+    /// message that names the missing YAML file when the application does not
+    /// declare it.</summary>
+    function RequiredStepView(const AViewName: string): TKView;
     procedure DisplayHomeView;
     /// <summary>Renders and serves the login view page.</summary>
     procedure DisplayLoginView;
@@ -1366,7 +1370,23 @@ begin
   LAuthenticator := GetAuthenticator;
 
   if LAuthenticator.IsAuthenticated then
-    Result := True
+  begin
+    Result := True;
+    // Keep the session flag in step with the authenticator's answer. An
+    // authenticator may report an authenticated request without any credential
+    // having been posted: TKNullAuthenticator overrides GetIsAuthenticated to
+    // True because Auth: Null means "this application does not authenticate".
+    // The authorization gate reads TKWebSession.Current.IsAuthenticated, not
+    // this method, so without the assignment below the two disagreed and an
+    // Auth: Null application was UNUSABLE: the home page rendered the
+    // application (this shortcut returned True) while every /kx/* endpoint
+    // answered 404. Measured across the whole endpoint surface — and Auth: Null
+    // is the default when the Auth node is absent altogether.
+    //
+    // A no-op for every other authenticator: their GetIsAuthenticated reads the
+    // very same session flag, so it can only be True here.
+    TKWebSession.Current.IsAuthenticated := True;
+  end
   else
   begin
     LAuthData := TEFNode.Create;
@@ -1502,6 +1522,21 @@ begin
   ServeHomePage(RenderViewAsPage(AView, ADefaultControllerType));
 end;
 
+function TKWebApplication.RequiredStepView(const AViewName: string): TKView;
+begin
+  // ViewByName raises a bare "object not found", which does not tell the
+  // developer WHY the framework is asking for a view the application never
+  // declared: because a user carries MUST_CHANGE_PASSWORD or MUST_CONFIRM_ACCESS
+  // and the imposed step cannot be presented without it. Met while testing:
+  // HelloKitto declares ChangePassword only as a menu entry, so the home page
+  // of a user who had to change the password showed "object not found".
+  Result := Config.Views.FindView(AViewName);
+  if not Assigned(Result) then
+    raise EKError.CreateFmt(_('This user must first complete the %s step, but the '+
+      'application declares no view named %s. Add Metadata\Views\%s.yaml (a view '+
+      'with Controller: %s).'), [AViewName, AViewName, AViewName, AViewName]);
+end;
+
 procedure TKWebApplication.DisplayHomeView;
 var
   LView: TKView;
@@ -1509,12 +1544,12 @@ var
 begin
   if TKAuthenticator.Current.MustChangePassword then
   begin
-    LView := Config.Views.ViewByName('ChangePassword');
+    LView := RequiredStepView('ChangePassword');
     TKWebSession.Current.AutoOpenViewName := '';
   end
   else if TKAuthenticator.Current.MustConfirmAccess then
   begin
-    LView := Config.Views.ViewByName('ConfirmAccess');
+    LView := RequiredStepView('ConfirmAccess');
     TKWebSession.Current.AutoOpenViewName := 'ConfirmAccess';
   end
   else
@@ -1569,10 +1604,10 @@ begin
   if Authenticate then
   begin
     if TKAuthenticator.Current.MustChangePassword then
-      LView := Config.Views.ViewByName('ChangePassword')
+      LView := RequiredStepView('ChangePassword')
     else if TKAuthenticator.Current.MustConfirmAccess then
     begin
-      LView := Config.Views.ViewByName('ConfirmAccess');
+      LView := RequiredStepView('ConfirmAccess');
       TKWebSession.Current.AutoOpenViewName := 'ConfirmAccess';
     end
     else
@@ -1692,7 +1727,6 @@ var
   LIconLink: string;
   LAppleIconLink: string;
   LManifestLink: string;
-  LLoadingImageURL: string;
   LThemeNode: TEFNode;
   LThemeAttr: string;
   LThemeStyle: string;
@@ -1723,8 +1757,6 @@ begin
   LManifestLink := '';
   if GetManifestFileName <> '' then
     LManifestLink := Format('<link rel="manifest" href="%s"/>', [GetManifestFileName]);
-
-  LLoadingImageURL := FindImageURL('loading.gif');
 
   LTemplatePath := TKXTemplateEngine.Instance.FindTemplatePath('', '_Page');
   if LTemplatePath <> '' then
@@ -1763,7 +1795,6 @@ begin
         if Config.Config.GetBoolean('Notifications/Enabled', False) then
           LNotificationsEnabled := 'true';
         ATemplate.SetData('notificationsEnabled', TValue.From<string>(LNotificationsEnabled));
-        ATemplate.SetData('loadingImageURL', TValue.From<string>(LLoadingImageURL));
         ATemplate.SetData('loadingMessage', TValue.From<string>(Format(_('Loading %s...'), [Config.AppTitle])));
         ATemplate.SetData('themeAttr', TValue.From<string>(LThemeAttr));
         ATemplate.SetData('themeBoot', TValue.From<string>(LThemeBoot));

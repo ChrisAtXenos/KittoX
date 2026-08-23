@@ -86,6 +86,8 @@ contains
   MarkdownMathCode in '..\..\Source\ThirdParty\MarkdownProcessor\source\MarkdownMathCode.pas',
   Kitto.Metadata.Types in '..\..\Source\Kitto.Metadata.Types.pas',
   Kitto.Metadata.SubNodes in '..\..\Source\Kitto.Metadata.SubNodes.pas',
+  Kitto.Config.Reader in '..\..\Source\Kitto.Config.Reader.pas',
+  Kitto.Config.Server in '..\..\Source\Kitto.Config.Server.pas',
   Kitto.Metadata.SubNodes2 in '..\..\Source\Kitto.Metadata.SubNodes2.pas',
   Kitto.AccessControl.DB in '..\..\Source\Kitto.AccessControl.DB.pas',
   Kitto.AccessControl in '..\..\Source\Kitto.AccessControl.pas',

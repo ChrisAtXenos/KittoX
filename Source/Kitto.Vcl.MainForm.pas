@@ -26,6 +26,7 @@ uses
   System.SysUtils,
   System.Variants,
   System.Classes,
+  System.SyncObjs,
   System.Generics.Collections,
   System.Actions,
   System.ImageList,
@@ -55,13 +56,25 @@ uses
   Kitto.Web.Engine;
 
 type
+  /// <summary>
+  ///  Log endpoint feeding the VCL log memo. DoLog is called on ANY thread (the
+  ///  Indy worker that logs), so it only ENQUEUES the message under a lock — the
+  ///  VCL is not thread-safe and touching the memo off the main thread corrupts
+  ///  it. The MainForm drains the queue onto the memo from a TTimer, i.e. on the
+  ///  main thread (async, non-blocking producer). Pattern à la LoggerPro.
+  /// </summary>
   TKMainFormLogEndpoint = class(TEFLogEndpoint)
   private
-    FOnLog: TKLogEvent;
+    FLock: TCriticalSection;
+    FPending: TStringList;
   protected
     procedure DoLog(const AString: string); override;
   public
-    property OnLog: TKLogEvent read FOnLog write FOnLog;
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+    /// <summary>Moves the messages accumulated so far into ADest and clears the
+    /// queue. Call on the main thread (from the flush timer).</summary>
+    procedure TakePending(const ADest: TStrings);
   end;
 
   TKMainForm = class(TForm)
@@ -115,10 +128,12 @@ type
     FApplication: TKWebApplication;
     FRestart: Boolean;
     FLogEndPoint: TKMainFormLogEndpoint;
+    FLogFlushTimer: TTimer;
+    procedure LogFlushTimerTimer(Sender: TObject);
     procedure ShowTabGUI(const AIndex: Integer);
     procedure UpdateSessionInfo;
     procedure SessionListUpdateHandler(AEngine: TKWebEngine;
-      ASession: TKWebSession);
+      ASessionId: string);
     procedure RecreateServer;
     const
       TAB_LOG = 0;
@@ -154,6 +169,11 @@ uses
   EF.Localization,
   Kitto.Web.Routing.Registry;
 
+const
+  // Index of the trailing SubItem that carries the session id in the session
+  // list. There is no column for it, so it is not displayed.
+  SESSION_ID_SUBITEM = 5;
+
 { TKMainForm }
 
 procedure TKMainForm.RefreshButtonClick(Sender: TObject);
@@ -187,27 +207,46 @@ end;
 procedure TKMainForm.SessionListViewEdited(Sender: TObject; Item: TListItem;
   var S: string);
 begin
-  if TObject(Item.Data) is TKWebSession then
-    TKWebSession(Item.Data).DisplayName := S;
+  // Renamed BY ID, under the sessions lock. The session may have expired and
+  // been freed since the list was drawn, so the item must not carry a pointer
+  // to it — see the comment in UpdateSessionInfo.
+  if Assigned(Item) and (Item.SubItems.Count > SESSION_ID_SUBITEM) and IsStarted then
+    FServer.Engine.SetSessionDisplayName(Item.SubItems[SESSION_ID_SUBITEM], S);
 end;
 
 procedure TKMainForm.SessionListViewInfoTip(Sender: TObject; Item: TListItem; var InfoTip: string);
-var
-  LSession: TKWebSession;
 begin
-  if Assigned(Item) and  (TObject(Item.Data) is TKWebSession) then
-  begin
-    LSession := TKWebSession(Item.Data);
+  // Straight from the values already copied into the item: no session object is
+  // touched, so a session freed meanwhile cannot crash the hint.
+  if Assigned(Item) and (Item.SubItems.Count > SESSION_ID_SUBITEM) then
     InfoTip :=
-      'User Agent: ' + LSession.LastRequestInfo.UserAgent + sLineBreak +
-      'Client Address: ' + LSession.LastRequestInfo.ClientAddress + sLineBreak +
-      'Last Request: ' + DateTimeToStr(LSession.LastRequestInfo.DateTime);
-  end;
+      'User Agent: ' + Item.SubItems[4] + sLineBreak +
+      'Client Address: ' + Item.SubItems[3] + sLineBreak +
+      'Last Request: ' + Item.SubItems[1];
 end;
 
 procedure TKMainForm.DoLog(const AString: string);
 begin
+  // Direct GUI-local log lines (always on the main thread). Framework log lines
+  // from worker threads go through TKMainFormLogEndpoint's queue + the flush timer.
   LogMemo.Lines.Add(AString);
+end;
+
+procedure TKMainForm.LogFlushTimerTimer(Sender: TObject);
+const
+  MAX_LOG_LINES = 5000;
+begin
+  if not Assigned(FLogEndPoint) then
+    Exit;
+  LogMemo.Lines.BeginUpdate;
+  try
+    FLogEndPoint.TakePending(LogMemo.Lines);
+    // Keep the memo bounded during a long-running session.
+    while LogMemo.Lines.Count > MAX_LOG_LINES do
+      LogMemo.Lines.Delete(0);
+  finally
+    LogMemo.Lines.EndUpdate;
+  end;
 end;
 
 procedure TKMainForm.StopActionExecute(Sender: TObject);
@@ -275,56 +314,63 @@ procedure TKMainForm.UpdateSessionInfo;
     SessionCountLabel.Caption := Format('Active Sessions: %d', [ACount]);
   end;
 
-  procedure AddItem(const ACaption: string; const ASession: TKWebSession = nil);
+  procedure AddItem(const ACaption: string);
   var
     LItem: TListItem;
   begin
     LItem := SessionListView.Items.Add;
     LItem.Caption := ACaption;
-    if Assigned(ASession) then
-    begin
-      LItem.Data := ASession;
-      // Start Time.
-      LItem.SubItems.Add(IfThen(DateOf(ASession.CreationDateTime) = Date,
-        TimeToStr(TimeOf(ASession.CreationDateTime)), DateTimeToStr(ASession.CreationDateTime)));
-      // Last Req.
-      if ASession.LastRequestInfo.DateTime = 0 then
-        LItem.SubItems.Add('-')
-      else
-        LItem.SubItems.Add(IfThen(DateOf(ASession.LastRequestInfo.DateTime) = Date,
-          TimeToStr(TimeOf(ASession.LastRequestInfo.DateTime)), DateTimeToStr(ASession.LastRequestInfo.DateTime)));
-      // User.
-      LItem.SubItems.Add(ASession.AuthData.GetString('UserName'));
-      // Origin.
-      LItem.SubItems.Add(ASession.LastRequestInfo.ClientAddress);
-      // User Agent.
-      LItem.SubItems.Add(ASession.LastRequestInfo.UserAgent);
-    end;
+  end;
+
+  function FormatStamp(const AValue: TDateTime): string;
+  begin
+    if AValue = 0 then
+      Result := '-'
+    else if DateOf(AValue) = Date then
+      Result := TimeToStr(TimeOf(AValue))
+    else
+      Result := DateTimeToStr(AValue);
   end;
 
 var
-  LSessions: TArray<TKWebSession>;
-  LSession: TKWebSession;
+  LInfos: TArray<TKWebSessionInfo>;
+  LInfo: TKWebSessionInfo;
+  LItem: TListItem;
 begin
+  // Built from COPIED values, never from session objects. The cleanup thread
+  // frees expired sessions, so a TKWebSession pointer read on this (GUI) thread
+  // after the sessions lock was released is a dangling one — which is what
+  // produced access violations here, as Windows exception dialogs that the
+  // request pipeline and the log never saw. GetSessionInfos copies everything
+  // under the lock; the session id travels in a trailing SubItem with no column
+  // of its own (so it does not show) and is all the InfoTip and rename handlers
+  // need.
   SessionListView.Clear;
-  if IsStarted then
-  begin
-    LSessions := FServer.Engine.GetSessions;
-
-    UpdateCount(Length(LSessions));
-
-    if Length(LSessions) = 0 then
-      AddItem(_('None'))
-    else
-    begin
-      for LSession in LSessions do
-        AddItem(LSession.DisplayName, LSession);
-    end;
-  end
-  else
+  if not IsStarted then
   begin
     AddItem(_('Inactive'));
     UpdateCount(0);
+    Exit;
+  end;
+
+  LInfos := FServer.Engine.GetSessionInfos;
+  UpdateCount(Length(LInfos));
+  if Length(LInfos) = 0 then
+  begin
+    AddItem(_('None'));
+    Exit;
+  end;
+
+  for LInfo in LInfos do
+  begin
+    LItem := SessionListView.Items.Add;
+    LItem.Caption := LInfo.DisplayName;
+    LItem.SubItems.Add(FormatStamp(LInfo.CreationDateTime));   // Start Time
+    LItem.SubItems.Add(FormatStamp(LInfo.LastRequestDateTime)); // Last Req
+    LItem.SubItems.Add(LInfo.UserName);                         // User
+    LItem.SubItems.Add(LInfo.ClientAddress);                    // Origin
+    LItem.SubItems.Add(LInfo.UserAgent);                        // User Agent
+    LItem.SubItems.Add(LInfo.Id);                               // SESSION_ID_SUBITEM
   end;
 end;
 
@@ -348,7 +394,7 @@ begin
   StopAction.Execute;
 end;
 
-procedure TKMainForm.SessionListUpdateHandler(AEngine: TKWebEngine; ASession: TKWebSession);
+procedure TKMainForm.SessionListUpdateHandler(AEngine: TKWebEngine; ASessionId: string);
 begin
   UpdateSessionInfo;
 end;
@@ -367,7 +413,11 @@ begin
   RecreateServer;
 
   FLogEndPoint := TKMainFormLogEndpoint.Create;
-  FLogEndPoint.OnLog := DoLog;
+  // Drain the endpoint's queue onto the memo on the main thread.
+  FLogFlushTimer := TTimer.Create(Self);
+  FLogFlushTimer.Interval := 150;
+  FLogFlushTimer.OnTimer := LogFlushTimerTimer;
+  FLogFlushTimer.Enabled := True;
 
   UpdateSessionInfo;
 end;
@@ -376,6 +426,9 @@ procedure TKMainForm.FormDestroy(Sender: TObject);
 begin
   FServer.Active := False;
   SessionListView.Clear;
+  // Stop the flush timer before freeing the endpoint, so no timer tick touches a
+  // freed endpoint; then free the endpoint (which detaches from TEFLogger).
+  FreeAndNil(FLogFlushTimer);
   FreeAndNil(FServer);
   FreeAndNil(FLogEndPoint);
 end;
@@ -511,10 +564,45 @@ end;
 
 { TKMainFormLogEndpoint }
 
+procedure TKMainFormLogEndpoint.AfterConstruction;
+begin
+  // Create the queue BEFORE inherited (which attaches to TEFLogger and may start
+  // receiving DoLog from other threads immediately).
+  FLock := TCriticalSection.Create;
+  FPending := TStringList.Create;
+  inherited;
+end;
+
+destructor TKMainFormLogEndpoint.Destroy;
+begin
+  inherited; // detaches from TEFLogger: no more DoLog after this
+  FreeAndNil(FPending);
+  FreeAndNil(FLock);
+end;
+
 procedure TKMainFormLogEndpoint.DoLog(const AString: string);
 begin
-  if Assigned(FOnLog) then
-    FOnLog(AString);
+  // Any thread: just enqueue; the GUI timer flushes to the memo on the main thread.
+  FLock.Enter;
+  try
+    FPending.Add(AString);
+  finally
+    FLock.Leave;
+  end;
+end;
+
+procedure TKMainFormLogEndpoint.TakePending(const ADest: TStrings);
+begin
+  FLock.Enter;
+  try
+    if FPending.Count > 0 then
+    begin
+      ADest.AddStrings(FPending);
+      FPending.Clear;
+    end;
+  finally
+    FLock.Leave;
+  end;
 end;
 
 end.

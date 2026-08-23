@@ -39,6 +39,7 @@ interface
 
 uses
   Kitto.Store,
+  Kitto.Metadata.Views,
   Kitto.Metadata.DataView,
   Kitto.Web.Routing.Attributes;
 
@@ -60,6 +61,29 @@ type
     /// is never treated as a route, but remains overridable by a subclass.
     procedure NotifyFieldChangeHandler(const AField: TKField;
       const AOldValue, ANewValue: Variant); virtual;
+
+    /// <summary>
+    ///  Combines a record-locating filter (typically built from the key the
+    ///  request supplied) with the view's own Controller/FilterExpression, macro
+    ///  expanded — the node an application uses to restrict a view to the rows
+    ///  the current user may see, e.g. KittoSCM's
+    ///  FilterExpression: {Q}CODFISC = '%Auth:USER_NAME%' on the user profile.
+    ///
+    ///  It MUST be applied wherever a record is located from a request-supplied
+    ///  key. It used to be applied only by
+    ///  TKWebApplication.PrepareStandaloneFormRecord (the path that renders such
+    ///  a view as a page, where the server picks the record and no key is
+    ///  involved), while /form and /save loaded by key ALONE. Reproduced: a view
+    ///  pinned by FilterExpression to one record returned a DIFFERENT record when
+    ///  its key was passed to /form — so any user could open, and save, another
+    ///  user's row, and with ACName empty (the documented way to publish a view)
+    ///  without logging in at all.
+    ///
+    ///  The view table's own DefaultFilter needs no help here: TKSQLBuilder
+    ///  applies it to every select.
+    /// </summary>
+    function CombineWithViewFilter(const AView: TKView;
+      const AFilter: string): string;
   public
     /// Apply EditRecordRules on the session record (ViewMode -> EditMode).
     [TKXPath('/enter-edit')] [TKXPOST]
@@ -159,7 +183,6 @@ uses
   Kitto.AccessControl,
   Kitto.Notification.Jobs,
   Kitto.Notification.ToolJob,
-  Kitto.Metadata.Views,
   Kitto.Metadata.Models,
   Kitto.Web.Request,
   Kitto.Web.Session,
@@ -241,6 +264,23 @@ end;
 
 procedure TKXViewHandlerBase.OnAfterDelete(const ARecord: TKViewTableRecord);
 begin
+end;
+
+function TKXViewHandlerBase.CombineWithViewFilter(const AView: TKView;
+  const AFilter: string): string;
+var
+  LViewFilter: string;
+begin
+  Result := AFilter;
+  if not Assigned(AView) then
+    Exit;
+  LViewFilter := AView.GetExpandedString('Controller/FilterExpression');
+  if LViewFilter = '' then
+    Exit;
+  if Result = '' then
+    Result := '(' + LViewFilter + ')'
+  else
+    Result := '(' + Result + ') and (' + LViewFilter + ')';
 end;
 
 procedure TKXViewHandlerBase.HandleEnterEdit(const AViewName: string);
@@ -747,7 +787,9 @@ begin
   // Load the record to delete, mark as deleted, and save via Model
   LDeleteStore := LViewTable.CreateStore;
   try
-    LDeleteStore.Load(LKeyFilter, '', 0, 1);
+    // A delete is the most consequential thing a key can reach: same rule as
+    // /form, /save and /blob. See CombineWithViewFilter.
+    LDeleteStore.Load(CombineWithViewFilter(LView, LKeyFilter), '', 0, 1);
     if LDeleteStore.RecordCount > 0 then
     begin
       LRecord := LDeleteStore.Records[0];
@@ -1013,7 +1055,9 @@ begin
       if LKeyFilter = '' then
         Exit;
 
-      LStore.Load(LKeyFilter, '', 0, 1);
+      // The key alone is not enough: the view's own filter must constrain which
+      // record that key may reach. See CombineWithViewFilter.
+      LStore.Load(CombineWithViewFilter(LView, LKeyFilter), '', 0, 1);
       if LStore.RecordCount > 0 then
         LRecord := LStore.Records[0]
       else
@@ -1329,7 +1373,9 @@ begin
           end;
           if LKeyFilter = '' then
             raise Exception.Create(_('Invalid record key.'));
-          LStore.Load(LKeyFilter, '', 0, 1);
+          // The key alone is not enough: the view's own filter must constrain which
+          // record that key may reach. See CombineWithViewFilter.
+          LStore.Load(CombineWithViewFilter(LView, LKeyFilter), '', 0, 1);
           if LStore.RecordCount = 0 then
             raise Exception.Create(_('Record not found.'));
         end;
@@ -2712,7 +2758,12 @@ begin
 
     LStore := LViewTable.CreateStore;
     try
-      LStore.Load(LKeyFilter, '', 0, 1);
+      // Same rule as /form and /save: the key may only reach a record the
+      // view's own filter allows. Without this, a blob (an image, an attached
+      // document) could be fetched for any record by passing its key — and this
+      // endpoint is [TKXNavigable], so it is reachable by a plain browser
+      // navigation. See CombineWithViewFilter.
+      LStore.Load(CombineWithViewFilter(LView, LKeyFilter), '', 0, 1);
       if LStore.RecordCount = 0 then
         Exit;
       LRecord := LStore.Records[0];

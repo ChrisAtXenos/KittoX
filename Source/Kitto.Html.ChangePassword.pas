@@ -71,6 +71,7 @@ uses
   System.NetEncoding,
   EF.Localization,
   Kitto.Auth,
+  Kitto.Types,
   Kitto.Html.Utils;
 
 { TKXChangePasswordController }
@@ -82,6 +83,12 @@ end;
 
 procedure TKXChangePasswordController.DoDisplay;
 begin
+  // Do not offer a dialog that cannot do anything: with an authenticator that
+  // does not own the credentials (Auth: LDAP — passwords live in the directory)
+  // the write is a no-op, and the handler refuses it anyway. Failing here means
+  // the user is told why instead of filling in a form that leads nowhere.
+  if not TKAuthenticator.Current.SupportsPasswordChange then
+    raise EKError.Create(_('Changing the password is not supported for this login type. Please contact your administrator.'));
   inherited;
   if Width = 0 then
     Width := 400;

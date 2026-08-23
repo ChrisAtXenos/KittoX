@@ -186,6 +186,7 @@ uses
   System.JSON,
   System.Generics.Defaults,
   Kitto.Config,
+  Kitto.Config.Server,
   Kitto.Notification.EventBus;
 
 type
@@ -820,7 +821,7 @@ begin
     FInstanceLock.Enter;
     try
       if FInstance = nil then
-        FInstance := TKXJobQueue.Create(TKConfig.Instance.Config.GetInteger('Server/Jobs/PoolSize', 4));
+        FInstance := TKXJobQueue.Create(TKConfig.Instance.Server.Jobs.PoolSize);
     finally
       FInstanceLock.Leave;
     end;

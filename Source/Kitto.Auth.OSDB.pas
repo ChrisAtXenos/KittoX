@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +49,15 @@ type
     ///	</summary>
     procedure InternalDefineAuthData(const AAuthenticationData: TEFNode); override;
 
+    /// <summary>
+    ///  False while the OS user is the one being authenticated: there the password
+    ///  field carries nothing by design and the operating system has already
+    ///  vouched for the identity, so the empty-password refusal of the ancestor
+    ///  must not apply. True in the other case, where this authenticator behaves
+    ///  exactly like TKDBAuthenticator and compares a stored password.
+    /// </summary>
+    function IsPasswordTheStoredCredential: Boolean; override;
+
   public
     ///	<summary>Disables password matching if the OS user is
     ///	recognized.</summary>
@@ -72,6 +81,11 @@ uses
   EF.Types;
 
 { TKOSDBAuthenticator }
+
+function TKOSDBAuthenticator.IsPasswordTheStoredCredential: Boolean;
+begin
+  Result := not IsUsingSystemUserName;
+end;
 
 function TKOSDBAuthenticator.IsPasswordMatching(const ASuppliedPasswordHash,
   AStoredPasswordHash: string): Boolean;

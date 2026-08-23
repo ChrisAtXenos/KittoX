@@ -40,6 +40,7 @@ uses
   Kitto.Auth,
   Kitto.Metadata.Models,
   Kitto.Metadata.Views,
+  Kitto.Config.Server,
   Kitto.Metadata.SubNodes;
 
 const
@@ -84,6 +85,7 @@ type
     FMacroExpansionEngine: TEFMacroExpansionEngine;
     FModels: TKModels;
     FViews: TKViews;
+    FServer: TKServerConfig;
     FUserFormatSettings: TFormatSettings;
 
     // Per-thread cached connections, released by ClearDatabase at end of each
@@ -122,7 +124,6 @@ type
     function GetDesktop: TKDesktopConfig;
     function GetTheme: TKThemeConfig;
     function GetNotifications: TKNotificationsConfig;
-    function GetHelpChat: TKHelpChatConfig;
   strict protected
     function GetUploadPath: string;
     function GetConfigFileName: string; override;
@@ -148,6 +149,9 @@ type
     procedure AfterConstruction; override;
     /// <summary>Frees the view and model catalogs and the macro-expansion engine.</summary>
     destructor Destroy; override;
+    /// <summary>Reloads the config from disk and refreshes the cached typed config
+    /// readers in place (so held references, e.g. Config.Server, stay valid).</summary>
+    procedure InvalidateConfig; override;
     /// <summary>Class-level init: picks the default config file name and the JS/JSON format settings.</summary>
     class constructor Create;
     /// <summary>Class-level cleanup: releases cached connections and the singleton instance.</summary>
@@ -439,8 +443,9 @@ type
     [YamlSubNode('Notifications', TKNotificationsConfig, 'Notification Center (bell, top-right): opt-in')]
     property Notifications: TKNotificationsConfig read GetNotifications;
 
-    [YamlSubNode('HelpChat', TKHelpChatConfig, 'Help Chat assistant (bubble, bottom-right): opt-in provider-based chat')]
-    property HelpChat: TKHelpChatConfig read GetHelpChat;
+    // NB: HelpChat is no longer declared here. TKHelpChatConfig moved to the chat
+    // domain (Kitto.Chat.Provider) with [YamlConfigNode('HelpChat')]; KIDE
+    // discovers it via RTTI scan, so Kitto.Config does not reference the chat domain.
 
     /// <summary>Access to the current authenticator. Delegates to
     /// TKWebApplication.Current.Authenticator for backward compatibility
@@ -531,9 +536,19 @@ end;
 destructor TKConfig.Destroy;
 begin
   inherited;
+  FreeAndNil(FServer);
   FreeAndNil(FViews);
   FreeAndNil(FModels);
   FreeAndNil(FMacroExpansionEngine);
+end;
+
+procedure TKConfig.InvalidateConfig;
+begin
+  inherited; // frees the YAML tree; Config reloads lazily on next access
+  // Keep the cached reader instances stable: re-read their fields in place from
+  // the freshly reloaded tree (any code holding Config.Server keeps working).
+  if FServer <> nil then
+    FServer.Refresh(Config.FindNode('Server'));
 end;
 
 function TKConfig.Authenticator: TKAuthenticator;
@@ -1031,7 +1046,11 @@ end;
 
 function TKConfig.GetServer: TKServerConfig;
 begin
-  Result := nil; // RTTI discovery only
+  // Typed reader, created lazily and cached; reads the 'Server' subtree once.
+  // Refreshed in place by InvalidateConfig on a forced config reload.
+  if FServer = nil then
+    FServer := TKServerConfig.Create(Config.FindNode('Server'));
+  Result := FServer;
 end;
 
 function TKConfig.GetAuth: TKAuthConfig;
@@ -1069,10 +1088,6 @@ begin
   Result := nil; // RTTI discovery only
 end;
 
-function TKConfig.GetHelpChat: TKHelpChatConfig;
-begin
-  Result := nil; // RTTI discovery only
-end;
 
 { TKConfigMacroExpander }
 

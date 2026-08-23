@@ -79,6 +79,7 @@ uses
   EF.Localization,
   Kitto.Auth,
   Kitto.Config,
+  Kitto.Config.Server,
   Kitto.Web.Application,
   Kitto.Web.Response,
   Kitto.Html.Utils,
@@ -178,7 +179,7 @@ procedure TKXNotificationHandler.HandleNotifications;
 begin
   // Retention: drop finished jobs (and their files) older than the configured age.
   TKXJobQueue.Instance.RemoveExpired(
-    TKConfig.Instance.Config.GetInteger('Server/Jobs/ArtifactRetentionHours', 24));
+    TKConfig.Instance.Server.Jobs.ArtifactRetentionHours);
   WritePartial(RenderNotificationsPartial);
 end;
 

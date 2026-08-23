@@ -57,10 +57,91 @@ unit Kitto.Chat.Provider.Claude;
 interface
 
 uses
-  Kitto.Metadata.SubNodes,
+  EF.Tree,
+  EF.YAML.Attributes,
   Kitto.Chat.Provider;
 
+const
+  // Claude provider default values — single source of truth, shared by the reader
+  // below (getter defaults), its [YamlNode] attributes and the KIDE frame.
+  KX_CLAUDE_DEF_MODEL = 'claude-haiku-4-5';
+  KX_CLAUDE_DEF_MAXTOKENS = 1024;
+  KX_CLAUDE_DEF_GROUNDING = 3;
+  KX_CLAUDE_DEF_VERSION = '2023-06-01';
+  KX_CLAUDE_DEF_BASEURL = 'https://api.anthropic.com';
+  KX_CLAUDE_DEF_CONNECTTIMEOUTMS = 15000;
+  KX_CLAUDE_DEF_RESPONSETIMEOUTMS = 120000;
+
 type
+  /// <summary>
+  ///  Typed reader for the Claude help-chat provider settings (Provider: claude).
+  ///  Two roles in one class, co-located with the provider it configures:
+  ///   (1) runtime — reads every HelpChat/Claude/* value ONCE at construction into
+  ///       fields, so the provider accesses them as FConfig.Model instead of
+  ///       repeated Config.GetString/GetInteger tree lookups;
+  ///   (2) design-time — the [YamlNode] attributes let KIDE discover the schema via
+  ///       RTTI, and the class-level [YamlConfigNode('HelpChat/Claude')] binds it to
+  ///       that YAML node WITHOUT the parent config class referencing it by type
+  ///       (KIDE finds it by scanning the linked types). It is a plain reader
+  ///       (not a TEFNode): it reads from the config tree, it does not live in it.
+  /// </summary>
+  /// <example>
+  ///  HelpChat:
+  ///    Provider: claude
+  ///    Claude:
+  ///      ApiKey: %ENV(ANTHROPIC_API_KEY)%
+  ///      Model: claude-haiku-4-5
+  ///      MaxTokens: 1024
+  ///      GroundingMaxPages: 3
+  /// </example>
+  [YamlConfigNode('HelpChat/Claude')]
+  TKClaudeProviderConfig = class
+  private
+    FApiKey: string;
+    FModel: string;
+    FMaxTokens: Integer;
+    FGroundingMaxPages: Integer;
+    FSystemPrompt: string;
+    FBaseUrl: string;
+    FVersion: string;
+    FConnectTimeoutMs: Integer;
+    FResponseTimeoutMs: Integer;
+  public
+    /// <summary>Reads HelpChat/Claude/* from AConfig once. ApiKey is macro-expanded
+    /// and falls back to the ANTHROPIC_API_KEY env var when empty; BaseUrl is
+    /// normalized (no trailing slash); SystemPrompt is the raw override ('' means
+    /// the provider applies its localized default). AConfig is normally
+    /// TKConfig.Instance.Config.</summary>
+    constructor Create(const AConfig: TEFTree);
+
+    [YamlNode('ApiKey', 'Anthropic API key. Supports %ENV(ANTHROPIC_API_KEY)%; falls back to the ANTHROPIC_API_KEY env var when empty')]
+    property ApiKey: string read FApiKey;
+
+    [YamlNode('Model', KX_CLAUDE_DEF_MODEL, 'Claude model id')]
+    property Model: string read FModel;
+
+    [YamlNode('MaxTokens', KX_CLAUDE_DEF_MAXTOKENS, 'Maximum tokens in the assistant reply')]
+    property MaxTokens: Integer read FMaxTokens;
+
+    [YamlNode('GroundingMaxPages', KX_CLAUDE_DEF_GROUNDING, 'Documentation pages injected as RAG context (0 = off)')]
+    property GroundingMaxPages: Integer read FGroundingMaxPages;
+
+    [YamlNode('SystemPrompt', 'System prompt override (empty = framework default)', True)]
+    property SystemPrompt: string read FSystemPrompt;
+
+    [YamlNode('BaseUrl', KX_CLAUDE_DEF_BASEURL, 'Anthropic API base URL')]
+    property BaseUrl: string read FBaseUrl;
+
+    [YamlNode('Version', KX_CLAUDE_DEF_VERSION, 'Value of the anthropic-version header')]
+    property Version: string read FVersion;
+
+    [YamlNode('ConnectTimeoutMs', KX_CLAUDE_DEF_CONNECTTIMEOUTMS, 'HTTP connect timeout in milliseconds')]
+    property ConnectTimeoutMs: Integer read FConnectTimeoutMs;
+
+    [YamlNode('ResponseTimeoutMs', KX_CLAUDE_DEF_RESPONSETIMEOUTMS, 'HTTP response timeout in milliseconds')]
+    property ResponseTimeoutMs: Integer read FResponseTimeoutMs;
+  end;
+
   /// <summary>Streams assistant replies from Anthropic's Claude Messages API.</summary>
   TKXClaudeProvider = class(TKXChatProviderBase)
   private
@@ -388,6 +469,30 @@ begin
   end;
   if Result = '' then
     Result := Format(_('Claude API error (HTTP %d %s).'), [AStatus, AStatusText]);
+end;
+
+{ TKClaudeProviderConfig }
+
+constructor TKClaudeProviderConfig.Create(const AConfig: TEFTree);
+const
+  PFX = 'HelpChat/Claude/';
+begin
+  inherited Create;
+  // ApiKey: macro-expanded (so %ENV(...)% works), env-var fallback when empty.
+  FApiKey := Trim(AConfig.GetExpandedString(PFX + 'ApiKey'));
+  if FApiKey = '' then
+    FApiKey := Trim(GetEnvironmentVariable('ANTHROPIC_API_KEY'));
+  FModel := AConfig.GetString(PFX + 'Model', KX_CLAUDE_DEF_MODEL);
+  FMaxTokens := AConfig.GetInteger(PFX + 'MaxTokens', KX_CLAUDE_DEF_MAXTOKENS);
+  FGroundingMaxPages := AConfig.GetInteger(PFX + 'GroundingMaxPages', KX_CLAUDE_DEF_GROUNDING);
+  // Raw override; '' means the provider applies its localized default prompt.
+  FSystemPrompt := AConfig.GetExpandedString(PFX + 'SystemPrompt');
+  FBaseUrl := AConfig.GetString(PFX + 'BaseUrl', KX_CLAUDE_DEF_BASEURL);
+  if FBaseUrl.EndsWith('/') then
+    FBaseUrl := FBaseUrl.Substring(0, FBaseUrl.Length - 1);
+  FVersion := AConfig.GetString(PFX + 'Version', KX_CLAUDE_DEF_VERSION);
+  FConnectTimeoutMs := AConfig.GetInteger(PFX + 'ConnectTimeoutMs', KX_CLAUDE_DEF_CONNECTTIMEOUTMS);
+  FResponseTimeoutMs := AConfig.GetInteger(PFX + 'ResponseTimeoutMs', KX_CLAUDE_DEF_RESPONSETIMEOUTMS);
 end;
 
 { TKXClaudeProvider }

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,6 +68,7 @@ type
     function GetAllowUnauthenticated: Boolean;
     function GetAllowSessionLost: Boolean;
     function GetAllowDirectNavigation: Boolean;
+    function GetMatchedViewName: string;
     function GetHandled: Boolean;
     procedure SetHandled(const AValue: Boolean);
     /// <summary>Request path (URL.Path), used for logging and gate decisions.</summary>
@@ -86,6 +87,13 @@ type
     /// endpoints (e.g. blob downloads); False for the HTML-fragment endpoints,
     /// which the navigation guard bounces back to the app root.
     property AllowDirectNavigation: Boolean read GetAllowDirectNavigation;
+    /// <summary>Name of the view the matched endpoint operates on, empty when
+    /// the endpoint is not view-scoped (the home page, the auth endpoints). Taken
+    /// from the path parameter the router has already parsed, so a gate does not
+    /// have to re-parse the URL: used by the authorization filter to let through
+    /// exactly the view an imposed step needs (ChangePassword / ConfirmAccess)
+    /// while blocking the rest.</summary>
+    property MatchedViewName: string read GetMatchedViewName;
     /// <summary>Set by a filter's BeforeInvoke to fully satisfy the request
     /// (e.g. a 404 or a redirect): the chain then skips dispatch and the
     /// remaining BeforeInvoke.</summary>
@@ -115,18 +123,21 @@ type
     FAllowUnauthenticated: Boolean;
     FAllowSessionLost: Boolean;
     FAllowDirectNavigation: Boolean;
+    FMatchedViewName: string;
     FHandled: Boolean;
   public
     /// <summary>Creates the context with the gate flags computed by the router
     /// (AllowDirectNavigation defaults True — the legacy home branch is navigable).</summary>
     constructor Create(const APath, AHttpMethod: string;
       const AAllowUnauthenticated, AAllowSessionLost: Boolean;
-      const AAllowDirectNavigation: Boolean = True);
+      const AAllowDirectNavigation: Boolean = True;
+      const AMatchedViewName: string = '');
     function GetPath: string;
     function GetHttpMethod: string;
     function GetAllowUnauthenticated: Boolean;
     function GetAllowSessionLost: Boolean;
     function GetAllowDirectNavigation: Boolean;
+    function GetMatchedViewName: string;
     function GetHandled: Boolean;
     procedure SetHandled(const AValue: Boolean);
   end;
@@ -193,7 +204,8 @@ implementation
 
 constructor TKXRequestContext.Create(const APath, AHttpMethod: string;
   const AAllowUnauthenticated, AAllowSessionLost: Boolean;
-  const AAllowDirectNavigation: Boolean = True);
+  const AAllowDirectNavigation: Boolean = True;
+  const AMatchedViewName: string = '');
 begin
   inherited Create;
   FPath := APath;
@@ -201,6 +213,7 @@ begin
   FAllowUnauthenticated := AAllowUnauthenticated;
   FAllowSessionLost := AAllowSessionLost;
   FAllowDirectNavigation := AAllowDirectNavigation;
+  FMatchedViewName := AMatchedViewName;
   FHandled := False;
 end;
 
@@ -227,6 +240,11 @@ end;
 function TKXRequestContext.GetAllowDirectNavigation: Boolean;
 begin
   Result := FAllowDirectNavigation;
+end;
+
+function TKXRequestContext.GetMatchedViewName: string;
+begin
+  Result := FMatchedViewName;
 end;
 
 function TKXRequestContext.GetHandled: Boolean;

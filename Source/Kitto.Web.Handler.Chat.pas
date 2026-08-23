@@ -76,7 +76,6 @@ uses
   EF.Localization,
   Kitto.Auth,
   Kitto.Config,
-  Kitto.Metadata.SubNodes,
   Kitto.Web.Request,
   Kitto.Web.Response,
   Kitto.Chat.Provider,

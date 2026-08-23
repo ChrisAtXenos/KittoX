@@ -122,8 +122,7 @@ function NewChatId: string;
 implementation
 
 uses
-  Kitto.Config,
-  Kitto.Metadata.SubNodes;
+  Kitto.Config;
 
 type
   TKXChatWorker = class(TThread)

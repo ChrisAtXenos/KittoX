@@ -117,6 +117,32 @@ type
   end;
 
   /// <summary>
+  ///  Class-level attribute: declares that this class is the config reader/schema
+  ///  for a specific YAML node, identified by its full slash-separated path
+  ///  (e.g. 'HelpChat/Claude'). Lets a config class live in its own feature/domain
+  ///  unit and still be discovered by KIDE via RTTI, without the parent config
+  ///  class referencing it by type. KIDE scans the linked types for classes
+  ///  carrying this attribute and maps NodePath -> class.
+  /// </summary>
+  /// <example>
+  ///  [YamlConfigNode('HelpChat/Claude')]
+  ///  TKClaudeProviderConfig = class
+  ///    [YamlNode('Model', 'claude-haiku-4-5', 'Claude model id')]
+  ///    property Model: string read FModel;
+  ///  end;
+  /// </example>
+  YamlConfigNodeAttribute = class(TCustomAttribute)
+  private
+    FNodePath: string;
+  public
+    /// <summary>Creates the attribute binding the decorated class to the YAML
+    /// node at ANodePath (full path from the config root).</summary>
+    constructor Create(const ANodePath: string);
+    /// <summary>Full slash-separated path of the YAML node this class describes.</summary>
+    property NodePath: string read FNodePath;
+  end;
+
+  /// <summary>
   ///  Marks a read-only property as a container of N homogeneous children.
   ///  KIDE renders this as an expandable tree node with an "Add child" button.
   ///  Examples: Fields (N TKModelField), Rules (N TKRule),
@@ -309,6 +335,14 @@ begin
   FHasDefaultValue := True;
   FDescription := ADescription;
   FIsLocalizable := AIsLocalizable;
+end;
+
+{ YamlConfigNodeAttribute }
+
+constructor YamlConfigNodeAttribute.Create(const ANodePath: string);
+begin
+  inherited Create;
+  FNodePath := ANodePath;
 end;
 
 { YamlContainerAttribute }

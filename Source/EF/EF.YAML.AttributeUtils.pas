@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+ï»¿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,10 +35,10 @@ type
   ///  Identifies the kind of YAML mapping on a property.
   /// </summary>
   TYamlAttributeKind = (
-    yakScalar,     // YamlNodeAttribute — optional scalar value
-    yakRequired,   // YamlRequiredNodeAttribute — required scalar value
-    yakContainer,  // YamlContainerAttribute — N homogeneous children
-    yakSubNode     // YamlSubNodeAttribute — single config block
+    yakScalar,     // YamlNodeAttribute â€” optional scalar value
+    yakRequired,   // YamlRequiredNodeAttribute â€” required scalar value
+    yakContainer,  // YamlContainerAttribute â€” N homogeneous children
+    yakSubNode     // YamlSubNodeAttribute â€” single config block
   );
 
   /// <summary>
@@ -84,6 +84,17 @@ type
   end;
 
   /// <summary>
+  ///  Maps a config node path (from a class-level YamlConfigNode attribute) to
+  ///  the class that reads/describes it. Built by scanning the linked types.
+  /// </summary>
+  TYamlConfigNodeInfo = record
+    /// <summary>Full slash-separated node path (e.g. 'HelpChat/Claude').</summary>
+    NodePath: string;
+    /// <summary>Class carrying the YamlConfigNode attribute for that path.</summary>
+    NodeClass: TClass;
+  end;
+
+  /// <summary>
   ///  Describes a child type that can be added to a container class.
   /// </summary>
   TYamlChildTypeInfo = record
@@ -112,7 +123,7 @@ type
 
     /// <summary>
     ///  Returns the YAML attribute on a specific property, or nil if none.
-    ///  The returned object is owned by the RTTI system — do not free it.
+    ///  The returned object is owned by the RTTI system â€” do not free it.
     /// </summary>
     class function GetYamlAttribute(AProp: TRttiProperty): TCustomAttribute; static;
 
@@ -151,6 +162,21 @@ type
     ///  If AClass has no YamlChildType attributes, returns an empty array.
     /// </summary>
     class function GetYamlChildTypes(AClass: TClass): TArray<TYamlChildTypeInfo>; static;
+
+    /// <summary>
+    ///  Returns the node path declared by a class-level YamlConfigNode attribute,
+    ///  or '' if the class has none.
+    /// </summary>
+    class function GetConfigNodePath(AClass: TClass): string; static;
+
+    /// <summary>
+    ///  Scans all linked RTTI types for classes carrying a YamlConfigNode
+    ///  attribute and returns their NodePath -> class mapping. Used by KIDE to
+    ///  discover config classes that live in their own feature/domain unit
+    ///  (no parent YamlSubNode type-reference). Enumerates all types, so callers
+    ///  should cache the result (call once).
+    /// </summary>
+    class function GetConfigNodeClasses: TArray<TYamlConfigNodeInfo>; static;
   end;
 
 implementation
@@ -356,6 +382,49 @@ begin
         LInfo.Description := YamlChildTypeAttribute(LAttr).Description;
         LList.Add(LInfo);
       end;
+    end;
+    Result := LList.ToArray;
+  finally
+    LList.Free;
+  end;
+end;
+
+class function TYamlAttributeReader.GetConfigNodePath(AClass: TClass): string;
+var
+  LType: TRttiType;
+  LAttr: TCustomAttribute;
+begin
+  Result := '';
+  LType := FContext.GetType(AClass);
+  if not Assigned(LType) then
+    Exit;
+  for LAttr in LType.GetAttributes do
+    if LAttr is YamlConfigNodeAttribute then
+      Exit(YamlConfigNodeAttribute(LAttr).NodePath);
+end;
+
+class function TYamlAttributeReader.GetConfigNodeClasses: TArray<TYamlConfigNodeInfo>;
+var
+  LType: TRttiType;
+  LAttr: TCustomAttribute;
+  LList: TList<TYamlConfigNodeInfo>;
+  LInfo: TYamlConfigNodeInfo;
+begin
+  LList := TList<TYamlConfigNodeInfo>.Create;
+  try
+    for LType in FContext.GetTypes do
+    begin
+      if not (LType is TRttiInstanceType) then
+        Continue;
+      for LAttr in LType.GetAttributes do
+        if LAttr is YamlConfigNodeAttribute then
+        begin
+          LInfo := Default(TYamlConfigNodeInfo);
+          LInfo.NodePath := YamlConfigNodeAttribute(LAttr).NodePath;
+          LInfo.NodeClass := TRttiInstanceType(LType).MetaclassType;
+          LList.Add(LInfo);
+          Break;
+        end;
     end;
     Result := LList.ToArray;
   finally

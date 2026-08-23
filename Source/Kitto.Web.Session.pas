@@ -62,7 +62,6 @@ type
     FAutoOpenViewName: string;
     FAuthData: TEFNode;
     FIsAuthenticated: Boolean;
-    FIsBCrypted: Boolean;
     FOpenControllers: TList<IKXController>;
     FHomeController: IKXController;
     FLoginController: IKXController;
@@ -140,11 +139,6 @@ type
     ///  place.
     /// </summary>
     property IsAuthenticated: Boolean read FIsAuthenticated write FIsAuthenticated;
-
-    /// <summary>
-    ///  Returns True if password is Crypted
-    /// </summary>
-    property IsBCrypted: Boolean read FIsBCrypted write FIsBCrypted;
 
     /// <summary>
     ///  A reference to the main container of controllers.
@@ -278,6 +272,26 @@ type
   ///  holds and provides atomic find/create, lookup by id or client address,
   ///  removal and expiry-based cleanup. Fires OnSessionStart/OnSessionEnd.
   /// </summary>
+  /// <summary>
+  ///  Read-only snapshot of one session, for monitoring. Exists so that a
+  ///  caller outside the sessions lock never holds a TKWebSession POINTER:
+  ///  the cleanup thread frees expired sessions, so a pointer handed out and
+  ///  read later is a dangling one. That produced access violations in the
+  ///  desktop host's session monitor — on the GUI thread, so neither the
+  ///  request pipeline nor the log ever saw them, they surfaced as Windows
+  ///  exception dialogs. Values are copied under the lock; the id lets a
+  ///  caller ask for an action on that session, again under the lock.
+  /// </summary>
+  TKWebSessionInfo = record
+    Id: string;
+    DisplayName: string;
+    CreationDateTime: TDateTime;
+    LastRequestDateTime: TDateTime;
+    UserName: string;
+    ClientAddress: string;
+    UserAgent: string;
+  end;
+
   TKWebSessions = class
   private type
     TKWebSessionProc = TProc<TKWebSession>;
@@ -288,7 +302,6 @@ type
     FOnSessionStart: TKWebSessionProc;
     function CreateNewSessionId: string;
     function FindSessionById(const ASessionId: string): TKWebSession;
-    function FindSessionByClientAddress(const AClientAddress: string): TKWebSession;
   protected
     procedure SessionAdded(const ASession: TKWebSession);
     procedure SessionRemoved(const ASession: TKWebSession);
@@ -305,16 +318,12 @@ type
     function NewSession(const AClientAddress: string; const ASessionId: string = ''): TKWebSession;
 
     /// <summary>
-    ///  If ASessionId is provided, looks for a session with that id returns it, otherwise returns nil.
-    ///  If ASessionId is not provided, looks for a session with the specified client address and
-    ///  returns it, otherwise returns nil. In this case, if no client address is specified, returns nil.
-    /// </summary>
-    function FindSession(const ASessionId, AClientAddress: string): TKWebSession;
-
-    /// <summary>
-    ///  Atomically finds or creates a session. If ASessionId matches an existing
-    ///  session it is returned; otherwise a new session is created. ACreated is
-    ///  set to True when a new session was created.
+    ///  Atomically finds or creates a session. A request is matched to an
+    ///  existing session ONLY by the session id it presents: if ASessionId
+    ///  matches a live session that session is returned, otherwise a NEW session
+    ///  is created — never one belonging to another client. AClientAddress is
+    ///  recorded on the new session, it is not a matching key. ACreated is set to
+    ///  True when a new session was created.
     /// </summary>
     function FindOrCreateSession(const ASessionId, AClientAddress: string;
       out ACreated: Boolean): TKWebSession;
@@ -322,7 +331,12 @@ type
     /// <summary>
     ///  Returns all sessions as an array for reporting and diagnostic purposes.
     /// </summary>
-    function GetSessions: TArray<TKWebSession>;
+    /// <summary>Snapshot of every live session, built under the lock. Use this
+    /// instead of handing out session objects — see TKWebSessionInfo.</summary>
+    function GetSessionInfos: TArray<TKWebSessionInfo>;
+    /// <summary>Renames the session with the given id, under the lock. Returns
+    /// False when that session no longer exists.</summary>
+    function SetSessionDisplayName(const ASessionId, ADisplayName: string): Boolean;
 
     /// <summary>
     ///  Deletes and frees the specified session.
@@ -673,11 +687,41 @@ begin
   inherited;
 end;
 
-function TKWebSessions.GetSessions: TArray<TKWebSession>;
+function TKWebSessions.GetSessionInfos: TArray<TKWebSessionInfo>;
+var
+  I: Integer;
+  LSession: TKWebSession;
 begin
   MonitorEnter(FSessions);
   try
-    Result := FSessions.ToArray;
+    SetLength(Result, FSessions.Count);
+    for I := 0 to FSessions.Count - 1 do
+    begin
+      LSession := FSessions[I];
+      Result[I].Id := LSession.SessionId;
+      Result[I].DisplayName := LSession.DisplayName;
+      Result[I].CreationDateTime := LSession.CreationDateTime;
+      Result[I].LastRequestDateTime := LSession.LastRequestInfo.DateTime;
+      Result[I].UserName := LSession.AuthData.GetString('UserName');
+      Result[I].ClientAddress := LSession.LastRequestInfo.ClientAddress;
+      Result[I].UserAgent := LSession.LastRequestInfo.UserAgent;
+    end;
+  finally
+    MonitorExit(FSessions);
+  end;
+end;
+
+function TKWebSessions.SetSessionDisplayName(const ASessionId,
+  ADisplayName: string): Boolean;
+var
+  LSession: TKWebSession;
+begin
+  MonitorEnter(FSessions);
+  try
+    LSession := FindSessionById(ASessionId);
+    Result := Assigned(LSession);
+    if Result then
+      LSession.DisplayName := ADisplayName;
   finally
     MonitorExit(FSessions);
   end;
@@ -704,21 +748,6 @@ begin
   SessionAdded(Result);
 end;
 
-function TKWebSessions.FindSession(const ASessionId, AClientAddress: string): TKWebSession;
-begin
-  MonitorEnter(FSessions);
-  try
-    if ASessionId <> '' then
-      Result := FindSessionById(ASessionId)
-    else if AClientAddress <> '' then
-      Result := FindSessionByClientAddress(AClientAddress)
-    else
-      Result := nil;
-  finally
-    MonitorExit(FSessions);
-  end;
-end;
-
 function TKWebSessions.FindOrCreateSession(const ASessionId, AClientAddress: string;
   out ACreated: Boolean): TKWebSession;
 var
@@ -726,11 +755,19 @@ var
 begin
   MonitorEnter(FSessions);
   try
-    // Try to find existing session
+    // A request is matched to an existing session ONLY by the session id it
+    // presents. There used to be a fallback here: with no id, the first session
+    // with the same CLIENT ADDRESS was reused — which handed a request arriving
+    // without the session cookie somebody else's session, authentication and
+    // all. Reproduced: a legitimate user logged in, then a brand-new client with
+    // no cookie asked for kx/view/<V>/data and received that user's rows, with no
+    // new session created for it. Behind a reverse proxy or NAT — the normal way
+    // to deploy under IIS, Apache or nginx — every user shares one address, so
+    // any cookie-less request (first visit, cleared or blocked cookies, a crawler)
+    // landed in whichever session existed for the proxy. No id, no match: a new
+    // anonymous session is created below and the response carries its cookie.
     if ASessionId <> '' then
       Result := FindSessionById(ASessionId)
-    else if AClientAddress <> '' then
-      Result := FindSessionByClientAddress(AClientAddress)
     else
       Result := nil;
 
@@ -761,16 +798,6 @@ var
 begin
   for I := 0 to FSessions.Count - 1 do
     if FSessions[I].SessionId = ASessionId then
-      Exit(FSessions[I]);
-  Result := nil;
-end;
-
-function TKWebSessions.FindSessionByClientAddress(const AClientAddress: string): TKWebSession;
-var
-  I: Integer;
-begin
-  for I := 0 to FSessions.Count - 1 do
-    if FSessions[I].LastRequestInfo.ClientAddress = AClientAddress then
       Exit(FSessions[I]);
   Result := nil;
 end;

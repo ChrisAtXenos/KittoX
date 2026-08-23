@@ -55,6 +55,9 @@ type
     /// database cookie, declares the %Auth:* macros and emits the success
     /// marker the login form's JS reacts to.</summary>
     procedure AfterAuthenticateOK(const ADatabaseName: string); virtual;
+    /// <summary>True when the request carries X-KittoX: true, i.e. comes from
+    /// the single-page client. A native form submission does not.</summary>
+    function IsSPARequest: Boolean;
     /// <summary>Runs after a failed Authenticate: emits the "invalid login"
     /// fragment.</summary>
     procedure AfterAuthenticateFail; virtual;
@@ -155,6 +158,18 @@ begin
   // Prevent Home from calling Logout on the next (redirect) request.
   TKWebSession.Current.ReloadingHome := True;
 
+  // Native form submission (no X-KittoX): there is no HTMX swap to interpret
+  // the hidden marker below, so the browser would render it as the whole page.
+  // Redirect instead. 303, not 302: after a POST it makes the browser follow
+  // with a GET, so the address bar ends on the app root, not on kx/login.
+  if not IsSPARequest then
+  begin
+    TKWebResponse.Current.Items.Clear;
+    TKWebResponse.Current.StatusCode := 303;
+    TKWebResponse.Current.SetCustomHeader('Location', LApp.Path + '/');
+    Exit;
+  end;
+
   // Success: hidden marker with the redirect URL; the login form's JS detects
   // it after the HTMX swap and performs the redirect. (We don't use HX-Redirect
   // because WebBroker formats custom headers as Name=Value instead of Name: Value.)
@@ -166,10 +181,27 @@ end;
 procedure TKXAuthHandlerBase.AfterAuthenticateFail;
 begin
   TKWebResponse.Current.Items.Clear;
+  // Native submission (see AfterAuthenticateOK): the error fragment would be
+  // rendered as the whole page. Back to the root, which shows the login again.
+  if not IsSPARequest then
+  begin
+    TKWebResponse.Current.StatusCode := 303;
+    TKWebResponse.Current.SetCustomHeader('Location',
+      TKWebApplication.Current.Path + '/');
+    Exit;
+  end;
+
   TKWebResponse.Current.Items.AddHTML(
     '<div class="kx-login-error">' +
       TNetEncoding.HTML.Encode(_('Invalid login.')) +
     '</div>');
+end;
+
+function TKXAuthHandlerBase.IsSPARequest: Boolean;
+begin
+  // Same marker the navigation guard keys on: every SPA call carries it, a
+  // native form submission does not.
+  Result := SameText(TKWebRequest.Current.GetHeaderField('X-KittoX'), 'true');
 end;
 
 procedure TKXAuthHandlerBase.HandleLogin;
@@ -325,6 +357,17 @@ var
 begin
   LApp := TKWebApplication.Current;
   LAuthenticator := LApp.Authenticator;
+
+  // Refuse before touching anything when the authenticator cannot write a
+  // password at all (Auth: LDAP keeps them in the directory). SetPassword's base
+  // implementation has an empty body, so without this check the whole flow below
+  // would succeed and report "Password changed successfully" while nothing was
+  // written anywhere.
+  if not LAuthenticator.SupportsPasswordChange then
+  begin
+    RespondError(_('Changing the password is not supported for this login type. Please contact your administrator.'));
+    Exit;
+  end;
 
   LOldPassword := TKWebRequest.Current.GetField('OldPassword');
   LNewPassword := TKWebRequest.Current.GetField('NewPassword');

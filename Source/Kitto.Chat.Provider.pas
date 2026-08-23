@@ -32,9 +32,71 @@ interface
 
 uses
   System.SysUtils,
-  System.Generics.Collections;
+  System.Generics.Collections,
+  EF.Tree,
+  EF.YAML.Attributes;
+
+const
+  // Help Chat root default values — single source of truth for the whole chat
+  // domain (this unit is the chat-domain base): the config-class getters below,
+  // the [YamlNode] attributes, the runtime readers in Kitto.Chat.* /
+  // Kitto.Web.Handler.Chat and the KIDE Config designer frame.
+  KX_HELPCHAT_DEF_POOLSIZE = 2;
+  KX_HELPCHAT_DEF_MSGMAXLEN = 4000;
+  KX_HELPCHAT_DEF_HISTMAXMSG = 50;
+  KX_HELPCHAT_DEF_GREETING = 'Hi! Ask me anything about how to use the application.';
 
 type
+  /// <summary>
+  ///  Help Chat assistant settings (bubble, bottom-right). Opt-in. Root config of
+  ///  the chat domain; each provider adds its own [YamlConfigNode('HelpChat/&lt;X&gt;')]
+  ///  reader in its own unit (e.g. TKClaudeProviderConfig). The class-level
+  ///  [YamlConfigNode('HelpChat')] binds this class to the YAML node so KIDE
+  ///  discovers it via RTTI, without TKConfig referencing it by type.
+  ///  YAML path: HelpChat
+  /// </summary>
+  /// <example>
+  ///  HelpChat:
+  ///    Enabled: True
+  ///    Provider: docsearch
+  /// </example>
+  [YamlConfigNode('HelpChat')]
+  TKHelpChatConfig = class(TEFNode)
+  private
+    function GetEnabled: Boolean;
+    function GetProvider: string;
+    function GetPoolSize: Integer;
+    function GetMessageMaxLength: Integer;
+    function GetHistoryMaxMessages: Integer;
+    function GetGreeting: string;
+    function GetDocIndex: string;
+    function GetDocBaseUrl: string;
+  public
+    [YamlNode('Enabled', 'True', 'Enable the in-app Help Chat assistant (bubble, bottom-right)')]
+    property Enabled: Boolean read GetEnabled;
+
+    [YamlNode('Provider', 'stub', 'Chat provider id (e.g. stub, docsearch, claude)')]
+    property Provider: string read GetProvider;
+
+    [YamlNode('PoolSize', KX_HELPCHAT_DEF_POOLSIZE, 'Number of worker threads for the chat runner')]
+    property PoolSize: Integer read GetPoolSize;
+
+    [YamlNode('MessageMaxLength', KX_HELPCHAT_DEF_MSGMAXLEN, 'Maximum length in characters of a user message')]
+    property MessageMaxLength: Integer read GetMessageMaxLength;
+
+    [YamlNode('HistoryMaxMessages', KX_HELPCHAT_DEF_HISTMAXMSG, 'Maximum number of messages kept in the conversation history')]
+    property HistoryMaxMessages: Integer read GetHistoryMaxMessages;
+
+    [YamlNode('Greeting', KX_HELPCHAT_DEF_GREETING, 'Initial assistant greeting message shown when the chat opens', True)]
+    property Greeting: string read GetGreeting;
+
+    [YamlNode('DocIndex', 'Path to the documentation index JSON (docsearch / Claude grounding)')]
+    property DocIndex: string read GetDocIndex;
+
+    [YamlNode('DocBaseUrl', 'Base URL prefix for documentation links (docsearch / Claude grounding)')]
+    property DocBaseUrl: string read GetDocBaseUrl;
+  end;
+
   /// <summary>Author of a chat message.</summary>
   TKXChatRole = (crUser, crAssistant, crSystem);
 
@@ -153,6 +215,48 @@ implementation
 
 uses
   EF.Localization;
+
+{ TKHelpChatConfig }
+
+function TKHelpChatConfig.GetEnabled: Boolean;
+begin
+  Result := GetBoolean('Enabled');
+end;
+
+function TKHelpChatConfig.GetProvider: string;
+begin
+  Result := GetString('Provider', 'stub');
+end;
+
+function TKHelpChatConfig.GetPoolSize: Integer;
+begin
+  Result := GetInteger('PoolSize', KX_HELPCHAT_DEF_POOLSIZE);
+end;
+
+function TKHelpChatConfig.GetMessageMaxLength: Integer;
+begin
+  Result := GetInteger('MessageMaxLength', KX_HELPCHAT_DEF_MSGMAXLEN);
+end;
+
+function TKHelpChatConfig.GetHistoryMaxMessages: Integer;
+begin
+  Result := GetInteger('HistoryMaxMessages', KX_HELPCHAT_DEF_HISTMAXMSG);
+end;
+
+function TKHelpChatConfig.GetGreeting: string;
+begin
+  Result := GetString('Greeting', KX_HELPCHAT_DEF_GREETING);
+end;
+
+function TKHelpChatConfig.GetDocIndex: string;
+begin
+  Result := GetString('DocIndex');
+end;
+
+function TKHelpChatConfig.GetDocBaseUrl: string;
+begin
+  Result := GetString('DocBaseUrl');
+end;
 
 { TKXChatProviderBase }
 

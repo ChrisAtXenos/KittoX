@@ -32,7 +32,7 @@
     <div class="kx-login-header">
       <span class="kx-login-title">{{:title}}</span>
     </div>
-    <form id="kx-login-form" class="kx-login-form" hx-post="kx/login" hx-target="#kx-login-status" hx-swap="innerHTML">
+    <form id="kx-login-form" class="kx-login-form" method="post" action="kx/login" hx-post="kx/login" hx-target="#kx-login-status" hx-swap="innerHTML">
       <div class="kx-login-body">
         {{:westContent$}}
         <div class="kx-login-center">

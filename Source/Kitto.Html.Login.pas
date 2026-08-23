@@ -440,12 +440,20 @@ begin
       SB.Append('  }').Append(sLineBreak);
     end;
 
-    // Enable/disable button
+    // Enable/disable button. Disabled until the page is fully loaded, because
+    // htmx binds hx-post on DOMContentLoaded and a click before that submits
+    // the form natively. 'complete', not 'interactive': the latter fires as
+    // soon as the DOM is parsed, while the user still sees a loading page.
+    SB.Append('  function ready() {').Append(sLineBreak);
+    SB.Append('    return !!window.htmx && document.readyState === "complete";').Append(sLineBreak);
+    SB.Append('  }').Append(sLineBreak);
     SB.Append('  function updateBtn() {').Append(sLineBreak);
-    SB.Append('    btnEl.disabled = (userEl.value.trim() === "" || passEl.value.trim() === "");').Append(sLineBreak);
+    SB.Append('    btnEl.disabled = !ready() || userEl.value.trim() === "" || passEl.value.trim() === "";').Append(sLineBreak);
     SB.Append('  }').Append(sLineBreak);
     SB.Append('  userEl.addEventListener("input", updateBtn);').Append(sLineBreak);
     SB.Append('  passEl.addEventListener("input", updateBtn);').Append(sLineBreak);
+    SB.Append('  document.addEventListener("DOMContentLoaded", updateBtn);').Append(sLineBreak);
+    SB.Append('  window.addEventListener("load", updateBtn);').Append(sLineBreak);
     SB.Append('  updateBtn();').Append(sLineBreak);
 
     // Focus logic
@@ -580,7 +588,7 @@ begin
             '<span class="kx-login-title">' + TNetEncoding.HTML.Encode(LTitleStr) + '</span>' +
           '</div>' +
           LNorthContent +
-          '<form id="kx-login-form" class="kx-login-form"' + LBodyStyleAttr +
+          '<form id="kx-login-form" class="kx-login-form" method="post" action="kx/login"' + LBodyStyleAttr +
             ' hx-post="kx/login" hx-target="#kx-login-status" hx-swap="innerHTML">' +
             '<div class="kx-login-fields">' +
               LFieldsContent +

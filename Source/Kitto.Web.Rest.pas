@@ -199,6 +199,7 @@ uses
   System.JSON,
   EF.Tree,
   Kitto.Config,
+  Kitto.Config.Server,
   Kitto.Store,
   Kitto.Rules,
   Kitto.Metadata.Views,
@@ -580,7 +581,7 @@ end;
 procedure TKXCorsFilter.BeforeInvoke(const AContext: IKXRequestContext);
 var
   LOrigin, LAllowed, LReqHeaders: string;
-  LCfg: TEFTree;
+  LCORS: TKCORSConfig;
   LResp: TKWebResponse;
 begin
   if not ContainsText(AContext.Path, TKWebApplication.Current.Config.RestBasePath) then
@@ -588,8 +589,8 @@ begin
   LOrigin := TKWebRequest.Current.GetHeaderField('Origin');
   if LOrigin = '' then
     Exit; // not a cross-origin browser request
-  LCfg := TKWebApplication.Current.Config.Config;
-  LAllowed := LCfg.GetExpandedString('Server/CORS/AllowedOrigins', '');
+  LCORS := TKWebApplication.Current.Config.Server.CORS;
+  LAllowed := LCORS.AllowedOrigins;
   if LAllowed = '' then
     Exit; // CORS not configured → disabled
   if not CorsOriginAllowed(LAllowed, LOrigin) then
@@ -601,7 +602,7 @@ begin
   // Echo the specific origin (required with credentials, harmless otherwise).
   LResp.SetCustomHeader('Access-Control-Allow-Origin', LOrigin);
   LResp.SetCustomHeader('Vary', 'Origin');
-  if LCfg.GetBoolean('Server/CORS/AllowCredentials') then
+  if LCORS.AllowCredentials then
     LResp.SetCustomHeader('Access-Control-Allow-Credentials', 'true');
 
   if SameText(AContext.HttpMethod, 'OPTIONS') then

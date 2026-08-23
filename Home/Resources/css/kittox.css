@@ -1478,6 +1478,13 @@ select.kx-login-field-input {
   cursor: not-allowed;
 }
 
+/* A disabled <button> receives no mouse events, so the rule above never shows:
+   the cursor has to be set on the container. */
+.kx-login-footer:has(> .kx-login-button:disabled),
+.kx-login-footer:has(> .kx-login-button.disabled) {
+  cursor: not-allowed;
+}
+
 .kx-login-button-icon {
   width: 1.2em;
   height: 1.2em;

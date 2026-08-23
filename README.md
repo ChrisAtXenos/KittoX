@@ -2,7 +2,7 @@
 [![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
 
-**Latest Version 4.0.16 - 21 Aug 2026**
+**Latest Version 4.0.17 - 23 Aug 2026**
 
 ![KittoX_logo.png](./images/kittoX_logo_200.png)
 
@@ -54,6 +54,17 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 
 # Release Notes
 
+## 23 Aug 2026: ver. 4.0.17 Beta
+
+### Bug fixes
+- **Opening a Calendar view no longer logs the user out** — the calendar loads its events with a `fetch` that cannot carry the `X-KittoX` header, so the navigation guard mistook it for a top-level navigation and bounced it to the app root (which signs the session out); the guard now uses the browser's **`Sec-Fetch-Mode`** header to tell a real navigation from a data request
+
+### Desktop host
+- The MainForm **log is now asynchronous and thread-safe** — worker threads enqueue log lines, the UI drains them onto the memo from a timer (no more cross-thread VCL access)
+
+### Refactoring
+- New **typed config readers** 
+
 ## 21 Aug 2026: ver. 4.0.16 Beta
 
 ### Help Chat — AI provider (Claude)
@@ -81,8 +92,28 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 ### Localization — full multi-language support
 - Updated some views of Examples
 
+### Security
+- A request without a session cookie is no longer attached to an existing session: the lookup fell back on the client address, which behind a reverse proxy is the same for every user
+- `Controller/FilterExpression` now also constrains a record key supplied by the client (`/form`, `/save`, `/delete`, `/blob`); `DefaultFilter` was never affected
+- Imposed steps (`MustChangePassword`, `MustConfirmAccess`) enforced on every request, not only by the home page
+- `LoginType: PIN` requires a per-user `SECRET_CODE`: the TOTP secret is no longer derived from the (public) user name
+- `Auth: DBServer` refuses to start unless its `Connection` block reads the typed credentials through `%Auth:...%`
+- New `TKAuthenticator.SupportsPasswordChange`, checked before writing: `TextFile`, `LDAP`, `DBServer` and `Null` no longer report a successful password change while discarding it
+- `Auth: TextFile` no longer accepts an empty password. `GetStringHash('')` returns `''` and `TStrings.Values[]` returns `''` for a missing key, so any user name with a blank password compared two empty strings and logged in — including a user disabled with a leading `#`. An empty password is now refused outright and an empty stored hash never takes part in the comparison. The passepartout is compared with the password as typed (never with its hash) and ignored when left empty, but it keeps working as a master password for any **listed** user, matching what `Auth: DB` does
+- **No account can be entered with an empty or NULL stored password.** The comparison was a plain string equality, and `GetStringHash('')` returns `''`, so an active `KITTO_USERS` row whose password column was empty or NULL was matched by a blank typed password — on `DB` and on `DBCrypt`, where the legacy branch went further and *stored* a bcrypt hash of the empty password. The refusal is keyed on the new `IsPasswordTheStoredCredential`, so `Auth: OSDB` keeps authenticating the operating-system user without a password, which is legitimate. A user with no password gets in through the password-reset flow, which mails them a temporary password and forces a change; that flow does not go through authentication and is unaffected
+- The **passepartout** is refused when `PassepartoutPassword` is left empty: with the passepartout enabled and no master password configured, both sides of the comparison were `''`, so a blank password logged in as any existing user
+- `Auth: DBServer` refuses an empty password before opening the connection
+
+### Authenticators
+- `Auth: DBCrypt` works: the `PASSWORD_B_HASH` column was never read, so no bcrypt password could be validated
+- `Auth: Null` works: the session was never marked as authenticated
+- An unknown `Auth:` class id fails at startup, listing the registered ones, instead of serving a blank page
+- New `TKAuthenticatorDecorator`: the JWT wrapper's forwarding contract is now checked by the compiler
+
 ### Bug fixes
 - Fixed Clone Record function.
+- Fixed access violations on session termination (use-after-free in the deferred session-end closure) and in the VCL session monitor
+- Unhandled exceptions raised while serving a request are logged, so service / ISAPI / Apache deployments have a trace
 
 ## 10 Aug 2026: ver. 4.0.14 Beta
 

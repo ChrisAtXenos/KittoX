@@ -48,7 +48,20 @@ type
   /// </summary>
   TKWebEngine = class(TKWebRouteList)
   private type
-    TKWebEngineSessionProc = TProc<TKWebEngine, TKWebSession>;
+    /// <summary>
+    ///  Carries the session ID, not the session object, and deliberately so.
+    ///  Both events are delivered through TThread.Queue, i.e. ASYNCHRONOUSLY on
+    ///  the main thread — while OnSessionEnd is fired from inside RemoveSession /
+    ///  CleanupExpiredSessions, one statement before the session is FREED. A
+    ///  closure capturing the object therefore read freed memory by the time it
+    ///  ran: a use-after-free that surfaced as access violations in the desktop
+    ///  host, on the main thread, so neither the request pipeline nor the log
+    ///  caught them. Its signature in the log was the line
+    ///  "Session  terminating." with an EMPTY id — 115 of them in one session of
+    ///  testing, next to others that happened to win the race and printed a real
+    ///  id.
+    /// </summary>
+    TKWebEngineSessionProc = TProc<TKWebEngine, string>;
   private
     FCharset: string;
     FSessions: TKWebSessions;
@@ -79,8 +92,11 @@ type
 
     /// <summary>The response charset used by the engine (from Config, default utf-8).</summary>
     property Charset: string read FCharset;
-    /// <summary>Returns a snapshot of the active sessions (for diagnostics/monitoring).</summary>
-    function GetSessions: TArray<TKWebSession>;
+    /// <summary>Snapshot of the active sessions for diagnostics/monitoring. Returns
+    /// copied values, never session objects: see TKWebSessionInfo for why.</summary>
+    function GetSessionInfos: TArray<TKWebSessionInfo>;
+    /// <summary>Renames one session, resolved by id under the sessions lock.</summary>
+    function SetSessionDisplayName(const ASessionId, ADisplayName: string): Boolean;
 
     /// <summary>
     ///  Fired when a new session has started.
@@ -126,7 +142,9 @@ uses
   EF.DB,
   EF.Tree,
   EF.Logger,
+  EF.Localization,
   Kitto.Auth,
+  Kitto.Types,
   Kitto.Config,
   Kitto.Web.Routing.Registry,
   Kitto.Html.Response,
@@ -161,8 +179,31 @@ begin
     // TKAuthenticator.Current has been cleared by DeactivateInstance.
     LAuthType := LConfig.Config.GetExpandedString('Auth', NODE_NULL_VALUE);
     LAuthClass := TKAuthenticatorRegistry.Instance.FindClass(LAuthType);
-    FAuthCarriesSessionId := Assigned(LAuthClass)
-      and TKAuthenticatorClass(LAuthClass).CarriesSessionIdInCredential;
+    // Fail here, and say what is wrong, if Auth names a class nobody registered
+    // — a typo, or more often an authenticator unit missing from the project's
+    // UseKitto.pas (only Auth: Null is registered by the core; DB, DBCrypt,
+    // DBServer, TextFile, OSDB, LDAP and JWT each come from their own unit).
+    //
+    // Without this check the application starts and then serves a BLANK PAGE for
+    // every request, with nothing in the log: the class is looked up again by
+    // TKWebApplication.GetAuthenticator, from ActivateInstance, which runs
+    // BEFORE the request filter chain is built — so the error-handler filter
+    // never sees the exception and no dialog is ever rendered. Verified.
+    if not Assigned(LAuthClass) then
+    begin
+      // Logged as well as raised: on a Windows service, an ISAPI dll or an
+      // Apache module nobody sees the dialog, and the log file is the only
+      // place the operator can find out why the application will not start.
+      TEFLogger.Instance.LogFmt('Auth: %s is not a registered authenticator. '+
+        'Add the unit that registers it to UseKitto.pas. Registered: %s.',
+        [LAuthType, String.Join(', ', TKAuthenticatorRegistry.Instance.GetClassIds)],
+        TEFLogger.LOG_HIGH);
+      raise EKError.CreateFmt(
+        _('Auth: %s is not a registered authenticator. Check the spelling, and make sure the unit that registers it (e.g. Kitto.Auth.%s) is in your project''s UseKitto.pas. Registered: %s.'),
+        [LAuthType, LAuthType,
+         String.Join(', ', TKAuthenticatorRegistry.Instance.GetClassIds)]);
+    end;
+    FAuthCarriesSessionId := TKAuthenticatorClass(LAuthClass).CarriesSessionIdInCredential;
     // Expand the '{apibase}' placeholder in the REST routes with the configured
     // base path (Server/RestBasePath, default '/api/v4') now that the config is
     // loaded, before any request is served. No-op for non-REST routes / apps.
@@ -419,28 +460,41 @@ begin
 end;
 
 procedure TKWebEngine.DoSessionEnd(ASession: TKWebSession);
+var
+  LSessionId: string;
 begin
   // Clear the current session *in this thread*, as it's a threadvar...
   if ASession = TKWebSession.Current then
     TKWebSession.Current := nil;
+  // Read everything the queued closure needs NOW, while the session is still
+  // alive: this method runs one statement before the caller frees it, and the
+  // closure below runs later, on the main thread. Capturing ASession instead of
+  // this copy is a use-after-free — see TKWebEngineSessionProc.
+  LSessionId := ASession.SessionId;
   // ...then queue the rest in the main thread.
   TThread.Queue(nil,
     procedure
     begin
-      TEFLogger.Instance.LogFmt('Session %s terminating.', [ASession.SessionId], TEFLogger.LOG_MEDIUM);
+      TEFLogger.Instance.LogFmt('Session %s terminating.', [LSessionId], TEFLogger.LOG_MEDIUM);
       if Assigned(FOnSessionEnd) then
-        FOnSessionEnd(Self, ASession);
+        FOnSessionEnd(Self, LSessionId);
     end);
 end;
 
 procedure TKWebEngine.DoSessionStart(ASession: TKWebSession);
+var
+  LSessionId: string;
 begin
+  // Same rule as DoSessionEnd: copy now, queue the copy. The session is alive
+  // here, but the closure runs later and a short-lived session may already have
+  // expired and been freed by then.
+  LSessionId := ASession.SessionId;
   TThread.Queue(nil,
     procedure
     begin
-      TEFLogger.Instance.LogFmt('New session %s.', [ASession.SessionId], TEFLogger.LOG_MEDIUM);
+      TEFLogger.Instance.LogFmt('New session %s.', [LSessionId], TEFLogger.LOG_MEDIUM);
       if Assigned(FOnSessionStart) then
-        FOnSessionStart(Self, ASession);
+        FOnSessionStart(Self, LSessionId);
     end);
 end;
 
@@ -487,9 +541,15 @@ begin
     FSessions.RemoveSession(TKWebSession.Current);
 end;
 
-function TKWebEngine.GetSessions: TArray<TKWebSession>;
+function TKWebEngine.GetSessionInfos: TArray<TKWebSessionInfo>;
 begin
-  Result := FSessions.GetSessions;
+  Result := FSessions.GetSessionInfos;
+end;
+
+function TKWebEngine.SetSessionDisplayName(const ASessionId,
+  ADisplayName: string): Boolean;
+begin
+  Result := FSessions.SetSessionDisplayName(ASessionId, ADisplayName);
 end;
 
 end.

@@ -47,7 +47,7 @@ type
   ///	  TKClassicAuthenticator.</para>
   ///	  <para>In order for this authenticator to work, it is required that the
   ///	  following file exists:</para>
-  ///	  <para><c>%HOME_PATH%\Auth.txt</c></para>
+  ///	  <para><c>%HOME_PATH%FileAuthenticator.txt</c></para>
   ///	  <para>You can override the file name by means of the FileName parameter
   ///	  (may contain macros).</para>
   ///	  <para>When Authenticate is called, the authenticator fetches the file
@@ -87,6 +87,25 @@ type
     ///	macros).</summary>
     function GetUserListFileName: string; virtual;
   public
+    /// <summary>
+    ///  The user list is a read-only text file of name=hash pairs: there is no
+    ///  write path, so a password cannot be changed or reset from here. The
+    ///  three members below are implemented rather than left abstract because
+    ///  abstract members of a factory-created class do not fail at build time:
+    ///  they raise "Abstract Error" the first time a user reaches the feature.
+    /// </summary>
+    function SupportsPasswordChange: Boolean; override;
+    /// <summary>Raises: the user list file is edited by hand, not rewritten by
+    /// the application, so there is nowhere to store a new password.</summary>
+    procedure ResetPassword(const AParams: TEFNode); override;
+    /// <summary>Raises: the file format carries no per-user TOTP secret.</summary>
+    procedure QRGenerate(const AParams: TEFNode); override;
+    /// <summary>Always False, and never reached: InternalAuthenticate compares
+    /// against the user list inline, and the password-change flow is refused by
+    /// SupportsPasswordChange before it gets here.</summary>
+    function IsPasswordMatching(const ASuppliedPasswordHash: string;
+      const AStoredPasswordHash: string): Boolean; override;
+  public
     ///	<summary>Creates the in-memory user list.</summary>
     procedure AfterConstruction; override;
     ///	<summary>Frees the in-memory user list.</summary>
@@ -99,9 +118,11 @@ uses
   System.SysUtils,
   EF.Intf,
   EF.Localization,
+  EF.Logger,
   EF.Types,
   EF.StrUtils,
-  Kitto.Config;
+  Kitto.Config,
+  Kitto.Types;
 
 { TKTextFileAuthenticator }
 
@@ -129,6 +150,7 @@ var
   LIsClearPassword: Boolean;
   LPassepartoutPassword: string;
   LSuppliedPasswordHash: string;
+  LSuppliedPassword: string;
   LStoredPasswordHash: string;
   LUserName: string;
 begin
@@ -138,23 +160,62 @@ begin
   LIsClearPassword := Config.GetBoolean('IsClearPassword', False);
   LIsPassepartoutEnabled := Config.GetBoolean('IsPassepartoutEnabled', False);
   LPassepartoutPassword := Config.GetString('PassepartoutPassword');
+  LSuppliedPassword := LSuppliedPasswordHash;
   if not LIsClearPassword then
     LSuppliedPasswordHash := GetStringHash(LSuppliedPasswordHash);
 
   LUserName := AAuthData.GetString('UserName');
   TKConfig.Instance.MacroExpansionEngine.Expand(LUserName);
 
-  if LUserName <> '' then
+  if LUserName = '' then
+    Exit(False);
+
+  // An empty password is refused before anything is compared. GetStringHash('')
+  // returns '' by design, so an empty password produces an empty "hash" in both
+  // modes and every comparison below would be a comparison of two empty strings.
+  // Same reason why TKLDAPAuthenticator refuses it before the bind.
+  if LSuppliedPassword = '' then
   begin
-    RefreshUserList(FUserList);
+    TEFLogger.Instance.LogFmt('Authentication refused for user %s: empty password.',
+      [LUserName], TEFLogger.LOG_DETAILED);
+    Exit(False);
+  end;
 
-    LStoredPasswordHash := FUserList.Values[LUserName];
+  RefreshUserList(FUserList);
 
-    Result := (LSuppliedPasswordHash = LStoredPasswordHash) or
-      (LIsPassepartoutEnabled and (LSuppliedPasswordHash = LPassepartoutPassword));
-  end
-  else
-    Result := False;
+  // TStrings.Values returns '' both for a name that is not in the file and for a line
+  // carrying no value ('user='), and those two cases must be told apart: the first is
+  // an unknown user, the second is a listed user who cannot be authenticated BY
+  // PASSWORD - but who the passepartout may still legitimately impersonate, exactly as
+  // TKDBAuthenticator does for a user row whose password column is empty.
+  if FUserList.IndexOfName(LUserName) < 0 then
+  begin
+    TEFLogger.Instance.LogFmt('Authentication refused: user %s is not in the user list file.',
+      [LUserName], TEFLogger.LOG_DETAILED);
+    Exit(False);
+  end;
+
+  LStoredPasswordHash := FUserList.Values[LUserName];
+  if LStoredPasswordHash = '' then
+    // The name IS in the file, with nothing after the '='. That is a broken user list:
+    // say so out loud. No Exit: only the password comparison is off the table.
+    TEFLogger.Instance.LogFmt('User %s has no password in the user list file %s: the '+
+      'line carries no value after the "=", so no password can authenticate it.',
+      [LUserName, GetUserListFileName], TEFLogger.LOG_HIGH);
+
+  // An empty stored hash never takes part in the comparison: it used to match an empty
+  // supplied password, which let anybody in by typing any user name - one absent from
+  // the file, or one disabled with a leading # - and leaving the password box empty.
+  Result := (LStoredPasswordHash <> '') and (LSuppliedPasswordHash = LStoredPasswordHash);
+
+  // The passepartout is a master password: it is meant to let an operator in as anybody,
+  // so - like TKDBAuthenticator.IsPassepartoutAuthentication - it applies to any LISTED
+  // user, including one whose line carries no password. It is compared with the password
+  // as typed, never with its hash, and it is ignored when left empty, because an empty
+  // PassepartoutPassword with IsPassepartoutEnabled: True would accept an empty password
+  // for every user in the file.
+  if not Result and LIsPassepartoutEnabled and (LPassepartoutPassword <> '') then
+    Result := LSuppliedPassword = LPassepartoutPassword;
 end;
 
 procedure TKTextFileAuthenticator.RefreshUserList(const AUserList: TStrings);
@@ -173,6 +234,32 @@ begin
   for LLineIndex := AUserList.Count - 1 downto 0 do
     if Pos('#', Trim(AUserList[LLineIndex])) = 1 then
       AUserList.Delete(LLineIndex);
+end;
+
+
+function TKTextFileAuthenticator.SupportsPasswordChange: Boolean;
+begin
+  // The user list is read-only: nothing here can write a new password.
+  Result := False;
+end;
+
+procedure TKTextFileAuthenticator.ResetPassword(const AParams: TEFNode);
+begin
+  raise EKError.Create(_('Password reset is not supported by the TextFile authenticator: edit the user list file instead.'));
+end;
+
+procedure TKTextFileAuthenticator.QRGenerate(const AParams: TEFNode);
+begin
+  raise EKError.Create(_('PIN/QR authentication is not supported by the TextFile authenticator.'));
+end;
+
+function TKTextFileAuthenticator.IsPasswordMatching(const ASuppliedPasswordHash,
+  AStoredPasswordHash: string): Boolean;
+begin
+  // Never reached: InternalAuthenticate compares the hashes inline against the
+  // user list, and the password-change flow is refused by
+  // SupportsPasswordChange before it gets here.
+  Result := False;
 end;
 
 initialization

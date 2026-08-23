@@ -180,6 +180,30 @@ type
     /// rules by overriding this method.</summary>
     function GenerateRandomPassword: string; virtual;
 
+    /// <summary>
+    ///  True when the credential this authenticator verifies IS the password
+    ///  stored in the user record. A descendant that delegates the check
+    ///  elsewhere returns False: TKOSDBAuthenticator does exactly that when it
+    ///  authenticates the operating-system user, because there the password
+    ///  field carries nothing by design and the OS has already vouched for the
+    ///  identity. Everything that DOES compare against a stored password must
+    ///  leave this True.
+    /// </summary>
+    function IsPasswordTheStoredCredential: Boolean; virtual;
+
+    /// <summary>
+    ///  True (and logs the reason) when the login must be refused because the
+    ///  password is the credential here and one of the two sides of the
+    ///  comparison is empty. Neither side may be: GetStringHash('') returns '',
+    ///  so an empty typed password produces an empty hash, which matches an
+    ///  empty or NULL stored password - a login with no credential at all.
+    ///  A user whose record carries no password gets in through the
+    ///  password-reset flow, which mails them a temporary password; it does not
+    ///  go through here.
+    /// </summary>
+    function RefuseEmptyPasswordLogin(const AUserName, ASuppliedPassword,
+      AStoredPassword: string): Boolean;
+
     /// <summary>Returns True if the passepartout mechanism is enabled and the
     /// supplied password matches the passpartout password.</summary>
     function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
@@ -591,6 +615,7 @@ function TKDBAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boole
 var
   LSuppliedUserName: string;
   LSuppliedPasswordHash: string;
+  LSuppliedPassword: string;
   LIsPassepartoutAuthentication: Boolean;
   LUser: TKAuthUser;
   LLoginTypeNode: TEFNode;
@@ -598,6 +623,11 @@ var
 begin
   GetSuppliedAuthData(AAuthData, not IsClearPassword,
     LSuppliedUserName, LSuppliedPasswordHash, LIsPassepartoutAuthentication);
+  // Read before CreateAndReadUser: reading the user record overwrites the
+  // 'Password' item of the auth data with the STORED credential (see
+  // TKDBCryptAuthenticator.ReadUserFromRecord), so afterwards there is no way
+  // to tell what the user actually typed.
+  LSuppliedPassword := GetSuppliedPasswordHash(AAuthData, False);
 
   if LSuppliedUserName <> '' then
   begin
@@ -613,11 +643,25 @@ begin
         end
         else if (Assigned(LLoginTypeNode)) and (AnsiUpperCase(LLoginTypeNode.AsString) = 'PIN') then
         begin
-          if not TryStrToInt(LSuppliedPasswordHash,LTokenValue) then
+          // No per-user secret, no PIN login. See ReadUserFromRecord: falling
+          // back to a secret derived from the user name would let anyone who
+          // knows a user name compute the code, and this branch REPLACES the
+          // password check, so that would be a login with no credential at all.
+          if AAuthData.GetString('SecretCode') = '' then
+          begin
+            TEFLogger.Instance.Log('PIN login refused: the user record carries no '+
+              'SECRET_CODE. Add the column to ReadUserCommandText and store a random '+
+              'per-user secret in it.', TEFLogger.LOG_HIGH);
+            Result := False;
+          end
+          else if not TryStrToInt(LSuppliedPasswordHash,LTokenValue) then
             Result := False
           else
             Result := ValidateTOPT(AAuthData.GetString('SecretCode'),LTokenValue);
         end
+        else if RefuseEmptyPasswordLogin(LSuppliedUserName, LSuppliedPassword,
+            LUser.PasswordHash) then
+          Result := False
         else
           Result := IsPasswordMatching(LSuppliedPasswordHash, LUser.PasswordHash);
       end
@@ -631,6 +675,33 @@ begin
     Result := False;
 end;
 
+function TKDBAuthenticator.IsPasswordTheStoredCredential: Boolean;
+begin
+  Result := True;
+end;
+
+function TKDBAuthenticator.RefuseEmptyPasswordLogin(const AUserName,
+  ASuppliedPassword, AStoredPassword: string): Boolean;
+begin
+  Result := False;
+  if not IsPasswordTheStoredCredential then
+    Exit;
+  if ASuppliedPassword = '' then
+  begin
+    TEFLogger.Instance.LogFmt('Authentication refused for user %s: empty password.',
+      [AUserName], TEFLogger.LOG_DETAILED);
+    Result := True;
+  end
+  else if AStoredPassword = '' then
+  begin
+    TEFLogger.Instance.LogFmt('Authentication refused for user %s: the user record '+
+      'carries no password (the column is empty or NULL). Send the user a temporary '+
+      'password with the password-reset flow instead: an empty stored password would '+
+      'otherwise be matched by an empty typed one.', [AUserName], TEFLogger.LOG_HIGH);
+    Result := True;
+  end;
+end;
+
 function TKDBAuthenticator.IsPassepartoutAuthentication(const ASuppliedPassword: string): Boolean;
 var
   LIsPassepartoutEnabled: Boolean;
@@ -639,6 +710,16 @@ begin
   LIsPassepartoutEnabled := Config.GetBoolean('IsPassepartoutEnabled', False);
   if LIsPassepartoutEnabled then
     LPassepartoutPassword := Config.GetString('PassepartoutPassword', '');
+  // An enabled passepartout with no password configured used to accept an EMPTY
+  // password for every existing user, since both sides of the comparison were ''.
+  if LIsPassepartoutEnabled and (LPassepartoutPassword = '') then
+  begin
+    if ASuppliedPassword = '' then
+      TEFLogger.Instance.Log('Passepartout ignored: IsPassepartoutEnabled is True but '+
+        'PassepartoutPassword is empty, which would let an empty password in for every '+
+        'user. Set PassepartoutPassword or disable the passepartout.', TEFLogger.LOG_HIGH);
+    Exit(False);
+  end;
   Result := LIsPassepartoutEnabled and (ASuppliedPassword = LPassepartoutPassword);
 end;
 
@@ -667,6 +748,8 @@ end;
 
 procedure TKDBAuthenticator.ReadUserFromRecord(const AUser: TKAuthUser;
   const ADBQuery: TEFDBQuery; const AAuthData: TEFNode);
+var
+  LSecretCodeField: TField;
 begin
   Assert(Assigned(AUser));
   Assert(Assigned(ADBQuery));
@@ -680,8 +763,25 @@ begin
   AAuthData.SetString('UserName', AUser.Name);
   AAuthData.SetString('Password', AUser.PasswordHash);
 
-  // SecretCode (for PIN authentications) is filled with base32 encoded UserName.
-  AAuthData.SetString('SecretCode',Base32.EncodeWithoutPadding(UpperCase(AUser.Name)));
+  // SecretCode is the TOTP shared secret used by LoginType: PIN. It MUST come
+  // from the user record — a per-user value that only the server and the user's
+  // authenticator app know.
+  //
+  // It used to be Base32(UpperCase(UserName)), i.e. derived from the user name,
+  // which is public information: since the PIN branch of InternalAuthenticate
+  // REPLACES the password check rather than adding to it, anyone who knew a user
+  // name could compute the current six-digit code and log in as that user. The
+  // "second factor" protected nothing at all.
+  //
+  // Left empty when the query does not select SECRET_CODE: the PIN branch then
+  // refuses the login (and says why in the log) instead of falling back to a
+  // guessable secret. An application that wants PIN login adds the column to its
+  // ReadUserCommandText and fills it with a random per-user secret.
+  LSecretCodeField := ADBQuery.DataSet.FindField('SECRET_CODE');
+  if Assigned(LSecretCodeField) then
+    AAuthData.SetString('SecretCode', LSecretCodeField.AsString)
+  else
+    AAuthData.SetString('SecretCode', '');
 end;
 
 procedure TKDBAuthenticator.ResetPassword(const AParams: TEFNode);
@@ -745,6 +845,7 @@ var
   LEmailAddress: string;
   LQuery: TEFDBQuery;
   LSecretCode, LQRString: string;
+  LSecretCodeField: TField;
   LQRCode: TDelphiZXingQRCode;
   LQRCodeBitmap: TBitmap;
   LRow, LColumn: Integer;
@@ -771,14 +872,24 @@ begin
     try
       if LQuery.DataSet.IsEmpty then
         raise EKError.Create(_('Error: user name and email address not found.'));
+      // The shared secret is read from the user record, not derived from the
+      // user name: encoding the user name would put in the QR code a secret
+      // that anybody can recompute, which is the defect described in
+      // ReadUserFromRecord. Refuse rather than enrol a user into a factor that
+      // protects nothing.
+      LSecretCodeField := LQuery.DataSet.FindField('SECRET_CODE');
+      if Assigned(LSecretCodeField) then
+        LSecretCode := LSecretCodeField.AsString
+      else
+        LSecretCode := '';
     finally
       LQuery.Close;
     end;
   finally
     FreeAndNil(LQuery);
   end;
-  // Using Base32 encoded username as shared secret
-  LSecretCode := Base32.EncodeWithoutPadding(UpperCase(LUserName));
+  if LSecretCode = '' then
+    raise EKError.Create(_('Cannot generate the QR code: the user record carries no SECRET_CODE. Add the column to ReadUserCommandText and store a random per-user secret in it.'));
   LQRString := 'otpauth://totp/'+TKConfig.Instance.Config.GetString('AppTitle')+'?secret='+LSecretCode;
   LQRCode := TDelphiZXingQRCode.Create;
   LQRCodeBitmap := TBitmap.Create;
@@ -972,6 +1083,7 @@ function TKDBCryptAuthenticator.InternalAuthenticate(
 var
   LSuppliedUserName: string;
   LSuppliedPasswordHash: string;
+  LSuppliedPassword: string;
   LIsPassepartoutAuthentication: Boolean;
   LUser: TKAuthUser;
   LLoginTypeNode: TEFNode;
@@ -979,6 +1091,9 @@ var
 begin
   GetSuppliedAuthData(AAuthData, not IsClearPassword,
     LSuppliedUserName, LSuppliedPasswordHash, LIsPassepartoutAuthentication);
+  // See the note in the ancestor: ReadUserFromRecord replaces the 'Password'
+  // item with the stored bcrypt hash, so what the user typed must be read now.
+  LSuppliedPassword := GetSuppliedPasswordHash(AAuthData, False);
 
   if LSuppliedUserName <> '' then
   begin
@@ -994,11 +1109,31 @@ begin
         end
         else if (Assigned(LLoginTypeNode)) and (AnsiUpperCase(LLoginTypeNode.AsString) = 'PIN') then
         begin
-          if not TryStrToInt(LSuppliedPasswordHash,LTokenValue) then
+          // No per-user secret, no PIN login. See ReadUserFromRecord: falling
+          // back to a secret derived from the user name would let anyone who
+          // knows a user name compute the code, and this branch REPLACES the
+          // password check, so that would be a login with no credential at all.
+          if AAuthData.GetString('SecretCode') = '' then
+          begin
+            TEFLogger.Instance.Log('PIN login refused: the user record carries no '+
+              'SECRET_CODE. Add the column to ReadUserCommandText and store a random '+
+              'per-user secret in it.', TEFLogger.LOG_HIGH);
+            Result := False;
+          end
+          else if not TryStrToInt(LSuppliedPasswordHash,LTokenValue) then
             Result := False
           else
             Result := ValidateTOPT(AAuthData.GetString('SecretCode'),LTokenValue);
         end
+        // The stored credential is the bcrypt hash when there is one, and the
+        // legacy hash otherwise (that is the migration path below). Both empty
+        // means the record carries no password at all, and the legacy branch
+        // would not merely let the user in: it would call SetPassword('') and
+        // STORE a bcrypt hash of the empty password, making the account
+        // permanently enterable with a blank one.
+        else if RefuseEmptyPasswordLogin(LSuppliedUserName, LSuppliedPassword,
+            FirstDifferent([AAuthData.GetString('Password'), LUser.PasswordHash], '')) then
+          Result := False
         else if (AAuthData.GetString('Password') <> '') then
           Result := IsPasswordMatching(LSuppliedPasswordHash, AAuthData.GetString('Password'))
         else if IsClearPassword then
@@ -1057,11 +1192,39 @@ end;
 
 procedure TKDBCryptAuthenticator.ReadUserFromRecord(const AUser: TKAuthUser;
   const ADBQuery: TEFDBQuery; const AAuthData: TEFNode);
+var
+  LBCryptHashField: TField;
 begin
   inherited;
-  AAuthData.SetString('Password', ADBQuery.DataSet.FieldByName('PASSWORD_HASH').AsString);
-  if (AAuthData.GetString('Password') = '') then
-    AAuthData.SetString('Password',AAuthData.GetString('Password'));
+  // Two columns hold two different credentials, and the two branches of
+  // InternalAuthenticate expect to find them in two different places:
+  //
+  //   PASSWORD_HASH   (legacy hash) -> AUser.PasswordHash, set by the inherited
+  //                                    call and used by the migration branch
+  //   PASSWORD_B_HASH (BCrypt hash) -> AuthData['Password'], read here
+  //
+  // So this override replaces the legacy value the inherited call put into
+  // AuthData['Password'] with the BCrypt one — leaving it EMPTY when the user
+  // has not been migrated yet, which is exactly what makes InternalAuthenticate
+  // take the legacy branch, verify the old hash and re-save it with BCrypt
+  // (SetPassword writes PASSWORD_B_HASH and nulls PASSWORD_HASH).
+  //
+  // It used to read PASSWORD_HASH here and then "fall back" with a line that
+  // assigned the value to ITSELF, so the BCrypt column was never read at all.
+  // Consequences, both reproduced: after the first password change the
+  // credential lived in PASSWORD_B_HASH while the reader only ever looked at
+  // PASSWORD_HASH (nulled by the same statement), locking the user out; and the
+  // legacy-to-BCrypt migration never ran, because a populated PASSWORD_HASH
+  // always sent authentication down the BCrypt branch. Present in Kitto1 too.
+  //
+  // FindField, not FieldByName: an application may override ReadUserCommandText
+  // with a statement that does not select PASSWORD_B_HASH. That is a legacy-only
+  // user store, which must keep working (and migrate) rather than raise.
+  LBCryptHashField := ADBQuery.DataSet.FindField('PASSWORD_B_HASH');
+  if Assigned(LBCryptHashField) then
+    AAuthData.SetString('Password', LBCryptHashField.AsString)
+  else
+    AAuthData.SetString('Password', '');
 end;
 
 procedure TKDBCryptAuthenticator.ResetPassword(const AParams: TEFNode);

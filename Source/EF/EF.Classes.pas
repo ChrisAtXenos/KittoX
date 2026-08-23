@@ -167,9 +167,10 @@ type
 
     ///	<summary>
     ///   Invalidates the internal config object so that it is
-    ///	  re-created at next access.
+    ///	  re-created at next access. Virtual so descendants (e.g. TKConfig) can
+    ///   also refresh derived state, such as cached typed config readers.
     /// </summary>
-    procedure InvalidateConfig;
+    procedure InvalidateConfig; virtual;
   end;
   ///	<summary>
   ///	  Metaclass (class reference) for TEFComponent and its descendants.

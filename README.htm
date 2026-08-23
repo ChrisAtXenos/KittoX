@@ -39,7 +39,7 @@ td{
 <h1>Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX</h1>
 <p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a>
 <a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
-<p><strong>Latest Version 4.0.16 - 21 Aug 2026</strong></p>
+<p><strong>Latest Version 4.0.17 - 23 Aug 2026</strong></p>
 <p><img src="./images/kittoX_logo_200.png" alt="KittoX_logo.png"/></p>
 <p><strong>Kitto<sup>x</sup></strong> allows to create <strong>Rich Internet Applications</strong> based on a data model that can be mapped onto any database. The client-side part uses <strong>HTMX</strong> (through webbroker technology) to create a fully <strong>AJAX</strong> application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.</p>
 <p><strong>Kitto<sup>x</sup></strong> is aimed at <strong>Delphi</strong> developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.</p>
@@ -78,6 +78,19 @@ td{
 <p>Visit <a href="https://ethea.it/Kitto-Demo/">this site</a> for online demos.</p>
 <hr />
 <h1>Release Notes</h1>
+<h2>23 Aug 2026: ver. 4.0.17 Beta</h2>
+<h3>Bug fixes</h3>
+<ul>
+<li><strong>Opening a Calendar view no longer logs the user out</strong> — the calendar loads its events with a <code>fetch</code> that cannot carry the <code>X-KittoX</code> header, so the navigation guard mistook it for a top-level navigation and bounced it to the app root (which signs the session out); the guard now uses the browser's <strong><code>Sec-Fetch-Mode</code></strong> header to tell a real navigation from a data request</li>
+</ul>
+<h3>Desktop host</h3>
+<ul>
+<li>The MainForm <strong>log is now asynchronous and thread-safe</strong> — worker threads enqueue log lines, the UI drains them onto the memo from a timer (no more cross-thread VCL access)</li>
+</ul>
+<h3>Refactoring</h3>
+<ul>
+<li>New <strong>typed config readers</strong></li>
+</ul>
 <h2>21 Aug 2026: ver. 4.0.16 Beta</h2>
 <h3>Help Chat — AI provider (Claude)</h3>
 <ul>
@@ -108,9 +121,31 @@ td{
 <ul>
 <li>Updated some views of Examples</li>
 </ul>
+<h3>Security</h3>
+<ul>
+<li>A request without a session cookie is no longer attached to an existing session: the lookup fell back on the client address, which behind a reverse proxy is the same for every user</li>
+<li><code>Controller/FilterExpression</code> now also constrains a record key supplied by the client (<code>/form</code>, <code>/save</code>, <code>/delete</code>, <code>/blob</code>); <code>DefaultFilter</code> was never affected</li>
+<li>Imposed steps (<code>MustChangePassword</code>, <code>MustConfirmAccess</code>) enforced on every request, not only by the home page</li>
+<li><code>LoginType: PIN</code> requires a per-user <code>SECRET_CODE</code>: the TOTP secret is no longer derived from the (public) user name</li>
+<li><code>Auth: DBServer</code> refuses to start unless its <code>Connection</code> block reads the typed credentials through <code>%Auth:...%</code></li>
+<li>New <code>TKAuthenticator.SupportsPasswordChange</code>, checked before writing: <code>TextFile</code>, <code>LDAP</code>, <code>DBServer</code> and <code>Null</code> no longer report a successful password change while discarding it</li>
+<li><code>Auth: TextFile</code> no longer accepts an empty password. <code>GetStringHash('')</code> returns <code>''</code> and <code>TStrings.Values[]</code> returns <code>''</code> for a missing key, so any user name with a blank password compared two empty strings and logged in — including a user disabled with a leading <code>#</code>. An empty password is now refused outright and an empty stored hash never takes part in the comparison. The passepartout is compared with the password as typed (never with its hash) and ignored when left empty, but it keeps working as a master password for any <strong>listed</strong> user, matching what <code>Auth: DB</code> does</li>
+<li><strong>No account can be entered with an empty or NULL stored password.</strong> The comparison was a plain string equality, and <code>GetStringHash('')</code> returns <code>''</code>, so an active <code>KITTO_USERS</code> row whose password column was empty or NULL was matched by a blank typed password — on <code>DB</code> and on <code>DBCrypt</code>, where the legacy branch went further and <em>stored</em> a bcrypt hash of the empty password. The refusal is keyed on the new <code>IsPasswordTheStoredCredential</code>, so <code>Auth: OSDB</code> keeps authenticating the operating-system user without a password, which is legitimate. A user with no password gets in through the password-reset flow, which mails them a temporary password and forces a change; that flow does not go through authentication and is unaffected</li>
+<li>The <strong>passepartout</strong> is refused when <code>PassepartoutPassword</code> is left empty: with the passepartout enabled and no master password configured, both sides of the comparison were <code>''</code>, so a blank password logged in as any existing user</li>
+<li><code>Auth: DBServer</code> refuses an empty password before opening the connection</li>
+</ul>
+<h3>Authenticators</h3>
+<ul>
+<li><code>Auth: DBCrypt</code> works: the <code>PASSWORD_B_HASH</code> column was never read, so no bcrypt password could be validated</li>
+<li><code>Auth: Null</code> works: the session was never marked as authenticated</li>
+<li>An unknown <code>Auth:</code> class id fails at startup, listing the registered ones, instead of serving a blank page</li>
+<li>New <code>TKAuthenticatorDecorator</code>: the JWT wrapper's forwarding contract is now checked by the compiler</li>
+</ul>
 <h3>Bug fixes</h3>
 <ul>
 <li>Fixed Clone Record function.</li>
+<li>Fixed access violations on session termination (use-after-free in the deferred session-end closure) and in the VCL session monitor</li>
+<li>Unhandled exceptions raised while serving a request are logged, so service / ISAPI / Apache deployments have a trace</li>
 </ul>
 <h2>10 Aug 2026: ver. 4.0.14 Beta</h2>
 <h3>Localization — full multi-language support</h3>

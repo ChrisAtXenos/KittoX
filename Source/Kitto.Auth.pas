@@ -29,8 +29,7 @@ uses
   System.Classes,
   EF.Types,
   EF.Classes,
-  EF.Tree,
-  EF.Macros;
+  EF.Tree;
 
 type
   /// <summary>
@@ -43,7 +42,6 @@ type
   /// </summary>
   TKAuthenticator = class(TEFComponent)
   strict private
-    FMacroExpander: TEFMacroExpander;
     class threadvar FCurrent: TKAuthenticator;
     procedure ClearAuthData;
   strict
@@ -80,6 +78,15 @@ type
     /// <summary>Assign default values to AuthData.</summary>
     procedure InternalDefaultToAuthData(const AAuthData: TEFNode); virtual;
 
+    /// <summary>
+    ///  The body of the default InternalDefaultToAuthData: fills each auth item
+    ///  from Config's Defaults/&lt;ItemName&gt; node. Not virtual, and kept apart
+    ///  from the virtual method so that a decorator (see TKAuthenticatorDecorator)
+    ///  which re-declares InternalDefaultToAuthData as abstract can still reach
+    ///  this behaviour when it has to answer locally.
+    /// </summary>
+    procedure ApplyConfigDefaults(const AAuthData: TEFNode);
+
     /// <summary>This function should return a unique user identifier, to be
     /// used for example for access control. The default implementation returns
     /// 'PUBLIC', while a descendant will return the user name or something
@@ -114,15 +121,6 @@ type
     /// called MUST_CONFIRM_ACCESS with value 1. Override this method to implement a
     /// custom way of signaling that the user needs to confirm the access to the system.</summary>
     function GetMustConfirmAccess: Boolean; virtual;
-
-    /// <summary>Returns always False
-    /// Override this method if your Auth process required a PIN to Authenticate.</summary>
-    function GetMustInputPIN: Boolean; virtual;
-
-    /// <summary>For PIN-based authenticators, changes the PIN validate status.
-    /// It has to be called with "False" after a successful PIN authentication.
-    /// This default implementation does nothing.</summary>
-    procedure SetMustInputPIN(const Value: Boolean); virtual;
   public
     /// <summary>Defines the auth data on the current session and creates the
     /// auth macro expander.</summary>
@@ -216,11 +214,6 @@ type
     /// </summary>
     procedure QRGenerate(const AParams: TEFNode); virtual; abstract;
 
-    /// <summary>
-    ///   Access to the authenticator macro expander, that expands auth data.
-    /// </summary>
-    property MacroExpander: TEFMacroExpander read FMacroExpander;
-
     /// <summary>Returns True if the supplied password hash matches the stored
     /// one. Concrete authenticators define the actual matching rules.</summary>
     function IsPasswordMatching(const ASuppliedPasswordHash: string;
@@ -230,11 +223,21 @@ type
     /// algorithm (as opposed to the legacy hash or clear text).</summary>
     property IsBCrypted: Boolean read GetIsBCrypted write FIsBCrypted;
   public
-    /// <summary>Returns True if the named URL parameter is allowed to bypass
-    /// authentication and be forwarded to the login process. The base
-    /// implementation returns False for every parameter; descendants override to
-    /// let non-sensitive params through while guarding credentials.</summary>
-    function CanBypassURLParam(const AParamName: string): Boolean; virtual;
+    /// <summary>
+    ///  Tells whether this authenticator is able to write a new password to
+    ///  wherever it keeps credentials. The default is True: every password-based
+    ///  authenticator overrides SetPassword and can honour a change.
+    ///
+    ///  Authenticators that do NOT own the credentials return False — the
+    ///  directory-backed ones (Auth: LDAP) being the case in point: passwords
+    ///  live in the directory and must be changed there. Returning False is not
+    ///  cosmetic: SetPassword's base implementation has an EMPTY body, so
+    ///  without this the change-password handler would report success and write
+    ///  nothing at all. Callers MUST consult this before writing (see
+    ///  Kitto.Web.Handler.Auth.HandleChangePassword) and SHOULD consult it
+    ///  before offering the UI (see Kitto.Html.ChangePassword).
+    /// </summary>
+    function SupportsPasswordChange: Boolean; virtual;
 
     /// <summary>
     ///  Returns the configuration node that callers should consult when they
@@ -289,10 +292,79 @@ type
     function GetUserName: string; override;
     function GetPassword: string; override;
     function GetSecretCode: string; override;
+
+    /// <summary>
+    ///  The body of InternalDefineAuthData: declares the UserName, Password,
+    ///  Language and SecretCode auth items. Not virtual, and kept apart from the
+    ///  virtual method for the same reason as TKAuthenticator.ApplyConfigDefaults
+    ///  — a decorator that re-declares InternalDefineAuthData as abstract can
+    ///  still reach this behaviour when it has to answer locally.
+    /// </summary>
+    procedure DefineStandardAuthData(const AAuthData: TEFNode);
+  end;
+
+  /// <summary>
+  ///  <para>Base class for an authenticator that WRAPS another one (the "Inner"
+  ///  authenticator) and stands in front of it: every call reaches the decorator
+  ///  first, which then decides whether to answer itself or pass the call on.
+  ///  TKJWTAuthenticator is the only such class in the framework today.</para>
+  ///
+  ///  <para><b>Why this class exists.</b> A decorator that simply inherits the
+  ///  members it forgets to pass on does not fail: it answers with the base
+  ///  implementation, which is a plausible-looking value, and the Inner
+  ///  authenticator's own version is never called — silently. That is not a
+  ///  hypothetical: it is how the framework shipped SetPassword (base body is
+  ///  EMPTY: the change-password dialog reported success and wrote nothing) and
+  ///  GetMustConfirmAccess (the privacy consent was never asked for), both
+  ///  eventually found and fixed as bugs; and it is why an application override
+  ///  of InternalDefaultToAuthData and TKOSDBAuthenticator's OS-user login are
+  ///  bypassed under Auth: JWT.</para>
+  ///
+  ///  <para><b>What it does about it.</b> Every member on which a decorator must
+  ///  take a decision is re-declared here as abstract, so a decorator CANNOT
+  ///  inherit it by accident — it has to write something, and what it writes is
+  ///  the decision, visible in code. Note that the enforcement needs the guard
+  ///  procedure at the bottom of the decorator's unit: the compiler only checks
+  ///  completeness where a class is constructed BY NAME, and authenticators are
+  ///  created through a factory (metaclass), which it cannot check.</para>
+  ///
+  ///  <para><b>If the compiler stopped you here</b> with E1020 "Constructing
+  ///  instance of ... containing abstract method ...": a member was added to this
+  ///  contract and your decorator does not implement it yet. Implement it, and
+  ///  make it one of two things — either pass the call on to the Inner
+  ///  authenticator, or answer locally AND write down why the Inner must not be
+  ///  asked. Do not add a member here just to silence something: the list is
+  ///  meant to stay short and deliberate.</para>
+  ///
+  ///  <para><b>Members deliberately NOT in the contract</b>, because a decorator
+  ///  needs the base implementation to run and cannot re-abstract it:
+  ///  Logout (the base clears auth data and the session flag), AuthorizeRequest,
+  ///  EffectiveConfigNode, CarriesSessionIdInCredential, InternalAfterAuthenticate
+  ///  and InternalBeforeAuthenticate. The last two also need no forwarding at all:
+  ///  a decorator authenticates by calling the Inner's public Authenticate, which
+  ///  runs the Inner's own before/after hooks. InternalAuthenticate, ResetPassword,
+  ///  QRGenerate and IsPasswordMatching need no entry either — they are already
+  ///  abstract in TKAuthenticator, so the compiler already demands them.</para>
+  /// </summary>
+  TKAuthenticatorDecorator = class(TKClassicAuthenticator)
+  protected
+    function GetIsAuthenticated: Boolean; override; abstract;
+    function GetIsBCrypted: Boolean; override; abstract;
+    function GetIsClearPassword: Boolean; override; abstract;
+    procedure InternalDefineAuthData(const AAuthData: TEFNode); override; abstract;
+    procedure InternalDefaultToAuthData(const AAuthData: TEFNode); override; abstract;
+    function GetUserName: string; override; abstract;
+    function GetPassword: string; override; abstract;
+    procedure SetPassword(const AValue: string); override; abstract;
+    function GetSecretCode: string; override; abstract;
+    function GetMustChangePassword: Boolean; override; abstract;
+    function GetMustConfirmAccess: Boolean; override; abstract;
   public
-    /// <summary>Protects the UserName, Password and SecretCode params (which
-    /// cannot be forwarded to login); returns True for any other param.</summary>
-    function CanBypassURLParam(const AParamName: string): Boolean; override;
+    /// <summary>Re-abstracted like the members above: whether a password can be
+    /// written at all is the wrapped authenticator's business, and answering it
+    /// here with the inherited True would offer the user a change that then
+    /// silently does nothing.</summary>
+    function SupportsPasswordChange: Boolean; override; abstract;
   end;
 
   /// <summary>The Null authenticator does not require authentication data and
@@ -303,6 +375,23 @@ type
     function InternalAuthenticate(
       const AAuthData: TEFNode): Boolean; override;
     function GetIsAuthenticated: Boolean; override;
+  public
+    /// <summary>
+    ///  There is no credential store at all here, so the three members below
+    ///  cannot do anything meaningful. They are implemented rather than left
+    ///  abstract because abstract members of a factory-created class do not
+    ///  fail at build time: they raise "Abstract Error" the first time a user
+    ///  reaches the feature, which is a crash instead of an explanation.
+    /// </summary>
+    function SupportsPasswordChange: Boolean; override;
+    /// <summary>Raises: there is no account whose password could be reset.</summary>
+    procedure ResetPassword(const AParams: TEFNode); override;
+    /// <summary>Raises: no per-user secret exists to enrol a device with.</summary>
+    procedure QRGenerate(const AParams: TEFNode); override;
+    /// <summary>Always False. No password is stored, so nothing can match one,
+    /// and returning True would make an empty password look verified.</summary>
+    function IsPasswordMatching(const ASuppliedPasswordHash: string;
+      const AStoredPasswordHash: string): Boolean; override;
   end;
 
   /// <summary>This class holds a list of registered authenticator
@@ -344,6 +433,7 @@ uses
   System.SysUtils,
   EF.StrUtils,
   EF.Localization,
+  Kitto.Types,
   Kitto.Web.Application,
   Kitto.Web.Session;
 
@@ -362,6 +452,33 @@ end;
 function TKNullAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
 begin
   Result := True;
+end;
+
+function TKNullAuthenticator.SupportsPasswordChange: Boolean;
+begin
+  // No credentials are stored, so there is nothing to change. Without this the
+  // base SetPassword — whose body is empty — would run and the dialog would
+  // report success while writing nothing.
+  Result := False;
+end;
+
+procedure TKNullAuthenticator.ResetPassword(const AParams: TEFNode);
+begin
+  raise EKError.Create(_('Password reset is not available: this application does not authenticate users.'));
+end;
+
+procedure TKNullAuthenticator.QRGenerate(const AParams: TEFNode);
+begin
+  raise EKError.Create(_('PIN/QR authentication is not available: this application does not authenticate users.'));
+end;
+
+function TKNullAuthenticator.IsPasswordMatching(const ASuppliedPasswordHash,
+  AStoredPasswordHash: string): Boolean;
+begin
+  // Never reached: authentication always succeeds without looking at a
+  // password, and the password-change flow is refused by
+  // SupportsPasswordChange before it gets here.
+  Result := False;
 end;
 
 { TKAuthenticatorRegistry }
@@ -423,14 +540,15 @@ procedure TKAuthenticator.AfterConstruction;
 begin
   inherited;
   DefineAuthData(TKWebSession.Current.AuthData);
-  FMacroExpander := TEFTreeMacroExpander.Create(AuthData, 'Auth');
   TKWebSession.Current.IsAuthenticated := False;
-  TKWebSession.Current.IsBCrypted := False;
+  // Object state, not session state — see GetIsBCrypted. Explicit even though
+  // Delphi zeroes the field, to mirror Kitto1 and to keep the pairing with the
+  // line above readable.
+  FIsBCrypted := False;
 end;
 
 destructor TKAuthenticator.Destroy;
 begin
-  FreeAndNil(FMacroExpander);
   inherited;
 end;
 
@@ -450,7 +568,24 @@ end;
 
 function TKAuthenticator.GetIsBCrypted: Boolean;
 begin
-  Result := TKWebSession.Current.IsBCrypted;
+  // Reads the authenticator's OWN field, not the session's: whether credentials
+  // are BCrypt-hashed is a property of the configured authenticator class, the
+  // same for every user, and it is set once in TKDBCryptAuthenticator's
+  // AfterConstruction. This is what Kitto1 did (Kitto.Auth.pas:370-372 in the
+  // 3.x sources).
+  //
+  // It used to read TKWebSession.Current.IsBCrypted, which could never be True:
+  // the port moved AuthData, IsAuthenticated and this flag from the object to the
+  // session — right for the first two, which ARE per-user — but only the getter
+  // and the initialisation were moved, while the one writer that sets it True
+  // kept writing the object field through the property. Nothing ever assigned
+  // the session flag anything but False, so IsBCrypted always answered False and
+  // the BCrypt branch of the change-password comparison was dead code. On top of
+  // that, a per-session home cannot work here anyway: the authenticator is a
+  // single instance per application, so its AfterConstruction runs once, in
+  // whichever session happened to create it, and every other session would have
+  // read False regardless.
+  Result := FIsBCrypted;
 end;
 
 function TKAuthenticator.GetIsClearPassword: Boolean;
@@ -466,11 +601,6 @@ end;
 function TKAuthenticator.GetSecretCode: string;
 begin
   Result := '';
-end;
-
-function TKAuthenticator.GetMustInputPIN: Boolean;
-begin
-  Result := TKWebSession.Current.AuthData.GetInteger('MUST_INPUT_PIN') = 1;
 end;
 
 function TKAuthenticator.GetMustChangePassword: Boolean;
@@ -493,6 +623,11 @@ begin
 end;
 
 procedure TKAuthenticator.InternalDefaultToAuthData(const AAuthData: TEFNode);
+begin
+  ApplyConfigDefaults(AAuthData);
+end;
+
+procedure TKAuthenticator.ApplyConfigDefaults(const AAuthData: TEFNode);
 var
   I: Integer;
 begin
@@ -501,10 +636,12 @@ begin
     AAuthData.Children[I].AssignValue(Config.FindNode('Defaults/' + AAuthData.Children[I].Name));
 end;
 
-function TKAuthenticator.CanBypassURLParam(const AParamName: string): Boolean;
+function TKAuthenticator.SupportsPasswordChange: Boolean;
 begin
-  //No URL param is protected: Session can pass it to login
-  Result := False;
+  // Every password-based authenticator overrides SetPassword and can honour a
+  // change. Those that do not own the credentials (Auth: LDAP) override this
+  // with False, so callers can refuse instead of reporting a silent success.
+  Result := True;
 end;
 
 function TKAuthenticator.EffectiveConfigNode: TEFTree;
@@ -526,10 +663,6 @@ procedure TKAuthenticator.Logout;
 begin
   ClearAuthData;
   TKWebSession.Current.IsAuthenticated := False;
-end;
-
-procedure TKAuthenticator.SetMustInputPIN(const Value: Boolean);
-begin
 end;
 
 procedure TKAuthenticator.SetPassword(const AValue: string);
@@ -591,20 +724,15 @@ end;
 
 procedure TKClassicAuthenticator.InternalDefineAuthData(const AAuthData: TEFNode);
 begin
-  inherited;
+  DefineStandardAuthData(AAuthData);
+end;
+
+procedure TKClassicAuthenticator.DefineStandardAuthData(const AAuthData: TEFNode);
+begin
   AAuthData.SetString('UserName', '');
   AAuthData.SetString('Password', '');
   AAuthData.SetString('Language', '');
   AAuthData.SetString('SecretCode','');
-end;
-
-function TKClassicAuthenticator.CanBypassURLParam(
-  const AParamName: string): Boolean;
-begin
-  //UserName and Password params are protected: Session cannot pass it to login
-  Result := not SameText(AParamName, 'UserName') and
-    not SameText(AParamName, 'Password') and
-    not SameText(AParamName, 'SecretCode');
 end;
 
 initialization

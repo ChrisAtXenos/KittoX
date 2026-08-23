@@ -104,7 +104,8 @@ begin
         {AllowSessionLost} LAnon,
         // A fragment endpoint is not directly navigable; anonymous (login/logout/
         // reset/change) and [TKXNavigable] (blob downloads) endpoints are.
-        {AllowDirectNavigation} LAnon or LActivationObj.MatchedIsNavigable);
+        {AllowDirectNavigation} LAnon or LActivationObj.MatchedIsNavigable,
+        {MatchedViewName} LViewName);
       Result := TKXFilterChain.Run(LContext,
         function: Boolean
         begin

@@ -49,7 +49,7 @@
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=KittoX Core Packages;FileVersion=4.0.16.0;InternalName=KittoXCore;LegalCopyright=Copyright (c) Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=KittoCore;ProductVersion=4.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=KittoX Core Packages;FileVersion=4.0.17.0;InternalName=KittoXCore;LegalCopyright=Copyright (c) Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=KittoCore;ProductVersion=4.0;Comments=</VerInfo_Keys>
         <DCC_Description>KittoX Core Run-Time Package</DCC_Description>
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
@@ -58,7 +58,7 @@
         <DllSuffix>$(Auto)</DllSuffix>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
-        <VerInfo_Release>16</VerInfo_Release>
+        <VerInfo_Release>17</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
@@ -137,6 +137,8 @@
         <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\MarkdownMathCode.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Metadata.Types.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Metadata.SubNodes.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.Reader.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.Server.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Metadata.SubNodes2.pas"/>
         <DCCReference Include="..\..\Source\Kitto.AccessControl.DB.pas"/>
         <DCCReference Include="..\..\Source\Kitto.AccessControl.pas"/>

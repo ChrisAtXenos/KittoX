@@ -110,6 +110,11 @@ type
     /// matching never happens. Always returns False.</summary>
     function IsPasswordMatching(const ASuppliedPasswordHash: string;
       const AStoredPasswordHash: string): Boolean; override;
+    /// <summary>False: passwords live in the directory and must be changed
+    /// there. Without this the base SetPassword — whose body is empty — would
+    /// run and the change-password dialog would report success while writing
+    /// nothing. Consistent with ResetPassword, which refuses explicitly.</summary>
+    function SupportsPasswordChange: Boolean; override;
     /// <summary>Not supported: passwords are managed in the directory.</summary>
     procedure ResetPassword(const AParams: TEFNode); override;
     /// <summary>Not supported: PIN/QR authentication is not available for LDAP.</summary>
@@ -419,6 +424,11 @@ function TKLDAPAuthenticator.IsPasswordMatching(const ASuppliedPasswordHash,
 begin
   // Never reached: authentication is performed by the LDAP bind, not by
   // comparing stored hashes.
+  Result := False;
+end;
+
+function TKLDAPAuthenticator.SupportsPasswordChange: Boolean;
+begin
   Result := False;
 end;
 

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -101,6 +101,7 @@ uses
   EF.Localization,
   EF.Logger,
   Kitto.Config,
+  Kitto.Auth,
   Kitto.Web.Application,
   Kitto.Web.Session,
   Kitto.Web.Request,
@@ -128,6 +129,8 @@ end;
 { TKXNavigationGuardFilter }
 
 procedure TKXNavigationGuardFilter.BeforeInvoke(const AContext: IKXRequestContext);
+var
+  LSecFetchMode: string;
 begin
   // Endpoints meant to be reached directly (home page, auth recovery, blob/file
   // downloads opened in a new tab) are exempt.
@@ -135,11 +138,25 @@ begin
     Exit;
 
   // A genuine SPA sub-request always carries X-KittoX: true (the body hx-headers
-  // for HTMX, an explicit header for every fetch). Its absence on a fragment
-  // endpoint means a top-level browser navigation (address bar, opened link):
-  // bounce it to the app root, which renders the login page for an anonymous
-  // session or the home page for an authenticated one — never a bare fragment.
+  // for HTMX, an explicit header for every fetch). Its presence means "not a
+  // top-level navigation": never bounce it.
   if SameText(TKWebRequest.Current.GetHeaderField('X-KittoX'), 'true') then
+    Exit;
+
+  // Only a REAL top-level navigation (address bar / clicked link / window.open)
+  // should be bounced. The Fetch Metadata header Sec-Fetch-Mode (sent by all
+  // current browsers) tells them apart authoritatively:
+  //   'navigate'                      -> top-level navigation      -> bounce
+  //   'cors' / 'same-origin' / 'no-cors' -> programmatic fetch/XHR or a
+  //     subresource load (img/iframe/script src) -> DO NOT bounce.
+  // This is what lets endpoints loaded by a library that cannot add X-KittoX
+  // (e.g. the calendar's event fetch via EventCalendar's dataUrl) reach the auth
+  // gate normally, instead of being redirected to the app root — which, combined
+  // with logout-on-root, was silently logging the user out.
+  // Absent header (very old / non-browser clients): fall back to the previous
+  // X-KittoX-only heuristic (treat as navigation and bounce).
+  LSecFetchMode := TKWebRequest.Current.GetHeaderField('Sec-Fetch-Mode');
+  if (LSecFetchMode <> '') and not SameText(LSecFetchMode, 'navigate') then
     Exit;
 
   if Assigned(TKWebResponse.Current) then
@@ -166,7 +183,15 @@ end;
 
 { TKXAuthorizationFilter }
 
+const
+  // The two views an imposed step is completed through. Same names
+  // TKWebApplication.DisplayHomeView looks up when it renders the dialog.
+  VIEW_CHANGE_PASSWORD = 'ChangePassword';
+  VIEW_CONFIRM_ACCESS = 'ConfirmAccess';
+
 procedure TKXAuthorizationFilter.BeforeInvoke(const AContext: IKXRequestContext);
+var
+  LRequiredView: string;
 begin
   // Session lost after a server restart: raise so the error filter shows a fatal
   // dialog with reload. Recovery endpoints (home + login/reset/change) pass through.
@@ -199,6 +224,42 @@ begin
       'Unauthenticated request to protected endpoint: %s',
       [AContext.Path], TEFLogger.LOG_DETAILED);
     AContext.Handled := True;
+    Exit;
+  end;
+
+  // Imposed-step gate. A user who still has to choose a new password (first
+  // access, or after a reset) or to accept the privacy terms IS authenticated,
+  // so the gate above lets every endpoint through — and TKWebApplication only
+  // uses these two flags to decide which view the HOME PAGE renders. Verified:
+  // logging in with MUST_CHANGE_PASSWORD = 1 and then asking for
+  // kx/view/<V>/data served the rows, while the home page was correctly showing
+  // the imposed dialog. The step was therefore a UI convention, not a control:
+  // anything that skipped the home page skipped it too, and for the privacy
+  // consent that is a compliance gate that did not hold.
+  //
+  // Exempt: whatever is already exempt from the authentication gate (the home
+  // page — which is what renders the dialog — the [TKXAnonymous] endpoints
+  // including kx/changepassword itself, and views declared public), plus every
+  // endpoint scoped to the very view the step needs, so that dialog can read
+  // and save.
+  if not AContext.AllowUnauthenticated then
+  begin
+    LRequiredView := '';
+    if TKAuthenticator.Current.MustChangePassword then
+      LRequiredView := VIEW_CHANGE_PASSWORD
+    else if TKAuthenticator.Current.MustConfirmAccess then
+      LRequiredView := VIEW_CONFIRM_ACCESS;
+
+    if (LRequiredView <> '') and not SameText(AContext.MatchedViewName, LRequiredView) then
+    begin
+      // Same opaque 404 as above, for the same reason.
+      if Assigned(TKWebResponse.Current) then
+        TKWebResponse.Current.StatusCode := 404;
+      TEFLogger.Instance.LogFmt(
+        'Request blocked: the user must first complete %s. Endpoint: %s',
+        [LRequiredView, AContext.Path], TEFLogger.LOG_DETAILED);
+      AContext.Handled := True;
+    end;
   end;
 end;
 
@@ -225,6 +286,15 @@ end;
 function TKXErrorHandlerFilter.OnException(const AContext: IKXRequestContext;
   E: Exception): Boolean;
 begin
+  // Log before rendering. The dialog reaches the user, not the operator: an
+  // exception used to leave NO trace at all, so an access violation or any
+  // other failure escaping a handler was invisible in the log even at
+  // Level: 5 — which makes a bug report impossible to act on. Class, message
+  // and endpoint, at LOG_HIGH so it survives a low log level. Same reasoning
+  // as LogSaveError in Kitto.Web.Handler.View.
+  TEFLogger.Instance.LogFmt('Unhandled %s on %s: %s',
+    [E.ClassName, AContext.Path, E.Message], TEFLogger.LOG_HIGH);
+
   // Every exception bubbling out of a handler is shown as a NON-FATAL modal
   // dialog so the session stays alive and the user can retry. E.Message already
   // carries the formatted "Errore <sql-error> nella query: {GUID}" wrapping for

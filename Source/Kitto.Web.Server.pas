@@ -34,6 +34,7 @@ uses
   IdContext,
   Web.HTTPApp,
   Kitto.Config,
+  Kitto.Config.Server,
   Kitto.Web.Engine,
   Kitto.Web.Request,
   Kitto.Web.Response,
@@ -188,13 +189,13 @@ var
   LThreadPoolSize: Integer;
   LBindAddress: string;
 begin
-  DefaultPort := AConfig.Config.GetInteger('Server/Port', 8080);
-  LThreadPoolSize := AConfig.Config.GetInteger('Server/ThreadPoolSize', 20);
+  DefaultPort := AConfig.Server.Port;
+  LThreadPoolSize := AConfig.Server.ThreadPoolSize;
   InitThreadScheduler(LThreadPoolSize);
   // Server/BindAddress: restrict to a specific interface (e.g. '127.0.0.1'
   // for desktop/embedded mode to avoid Windows Firewall prompts).
   // Default is empty = listen on all interfaces (0.0.0.0).
-  LBindAddress := AConfig.Config.GetString('Server/BindAddress');
+  LBindAddress := AConfig.Server.BindAddress;
   if LBindAddress <> '' then
   begin
     Bindings.Clear;

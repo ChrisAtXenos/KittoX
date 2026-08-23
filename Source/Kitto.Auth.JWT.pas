@@ -31,6 +31,13 @@ unit Kitto.Auth.JWT;
 
 {$I Kitto.Defines.inc}
 
+// Promotes "constructing instance of X containing abstract method Y" from a
+// warning to a hard error, so that a member left unimplemented from the
+// TKAuthenticatorDecorator contract stops the build instead of waiting to blow
+// up at run time. Works together with CheckDecoratorContract at the bottom of
+// this unit — see the comment there for why that procedure has to exist.
+{$WARN CONSTRUCTING_ABSTRACT ERROR}
+
 interface
 
 uses
@@ -52,11 +59,19 @@ type
 
   /// <summary>
   ///  JWT-issuing authenticator. Registered as 'JWT'.
-  ///  Inherits from TKClassicAuthenticator so UserName/Password/Language/
-  ///  SecretCode are wired to the standard session AuthData fields and the
-  ///  inherited CanBypassURLParam guards them.
+  ///
+  ///  Wraps another authenticator (Auth/Inner) and stands in front of it, so it
+  ///  descends from TKAuthenticatorDecorator: every member on which a wrapper
+  ///  must take a decision is abstract there and MUST be implemented below,
+  ///  either by passing the call on to the Inner authenticator or by answering
+  ///  locally with the reason written down. See that class for the rationale and
+  ///  for what the compiler will tell you if a member is missing.
+  ///
+  ///  Through TKClassicAuthenticator it also gets DefineStandardAuthData, used
+  ///  in the narrow window in which the Inner cannot exist yet (see
+  ///  InternalDefineAuthData).
   /// </summary>
-  TKJWTAuthenticator = class(TKClassicAuthenticator)
+  TKJWTAuthenticator = class(TKAuthenticatorDecorator)
   // The per-thread JWT context cache used by TKJWTAccessController lives
   // in a unit-level TObjectDictionary keyed by ThreadID (not in a class
   // threadvar). Two reasons:
@@ -78,6 +93,15 @@ type
     procedure EnsureInner;
     procedure EnsureConfig;
     function ResolveAppName: string;
+    /// <summary>
+    ///  True when the Inner authenticator either already exists or can be built.
+    ///  Needed because TKAuthenticator.AfterConstruction calls DefineAuthData
+    ///  while TKWebApplication.GetAuthenticator has not yet copied the Auth/*
+    ///  nodes into Config: at that moment Auth/Inner is not visible and
+    ///  EnsureInner would raise. Only the DefineAuthData path can be reached that
+    ///  early; every other member runs on a fully wired authenticator.
+    /// </summary>
+    function InnerAvailable: Boolean;
   strict protected
     /// <summary>
     ///  Snapshots the user's permissions (KITTO_PERMISSIONS rows for the user
@@ -98,6 +122,45 @@ type
     function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
     procedure InternalAfterAuthenticate(const AAuthData: TEFNode); override;
     function GetIsClearPassword: Boolean; override;
+
+    // --- Decorator contract (TKAuthenticatorDecorator) ---------------------
+    // Each of these is either a call passed on to the Inner authenticator, or a
+    // local answer with the reason stated. See the implementations.
+
+    /// <summary>Answered locally: whether the request is authenticated is a
+    /// property of the token this class issues and validates, not something the
+    /// Inner authenticator can know.</summary>
+    function GetIsAuthenticated: Boolean; override;
+    /// <summary>Delegated: it is the Inner authenticator that knows how the
+    /// stored credentials are hashed.</summary>
+    function GetIsBCrypted: Boolean; override;
+    /// <summary>Delegated: the user identity is the Inner authenticator's to
+    /// decide. This is read by every access-control check in the framework, so
+    /// an Inner override that normalises or maps the user name must be honoured
+    /// here or the whole ACL layer would run on the wrong identity.</summary>
+    function GetUserName: string; override;
+    /// <summary>Delegated: decided together with SetPassword, which was already
+    /// delegated — reading from here while writing to the Inner would leave the
+    /// two halves of the same property pointing at different objects.</summary>
+    function GetPassword: string; override;
+    /// <summary>Delegated, for the same reason as GetPassword.</summary>
+    function GetSecretCode: string; override;
+    /// <summary>Delegated: the twin of GetMustConfirmAccess, which is delegated
+    /// too. An Inner authenticator that signals a forced password change its own
+    /// way must be heard.</summary>
+    function GetMustChangePassword: Boolean; override;
+    /// <summary>Delegated: hands the whole DefineAuthData chain to the Inner
+    /// authenticator, so an Inner that declares different login fields (e.g.
+    /// TKOSDBAuthenticator, which declares none when the OS user is a known
+    /// user) is honoured.</summary>
+    procedure InternalDefineAuthData(const AAuthData: TEFNode); override;
+    /// <summary>No-op when the Inner exists: InternalDefineAuthData already ran
+    /// the Inner's full chain, defaults included.</summary>
+    procedure InternalDefaultToAuthData(const AAuthData: TEFNode); override;
+  public
+    /// <summary>Delegated: whether a password can be written at all depends on
+    /// the Inner authenticator, not on the envelope around it.</summary>
+    function SupportsPasswordChange: Boolean; override;
   public
     /// <summary>Defers app-name/config resolution to the first request (see the
     /// implementation note); does not build the Inner authenticator yet.</summary>
@@ -377,6 +440,93 @@ begin
   Result := FInner;
 end;
 
+function TKJWTAuthenticator.InnerAvailable: Boolean;
+begin
+  Result := FInnerInitialized or Assigned(Config.FindNode(CFG_INNER));
+end;
+
+{ Decorator contract — see TKAuthenticatorDecorator. Each member below either
+  passes the call on to the Inner authenticator or answers locally with its
+  reason stated; nothing is left to be inherited by accident. }
+
+function TKJWTAuthenticator.GetIsAuthenticated: Boolean;
+begin
+  // Answered locally, NOT delegated: the token is what makes a request
+  // authenticated, and this class owns it. The Inner authenticator only ever
+  // sees the login itself, so it cannot answer for a token-carrying request.
+  Result := TKWebSession.Current.IsAuthenticated;
+end;
+
+function TKJWTAuthenticator.GetIsBCrypted: Boolean;
+begin
+  EnsureInner;
+  Result := FInner.IsBCrypted;
+end;
+
+function TKJWTAuthenticator.GetUserName: string;
+begin
+  EnsureInner;
+  Result := FInner.UserName;
+end;
+
+function TKJWTAuthenticator.GetPassword: string;
+begin
+  EnsureInner;
+  Result := FInner.Password;
+end;
+
+function TKJWTAuthenticator.GetSecretCode: string;
+begin
+  EnsureInner;
+  Result := FInner.SecretCode;
+end;
+
+function TKJWTAuthenticator.GetMustChangePassword: Boolean;
+begin
+  EnsureInner;
+  Result := FInner.MustChangePassword;
+end;
+
+function TKJWTAuthenticator.SupportsPasswordChange: Boolean;
+begin
+  EnsureInner;
+  Result := FInner.SupportsPasswordChange;
+end;
+
+procedure TKJWTAuthenticator.InternalDefineAuthData(const AAuthData: TEFNode);
+begin
+  if not InnerAvailable then
+  begin
+    // Reached from TKAuthenticator.AfterConstruction, before the Auth/* config
+    // has been copied in: the Inner cannot be built yet. Declare the standard
+    // items, exactly as TKClassicAuthenticator would have. DefineAuthData is
+    // called again on a wired authenticator (TKWebApplication.Authenticate,
+    // Kitto.Web.Handler.Auth) and that pass does go through the Inner.
+    DefineStandardAuthData(AAuthData);
+    Exit;
+  end;
+  EnsureInner;
+  // The Inner's PUBLIC DefineAuthData, so its own InternalDefineAuthData AND
+  // InternalDefaultToAuthData both run — which is why InternalDefaultToAuthData
+  // below has nothing left to do.
+  FInner.DefineAuthData(AAuthData);
+end;
+
+procedure TKJWTAuthenticator.InternalDefaultToAuthData(const AAuthData: TEFNode);
+begin
+  if not InnerAvailable then
+  begin
+    // Same early window as InternalDefineAuthData: apply this authenticator's
+    // own Defaults, since there is no Inner to ask yet.
+    ApplyConfigDefaults(AAuthData);
+    Exit;
+  end;
+  // Nothing to do: InternalDefineAuthData delegated the whole chain to the
+  // Inner, defaults included. Applying them again here would run them twice,
+  // and against the wrong config node — the defaults live under Auth/Inner,
+  // which is the Inner's own Config, not this authenticator's.
+end;
+
 function TKJWTAuthenticator.JWTConfig: TKJWTConfig;
 begin
   EnsureConfig;
@@ -646,6 +796,29 @@ begin
 
   if TKJWTCookieHelper.ShouldSlide(LContext, FConfig) then
     SlideToken(LContext);
+end;
+
+{ ---------------------------------------------------------------------------
+  IF THE COMPILATION STOPPED ON THE LINE BELOW with E1020 "Constructing instance
+  of 'TKJWTAuthenticator' containing abstract method '...'", then a member was
+  added to the TKAuthenticatorDecorator contract (Kitto.Auth) and this class does
+  not implement it yet. Do not delete this procedure and do not remove the
+  member from the contract to make the message go away: implement it, and make it
+  one of two things —
+
+    - pass the call on to the Inner authenticator:  Result := Inner.<Member>;
+    - or answer here, AND write down why the Inner must not be asked.
+
+  Why this procedure exists at all: the compiler only verifies that a class
+  implements its abstract members where the class is constructed BY NAME.
+  Authenticators are built through TKAuthenticatorFactory, i.e. from a metaclass,
+  which the compiler cannot check — verified: a factory-built class with a
+  missing abstract member compiles clean. This one line, never called, is what
+  gives the contract its teeth.
+  --------------------------------------------------------------------------- }
+procedure CheckDecoratorContract;
+begin
+  TKJWTAuthenticator.Create.Free;
 end;
 
 initialization
