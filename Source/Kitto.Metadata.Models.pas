@@ -66,6 +66,101 @@ type
   TKRule = class(TKMetadataItem)
   end;
 
+  {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  Configuration for the SunEditor rich-text toolbar on HTMLMemo fields.
+  ///  YAML path: Field/HTMLEditor
+  /// </summary>
+  /// <example>
+  ///  HTMLEditor:
+  ///    EnableFont: True
+  ///    EnableFontSize: True
+  ///    EnableFormat: True
+  ///    EnableColors: True
+  ///    EnableAlignments: True
+  ///    EnableLinks: True
+  ///    EnableLists: True
+  ///    EnableSourceEdit: True
+  /// </example>
+  TKHTMLEditorConfig = class(TEFNode)
+  private
+    function GetEnableFont: Boolean;
+    function GetEnableFontSize: Boolean;
+    function GetEnableFormat: Boolean;
+    function GetEnableColors: Boolean;
+    function GetEnableAlignments: Boolean;
+    function GetEnableLinks: Boolean;
+    function GetEnableLists: Boolean;
+    function GetEnableSourceEdit: Boolean;
+  public
+    [YamlNode('EnableFont', 'False', 'Show font family selector in toolbar')]
+    property EnableFont: Boolean read GetEnableFont;
+
+    [YamlNode('EnableFontSize', 'False', 'Show font size selector in toolbar')]
+    property EnableFontSize: Boolean read GetEnableFontSize;
+
+    [YamlNode('EnableFormat', 'False', 'Show bold/italic/underline/strike buttons')]
+    property EnableFormat: Boolean read GetEnableFormat;
+
+    [YamlNode('EnableColors', 'False', 'Show font color and highlight color pickers')]
+    property EnableColors: Boolean read GetEnableColors;
+
+    [YamlNode('EnableAlignments', 'False', 'Show text alignment buttons')]
+    property EnableAlignments: Boolean read GetEnableAlignments;
+
+    [YamlNode('EnableLinks', 'False', 'Show insert/edit hyperlink button')]
+    property EnableLinks: Boolean read GetEnableLinks;
+
+    [YamlNode('EnableLists', 'False', 'Show bulleted and numbered list buttons')]
+    property EnableLists: Boolean read GetEnableLists;
+
+    [YamlNode('EnableSourceEdit', 'False', 'Show view/edit HTML source button')]
+    property EnableSourceEdit: Boolean read GetEnableSourceEdit;
+  end;
+
+  /// <summary>
+  ///  Thumbnail dimensions for IsPicture blob fields.
+  ///  YAML path: Field/IsPicture/Thumbnail
+  /// </summary>
+  /// <example>
+  ///  IsPicture: True
+  ///    Thumbnail:
+  ///      Width: 150
+  ///      Height: 150
+  /// </example>
+  TKThumbnailConfig = class(TEFNode)
+  private
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+  public
+    [YamlNode('Width', '150', 'Thumbnail width in pixels')]
+    property Width: Integer read GetWidth;
+
+    [YamlNode('Height', '150', 'Thumbnail height in pixels')]
+    property Height: Integer read GetHeight;
+  end;
+
+  /// <summary>
+  ///  Preview window dimensions for FileReference fields.
+  ///  YAML path: Field/PreviewWindow
+  /// </summary>
+  /// <example>
+  ///  PreviewWindow: True
+  ///    Width: 226
+  ///    Height: 320
+  /// </example>
+  TKPreviewWindowConfig = class(TEFNode)
+  private
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+  public
+    [YamlNode('Width', '226', 'Preview window width in pixels')]
+    property Width: Integer read GetWidth;
+
+    [YamlNode('Height', '320', 'Preview window height in pixels')]
+    property Height: Integer read GetHeight;
+  end;
+
   /// <summary>The collection of validation/business rules of a model or field.</summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   [YamlChildType('ForceUpperCase', '', 'Force value to upper case')]
@@ -2717,6 +2812,72 @@ begin
   if FInstance = nil then
     FInstance := TKModelRegistry.Create;
   Result := FInstance;
+end;
+
+{ TKHTMLEditorConfig }
+
+function TKHTMLEditorConfig.GetEnableFont: Boolean;
+begin
+  Result := GetBoolean('EnableFont', True);
+end;
+
+function TKHTMLEditorConfig.GetEnableFontSize: Boolean;
+begin
+  Result := GetBoolean('EnableFontSize', True);
+end;
+
+function TKHTMLEditorConfig.GetEnableFormat: Boolean;
+begin
+  Result := GetBoolean('EnableFormat', True);
+end;
+
+function TKHTMLEditorConfig.GetEnableColors: Boolean;
+begin
+  Result := GetBoolean('EnableColors', True);
+end;
+
+function TKHTMLEditorConfig.GetEnableAlignments: Boolean;
+begin
+  Result := GetBoolean('EnableAlignments', True);
+end;
+
+function TKHTMLEditorConfig.GetEnableLinks: Boolean;
+begin
+  Result := GetBoolean('EnableLinks', True);
+end;
+
+function TKHTMLEditorConfig.GetEnableLists: Boolean;
+begin
+  Result := GetBoolean('EnableLists', True);
+end;
+
+function TKHTMLEditorConfig.GetEnableSourceEdit: Boolean;
+begin
+  Result := GetBoolean('EnableSourceEdit', True);
+end;
+
+{ TKThumbnailConfig }
+
+function TKThumbnailConfig.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 150);
+end;
+
+function TKThumbnailConfig.GetHeight: Integer;
+begin
+  Result := GetInteger('Height', 150);
+end;
+
+{ TKPreviewWindowConfig }
+
+function TKPreviewWindowConfig.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 226);
+end;
+
+function TKPreviewWindowConfig.GetHeight: Integer;
+begin
+  Result := GetInteger('Height', 320);
 end;
 
 initialization

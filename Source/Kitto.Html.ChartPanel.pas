@@ -21,11 +21,154 @@ uses
   Kitto.Html.DataPanel,
   Kitto.Html.Controller,
   Kitto.Metadata.DataView,
-  EF.YAML.Attributes,
-  Kitto.Metadata.SubNodes2;
+  EF.Tree,
+  EF.YAML.Attributes;
 
 type
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  { ---------- Chart sub-nodes ---------- }
+
+  /// <summary>
+  ///  Style options for a chart series.
+  ///  YAML path: Chart/Series/SeriesItem/Style
+  /// </summary>
+  TKChartSeriesStyleConfig = class(TEFNode)
+  private
+    function GetColor: string;
+    function GetImage: string;
+    function GetMode: string;
+  public
+    [YamlNode('Color', 'Fill or stroke color')]
+    property Color: string read GetColor;
+
+    [YamlNode('Image', 'Background image URL')]
+    property Image: string read GetImage;
+
+    [YamlNode('Mode', 'Rendering mode')]
+    property Mode: string read GetMode;
+  end;
+
+  /// <summary>
+  ///  Chart series item configuration.
+  ///  YAML path: Chart/Series/SeriesItem
+  /// </summary>
+  TKChartSeriesConfig = class(TEFNode)
+  private
+    function GetType: string;
+    function GetXField: string;
+    function GetYField: string;
+    function GetDisplayName: string;
+    function GetStyle: TKChartSeriesStyleConfig;
+  public
+    [YamlNode('Type', 'Series type: bar, line, pie, area')]
+    property &Type: string read GetType;
+
+    [YamlNode('XField', 'X axis data field')]
+    property XField: string read GetXField;
+
+    [YamlNode('YField', 'Y axis data field')]
+    property YField: string read GetYField;
+
+    [YamlNode('DisplayName', 'Legend label for this series')]
+    property DisplayName: string read GetDisplayName;
+
+    [YamlSubNode('Style', TKChartSeriesStyleConfig, 'Series visual style')]
+    property Style: TKChartSeriesStyleConfig read GetStyle;
+  end;
+
+  /// <summary>
+  ///  Chart axis configuration (X or Y).
+  ///  YAML path: Chart/Axes/X or Chart/Axes/Y
+  /// </summary>
+  TKChartAxisConfig = class(TEFNode)
+  private
+    function GetField: string;
+    function GetTitle: string;
+    function GetMajorTimeUnit: string;
+    function GetMajorUnit: string;
+    function GetMinorUnit: string;
+    function GetMax: string;
+    function GetMin: string;
+  public
+    [YamlNode('Field', 'Data field bound to this axis')]
+    property Field: string read GetField;
+
+    [YamlNode('Title', 'Axis title text')]
+    property Title: string read GetTitle;
+
+    [YamlNode('MajorTimeUnit', 'Time unit for major ticks (day, month, year)')]
+    property MajorTimeUnit: string read GetMajorTimeUnit;
+
+    [YamlNode('MajorUnit', 'Major tick interval')]
+    property MajorUnit: string read GetMajorUnit;
+
+    [YamlNode('MinorUnit', 'Minor tick interval')]
+    property MinorUnit: string read GetMinorUnit;
+
+    [YamlNode('Max', 'Axis maximum value')]
+    property Max: string read GetMax;
+
+    [YamlNode('Min', 'Axis minimum value')]
+    property Min: string read GetMin;
+  end;
+
+  /// <summary>
+  ///  Chart legend configuration.
+  ///  YAML path: Chart/Legend
+  /// </summary>
+  /// <example>
+  ///  Chart:
+  ///    Legend:
+  ///      Docked: top
+  /// </example>
+  TKChartLegendConfig = class(TEFNode)
+  private
+    function GetDocked: string;
+  public
+    [YamlNode('Docked', 'top', 'Legend position: top, bottom, left, right')]
+    property Docked: string read GetDocked;
+  end;
+
+  /// <summary>
+  ///  Root chart configuration.
+  ///  YAML path: Chart
+  /// </summary>
+  TKChartConfig = class(TEFNode)
+  private
+    function GetType: string;
+    function GetChartStyle: string;
+    function GetTipRenderer: string;
+    function GetDataField: string;
+    function GetCategoryField: string;
+    function GetLegend: TKChartLegendConfig;
+    function GetSeries: TEFNode;
+    function GetAxes: TEFNode;
+  public
+    [YamlNode('Type', 'Chart type: cartesian, polar')]
+    property &Type: string read GetType;
+
+    [YamlNode('ChartStyle', 'CSS style applied to the chart container')]
+    property ChartStyle: string read GetChartStyle;
+
+    [YamlNode('TipRenderer', 'JS function name for tooltip rendering')]
+    property TipRenderer: string read GetTipRenderer;
+
+    [YamlNode('DataField', 'Primary data field name')]
+    property DataField: string read GetDataField;
+
+    [YamlNode('CategoryField', 'Category axis field name')]
+    property CategoryField: string read GetCategoryField;
+
+    [YamlSubNode('Legend', TKChartLegendConfig, 'Chart legend')]
+    property Legend: TKChartLegendConfig read GetLegend;
+
+    [YamlContainer('Series', TKChartSeriesConfig, 'Chart data series')]
+    property Series: TEFNode read GetSeries;
+
+    [YamlContainer('Axes', TKChartAxisConfig, 'Chart axes')]
+    property Axes: TEFNode read GetAxes;
+  end;
+
   TKXChartPanelController = class(TKXDataPanelController)
   strict private
     FViewName: string;
@@ -65,7 +208,6 @@ uses
   System.Classes,
   System.StrUtils,
   System.NetEncoding,
-  EF.Tree,
   EF.Localization,
   Kitto.Config,
   Kitto.Html.Base,
@@ -527,6 +669,136 @@ end;
 function TKXChartPanelController.GetChart: TKChartConfig;
 begin
   Result := nil; // RTTI discovery only
+end;
+
+{ TKChartSeriesStyleConfig }
+
+function TKChartSeriesStyleConfig.GetColor: string;
+begin
+  Result := GetString('Color');
+end;
+
+function TKChartSeriesStyleConfig.GetImage: string;
+begin
+  Result := GetString('Image');
+end;
+
+function TKChartSeriesStyleConfig.GetMode: string;
+begin
+  Result := GetString('Mode');
+end;
+
+{ TKChartSeriesConfig }
+
+function TKChartSeriesConfig.GetType: string;
+begin
+  Result := GetString('Type');
+end;
+
+function TKChartSeriesConfig.GetXField: string;
+begin
+  Result := GetString('XField');
+end;
+
+function TKChartSeriesConfig.GetYField: string;
+begin
+  Result := GetString('YField');
+end;
+
+function TKChartSeriesConfig.GetDisplayName: string;
+begin
+  Result := GetString('DisplayName');
+end;
+
+function TKChartSeriesConfig.GetStyle: TKChartSeriesStyleConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+{ TKChartAxisConfig }
+
+function TKChartAxisConfig.GetField: string;
+begin
+  Result := GetString('Field');
+end;
+
+function TKChartAxisConfig.GetTitle: string;
+begin
+  Result := GetString('Title');
+end;
+
+function TKChartAxisConfig.GetMajorTimeUnit: string;
+begin
+  Result := GetString('MajorTimeUnit');
+end;
+
+function TKChartAxisConfig.GetMajorUnit: string;
+begin
+  Result := GetString('MajorUnit');
+end;
+
+function TKChartAxisConfig.GetMinorUnit: string;
+begin
+  Result := GetString('MinorUnit');
+end;
+
+function TKChartAxisConfig.GetMax: string;
+begin
+  Result := GetString('Max');
+end;
+
+function TKChartAxisConfig.GetMin: string;
+begin
+  Result := GetString('Min');
+end;
+
+{ TKChartConfig }
+
+function TKChartConfig.GetType: string;
+begin
+  Result := GetString('Type');
+end;
+
+function TKChartConfig.GetChartStyle: string;
+begin
+  Result := GetString('ChartStyle');
+end;
+
+function TKChartConfig.GetTipRenderer: string;
+begin
+  Result := GetString('TipRenderer');
+end;
+
+function TKChartConfig.GetDataField: string;
+begin
+  Result := GetString('DataField');
+end;
+
+function TKChartConfig.GetCategoryField: string;
+begin
+  Result := GetString('CategoryField');
+end;
+
+function TKChartConfig.GetLegend: TKChartLegendConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKChartConfig.GetSeries: TEFNode;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKChartConfig.GetAxes: TEFNode;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+{ TKChartLegendConfig }
+
+function TKChartLegendConfig.GetDocked: string;
+begin
+  Result := GetString('Docked', 'top');
 end;
 
 initialization

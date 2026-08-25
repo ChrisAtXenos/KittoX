@@ -15,28 +15,25 @@
 -------------------------------------------------------------------------------}
 
 /// <summary>
-///   JWT authenticator. Wraps any other registered TKAuthenticator (e.g. DB,
-///   TextFile, custom app authenticator) as the Inner provider that performs
-///   the actual credential check, then issues a self-contained JWT in an
-///   HttpOnly cookie. The wrapper exposes the same authenticator API as a
-///   classic authenticator so the rest of the framework is unaware that JWT
-///   is in use.
+///   Opt-in JWT engine. Implements <see cref="IKXJWTEngine" /> and registers
+///   itself so the base <c>TKAuthenticator</c> can issue and validate a
+///   self-contained JWT (in an HttpOnly <c>kx_token</c> cookie) on top of ANY
+///   authenticator that declares a <c>JWT:</c> block under its <c>Auth</c> node.
 ///
-///   Phase A: Inner is a local authenticator (DB / TextFile / app-defined).
-///   Phase C will add TKExternalAuthBase descendants for OIDC / SAML which
-///   override BuildContext to map IdP-supplied claims and GetLoginUIMode to
-///   request a redirect-based login form rendering.
+///   There is no wrapper/Inner authenticator any more: an app configures a plain
+///   authenticator (<c>Auth: DB</c>, <c>Auth: LDAP</c>, a custom one, ...) and adds
+///   an optional <c>JWT:</c> sub-block. The base decides WHEN to issue/validate/clear
+///   a token (from the presence of that block) and delegates the crypto — and the
+///   third-party JOSE dependency, which lives in <c>Kitto.Web.JWT</c> — to this
+///   engine. Apps that do not use JWT never link JOSE.
+///
+///   Per-authenticator parsed configuration is cached as an opaque state object
+///   attached to the authenticator (<c>TKAuthenticator.JWTState</c>), so the engine
+///   itself stays a stateless singleton.
 /// </summary>
 unit Kitto.Auth.JWT;
 
 {$I Kitto.Defines.inc}
-
-// Promotes "constructing instance of X containing abstract method Y" from a
-// warning to a hard error, so that a member left unimplemented from the
-// TKAuthenticatorDecorator contract stops the build instead of waiting to blow
-// up at run time. Works together with CheckDecoratorContract at the bottom of
-// this unit — see the comment there for why that procedure has to exist.
-{$WARN CONSTRUCTING_ABSTRACT ERROR}
 
 interface
 
@@ -50,185 +47,44 @@ uses
 
 type
   /// <summary>
-  ///  Hint to the login template renderer about what kind of login UI to
-  ///  show for this authenticator. lumForm = traditional UserName/Password
-  ///  form fields. lumRedirect = single button that triggers an external
-  ///  redirect (Phase C — OIDC/SAML).
+  ///  Opaque per-authenticator state owned by the authenticator (assigned to its
+  ///  JWTState property, which frees it). Holds the parsed JWT configuration and
+  ///  the resolved app name for this authenticator.
   /// </summary>
-  TKLoginUIMode = (lumForm, lumRedirect);
+  TKJWTEngineState = class
+  public
+    Config: TKJWTConfig;
+    AppName: string;
+    destructor Destroy; override;
+  end;
 
   /// <summary>
-  ///  JWT-issuing authenticator. Registered as 'JWT'.
-  ///
-  ///  Wraps another authenticator (Auth/Inner) and stands in front of it, so it
-  ///  descends from TKAuthenticatorDecorator: every member on which a wrapper
-  ///  must take a decision is abstract there and MUST be implemented below,
-  ///  either by passing the call on to the Inner authenticator or by answering
-  ///  locally with the reason written down. See that class for the rationale and
-  ///  for what the compiler will tell you if a member is missing.
-  ///
-  ///  Through TKClassicAuthenticator it also gets DefineStandardAuthData, used
-  ///  in the narrow window in which the Inner cannot exist yet (see
-  ///  InternalDefineAuthData).
+  ///  Process-wide JWT engine. Registered in this unit's initialization via
+  ///  RegisterJWTEngine; the base TKAuthenticator retrieves it through
+  ///  GetJWTEngine when a JWT block is configured.
   /// </summary>
-  TKJWTAuthenticator = class(TKAuthenticatorDecorator)
-  // The per-thread JWT context cache used by TKJWTAccessController lives
-  // in a unit-level TObjectDictionary keyed by ThreadID (not in a class
-  // threadvar). Two reasons:
-  //   1) Avoids a Delphi compiler bug where 'class threadvar' declarations
-  //      of record types mixed with regular instance fields cause silent
-  //      field-offset corruption.
-  //   2) Threadvar finalization in Delphi does NOT release managed members
-  //      of records (strings, dynamic arrays). With Indy keeping ~20 worker
-  //      threads alive for the server's lifetime, every populated context
-  //      record was leaking strings and the kx_acl array on shutdown. The
-  //      dictionary is freed deterministically in the unit's finalization
-  //      section, so every record's Clear gets invoked.
+  TKJWTEngine = class(TInterfacedObject, IKXJWTEngine)
   strict private
-    FInner: TKAuthenticator;
-    FConfig: TKJWTConfig;
-    FInnerInitialized: Boolean;
-    FConfigInitialized: Boolean;
-    FAppName: string;
-    procedure EnsureInner;
-    procedure EnsureConfig;
+    /// <summary>Lazily builds (once, under a per-authenticator lock) and returns
+    /// the parsed JWT state for the given authenticator, reading the settings
+    /// from its Auth/JWT sub-node.</summary>
+    function EnsureState(const AAuthenticator: TKAuthenticator): TKJWTEngineState;
     function ResolveAppName: string;
-    /// <summary>
-    ///  True when the Inner authenticator either already exists or can be built.
-    ///  Needed because TKAuthenticator.AfterConstruction calls DefineAuthData
-    ///  while TKWebApplication.GetAuthenticator has not yet copied the Auth/*
-    ///  nodes into Config: at that moment Auth/Inner is not visible and
-    ///  EnsureInner would raise. Only the DefineAuthData path can be reached that
-    ///  early; every other member runs on a fully wired authenticator.
-    /// </summary>
-    function InnerAvailable: Boolean;
-  strict protected
-    /// <summary>
-    ///  Snapshots the user's permissions (KITTO_PERMISSIONS rows for the user
-    ///  plus all roles in KITTO_USER_ROLES) into a TKJWTAclArray. Reads the
-    ///  SQL templates from TKConfig.Instance.Config.AccessControl/Read*CommandText,
-    ///  falling back to TKDBAccessController defaults when those keys are
-    ///  absent. Returns an empty array when no permissions are found.
-    /// </summary>
-    function BuildAclFromDB(const AUserId: string): TKJWTAclArray; virtual;
-
-    /// Override to enrich the JWT context with custom claims before it is
-    /// signed. The default fills sub/name/db/lang from session state, and
-    /// (when AccessControl: JWT is configured) snapshots ACL rows into kx_acl.
-    /// Phase C subclasses override to pull IdP-specific claims into the
-    /// internal token.
-    procedure BuildContext(out AContext: TKJWTContext); virtual;
-
-    function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
-    procedure InternalAfterAuthenticate(const AAuthData: TEFNode); override;
-    function GetIsClearPassword: Boolean; override;
-
-    // --- Decorator contract (TKAuthenticatorDecorator) ---------------------
-    // Each of these is either a call passed on to the Inner authenticator, or a
-    // local answer with the reason stated. See the implementations.
-
-    /// <summary>Answered locally: whether the request is authenticated is a
-    /// property of the token this class issues and validates, not something the
-    /// Inner authenticator can know.</summary>
-    function GetIsAuthenticated: Boolean; override;
-    /// <summary>Delegated: it is the Inner authenticator that knows how the
-    /// stored credentials are hashed.</summary>
-    function GetIsBCrypted: Boolean; override;
-    /// <summary>Delegated: the user identity is the Inner authenticator's to
-    /// decide. This is read by every access-control check in the framework, so
-    /// an Inner override that normalises or maps the user name must be honoured
-    /// here or the whole ACL layer would run on the wrong identity.</summary>
-    function GetUserName: string; override;
-    /// <summary>Delegated: decided together with SetPassword, which was already
-    /// delegated — reading from here while writing to the Inner would leave the
-    /// two halves of the same property pointing at different objects.</summary>
-    function GetPassword: string; override;
-    /// <summary>Delegated, for the same reason as GetPassword.</summary>
-    function GetSecretCode: string; override;
-    /// <summary>Delegated: the twin of GetMustConfirmAccess, which is delegated
-    /// too. An Inner authenticator that signals a forced password change its own
-    /// way must be heard.</summary>
-    function GetMustChangePassword: Boolean; override;
-    /// <summary>Delegated: hands the whole DefineAuthData chain to the Inner
-    /// authenticator, so an Inner that declares different login fields (e.g.
-    /// TKOSDBAuthenticator, which declares none when the OS user is a known
-    /// user) is honoured.</summary>
-    procedure InternalDefineAuthData(const AAuthData: TEFNode); override;
-    /// <summary>No-op when the Inner exists: InternalDefineAuthData already ran
-    /// the Inner's full chain, defaults included.</summary>
-    procedure InternalDefaultToAuthData(const AAuthData: TEFNode); override;
+    /// <summary>Snapshots the user's permissions/roles into a TKJWTAclArray for
+    /// the kx_acl claim (only when AccessControl: JWT is configured).</summary>
+    function BuildAclFromDB(const AUserId: string): TKJWTAclArray;
+    /// <summary>Fills the token context from the authenticator identity and the
+    /// session state, plus the ACL snapshot when enabled.</summary>
+    procedure BuildContext(const AAuthenticator: TKAuthenticator;
+      const AConfig: TKJWTConfig; out AContext: TKJWTContext);
+    /// <summary>Re-issues the cookie with a fresh expiration, preserving the
+    /// identity claims from the validated context.</summary>
+    function SlideToken(const AConfig: TKJWTConfig; const AContext: TKJWTContext): string;
   public
-    /// <summary>Delegated: whether a password can be written at all depends on
-    /// the Inner authenticator, not on the envelope around it.</summary>
-    function SupportsPasswordChange: Boolean; override;
-  public
-    /// <summary>Defers app-name/config resolution to the first request (see the
-    /// implementation note); does not build the Inner authenticator yet.</summary>
-    procedure AfterConstruction; override;
-    /// <summary>Frees the JWT config and the wrapped Inner authenticator.</summary>
-    destructor Destroy; override;
-
-    /// <summary>Clears the JWT cookie and logs out the wrapped Inner
-    /// authenticator.</summary>
-    procedure Logout; override;
-    /// <summary>Delegates the password reset to the wrapped Inner
-    /// authenticator.</summary>
-    procedure ResetPassword(const AParams: TEFNode); override;
-    /// <summary>Delegates the password change to the wrapped Inner
-    /// authenticator. Without this the inherited no-op would run and the new
-    /// password would be silently discarded, with no error raised.</summary>
-    procedure SetPassword(const AValue: string); override;
-    /// <summary>Delegates to the wrapped Inner authenticator, which may define
-    /// its own condition (KittoSCM reads PRIVACY_CONFIRM, not the base's
-    /// MUST_CONFIRM_ACCESS): without this its override would never run.</summary>
-    function GetMustConfirmAccess: Boolean; override;
-    /// <summary>Delegates QR-code (OTP) generation to the wrapped Inner
-    /// authenticator.</summary>
-    procedure QRGenerate(const AParams: TEFNode); override;
-    /// <summary>Delegates password matching to the wrapped Inner
-    /// authenticator.</summary>
-    function IsPasswordMatching(const ASuppliedPasswordHash: string;
-      const AStoredPasswordHash: string): Boolean; override;
-
-    /// <summary>
-    ///  Returns the Inner authenticator's Config so that callers reading
-    ///  user-facing auth options (DatabaseChoices, ValidatePassword,
-    ///  IsPassepartoutEnabled, ReadUserCommandText, etc.) keep working
-    ///  with the same YAML keys when the app moves to Auth: JWT.
-    /// </summary>
-    function EffectiveConfigNode: TEFTree; override;
-
-    /// <summary>
-    ///  Validates the kx_token cookie attached to the current request,
-    ///  hydrates the session from the verified claims, and slides the
-    ///  cookie expiration if it is approaching. Called by
-    ///  TKWebApplication.DoHandleRequest immediately after ActivateInstance.
-    /// </summary>
-    procedure AuthorizeRequest; override;
-
-    /// The kx_token cookie carries the 'sid' claim that correlates the
-    /// request to its server-side TKWebSession, so the legacy session id
-    /// cookie named after AppName is redundant under Auth: JWT.
-    class function CarriesSessionIdInCredential: Boolean; override;
-
-    /// Phase C extension point — the login template uses this to pick
-    /// between rendering form fields or a "Login with X" button.
-    function GetLoginUIMode: TKLoginUIMode; virtual;
-
-    /// Builds and writes the JWT cookie to the current response. Called by
-    /// InternalAfterAuthenticate on a successful login. Returns the compact
-    /// JWT for diagnostics / logging.
-    function IssueToken: string;
-
-    /// Re-issues the cookie with a fresh expiration based on the supplied
-    /// validated context. Used by the engine's sliding-expiration hook.
-    function SlideToken(const AContext: TKJWTContext): string;
-
-    /// Parsed configuration of the JWT layer.
-    function JWTConfig: TKJWTConfig;
-
-    /// The wrapped inner authenticator. Lazily created on first access.
-    function Inner: TKAuthenticator;
+    // IKXJWTEngine
+    function IssueToken(const AAuthenticator: TKAuthenticator): string;
+    function AuthorizeRequest(const AAuthenticator: TKAuthenticator): Boolean;
+    procedure ClearToken(const AAuthenticator: TKAuthenticator);
 
     /// <summary>
     ///  True when AuthorizeRequest has just validated a JWT for the current
@@ -237,36 +93,26 @@ type
     ///  signature verification per ACL call.
     /// </summary>
     class function HasContext: Boolean; static;
-
-    /// <summary>
-    ///  The validated context cached by AuthorizeRequest for the current
-    ///  thread/request. Caller must check HasContext first.
-    /// </summary>
+    /// <summary>The validated context cached by AuthorizeRequest for the current
+    /// thread/request. Caller must check HasContext first.</summary>
     class function CurrentContext: TKJWTContext; static;
-
-    /// <summary>
-    ///  Clears the thread-local context cache. Called by AuthorizeRequest
-    ///  when validation fails so subsequent ACL checks within the same
-    ///  request fall back to the unauthenticated path.
-    /// </summary>
+    /// <summary>Clears the thread-local context cache. Called by AuthorizeRequest
+    /// when validation fails so subsequent ACL checks within the same request
+    /// fall back to the unauthenticated path.</summary>
     class procedure ClearCurrentContext; static;
   end;
 
 implementation
 
 uses
-  System.DateUtils,
   System.SyncObjs,
   System.Generics.Collections,
-  EF.Localization,
-  EF.StrUtils,
   EF.Logger,
   Kitto.Config,
   Kitto.Web.Application,
   Kitto.Web.Session,
   Kitto.AccessControl.DB,
-  Kitto.Store,
-  JOSE.Core.JWA;
+  Kitto.Store;
 
 type
   // Per-thread holder for the validated JWT context. Lives in the
@@ -286,18 +132,17 @@ begin
   inherited;
 end;
 
-// Per-thread context cache populated by TKJWTAuthenticator.AuthorizeRequest
-// and read by TKJWTAccessController.InternalGetAccessGrantValue. Each request
-// runs on its own Indy worker thread; the dictionary keyed by ThreadID
-// isolates the cache so concurrent requests do not see each other's claims.
+// Per-thread context cache populated by TKJWTEngine.AuthorizeRequest and read
+// by TKJWTAccessController.InternalGetAccessGrantValue. Each request runs on its
+// own Indy worker thread; the dictionary keyed by ThreadID isolates the cache so
+// concurrent requests do not see each other's claims.
 //
-// Why a dictionary instead of a threadvar: Delphi's threadvar finalization
-// does NOT release managed members (strings, dynamic arrays) of records when
-// a worker thread exits. With Indy's TIdSchedulerOfThreadPool keeping ~20
-// workers alive for the server's lifetime, every populated FCurrentContext
-// record was leaking its strings and the kx_acl array on shutdown. Owning
-// the holders from a unit-level TObjectDictionary lets the finalization
-// section free them deterministically.
+// Why a dictionary instead of a threadvar: Delphi's threadvar finalization does
+// NOT release managed members (strings, dynamic arrays) of records when a worker
+// thread exits. With Indy's TIdSchedulerOfThreadPool keeping ~20 workers alive
+// for the server's lifetime, every populated context record was leaking its
+// strings and the kx_acl array on shutdown. Owning the holders from a unit-level
+// TObjectDictionary lets the finalization section free them deterministically.
 var
   FContextsLock: TCriticalSection;
   FContextsByThread: TObjectDictionary<TThreadID, TKJWTContextHolder>;
@@ -319,42 +164,25 @@ begin
   end;
 end;
 
-const
-  CFG_INNER = 'Inner';
+{ TKJWTEngineState }
 
-{ TKJWTAuthenticator }
-
-procedure TKJWTAuthenticator.AfterConstruction;
+destructor TKJWTEngineState.Destroy;
 begin
-  inherited;
-  // FAppName is resolved lazily in EnsureConfig instead of here. AfterConstruction
-  // runs while TKWebApplication.GetAuthenticator is still wiring up the authenticator
-  // (the YAML children of the Auth node are added AFTER CreateObject returns), and
-  // depending on the call path TKConfig.Instance may not yet point to the active
-  // app config — which would cause ResolveAppName to return '' for some instances
-  // (silently breaking TKJWTSigningKeyRegistry lookups). EnsureConfig is invoked
-  // later, on the first AuthorizeRequest / IssueToken / SlideToken call, by which
-  // time the runtime is fully assembled.
-  FAppName := '';
-end;
-
-destructor TKJWTAuthenticator.Destroy;
-begin
-  FreeAndNil(FConfig);
-  FreeAndNil(FInner);
+  FreeAndNil(Config);
   inherited;
 end;
 
-function TKJWTAuthenticator.ResolveAppName: string;
+{ TKJWTEngine }
+
+function TKJWTEngine.ResolveAppName: string;
 begin
   // Read AppName directly from the loaded Config.yaml. TKConfig.AppName (class
   // function) can return the binary file name as a last-resort fallback when
-  // called too early in the init chain (before the Home directory is fully
-  // resolved), and that fallback gets cached in TKConfig's class var FAppName
-  // for the rest of the process lifetime. The cached binary name (e.g.
-  // "TasKitto") would then never match the AppName declared in Config.yaml
-  // (e.g. "TaskittoX"), silently breaking TKJWTSigningKeyRegistry lookups
+  // called too early in the init chain, and that fallback gets cached for the
+  // rest of the process lifetime — which would then never match the AppName
+  // declared in Config.yaml, silently breaking TKJWTSigningKeyRegistry lookups
   // registered from UseKitto.pas with the YAML name.
+  Result := '';
   if Assigned(TKConfig.Instance) then
     Result := TKConfig.Instance.Config.GetString('AppName', '');
   if Result = '' then
@@ -363,199 +191,52 @@ begin
     Result := 'KittoXApp';
 end;
 
-procedure TKJWTAuthenticator.EnsureConfig;
-begin
-  // Fast path: once FConfigInitialized has been set the field is stable. The
-  // double-checked TMonitor lock below avoids two concurrent requests both
-  // creating a TKJWTConfig (the loser instance would leak when FConfig is
-  // overwritten). The Indy thread pool can issue many requests in parallel,
-  // and the very first wave reaches AuthorizeRequest before FConfigInitialized
-  // flips to True.
-  if FConfigInitialized then
-    Exit;
-  TMonitor.Enter(Self);
-  try
-    if FConfigInitialized then
-      Exit;
-    // Resolve the app name now (lazy). At this point we are inside an active
-    // request — TKWebApplication.Current is set and its Config has been fully
-    // loaded — so reading AppName from the YAML is reliable.
-    if FAppName = '' then
-      FAppName := ResolveAppName;
-    FConfig := TKJWTConfig.Create(FAppName, Config);
-    // Default cookie path to the app path so other apps on the same host
-    // don't see this token.
-    if FConfig.CookiePath = '' then
-    begin
-      if Assigned(TKWebApplication.Current) and (TKWebApplication.Current.Path <> '') then
-        FConfig.CookiePath := TKWebApplication.Current.Path
-      else
-        FConfig.CookiePath := '/';
-    end;
-    FConfigInitialized := True;
-  finally
-    TMonitor.Exit(Self);
-  end;
-end;
-
-procedure TKJWTAuthenticator.EnsureInner;
+function TKJWTEngine.EnsureState(const AAuthenticator: TKAuthenticator): TKJWTEngineState;
 var
-  LInnerNode: TEFNode;
-  LInnerType: string;
-  I: Integer;
+  LState: TKJWTEngineState;
+  LJWTNode: TEFNode;
 begin
-  // Same double-checked locking pattern as EnsureConfig — first request wave
-  // can reach Authenticate / IsClearPassword in parallel, and we must not
-  // create more than one Inner authenticator (subsequent ones would leak
-  // when FInner is overwritten and would also bypass the registry-side state).
-  if FInnerInitialized then
-    Exit;
-  TMonitor.Enter(Self);
-  try
-    if FInnerInitialized then
-      Exit;
-
-    LInnerNode := Config.FindNode(CFG_INNER);
-    if not Assigned(LInnerNode) then
-      raise EKJWTError.Create(_('Auth: JWT requires an Inner authenticator. Set Auth/Inner in Config.yaml.'));
-
-    LInnerType := LInnerNode.AsString;
-    if LInnerType = '' then
-      raise EKJWTError.Create(_('Auth/Inner must specify the inner authenticator class id (e.g. DB, TextFile, custom).'));
-
-    FInner := TKAuthenticatorFactory.Instance.CreateObject(LInnerType);
-    // Copy children of Inner node into Inner's Config so it sees the same YAML
-    // params it would normally read at the top level.
-    for I := 0 to LInnerNode.ChildCount - 1 do
-      FInner.Config.AddChild(TEFNode.Clone(LInnerNode.Children[I]));
-    FInnerInitialized := True;
-  finally
-    TMonitor.Exit(Self);
-  end;
-end;
-
-function TKJWTAuthenticator.Inner: TKAuthenticator;
-begin
-  EnsureInner;
-  Result := FInner;
-end;
-
-function TKJWTAuthenticator.InnerAvailable: Boolean;
-begin
-  Result := FInnerInitialized or Assigned(Config.FindNode(CFG_INNER));
-end;
-
-{ Decorator contract — see TKAuthenticatorDecorator. Each member below either
-  passes the call on to the Inner authenticator or answers locally with its
-  reason stated; nothing is left to be inherited by accident. }
-
-function TKJWTAuthenticator.GetIsAuthenticated: Boolean;
-begin
-  // Answered locally, NOT delegated: the token is what makes a request
-  // authenticated, and this class owns it. The Inner authenticator only ever
-  // sees the login itself, so it cannot answer for a token-carrying request.
-  Result := TKWebSession.Current.IsAuthenticated;
-end;
-
-function TKJWTAuthenticator.GetIsBCrypted: Boolean;
-begin
-  EnsureInner;
-  Result := FInner.IsBCrypted;
-end;
-
-function TKJWTAuthenticator.GetUserName: string;
-begin
-  EnsureInner;
-  Result := FInner.UserName;
-end;
-
-function TKJWTAuthenticator.GetPassword: string;
-begin
-  EnsureInner;
-  Result := FInner.Password;
-end;
-
-function TKJWTAuthenticator.GetSecretCode: string;
-begin
-  EnsureInner;
-  Result := FInner.SecretCode;
-end;
-
-function TKJWTAuthenticator.GetMustChangePassword: Boolean;
-begin
-  EnsureInner;
-  Result := FInner.MustChangePassword;
-end;
-
-function TKJWTAuthenticator.SupportsPasswordChange: Boolean;
-begin
-  EnsureInner;
-  Result := FInner.SupportsPasswordChange;
-end;
-
-procedure TKJWTAuthenticator.InternalDefineAuthData(const AAuthData: TEFNode);
-begin
-  if not InnerAvailable then
+  // Fast path: once the state is attached to the authenticator it is stable. The
+  // double-checked lock (on the authenticator instance) avoids two concurrent
+  // first-wave requests both building a state (the loser would be freed and
+  // could leak). The Indy thread pool can reach IssueToken / AuthorizeRequest in
+  // parallel before the state is attached.
+  if not Assigned(AAuthenticator.JWTState) then
   begin
-    // Reached from TKAuthenticator.AfterConstruction, before the Auth/* config
-    // has been copied in: the Inner cannot be built yet. Declare the standard
-    // items, exactly as TKClassicAuthenticator would have. DefineAuthData is
-    // called again on a wired authenticator (TKWebApplication.Authenticate,
-    // Kitto.Web.Handler.Auth) and that pass does go through the Inner.
-    DefineStandardAuthData(AAuthData);
-    Exit;
+    TMonitor.Enter(AAuthenticator);
+    try
+      if not Assigned(AAuthenticator.JWTState) then
+      begin
+        LState := TKJWTEngineState.Create;
+        try
+          LState.AppName := ResolveAppName;
+          // The JWT settings live under the Auth/JWT sub-node.
+          LJWTNode := AAuthenticator.Config.FindNode('JWT');
+          LState.Config := TKJWTConfig.Create(LState.AppName, LJWTNode);
+          // Default the cookie path to the app path so other apps on the same
+          // host do not see this token.
+          if LState.Config.CookiePath = '' then
+          begin
+            if Assigned(TKWebApplication.Current) and (TKWebApplication.Current.Path <> '') then
+              LState.Config.CookiePath := TKWebApplication.Current.Path
+            else
+              LState.Config.CookiePath := '/';
+          end;
+        except
+          LState.Free;
+          raise;
+        end;
+        // The authenticator takes ownership (frees it in its Destroy / setter).
+        AAuthenticator.JWTState := LState;
+      end;
+    finally
+      TMonitor.Exit(AAuthenticator);
+    end;
   end;
-  EnsureInner;
-  // The Inner's PUBLIC DefineAuthData, so its own InternalDefineAuthData AND
-  // InternalDefaultToAuthData both run — which is why InternalDefaultToAuthData
-  // below has nothing left to do.
-  FInner.DefineAuthData(AAuthData);
+  Result := TKJWTEngineState(AAuthenticator.JWTState);
 end;
 
-procedure TKJWTAuthenticator.InternalDefaultToAuthData(const AAuthData: TEFNode);
-begin
-  if not InnerAvailable then
-  begin
-    // Same early window as InternalDefineAuthData: apply this authenticator's
-    // own Defaults, since there is no Inner to ask yet.
-    ApplyConfigDefaults(AAuthData);
-    Exit;
-  end;
-  // Nothing to do: InternalDefineAuthData delegated the whole chain to the
-  // Inner, defaults included. Applying them again here would run them twice,
-  // and against the wrong config node — the defaults live under Auth/Inner,
-  // which is the Inner's own Config, not this authenticator's.
-end;
-
-function TKJWTAuthenticator.JWTConfig: TKJWTConfig;
-begin
-  EnsureConfig;
-  Result := FConfig;
-end;
-
-function TKJWTAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
-begin
-  EnsureInner;
-  EnsureConfig;
-  Result := FInner.Authenticate(AAuthData);
-end;
-
-procedure TKJWTAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);
-begin
-  inherited;
-  // After Inner.Authenticate, session.AuthData holds the credential set
-  // ENRICHED by Inner (e.g. FIRST_NAME, LAST_NAME, EMAIL_ADDRESS pulled out
-  // of KITTO_USERS by TKDBAuthenticator). The wrapper Authenticate method
-  // is about to overwrite session.AuthData with the original AAuthData
-  // (login form fields only) right after we return. Sync the enrichment
-  // INTO AAuthData here so that final assign keeps the enriched values.
-  AAuthData.Assign(TKWebSession.Current.AuthData);
-  // Inner has filled session AuthData by the time we get here. Issue the
-  // JWT cookie now so the response carries the credential.
-  IssueToken;
-end;
-
-function TKJWTAuthenticator.BuildAclFromDB(const AUserId: string): TKJWTAclArray;
+function TKJWTEngine.BuildAclFromDB(const AUserId: string): TKJWTAclArray;
 var
   LStorage: TKUserPermissionStorage;
   LAclConfig: TEFNode;
@@ -567,10 +248,10 @@ begin
 
   LStorage := TKUserPermissionStorage.Create;
   try
-    // Read the SQL templates from the AccessControl YAML node. The node
-    // exists for both AccessControl: DB and AccessControl: JWT (the latter
-    // uses the same keys for fallback queries). When absent, fall back to
-    // the defaults baked into TKDBAccessController.
+    // Read the SQL templates from the AccessControl YAML node. The node exists
+    // for both AccessControl: DB and AccessControl: JWT (the latter uses the same
+    // keys for fallback queries). When absent, fall back to the defaults baked
+    // into TKDBAccessController.
     LAclConfig := TKConfig.Instance.Config.FindNode('AccessControl');
     if Assigned(LAclConfig) then
     begin
@@ -578,8 +259,8 @@ begin
         LAclConfig.GetString('ReadPermissionsCommandText', DEFAULT_READPERMISSIONCOMMANDTEXT);
       LStorage.ReadRolesCommandText :=
         LAclConfig.GetString('ReadRolesCommandText', DEFAULT_READROLESCOMMANDTEXT);
-      // Carry over DatabaseRouter / extra config so GetDatabaseName resolves
-      // the same way the runtime DB controller would.
+      // Carry over DatabaseRouter / extra config so GetDatabaseName resolves the
+      // same way the runtime DB controller would.
       for I := 0 to LAclConfig.ChildCount - 1 do
         if LStorage.Config.FindChild(LAclConfig.Children[I].Name) = nil then
           LStorage.Config.AddChild(TEFNode.Clone(LAclConfig.Children[I]));
@@ -609,147 +290,64 @@ begin
   end;
 end;
 
-procedure TKJWTAuthenticator.BuildContext(out AContext: TKJWTContext);
+procedure TKJWTEngine.BuildContext(const AAuthenticator: TKAuthenticator;
+  const AConfig: TKJWTConfig; out AContext: TKJWTContext);
 var
   LSession: TKWebSession;
 begin
   AContext.Clear;
   LSession := TKWebSession.Current;
 
-  AContext.UserName := FInner.UserName;
-  if FConfig.IncludeDisplayName then
+  AContext.UserName := AAuthenticator.UserName;
+  if AConfig.IncludeDisplayName then
     AContext.DisplayName := LSession.DisplayName;
-  if FConfig.IncludeDB then
+  if AConfig.IncludeDB then
     AContext.DatabaseName := LSession.DatabaseName;
-  if FConfig.IncludeLanguage then
+  if AConfig.IncludeLanguage then
     AContext.Language := LSession.Language;
 
-  if FConfig.IncludeACL then
+  if AConfig.IncludeACL then
   begin
     AContext.Acl := BuildAclFromDB(AContext.UserName);
     AContext.HasAcl := Length(AContext.Acl) > 0;
   end;
 
-  // Sid keeps the JWT correlated to the server-side TKWebSession that
-  // holds non-serializable state (open controllers, in-memory stores).
+  // Sid keeps the JWT correlated to the server-side TKWebSession that holds
+  // non-serializable state (open controllers, in-memory stores).
   AContext.Sid := LSession.SessionId;
   // Jti left empty — TKJWTBuilder generates a fresh GUID.
 end;
 
-function TKJWTAuthenticator.IssueToken: string;
+function TKJWTEngine.IssueToken(const AAuthenticator: TKAuthenticator): string;
 var
+  LState: TKJWTEngineState;
   LContext: TKJWTContext;
 begin
-  EnsureConfig;
-  EnsureInner;
-  BuildContext(LContext);
-  Result := TKJWTBuilder.Build(LContext, FConfig);
-  TKJWTCookieHelper.Issue(Result, FConfig);
+  LState := EnsureState(AAuthenticator);
+  BuildContext(AAuthenticator, LState.Config, LContext);
+  Result := TKJWTBuilder.Build(LContext, LState.Config);
+  TKJWTCookieHelper.Issue(Result, LState.Config);
   TEFLogger.Instance.LogFmt('JWT issued for user %s, sid %s, app %s',
-    [LContext.UserName, LContext.Sid, FAppName], TEFLogger.LOG_DETAILED);
+    [LContext.UserName, LContext.Sid, LState.AppName], TEFLogger.LOG_DETAILED);
 end;
 
-function TKJWTAuthenticator.SlideToken(const AContext: TKJWTContext): string;
+function TKJWTEngine.SlideToken(const AConfig: TKJWTConfig; const AContext: TKJWTContext): string;
 var
   LContext: TKJWTContext;
 begin
-  EnsureConfig;
   // Re-issue with a fresh exp but preserve sid/sub/etc. from the validated
-  // context. We do not rebuild from current session — the validated token
-  // is the source of truth for identity claims.
+  // context. We do not rebuild from the current session — the validated token is
+  // the source of truth for identity claims.
   LContext := AContext;
   LContext.CompactToken := '';
   LContext.IsValid := False;
-  Result := TKJWTBuilder.Build(LContext, FConfig);
-  TKJWTCookieHelper.Issue(Result, FConfig);
+  Result := TKJWTBuilder.Build(LContext, AConfig);
+  TKJWTCookieHelper.Issue(Result, AConfig);
 end;
 
-procedure TKJWTAuthenticator.Logout;
-begin
-  inherited;
-  if FConfigInitialized then
-    TKJWTCookieHelper.Clear(FConfig);
-  if FInnerInitialized and Assigned(FInner) then
-    FInner.Logout;
-end;
-
-procedure TKJWTAuthenticator.ResetPassword(const AParams: TEFNode);
-begin
-  EnsureInner;
-  FInner.ResetPassword(AParams);
-end;
-
-procedure TKJWTAuthenticator.SetPassword(const AValue: string);
-begin
-  EnsureInner;
-  FInner.Password := AValue;
-end;
-
-procedure TKJWTAuthenticator.QRGenerate(const AParams: TEFNode);
-begin
-  EnsureInner;
-  FInner.QRGenerate(AParams);
-end;
-
-function TKJWTAuthenticator.IsPasswordMatching(const ASuppliedPasswordHash,
-  AStoredPasswordHash: string): Boolean;
-begin
-  EnsureInner;
-  Result := FInner.IsPasswordMatching(ASuppliedPasswordHash, AStoredPasswordHash);
-end;
-
-function TKJWTAuthenticator.GetIsClearPassword: Boolean;
-begin
-  EnsureInner;
-  Result := FInner.IsClearPassword;
-end;
-
-function TKJWTAuthenticator.GetMustConfirmAccess: Boolean;
-begin
-  EnsureInner;
-  Result := FInner.MustConfirmAccess;
-end;
-
-function TKJWTAuthenticator.GetLoginUIMode: TKLoginUIMode;
-begin
-  Result := lumForm;
-end;
-
-class function TKJWTAuthenticator.HasContext: Boolean;
-begin
-  Result := GetThreadContextHolder.HasContext;
-end;
-
-class function TKJWTAuthenticator.CurrentContext: TKJWTContext;
-begin
-  Result := GetThreadContextHolder.Context;
-end;
-
-class procedure TKJWTAuthenticator.ClearCurrentContext;
+function TKJWTEngine.AuthorizeRequest(const AAuthenticator: TKAuthenticator): Boolean;
 var
-  LHolder: TKJWTContextHolder;
-begin
-  LHolder := GetThreadContextHolder;
-  LHolder.Context.Clear;
-  LHolder.HasContext := False;
-end;
-
-function TKJWTAuthenticator.EffectiveConfigNode: TEFTree;
-begin
-  EnsureInner;
-  if Assigned(FInner) then
-    Result := FInner.Config
-  else
-    Result := inherited EffectiveConfigNode;
-end;
-
-class function TKJWTAuthenticator.CarriesSessionIdInCredential: Boolean;
-begin
-  Result := True;
-end;
-
-procedure TKJWTAuthenticator.AuthorizeRequest;
-var
+  LState: TKJWTEngineState;
   LCookie: string;
   LContext: TKJWTContext;
   LErr: string;
@@ -758,26 +356,26 @@ begin
   // Reset any context left over from a previous request on this thread.
   ClearCurrentContext;
 
-  EnsureConfig;
-  LCookie := TKJWTCookieHelper.ReadFromRequest(FConfig);
+  LState := EnsureState(AAuthenticator);
+  LCookie := TKJWTCookieHelper.ReadFromRequest(LState.Config);
   if Trim(LCookie) = '' then
   begin
-    // No token: treat the request as unauthenticated. Public endpoints
-    // (Home, Login) keep working; protected ones get redirected to login.
+    // No token: treat the request as unauthenticated. Public endpoints (Home,
+    // Login) keep working; protected ones get redirected to login.
     TKWebSession.Current.IsAuthenticated := False;
-    Exit;
+    Exit(False);
   end;
-  if not TKJWTValidator.Validate(LCookie, FConfig, LContext, LErr) then
+  if not TKJWTValidator.Validate(LCookie, LState.Config, LContext, LErr) then
   begin
     TEFLogger.Instance.LogFmt('JWT cookie validation failed: %s', [LErr],
       TEFLogger.LOG_DETAILED);
-    TKJWTCookieHelper.Clear(FConfig);
+    TKJWTCookieHelper.Clear(LState.Config);
     TKWebSession.Current.IsAuthenticated := False;
-    Exit;
+    Exit(False);
   end;
-  // Token verified: this request is authenticated. Hydrate session state
-  // from the validated claims, but only fields that the server-side session
-  // does not already carry.
+  // Token verified: this request is authenticated. Hydrate session state from
+  // the validated claims, but only fields the server-side session does not
+  // already carry.
   TKWebSession.Current.IsAuthenticated := True;
   TKWebSession.Current.AuthData.SetString('UserName', LContext.UserName);
   if (TKWebSession.Current.DatabaseName = '') and (LContext.DatabaseName <> '') then
@@ -788,46 +386,49 @@ begin
     TKWebSession.Current.DisplayName := LContext.DisplayName;
 
   // Cache the validated context on the thread for the rest of this request.
-  // TKJWTAccessController reads it (and especially the kx_acl claim) without
-  // having to re-validate the JWT on every IsAccessGranted call.
+  // TKJWTAccessController reads it (especially the kx_acl claim) without having
+  // to re-validate the JWT on every IsAccessGranted call.
   LHolder := GetThreadContextHolder;
   LHolder.Context := LContext;
   LHolder.HasContext := True;
 
-  if TKJWTCookieHelper.ShouldSlide(LContext, FConfig) then
-    SlideToken(LContext);
+  if TKJWTCookieHelper.ShouldSlide(LContext, LState.Config) then
+    SlideToken(LState.Config, LContext);
+
+  Result := True;
 end;
 
-{ ---------------------------------------------------------------------------
-  IF THE COMPILATION STOPPED ON THE LINE BELOW with E1020 "Constructing instance
-  of 'TKJWTAuthenticator' containing abstract method '...'", then a member was
-  added to the TKAuthenticatorDecorator contract (Kitto.Auth) and this class does
-  not implement it yet. Do not delete this procedure and do not remove the
-  member from the contract to make the message go away: implement it, and make it
-  one of two things —
-
-    - pass the call on to the Inner authenticator:  Result := Inner.<Member>;
-    - or answer here, AND write down why the Inner must not be asked.
-
-  Why this procedure exists at all: the compiler only verifies that a class
-  implements its abstract members where the class is constructed BY NAME.
-  Authenticators are built through TKAuthenticatorFactory, i.e. from a metaclass,
-  which the compiler cannot check — verified: a factory-built class with a
-  missing abstract member compiles clean. This one line, never called, is what
-  gives the contract its teeth.
-  --------------------------------------------------------------------------- }
-procedure CheckDecoratorContract;
+procedure TKJWTEngine.ClearToken(const AAuthenticator: TKAuthenticator);
 begin
-  TKJWTAuthenticator.Create.Free;
+  TKJWTCookieHelper.Clear(EnsureState(AAuthenticator).Config);
+end;
+
+class function TKJWTEngine.HasContext: Boolean;
+begin
+  Result := GetThreadContextHolder.HasContext;
+end;
+
+class function TKJWTEngine.CurrentContext: TKJWTContext;
+begin
+  Result := GetThreadContextHolder.Context;
+end;
+
+class procedure TKJWTEngine.ClearCurrentContext;
+var
+  LHolder: TKJWTContextHolder;
+begin
+  LHolder := GetThreadContextHolder;
+  LHolder.Context.Clear;
+  LHolder.HasContext := False;
 end;
 
 initialization
   FContextsLock := TCriticalSection.Create;
   FContextsByThread := TObjectDictionary<TThreadID, TKJWTContextHolder>.Create([doOwnsValues]);
-  TKAuthenticatorRegistry.Instance.RegisterClass('JWT', TKJWTAuthenticator);
+  RegisterJWTEngine(TKJWTEngine.Create);
 
 finalization
-  TKAuthenticatorRegistry.Instance.UnregisterClass('JWT');
+  RegisterJWTEngine(nil);
   FreeAndNil(FContextsByThread);
   FreeAndNil(FContextsLock);
 

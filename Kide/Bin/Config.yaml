@@ -19,18 +19,23 @@ Defaults:
       Item: View
 Authentication:
   Authenticators:
-    Item: JWT
     Item: DB
+    Item: DBCrypt
     Item: DBServer
     Item: OSDB
     Item: TextFile
+    Item: LDAP
 AccessControl:
   AccessControllers:
+    Item: Null
     Item: JWT
     Item: DB
 LanguageIds:
   item: en
   item: it
+  item: de
+  item: es
+  item: pt
 Charsets:
   Item: utf-8
   Item: iso-8859-1

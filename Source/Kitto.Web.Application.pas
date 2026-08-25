@@ -38,6 +38,7 @@ uses
   Kitto.Auth,
   Kitto.AccessControl,
   Kitto.Config,
+  Kitto.Config.Notifications,
   Kitto.Metadata.Views,
   Kitto.Metadata.DataView,
   Kitto.Store,
@@ -307,11 +308,12 @@ type
     function TooltipsEnabled: Boolean;
 
     /// <summary>
-    ///  When the active authenticator is a TKJWTAuthenticator, validates the
-    ///  kx_token cookie, hydrates the session from the verified claims, and
-    ///  slides the cookie expiration if approaching. No-op for other
-    ///  authenticators. Public so the attribute router (TKXRoutingRoute) can
-    ///  give attribute-routed requests the same JWT hydration as the legacy path.
+    ///  When the active authenticator has a JWT envelope configured
+    ///  (Authenticator.IsJWTEnabled), validates the kx_token cookie, hydrates
+    ///  the session from the verified claims, and slides the cookie expiration
+    ///  if approaching. No-op otherwise. Public so the attribute router
+    ///  (TKXRoutingRoute) can give attribute-routed requests the same JWT
+    ///  hydration as the legacy path.
     /// </summary>
     procedure AuthorizeJWTRequest;
 
@@ -397,6 +399,7 @@ uses
   Kitto.Html.Filters,
   Kitto.Metadata.Models,
   Kitto.Metadata.SubNodes,
+  Kitto.Config.Theme,
   Kitto.Html.Form,
   Kitto.Html.Utils,
   Kitto.Html.Panel,
@@ -453,7 +456,7 @@ begin
         'not registered. Add the unit %s to your project''s UseKitto.pas.'),
         [LProvider, ChatProviderUnitHint(LProvider)]);
   end;
-  if TKConfig.Instance.Config.GetBoolean('Notifications/Enabled', False) then
+  if TKConfig.Instance.Notifications.Enabled then
     if not TKXOptionalFeatureRegistry.IsAvailable('Notifications') then
       raise EKError.Create(_('Notifications is enabled in Config.yaml but its units are not linked ' +
         'into this application. Add "Kitto.Web.Handler.Notification" to your project''s UseKitto.pas.'));
@@ -1661,12 +1664,13 @@ procedure TKWebApplication.AuthorizeJWTRequest;
 var
   LAuth: TKAuthenticator;
 begin
-  // Delegate to the active authenticator. Default TKAuthenticator.AuthorizeRequest
-  // is a no-op; TKJWTAuthenticator overrides to validate the kx_token cookie,
-  // hydrate session state from the verified claims, and slide expiration.
-  // Other authenticators are free to plug in their own per-request logic
-  // (Phase C OIDC/SAML descendants, custom token schemes, etc.) without this
-  // unit having to know about them.
+  // Delegate to the active authenticator. TKAuthenticator.AuthorizeRequest is a
+  // no-op unless a JWT envelope is configured (IsJWTEnabled), in which case the
+  // base delegates to the JWT engine to validate the kx_token cookie, hydrate
+  // session state from the verified claims, and slide expiration. Other
+  // authenticators are free to plug in their own per-request logic (Phase C
+  // OIDC/SAML descendants, custom token schemes, etc.) without this unit having
+  // to know about them.
   LAuth := GetAuthenticator;
   if Assigned(LAuth) then
     LAuth.AuthorizeRequest;
@@ -1792,7 +1796,7 @@ begin
         // Marker used by the client to enable the notification-center bell
         // (only when Notifications/Enabled is set, e.g. apps that run background tools).
         var LNotificationsEnabled := 'false';
-        if Config.Config.GetBoolean('Notifications/Enabled', False) then
+        if Config.Notifications.Enabled then
           LNotificationsEnabled := 'true';
         ATemplate.SetData('notificationsEnabled', TValue.From<string>(LNotificationsEnabled));
         ATemplate.SetData('loadingMessage', TValue.From<string>(Format(_('Loading %s...'), [Config.AppTitle])));

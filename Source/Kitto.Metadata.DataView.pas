@@ -37,7 +37,6 @@ uses
   Kitto.Metadata,
   Kitto.Metadata.Models,
   Kitto.Metadata.Views,
-  Kitto.Metadata.SubNodes2,
   Kitto.Store,
   Kitto.Rules;
 
@@ -795,6 +794,434 @@ type
     function FindRecord(const AValues: TEFNode): TKViewTableRecord;
     /// <summary>Returns the record matching the key values in AValues; raises if absent (typed).</summary>
     function GetRecord(const AValues: TEFNode): TKViewTableRecord; overload;
+  end;
+
+  { ---------- Grouping sub-nodes ---------- }
+
+  /// <summary>
+  ///  ShowCount sub-node inside Grouping.
+  ///  YAML path: Controller/Grouping/ShowCount
+  /// </summary>
+  TKGroupingShowCountConfig = class(TEFNode)
+  private
+    function GetItemName: string;
+    function GetPluralItemName: string;
+    function GetTemplate: string;
+  public
+    [YamlNode('ItemName', 'Singular item name displayed in count')]
+    property ItemName: string read GetItemName;
+
+    [YamlNode('PluralItemName', 'Plural item name displayed in count')]
+    property PluralItemName: string read GetPluralItemName;
+
+    [YamlNode('Template', 'Custom template for count display')]
+    property Template: string read GetTemplate;
+  end;
+
+  /// <summary>
+  ///  Grouping configuration for list controllers.
+  ///  YAML path: Controller/Grouping
+  /// </summary>
+  TKGroupingConfig = class(TEFNode)
+  private
+    function GetFieldName: string;
+    function GetSortFieldNames: string;
+    function GetEnableMenu: Boolean;
+    function GetStartCollapsed: Boolean;
+    function GetShowName: Boolean;
+    function GetShowCount: TKGroupingShowCountConfig;
+  public
+    [YamlRequiredNode('FieldName', 'Field used for grouping rows')]
+    property FieldName: string read GetFieldName;
+
+    [YamlNode('SortFieldNames', 'Comma-separated fields to sort within groups')]
+    property SortFieldNames: string read GetSortFieldNames;
+
+    [YamlNode('EnableMenu', 'True', 'Show grouping context menu')]
+    property EnableMenu: Boolean read GetEnableMenu;
+
+    [YamlNode('StartCollapsed', 'True', 'Initially collapse all groups')]
+    property StartCollapsed: Boolean read GetStartCollapsed;
+
+    [YamlNode('ShowName', 'True', 'Display group field name in header')]
+    property ShowName: Boolean read GetShowName;
+
+    [YamlSubNode('ShowCount', TKGroupingShowCountConfig, 'Show count display options')]
+    property ShowCount: TKGroupingShowCountConfig read GetShowCount;
+  end;
+
+  { ---------- Popup window ---------- }
+
+  /// <summary>
+  ///  Popup window dimensions for form controllers.
+  ///  YAML path: Controller/PopupWindow
+  /// </summary>
+  TKPopupWindowConfig = class(TEFNode)
+  private
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+  public
+    [YamlNode('Width', '800', 'Popup window width in pixels')]
+    property Width: Integer read GetWidth;
+
+    [YamlNode('Height', '600', 'Popup window height in pixels')]
+    property Height: Integer read GetHeight;
+  end;
+
+  { ---------- Form controller button ---------- }
+
+  /// <summary>
+  ///  Custom button inside a FormController.
+  ///  YAML path: Controller/FormController/Button
+  /// </summary>
+  TKFormControllerButtonConfig = class(TEFNode)
+  private
+    function GetCaption: string;
+    function GetToolTip: string;
+  public
+    [YamlNode('Caption', 'Button caption text')]
+    property Caption: string read GetCaption;
+
+    [YamlNode('ToolTip', 'Button tooltip text')]
+    property ToolTip: string read GetToolTip;
+  end;
+
+  { ---------- Form controller ---------- }
+
+  /// <summary>
+  ///  Form controller behaviour settings.
+  ///  YAML path: Controller/FormController
+  /// </summary>
+  TKFormControllerConfig = class(TEFNode)
+  private
+    function GetKeepOpenAfterOperation: Boolean;
+    function GetButtonScale: string;
+    function GetCloneButton: TKFormControllerButtonConfig;
+    function GetConfirmButton: TKFormControllerButtonConfig;
+    function GetCancelButton: TKFormControllerButtonConfig;
+    function GetCloseButton: TKFormControllerButtonConfig;
+  public
+    [YamlNode('KeepOpenAfterOperation', 'True', 'Keep form open after save/delete')]
+    property KeepOpenAfterOperation: Boolean read GetKeepOpenAfterOperation;
+
+    [YamlNode('ButtonScale', 'CSS scale class for form buttons')]
+    property ButtonScale: string read GetButtonScale;
+
+    [YamlSubNode('CloneButton', TKFormControllerButtonConfig, 'Clone/duplicate button')]
+    property CloneButton: TKFormControllerButtonConfig read GetCloneButton;
+
+    [YamlSubNode('ConfirmButton', TKFormControllerButtonConfig, 'Save/confirm button')]
+    property ConfirmButton: TKFormControllerButtonConfig read GetConfirmButton;
+
+    [YamlSubNode('CancelButton', TKFormControllerButtonConfig, 'Cancel button')]
+    property CancelButton: TKFormControllerButtonConfig read GetCancelButton;
+
+    [YamlSubNode('CloseButton', TKFormControllerButtonConfig, 'Close button')]
+    property CloseButton: TKFormControllerButtonConfig read GetCloseButton;
+  end;
+
+  { ---------- ToolViews ---------- }
+
+  /// <summary>
+  ///  Single tool view item inside a ToolViews container.
+  ///  YAML path: Controller/ToolViews/{ToolName}
+  /// </summary>
+  {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  TKToolViewItem = class(TEFNode)
+  private
+    function GetDisplayLabel: string;
+    function GetImageName: string;
+    function GetControllerType: string;
+    function GetRequireSelection: Boolean;
+    function GetAutoRefresh: string;
+    function GetConfirmationMessage: string;
+  public
+    [YamlNode('DisplayLabel', 'Label shown on the tool button', True)]
+    property DisplayLabel: string read GetDisplayLabel;
+
+    [YamlNode('ImageName', 'Icon name for the tool button')]
+    property ImageName: string read GetImageName;
+
+    [YamlNode('Controller', 'Controller type for this tool')]
+    property ControllerType: string read GetControllerType;
+
+    [YamlNode('RequireSelection', 'True', 'Require a selected record before executing')]
+    property RequireSelection: Boolean read GetRequireSelection;
+
+    [YamlNode('AutoRefresh', 'All', 'Refresh mode after execution: All, Current, None')]
+    property AutoRefresh: string read GetAutoRefresh;
+
+    [YamlNode('ConfirmationMessage', 'User confirmation prompt before executing', True)]
+    property ConfirmationMessage: string read GetConfirmationMessage;
+  end;
+
+  /// <summary>
+  ///  Container for tool view items.
+  ///  YAML path: Controller/ToolViews
+  /// </summary>
+  [YamlChildType('DownloadText', '', 'Download as text file')]
+  [YamlChildType('DownloadCSV', '', 'Download as CSV file')]
+  [YamlChildType('DownloadExcel', '', 'Download as Excel file')]
+  [YamlChildType('DownloadMergedPDF', '', 'Download as merged PDF')]
+  [YamlChildType('DownloadFOPReport', '', 'Download PDF via FOP')]
+  [YamlChildType('DownloadHTMLReport', '', 'Download HTML report via XSL')]
+  [YamlChildType('DownloadFile', '', 'Download a server file')]
+  [YamlChildType('UploadFile', '', 'Upload a file')]
+  [YamlChildType('UploadExcel', '', 'Upload and import Excel file')]
+  [YamlChildType('ExecuteSQLCommand', '', 'Execute SQL command')]
+  [YamlChildType('SendEmail', '', 'Send email')]
+  [YamlChildType('DisplayView', '', 'Display a view')]
+  [YamlChildType('URL', '', 'Open a URL')]
+  {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  TKToolViewsConfig = class(TEFNode)
+  end;
+
+  { ---------- Filter item types ---------- }
+
+  /// <summary>
+  ///  Free-text search filter.
+  ///  YAML path: Filters/Items/FreeSearch
+  /// </summary>
+  TKFilterItemFreeSearch = class(TEFNode)
+  private
+    function GetDefaultValue: string;
+    function GetExpressionTemplate: string;
+  public
+    [YamlNode('DefaultValue', 'Initial search text')]
+    property DefaultValue: string read GetDefaultValue;
+
+    [YamlRequiredNode('ExpressionTemplate', 'SQL WHERE template with {value} placeholder')]
+    property ExpressionTemplate: string read GetExpressionTemplate;
+  end;
+
+  /// <summary>
+  ///  Dynamic list filter populated by a SQL query.
+  ///  YAML path: Filters/Items/DynaList
+  /// </summary>
+  TKFilterItemDynaList = class(TEFNode)
+  private
+    function GetExpressionTemplate: string;
+    function GetCommandText: string;
+    function GetWidth: Integer;
+    function GetListWidth: Integer;
+    function GetAutoCompleteMinChars: Integer;
+  public
+    [YamlRequiredNode('ExpressionTemplate', 'SQL WHERE template with {value} placeholder')]
+    property ExpressionTemplate: string read GetExpressionTemplate;
+
+    [YamlRequiredNode('CommandText', 'SQL query returning key/display pairs')]
+    property CommandText: string read GetCommandText;
+
+    [YamlNode('Width', '20', 'Input width in characters')]
+    property Width: Integer read GetWidth;
+
+    [YamlNode('ListWidth', '20', 'Dropdown list width in characters')]
+    property ListWidth: Integer read GetListWidth;
+
+    [YamlNode('AutoCompleteMinChars', '0', 'Min chars before autocomplete triggers')]
+    property AutoCompleteMinChars: Integer read GetAutoCompleteMinChars;
+  end;
+
+  /// <summary>
+  ///  Date-range search filter.
+  ///  YAML path: Filters/Items/DateSearch
+  /// </summary>
+  TKFilterItemDateSearch = class(TEFNode)
+  private
+    function GetDefaultValue: string;
+    function GetExpressionTemplate: string;
+  public
+    [YamlNode('DefaultValue', 'Initial date value')]
+    property DefaultValue: string read GetDefaultValue;
+
+    [YamlRequiredNode('ExpressionTemplate', 'SQL WHERE template with {value} placeholder')]
+    property ExpressionTemplate: string read GetExpressionTemplate;
+  end;
+
+  /// <summary>
+  ///  Static list filter with predefined items.
+  ///  YAML path: Filters/Items/List
+  /// </summary>
+  TKFilterItemList = class(TEFNode)
+  private
+    function GetWidth: Integer;
+    function GetListWidth: Integer;
+    function GetAutoCompleteMinChars: Integer;
+  public
+    [YamlNode('Width', '20', 'Input width in characters')]
+    property Width: Integer read GetWidth;
+
+    [YamlNode('ListWidth', '20', 'Dropdown list width in characters')]
+    property ListWidth: Integer read GetListWidth;
+
+    [YamlNode('AutoCompleteMinChars', '0', 'Min chars before autocomplete triggers')]
+    property AutoCompleteMinChars: Integer read GetAutoCompleteMinChars;
+  end;
+
+  /// <summary>
+  ///  Apply/Search button in a filter panel.
+  ///  YAML path: Filters/Items/ApplyButton
+  /// </summary>
+  TKFilterItemApplyButton = class(TEFNode)
+  private
+    function GetImageName: string;
+  public
+    [YamlNode('ImageName', 'Find', 'Icon name for the apply button')]
+    property ImageName: string read GetImageName;
+  end;
+
+  /// <summary>
+  ///  Column break in filter panel layout.
+  ///  YAML path: Filters/Items/ColumnBreak
+  /// </summary>
+  TKFilterItemColumnBreak = class(TEFNode)
+  private
+    function GetLabelWidth: Integer;
+  public
+    [YamlNode('LabelWidth', '50', 'Label width in pixels for the next column')]
+    property LabelWidth: Integer read GetLabelWidth;
+  end;
+
+  /// <summary>
+  ///  Spacer element in a filter panel.
+  ///  YAML path: Filters/Items/Spacer
+  /// </summary>
+  TKFilterItemSpacer = class(TEFNode)
+  private
+    function GetWidth: Integer;
+  public
+    [YamlNode('Width', '1', 'Spacer width in characters')]
+    property Width: Integer read GetWidth;
+  end;
+
+  // NB: TEFDB{FD,DBX,ADO,ODAC}ConnectionConfig moved to their adapter units
+  // EF.DB.{FD,DBX,ADO,ODAC} (descriptor next to consumer).
+
+  /// <summary>
+  ///  Container of the filter items under a List controller's Filters panel.
+  ///  Each child is one filter item of the type named by its node; the node is
+  ///  resolved to its descriptor class (below) so KIDE renders the per-type editor.
+  ///  YAML path: Controller/Filters/Items
+  /// </summary>
+  [YamlChildType('FreeSearch', TKFilterItemFreeSearch, '', 'Free-text search field')]
+  [YamlChildType('DynaList', TKFilterItemDynaList, '', 'Dynamic (SQL-backed) dropdown filter')]
+  [YamlChildType('DateSearch', TKFilterItemDateSearch, '', 'Date search field')]
+  [YamlChildType('List', TKFilterItemList, '', 'Static/lookup list filter')]
+  [YamlChildType('ApplyButton', TKFilterItemApplyButton, '', 'Apply-filter button')]
+  [YamlChildType('ColumnBreak', TKFilterItemColumnBreak, '', 'Start a new filter column')]
+  [YamlChildType('Spacer', TKFilterItemSpacer, '', 'Horizontal spacer')]
+  TKFilterItemsConfig = class(TEFNode)
+  end;
+
+  /// <summary>
+  ///  Filter panel configuration for List controllers.
+  ///  YAML path: Controller/Filters
+  /// </summary>
+  /// <example>
+  ///  Filters:
+  ///    DisplayLabel: Search
+  ///    LabelWidth: 80
+  ///    Connector: and
+  ///    Collapsed: False
+  ///    Items:
+  ///      FreeSearch: ...
+  /// </example>
+  TKFilterPanelConfig = class(TEFNode)
+  private
+    function GetDisplayLabel: string;
+    function GetLabelWidth: Integer;
+    function GetConnector: string;
+    function GetCollapsed: Boolean;
+    function GetColumnWidth: Integer;
+    function GetLabelAlign: string;
+    function GetItems: TKFilterItemsConfig;
+  public
+    [YamlNode('DisplayLabel', 'Filters', 'Title shown on the filter panel', True)]
+    property DisplayLabel: string read GetDisplayLabel;
+
+    [YamlNode('LabelWidth', '80', 'Width in pixels for filter field labels')]
+    property LabelWidth: Integer read GetLabelWidth;
+
+    [YamlNode('Connector', 'and', 'Logical connector: and/or')]
+    property Connector: string read GetConnector;
+
+    [YamlNode('Collapsed', 'True', 'Show filter panel initially collapsed')]
+    property Collapsed: Boolean read GetCollapsed;
+
+    [YamlNode('ColumnWidth', '50', 'Column width for filter layout')]
+    property ColumnWidth: Integer read GetColumnWidth;
+
+    [YamlNode('LabelAlign', 'Top', 'Label alignment: Top, Left, Right')]
+    property LabelAlign: string read GetLabelAlign;
+
+    [YamlSubNode('Items', TKFilterItemsConfig, 'Filter items (search fields, buttons, layout breaks)')]
+    property Items: TKFilterItemsConfig read GetItems;
+  end;
+
+  { ---------- ViewTable Controller ---------- }
+
+  /// <summary>
+  ///  Controller-level settings for a ViewTable list controller.
+  ///  YAML path: Controller
+  /// </summary>
+  TKViewTableControllerConfig = class(TEFNode)
+  private
+    function GetAutoOpen: Boolean;
+    function GetPageRecordCount: Integer;
+    function GetPagingTools: Boolean;
+    function GetRowClassProvider: string;
+    function GetAllowViewing: Boolean;
+    function GetPreventEditing: Boolean;
+    function GetPreventAdding: Boolean;
+    function GetPreventDeleting: Boolean;
+    function GetAllowDuplicating: Boolean;
+    function GetToolViews: TKToolViewsConfig;
+    function GetPopupWindow: TKPopupWindowConfig;
+    function GetGrouping: TKGroupingConfig;
+    function GetFormController: TKFormControllerConfig;
+    function GetFilters: TKFilterPanelConfig;
+  public
+    [YamlNode('AutoOpen', 'True', 'Auto-load grid data when view opens (default: not IsLarge)')]
+    property AutoOpen: Boolean read GetAutoOpen;
+
+    [YamlNode('PageRecordCount', 'Number of records per page')]
+    property PageRecordCount: Integer read GetPageRecordCount;
+
+    [YamlNode('PagingTools', 'False', 'Show paging toolbar (default: IsLarge)')]
+    property PagingTools: Boolean read GetPagingTools;
+
+    [YamlNode('RowClassProvider', 'Server-side function returning CSS class per row')]
+    property RowClassProvider: string read GetRowClassProvider;
+
+    [YamlNode('AllowViewing', 'True', 'Show a read-only View button')]
+    property AllowViewing: Boolean read GetAllowViewing;
+
+    [YamlNode('PreventEditing', 'True', 'Hide the Edit button')]
+    property PreventEditing: Boolean read GetPreventEditing;
+
+    [YamlNode('PreventAdding', 'True', 'Hide the Add button')]
+    property PreventAdding: Boolean read GetPreventAdding;
+
+    [YamlNode('PreventDeleting', 'True', 'Hide the Delete button')]
+    property PreventDeleting: Boolean read GetPreventDeleting;
+
+    [YamlNode('AllowDuplicating', 'True', 'Show a Duplicate button')]
+    property AllowDuplicating: Boolean read GetAllowDuplicating;
+
+    [YamlSubNode('ToolViews', TKToolViewsConfig, 'Tool buttons and actions')]
+    property ToolViews: TKToolViewsConfig read GetToolViews;
+
+    [YamlSubNode('PopupWindow', TKPopupWindowConfig, 'Modal window size for add/edit')]
+    property PopupWindow: TKPopupWindowConfig read GetPopupWindow;
+
+    [YamlSubNode('Grouping', TKGroupingConfig, 'Row grouping configuration')]
+    property Grouping: TKGroupingConfig read GetGrouping;
+
+    [YamlSubNode('FormController', TKFormControllerConfig, 'Form controller options')]
+    property FormController: TKFormControllerConfig read GetFormController;
+
+    [YamlSubNode('Filters', TKFilterPanelConfig, 'Search/filter panel (List views)')]
+    property Filters: TKFilterPanelConfig read GetFilters;
   end;
 
   /// <summary>
@@ -3766,6 +4193,341 @@ end;
 class function TKHTMLMemoDataType.GetTypeName: string;
 begin
   Result := 'HTMLMemo';
+end;
+
+{ TKGroupingShowCountConfig }
+
+function TKGroupingShowCountConfig.GetItemName: string;
+begin
+  Result := GetString('ItemName');
+end;
+
+function TKGroupingShowCountConfig.GetPluralItemName: string;
+begin
+  Result := GetString('PluralItemName');
+end;
+
+function TKGroupingShowCountConfig.GetTemplate: string;
+begin
+  Result := GetString('Template');
+end;
+
+{ TKGroupingConfig }
+
+function TKGroupingConfig.GetFieldName: string;
+begin
+  Result := GetString('FieldName');
+end;
+
+function TKGroupingConfig.GetSortFieldNames: string;
+begin
+  Result := GetString('SortFieldNames');
+end;
+
+function TKGroupingConfig.GetEnableMenu: Boolean;
+begin
+  Result := GetBoolean('EnableMenu', False);
+end;
+
+function TKGroupingConfig.GetStartCollapsed: Boolean;
+begin
+  Result := GetBoolean('StartCollapsed', False);
+end;
+
+function TKGroupingConfig.GetShowName: Boolean;
+begin
+  Result := GetBoolean('ShowName', False);
+end;
+
+function TKGroupingConfig.GetShowCount: TKGroupingShowCountConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+{ TKPopupWindowConfig }
+
+function TKPopupWindowConfig.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 800);
+end;
+
+function TKPopupWindowConfig.GetHeight: Integer;
+begin
+  Result := GetInteger('Height', 600);
+end;
+
+{ TKFormControllerButtonConfig }
+
+function TKFormControllerButtonConfig.GetCaption: string;
+begin
+  Result := GetString('Caption');
+end;
+
+function TKFormControllerButtonConfig.GetToolTip: string;
+begin
+  Result := GetString('ToolTip');
+end;
+
+{ TKFormControllerConfig }
+
+function TKFormControllerConfig.GetKeepOpenAfterOperation: Boolean;
+begin
+  Result := GetBoolean('KeepOpenAfterOperation', False);
+end;
+
+function TKFormControllerConfig.GetButtonScale: string;
+begin
+  Result := GetString('ButtonScale');
+end;
+
+function TKFormControllerConfig.GetCloneButton: TKFormControllerButtonConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKFormControllerConfig.GetConfirmButton: TKFormControllerButtonConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKFormControllerConfig.GetCancelButton: TKFormControllerButtonConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKFormControllerConfig.GetCloseButton: TKFormControllerButtonConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+{ TKToolViewItem }
+
+function TKToolViewItem.GetDisplayLabel: string;
+begin
+  Result := GetString('DisplayLabel');
+end;
+
+function TKToolViewItem.GetImageName: string;
+begin
+  Result := GetString('ImageName');
+end;
+
+function TKToolViewItem.GetControllerType: string;
+begin
+  Result := GetString('Controller');
+end;
+
+function TKToolViewItem.GetRequireSelection: Boolean;
+begin
+  Result := GetBoolean('RequireSelection', False);
+end;
+
+function TKToolViewItem.GetAutoRefresh: string;
+begin
+  Result := GetString('AutoRefresh', 'All');
+end;
+
+function TKToolViewItem.GetConfirmationMessage: string;
+begin
+  Result := GetString('ConfirmationMessage');
+end;
+
+{ TKViewTableControllerConfig }
+
+function TKViewTableControllerConfig.GetAutoOpen: Boolean;
+begin
+  Result := GetBoolean('AutoOpen', False);
+end;
+
+function TKViewTableControllerConfig.GetPageRecordCount: Integer;
+begin
+  Result := GetInteger('PageRecordCount');
+end;
+
+function TKViewTableControllerConfig.GetPagingTools: Boolean;
+begin
+  Result := GetBoolean('PagingTools', True);
+end;
+
+function TKViewTableControllerConfig.GetRowClassProvider: string;
+begin
+  Result := GetString('RowClassProvider');
+end;
+
+function TKViewTableControllerConfig.GetAllowViewing: Boolean;
+begin
+  Result := GetBoolean('AllowViewing', False);
+end;
+
+function TKViewTableControllerConfig.GetPreventEditing: Boolean;
+begin
+  Result := GetBoolean('PreventEditing', False);
+end;
+
+function TKViewTableControllerConfig.GetPreventAdding: Boolean;
+begin
+  Result := GetBoolean('PreventAdding', False);
+end;
+
+function TKViewTableControllerConfig.GetPreventDeleting: Boolean;
+begin
+  Result := GetBoolean('PreventDeleting', False);
+end;
+
+function TKViewTableControllerConfig.GetAllowDuplicating: Boolean;
+begin
+  Result := GetBoolean('AllowDuplicating', False);
+end;
+
+function TKViewTableControllerConfig.GetToolViews: TKToolViewsConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKViewTableControllerConfig.GetPopupWindow: TKPopupWindowConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKViewTableControllerConfig.GetGrouping: TKGroupingConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKViewTableControllerConfig.GetFormController: TKFormControllerConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKViewTableControllerConfig.GetFilters: TKFilterPanelConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+{ TKFilterItemFreeSearch }
+
+function TKFilterItemFreeSearch.GetDefaultValue: string;
+begin
+  Result := GetString('DefaultValue');
+end;
+
+function TKFilterItemFreeSearch.GetExpressionTemplate: string;
+begin
+  Result := GetString('ExpressionTemplate');
+end;
+
+{ TKFilterItemDynaList }
+
+function TKFilterItemDynaList.GetExpressionTemplate: string;
+begin
+  Result := GetString('ExpressionTemplate');
+end;
+
+function TKFilterItemDynaList.GetCommandText: string;
+begin
+  Result := GetString('CommandText');
+end;
+
+function TKFilterItemDynaList.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 20);
+end;
+
+function TKFilterItemDynaList.GetListWidth: Integer;
+begin
+  Result := GetInteger('ListWidth', 20);
+end;
+
+function TKFilterItemDynaList.GetAutoCompleteMinChars: Integer;
+begin
+  Result := GetInteger('AutoCompleteMinChars', 0);
+end;
+
+{ TKFilterItemDateSearch }
+
+function TKFilterItemDateSearch.GetDefaultValue: string;
+begin
+  Result := GetString('DefaultValue');
+end;
+
+function TKFilterItemDateSearch.GetExpressionTemplate: string;
+begin
+  Result := GetString('ExpressionTemplate');
+end;
+
+{ TKFilterItemList }
+
+function TKFilterItemList.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 20);
+end;
+
+function TKFilterItemList.GetListWidth: Integer;
+begin
+  Result := GetInteger('ListWidth', 20);
+end;
+
+function TKFilterItemList.GetAutoCompleteMinChars: Integer;
+begin
+  Result := GetInteger('AutoCompleteMinChars', 0);
+end;
+
+{ TKFilterItemApplyButton }
+
+function TKFilterItemApplyButton.GetImageName: string;
+begin
+  Result := GetString('ImageName', 'Find');
+end;
+
+{ TKFilterItemColumnBreak }
+
+function TKFilterItemColumnBreak.GetLabelWidth: Integer;
+begin
+  Result := GetInteger('LabelWidth', 50);
+end;
+
+{ TKFilterItemSpacer }
+
+function TKFilterItemSpacer.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 1);
+end;
+
+{ TKFilterPanelConfig }
+
+function TKFilterPanelConfig.GetDisplayLabel: string;
+begin
+  Result := GetString('DisplayLabel', 'Filters');
+end;
+
+function TKFilterPanelConfig.GetLabelWidth: Integer;
+begin
+  Result := GetInteger('LabelWidth', 80);
+end;
+
+function TKFilterPanelConfig.GetConnector: string;
+begin
+  Result := GetString('Connector', 'and');
+end;
+
+function TKFilterPanelConfig.GetCollapsed: Boolean;
+begin
+  Result := GetBoolean('Collapsed', False);
+end;
+
+function TKFilterPanelConfig.GetColumnWidth: Integer;
+begin
+  Result := GetInteger('ColumnWidth', 50);
+end;
+
+function TKFilterPanelConfig.GetLabelAlign: string;
+begin
+  Result := GetString('LabelAlign', 'Top');
+end;
+
+function TKFilterPanelConfig.GetItems: TKFilterItemsConfig;
+begin
+  Result := nil; // RTTI discovery only
 end;
 
 initialization

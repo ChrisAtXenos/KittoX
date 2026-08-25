@@ -59,7 +59,7 @@ type
     // IOTARepositoryWizard
     function GetAuthor: string;
     function GetComment: string; virtual; abstract;
-    function GetGlyph: {$if compilerversion < 35}Cardinal{$else}THandle{$endif};
+    function GetGlyph: {$if compilerversion < 36}Cardinal{$else}THandle{$endif};
     function GetPage: string;
 
     // IOTARepositoryWizard60
@@ -186,7 +186,7 @@ begin
   Result := 'Ethea S.r.l.';
 end;
 
-function TIOTAProjectWizard.GetGlyph: {$if compilerversion < 35}Cardinal{$else}THandle{$endif};
+function TIOTAProjectWizard.GetGlyph: {$if compilerversion < 36}Cardinal{$else}THandle{$endif};
 begin
   Result := LoadIcon(HInstance, PChar(GetIDString.Replace('.', '')));
 end;

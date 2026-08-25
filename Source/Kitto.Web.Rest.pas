@@ -208,7 +208,6 @@ uses
   Kitto.Web.Response,
   Kitto.Web.Session,
   Kitto.Web.Application,
-  Kitto.Auth.JWT,
   Kitto.Web.Routing.Registry,
   Kitto.Web.Data.Service,
   Kitto.Web.Rest.OpenAPI;   // pulls in + registers the /api/v4/openapi.json handler
@@ -531,12 +530,12 @@ begin
     LAuthData.Free;
   end;
 
-  if not (LApp.Authenticator is TKJWTAuthenticator) then
+  if not LApp.Authenticator.IsJWTEnabled then
     raise EKXDataError.Create(501, 'jwt_required',
-      'Bearer tokens require the JWT authenticator (Auth: JWT)');
+      'Bearer tokens require a JWT-enabled authenticator (add a JWT: block under Auth)');
   // Build/sign the compact JWT from the now-authenticated session (its sid claim
   // correlates the server session the token hydrates on later requests).
-  LToken := TKJWTAuthenticator(LApp.Authenticator).IssueToken;
+  LToken := LApp.Authenticator.IssueToken;
 
   LObj := TJSONObject.Create;
   try

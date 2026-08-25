@@ -65,7 +65,7 @@ uses
   EF.Localization,
   EF.Tree,
   Kitto.Config,
-  Kitto.Metadata.SubNodes,
+  Kitto.Config.Theme,
   Kitto.Web.Routing.Scripts;
 
 { TKXThemeSwitcherController }

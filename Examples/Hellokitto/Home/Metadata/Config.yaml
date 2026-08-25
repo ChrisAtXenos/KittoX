@@ -122,56 +122,58 @@ Databases:
       Initial Catalog: HelloKitto
       Data Source: %COMPUTERNAME%
 
-Auth: JWT
-  # Inner authenticator: the actual credential check stays delegated to the
-  # standard DB authenticator (registered by Kitto.Auth.DB). TKJWTAuthenticator
-  # wraps it: on successful Authenticate, builds and signs a JWT, sets it in
-  # the kx_token HttpOnly cookie, and reads/validates it on every subsequent
-  # request via the auth gate in TKWebApplication.DoHandleRequest.
+Auth: DB
+  # The credential check is performed by the standard DB authenticator
+  # (registered by Kitto.Auth.DB). The optional JWT: block below turns on the
+  # self-contained token envelope: on a successful login the Kitto.Auth.JWT
+  # engine builds and signs a JWT, sets it in the kx_token HttpOnly cookie, and
+  # reads/validates it on every subsequent request via the auth request-filter.
+  # Remove the JWT: block to fall back to a plain server-side session cookie.
   # No DatabaseChoices is set, so the login page does NOT show the environment
   # combo — the active dialect is whatever DefaultDatabaseName resolves to.
-  Inner: DB
-    IsPassepartoutEnabled: True
-    PassepartoutPassword: password
-    IsClearPassword: False
-    .Defaults:
-      UserName: administrator
-      Password: password
+  IsPassepartoutEnabled: True
+  PassepartoutPassword: password
+  IsClearPassword: False
+  .Defaults:
+    UserName: administrator
+    Password: password
 
-  # JWT envelope settings.
-  # SigningAlgorithm: HS256/HS384/HS512 (HMAC, no OpenSSL DLL required from
-  # Delphi 10 Seattle onward) or RS256/RS384/RS512/ES256/ES384/ES512 (asymmetric,
-  # require OpenSSL libraries to be deployed alongside the binary).
-  SigningAlgorithm: HS256
-  # SigningKey accepts:
-  #   env:VAR_NAME    read from environment variable (recommended for prod)
-  #   file:/path      read raw bytes from a file (PEM for RS*/ES*)
-  #   inline literal  any other value, used as the raw key (DEV ONLY)
-  # The HelloKittoX demo overrides this via TKJWTSigningKeyRegistry in
-  # UseKitto.pas — the registered provider always takes precedence over
-  # this YAML setting. The env var fallback is kept here so that removing
-  # the provider from UseKitto.pas keeps the app running without code
-  # changes (just set KX_JWT_KEY_HELLOKITTO).
-  SigningKey: env:KX_JWT_KEY_HELLOKITTO
-  # iss/aud claims — verified on every request validation.
-  Issuer: HelloKittoX
-  Audience: kx-app
-  # exp claim relative to issue time, in seconds.
-  TokenLifetime: 3600
-  # When (exp - now) drops below SlidingThreshold seconds, the auth gate
-  # re-issues the cookie with a fresh exp. Set to 0 to disable sliding.
-  SlidingThreshold: 600
-  # Allowance (seconds) for clock skew between client and server during
-  # exp/nbf/iat validation.
-  ClockSkew: 60
-  Claims:
-    IncludeRoles: False
-    IncludeDB: True
-    IncludeDisplayName: True
-    IncludeLanguage: True
-    # The kx_acl claim is included automatically only when AccessControl
-    # below is set to JWT. HelloKitto uses AccessControl: Null so the
-    # claim is omitted by the framework.
+  # Optional JWT envelope. Present = issue/validate a JWT (the engine is added
+  # by the Kitto.Auth.JWT unit referenced from UseKitto.pas).
+  JWT:
+    # SigningAlgorithm: HS256/HS384/HS512 (HMAC, no OpenSSL DLL required from
+    # Delphi 10 Seattle onward) or RS256/RS384/RS512/ES256/ES384/ES512 (asymmetric,
+    # require OpenSSL libraries to be deployed alongside the binary).
+    SigningAlgorithm: HS256
+    # SigningKey accepts:
+    #   env:VAR_NAME    read from environment variable (recommended for prod)
+    #   file:/path      read raw bytes from a file (PEM for RS*/ES*)
+    #   inline literal  any other value, used as the raw key (DEV ONLY)
+    # The HelloKittoX demo overrides this via TKJWTSigningKeyRegistry in
+    # UseKitto.pas — the registered provider always takes precedence over
+    # this YAML setting. The env var fallback is kept here so that removing
+    # the provider from UseKitto.pas keeps the app running without code
+    # changes (just set KX_JWT_KEY_HELLOKITTO).
+    SigningKey: env:KX_JWT_KEY_HELLOKITTO
+    # iss/aud claims — verified on every request validation.
+    Issuer: HelloKittoX
+    Audience: kx-app
+    # exp claim relative to issue time, in seconds.
+    TokenLifetime: 3600
+    # When (exp - now) drops below SlidingThreshold seconds, the auth gate
+    # re-issues the cookie with a fresh exp. Set to 0 to disable sliding.
+    SlidingThreshold: 600
+    # Allowance (seconds) for clock skew between client and server during
+    # exp/nbf/iat validation.
+    ClockSkew: 60
+    Claims:
+      IncludeRoles: False
+      IncludeDB: True
+      IncludeDisplayName: True
+      IncludeLanguage: True
+      # The kx_acl claim is included automatically only when AccessControl
+      # below is set to JWT. HelloKitto uses AccessControl: Null so the
+      # claim is omitted by the framework.
 
 AccessControl: Null
 

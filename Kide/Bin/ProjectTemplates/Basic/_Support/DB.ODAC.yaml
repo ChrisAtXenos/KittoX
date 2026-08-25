@@ -1,0 +1,18 @@
+Connection:
+  # Edit this section to match your database server.
+  # If Direct: True, use syntax: host:port/service_name for Server:
+  # If Direct: False, use TNS Name for Server:
+
+  # Direct Oracle Net mode: no locally installed Oracle client needed
+  # Set to False to connect through OCI.
+  Direct: True
+  Server: localhost:1521/xepdb1
+  User_Name: ChangeMe
+  Password: ChangeMe
+  # Full Unicode client charset.
+  Charset: AL32UTF8
+  # ConnectMode: Normal (default), SysDBA or SysOper.
+  ConnectMode: Normal
+  # Optional ALTER SESSION SET CURRENT_SCHEMA on connect.
+  Schema: ChangeMe
+  Isolation: ReadCommitted

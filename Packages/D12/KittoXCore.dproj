@@ -1,8 +1,8 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{44E44607-5754-4B0C-BEEB-4EEC44A09CE7}</ProjectGuid>
         <MainSource>KittoXCore.dpk</MainSource>
-        <ProjectVersion>20.2</ProjectVersion>
+        <ProjectVersion>20.3</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
@@ -49,7 +49,7 @@
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=KittoX Core Packages;FileVersion=4.0.17.0;InternalName=KittoXCore;LegalCopyright=Copyright (c) Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=KittoCore;ProductVersion=4.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=KittoX Core Packages;FileVersion=4.0.18.0;InternalName=KittoXCore;LegalCopyright=Copyright (c) Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=KittoCore;ProductVersion=4.0;Comments=</VerInfo_Keys>
         <DCC_Description>KittoX Core Run-Time Package</DCC_Description>
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
@@ -58,7 +58,7 @@
         <DllSuffix>$(Auto)</DllSuffix>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
-        <VerInfo_Release>17</VerInfo_Release>
+        <VerInfo_Release>18</VerInfo_Release>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
@@ -125,21 +125,26 @@
         <DCCReference Include="..\..\Source\EF\EF.XML.pas"/>
         <DCCReference Include="..\..\Source\EF\EF.YAML.pas"/>
         <DCCReference Include="..\..\Source\EF\EF.YAML.Attributes.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\ADOX_TypeLibrary.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\DebenuPDFLibraryLite1114_TLB.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\gnugettext.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\MarkdownUtils.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\MarkdownProcessor.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\MarkdownDaringFireball.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\MarkdownCommonMark.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\MarkdownTxtMark.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\MarkdownTables.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\MarkdownMathCode.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\Kitto.ADOX_TypeLibrary.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\Kitto.gnugettext.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\Kitto.MarkdownUtils.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\Kitto.MarkdownProcessor.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\Kitto.MarkdownDaringFireball.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\Kitto.MarkdownCommonMark.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\Kitto.MarkdownTxtMark.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\Kitto.MarkdownTables.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\MarkdownProcessor\source\Kitto.MarkdownMathCode.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Metadata.Types.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Metadata.SubNodes.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Config.Reader.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Config.Server.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.Metadata.SubNodes2.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.Auth.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.Notifications.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.UserFormats.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.AccessControl.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.Log.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.Desktop.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Config.Theme.pas"/>
         <DCCReference Include="..\..\Source\Kitto.AccessControl.DB.pas"/>
         <DCCReference Include="..\..\Source\Kitto.AccessControl.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Auth.DB.pas"/>
@@ -188,7 +193,6 @@
         <DCCReference Include="..\..\Source\Kitto.Tool.ADO.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Tool.FOP.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Tool.XSL.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.Tool.DebenuQuickPDF.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Tool.SQL.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Tool.Indy.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Tool.Standard.pas"/>
@@ -242,46 +246,15 @@
             <Form>KWebModule</Form>
             <DesignClass>TWebModule</DesignClass>
         </DCCReference>
-        <DCCReference Include="..\..\Source\Kitto.DebenuQuickPDF.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\Base32U.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\Bcrypt.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\DelphiZXIngQRCode.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\GoogleOTP.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\Kitto.Base32U.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\Kitto.Bcrypt.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\Kitto.DelphiZXIngQRCode.pas"/>
+        <DCCReference Include="..\..\Source\ThirdParty\Kitto.GoogleOTP.pas"/>
         <DCCReference Include="..\..\Source\ThirdParty\Kitto.ExprEvaluator.pas"/>
         <DCCReference Include="..\..\Source\ThirdParty\Kitto.TemplatePro.Types.pas"/>
         <DCCReference Include="..\..\Source\ThirdParty\Kitto.TemplatePro.pas"/>
         <DCCReference Include="..\..\Source\ThirdParty\Kitto.JsonDataObjects.pas"/>
         <DCCReference Include="..\..\Source\ThirdParty\Kitto.Nullables.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.AccessControl.JWT.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.Auth.JWT.pas"/>
-        <DCCReference Include="..\..\Source\Kitto.Web.JWT.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Builder.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Consumer.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Consumer.Validators.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Context.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.Base.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.Builder.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.JWA.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.JWA.Compression.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.JWA.Encryption.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.JWA.Factory.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.JWA.Signing.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.JWE.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.JWK.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.JWS.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.JWT.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Core.Parts.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Encoding.Base64.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Hashing.HMAC.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.OpenSSL.Headers.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Producer.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Signing.Base.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Signing.ECDSA.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Signing.RSA.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Types.Arrays.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Types.Bytes.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Types.JSON.pas"/>
-        <DCCReference Include="..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE.Types.Utils.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

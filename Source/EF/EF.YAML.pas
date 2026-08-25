@@ -360,7 +360,7 @@ var
   LInstance: TEFYAMLReader;
 begin
   Assert(AFileName <> '');
-  Assert(FileExists(AFileName));
+  Assert(FileExists(AFileName), AFileName);
   Assert(Assigned(ATree));
 
   LInstance := TEFYAMLReader.Create;

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ interface
 
 uses
   System.Classes,
-  gnugettext,
+  Kitto.gnugettext,
   EF.Intf,
   EF.Localization;
   

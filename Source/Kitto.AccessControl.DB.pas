@@ -107,7 +107,7 @@ type
     ///  Read-only access to the loaded permission rows for the configured
     ///  UserId. Each record exposes the three columns RESOURCE_URI_PATTERN,
     ///  ACCESS_MODES, GRANT_VALUE that the access controller iterates to
-    ///  resolve a grant. Used by TKJWTAuthenticator at login time to snapshot
+    ///  resolve a grant. Used by the JWT engine (TKJWTEngine, Kitto.Auth.JWT) at login time to snapshot
     ///  the permissions into the kx_acl JWT claim, so the same matching logic
     ///  can be replayed in TKJWTAccessController without re-hitting the DB.
     /// </summary>

@@ -1,5 +1,5 @@
 ﻿Connection:
-  Provider: SQLNCLI10
+  Provider: SQLNCLI11
   Trusted_Connection: Yes
   Initial Catalog: ChangeMe
   Data Source: %COMPUTERNAME%

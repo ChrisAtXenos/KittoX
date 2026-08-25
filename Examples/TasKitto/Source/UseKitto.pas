@@ -62,7 +62,7 @@ uses
   , Kitto.AccessControl.JWT
   // TKDBAccessController class registration — TasKitto's wizard SQL templates
   // (ReadPermissionsCommandText / ReadRolesCommandText under AccessControl)
-  // are still consumed by TKJWTAuthenticator at login to build the claim,
+  // are still consumed by the JWT engine at login to build the claim,
   // and the 'DB' class id remains useful for migration scenarios.
   , Kitto.AccessControl.DB
 

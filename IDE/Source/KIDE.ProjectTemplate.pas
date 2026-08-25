@@ -141,6 +141,7 @@ end;
 function TProjectTemplate.ExpandMacros(const AFileName: string; const AEncoding: TEncoding): string;
 var
   LAuth: string;
+  LAuthUnit: string;
   LUseJWT: Boolean;
   LAuthUses: string;
   LGuid: TGUID;
@@ -170,21 +171,28 @@ begin
     Result := ReplaceUseKittoBooleanMacro(Result, 'DB/ADO', 'EF.DB.ADO');
     Result := ReplaceUseKittoBooleanMacro(Result, 'DB/DBX', 'EF.DB.DBX');
     Result := ReplaceUseKittoBooleanMacro(Result, 'DB/FD', 'EF.DB.FD');
+    Result := ReplaceUseKittoBooleanMacro(Result, 'DB/ODAC', 'EF.DB.ODAC');
 
     // {Auth} expands to the Kitto.Auth.* unit(s) needed at runtime.
     // Special-cased here because UseJWT is a separate Options field
-    // but it affects the same `{Auth}` placeholder: when JWT envelope
+    // but it affects the same `{Auth}` placeholder: when the JWT envelope
     // is enabled, both the storage authenticator (Kitto.Auth.<X>) AND
-    // the JWT envelope authenticator (Kitto.Auth.JWT) must be linked.
+    // the JWT engine unit (Kitto.Auth.JWT) must be linked.
     LAuth := Options.GetString('Auth');
     LUseJWT := Options.GetBoolean('UseJWT');
+    // Unit name follows the class id, except DBCrypt which is registered by
+    // the Kitto.Auth.DB unit (there is no separate Kitto.Auth.DBCrypt).
+    if SameText(LAuth, 'DBCrypt') then
+      LAuthUnit := 'DB'
+    else
+      LAuthUnit := LAuth;
     if LAuth = '' then
       LAuthUses := ''
     else if LUseJWT then
-      LAuthUses := sLineBreak + '  Kitto.Auth.' + LAuth + ',' +
+      LAuthUses := sLineBreak + '  Kitto.Auth.' + LAuthUnit + ',' +
                    sLineBreak + '  Kitto.Auth.JWT,'
     else
-      LAuthUses := sLineBreak + '  Kitto.Auth.' + LAuth + ',';
+      LAuthUses := sLineBreak + '  Kitto.Auth.' + LAuthUnit + ',';
     Result := ReplaceText(Result, '{Auth}', LAuthUses);
 
     Result := ReplaceUseKittoStringMacro(Result, 'AC', sLineBreak + '  Kitto.AccessControl.%s,');
@@ -201,22 +209,21 @@ begin
 end;
 
 function TProjectTemplate.ProcessConfigTemplate(const AFileName: string): string;
-const
-  DB_NAMES: array[0..3] of string = ('Main', 'Other1', 'Other2', 'Other3');
 var
+  LMainDB: string;
   LTree: TEFTree;
   LDBNameIndex: Integer;
   LAuth: string;
   LAC: string;
   LUseJWT: Boolean;
   LAuthNode: TEFNode;
-  LInnerNode: TEFNode;
+  LJWTNode: TEFNode;
 
-  procedure AddDatabaseNode(const AProviderName: string);
+  procedure AddDatabaseNode(const AProviderName, ADBName: string);
   var
     LChildNode: TEFNode;
   begin
-    LChildNode := LTree.GetNode('Databases').AddChild(DB_NAMES[LDBNameIndex], AProviderName);
+    LChildNode := LTree.GetNode('Databases').AddChild(ADBName, AProviderName);
     LChildNode.AddChild('Connection').LoadFromYamlFile(GetSupportFileName('DB.' + AProviderName + '.yaml'));
     Inc(LDBNameIndex);
   end;
@@ -224,15 +231,42 @@ var
 begin
   LTree := TEFYAMLReader.LoadTree(AFileName);
   try
-    if Options.GetBoolean('DB/ADO') or Options.GetBoolean('DB/DBX') or Options.GetBoolean('DB/FD') then
+    if Options.GetBoolean('DB/ADO') or
+      Options.GetBoolean('DB/DBX') or
+      Options.GetBoolean('DB/FD') or
+      Options.GetBoolean('DB/ODAC') then
     begin
       LDBNameIndex := 0;
-      if Options.GetBoolean('DB/ADO') then
-        AddDatabaseNode('ADO');
-      if Options.GetBoolean('DB/DBX') then
-        AddDatabaseNode('DBX');
+      //Add Main Database
       if Options.GetBoolean('DB/FD') then
-        AddDatabaseNode('FD');
+      begin
+        LMainDB := 'DB/FD';
+        AddDatabaseNode('FD', 'Main')
+      end
+      else if Options.GetBoolean('DB/ODAC') then
+      begin
+        LMainDB := 'DB/ODAC';
+        AddDatabaseNode('ODAC', 'Main');
+      end
+      else if Options.GetBoolean('DB/ADO') then
+      begin
+        LMainDB := 'DB/ADO';
+        AddDatabaseNode('ADO', 'Main');
+      end
+      else if Options.GetBoolean('DB/DBX') then
+      begin
+        LMainDB := 'DB/DBX';
+        AddDatabaseNode('DBX', 'Main');
+      end;
+      //Add Other Databases
+      if Options.GetBoolean('DB/FD') and (LMainDB <> 'DB/FD') then
+        AddDatabaseNode('FD', 'FireDAC');
+      if Options.GetBoolean('DB/ODAC') and (LMainDB <> 'DB/ODAC') then
+        AddDatabaseNode('ODAC', 'ODAC');
+      if Options.GetBoolean('DB/ADO') and (LMainDB <> 'DB/ADO') then
+        AddDatabaseNode('ADO', 'ADO');
+      if Options.GetBoolean('DB/DBX') and (LMainDB <> 'DB/DBX') then
+        AddDatabaseNode('DBX', 'DBExpress');
     end
     else
     begin
@@ -243,34 +277,27 @@ begin
     LAuth := Options.GetString('Auth');
     LUseJWT := Options.GetBoolean('UseJWT');
 
-    // Three Auth code paths:
-    //   * UseJWT=True  -> Auth: JWT, Inner: <LAuth>  (recommended)
-    //   * UseJWT=False -> Auth: <LAuth>              (legacy / no envelope)
+    // Auth model:
     //   * LAuth empty  -> leave whatever the template's Config.yaml has
-    if LUseJWT and (LAuth <> '') then
+    //   * LAuth set    -> Auth: <LAuth> with the storage's own sub-fields
+    //                     from Auth.<LAuth>.yaml
+    //   * UseJWT=True  -> additionally attach a JWT: sub-node (the optional
+    //                     signed-token envelope) from Auth.JWT.yaml, so the
+    //                     Kitto.Auth.JWT engine issues/validates a token.
+    if LAuth <> '' then
     begin
-      LAuthNode := LTree.SetString('Auth', 'JWT');
-      // Load the JWT envelope skeleton from Auth.JWT.yaml (Inner defaults
-      // to DB with its standard sub-fields).
-      LAuthNode.LoadFromYamlFile(GetSupportFileName('Auth.JWT.yaml'));
-      // Patch the Inner storage choice if the user picked something
-      // other than DB. We re-load Auth.<X>.yaml directly into the Inner
-      // node so the sub-fields shipped with that storage (TextFile's
-      // IsClearPassword/Passpartout, OSDB's connection settings, etc.)
-      // are merged in. The YAML loader overwrites the receiver's name
-      // with the file's root key (`Auth`) — we restore it to `Inner`
-      // afterwards so the structural meaning is preserved.
-      LInnerNode := LAuthNode.FindNode('Inner');
-      if Assigned(LInnerNode) and not SameText(LAuth, 'DB') then
+      LAuthNode := LTree.SetString('Auth', LAuth);
+      // LoadFromYamlFile mirrors the file's root node (`Auth: <LAuth>`) onto
+      // the receiver, bringing in that storage's sub-fields (TextFile's
+      // IsClearPassword/Passepartout, OSDB's connection settings, etc.).
+      LAuthNode.LoadFromYamlFile(GetSupportFileName('Auth.' + LAuth + '.yaml'));
+      if LUseJWT then
       begin
-        LInnerNode.LoadFromYamlFile(GetSupportFileName('Auth.' + LAuth + '.yaml'));
-        LInnerNode.Name := 'Inner';
+        // Auth.JWT.yaml has root key `JWT`, so loading it into the child
+        // preserves the node name and yields Auth/JWT/<envelope keys>.
+        LJWTNode := LAuthNode.AddChild('JWT');
+        LJWTNode.LoadFromYamlFile(GetSupportFileName('Auth.JWT.yaml'));
       end;
-    end
-    else if LAuth <> '' then
-    begin
-      LTree.SetString('Auth', LAuth).LoadFromYamlFile(
-        GetSupportFileName('Auth.' + LAuth + '.yaml'));
     end;
 
     LAC := Options.GetString('AC');

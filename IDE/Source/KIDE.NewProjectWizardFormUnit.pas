@@ -89,6 +89,7 @@ type
     AppTitleEdit: TLabeledEdit;
     DatabasesGroupBox: TGroupBox;
     DBFDCheckBox: TCheckBox;
+    DBODACCheckBox: TCheckBox;
     DBADOCheckBox: TCheckBox;
     DBDBXCheckBox: TCheckBox;
     AccessControlGroupBox: TGroupBox;
@@ -260,14 +261,15 @@ begin
     // KittoX uses a single .dpr/.dproj per project (Win64), so the
     // wizard no longer collects Delphi version flags. Likewise no
     // SearchPath: it is hardcoded in the template's .dproj.
+    FTemplate.Options.SetBoolean('DB/FD', DBFDCheckBox.Checked);
+    FTemplate.Options.SetBoolean('DB/ODAC', DBODACCheckBox.Checked);
     FTemplate.Options.SetBoolean('DB/ADO', DBADOCheckBox.Checked);
     FTemplate.Options.SetBoolean('DB/DBX', DBDBXCheckBox.Checked);
-    FTemplate.Options.SetBoolean('DB/FD', DBFDCheckBox.Checked);
 
     FTemplate.Options.SetString('Auth', AuthComboBox.Text);
-    // JWT envelope flag: when True, Config.yaml gets `Auth: JWT / Inner:
-    // <Auth>` instead of `Auth: <Auth>` directly. Recommended for new
-    // KittoX projects (signed cookie + sliding refresh).
+    // JWT envelope flag: when True, Config.yaml gets an optional `JWT:` sub-block
+    // under `Auth: <Auth>` (signed cookie + sliding refresh). Recommended for
+    // new KittoX projects; when False the authenticator uses a plain session cookie.
     FTemplate.Options.SetBoolean('UseJWT', UseJWTCheckBox.Checked);
     FTemplate.Options.SetString('AC', ACComboBox.Text);
     FTemplate.Options.SetString('LanguageId', LanguageIdComboBox.Text);
@@ -286,7 +288,12 @@ begin
     end;
     FTemplate.ProjectName := ProjectNameEdit.Text;
     FTemplate.Options.SetString('AppTitle', AppTitleEdit.Text);
-    FTemplate.CreateProject;
+    Screen.Cursor := crHourGlass;
+    try
+      FTemplate.CreateProject;
+    finally
+      Screen.Cursor := crDefault;
+    end;
   end;
 end;
 
@@ -382,6 +389,7 @@ begin
   LKeyBase := GetKeyBase + TemplateFrame.CurrentTemplateName + '/';
   // Database defaults: only FireDAC
   DBFDCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/FD', True);
+  DBODACCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/ODAC', False);
   DBADOCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/ADO', False);
   DBDBXCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/DBX', False);
   // Auth, default TextFile — works out of the box against the demo
@@ -412,6 +420,7 @@ begin
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/ADO', DBADOCheckBox.Checked);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/DBX', DBDBXCheckBox.Checked);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/FD', DBFDCheckBox.Checked);
+  TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/ODAC', DBODACCheckBox.Checked);
   TMRUOptions.Instance.SetString(LKeyBase + 'Auth', AuthComboBox.Text);
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'UseJWT', UseJWTCheckBox.Checked);
   TMRUOptions.Instance.SetString(LKeyBase + 'AC', ACComboBox.Text);
@@ -475,6 +484,7 @@ function TNewProjectWizardForm.OptionsValid: Boolean;
 begin
   // At least one DB driver should be active to make
   Result := DBFDCheckBox.Checked or
+    DBODACCheckBox.Checked or
     DBADOCheckBox.Checked or
     DBDBXCheckBox.Checked;
 end;

@@ -1,0 +1,25 @@
+Auth: LDAP
+  # Simple-bind authentication against an LDAP directory (Active Directory or
+  # generic LDAP) via the native wldap32 API. No local user table is needed.
+  Host: ldap.example.com
+  Port: 389                      # 389 plain, 636 with UseSSL
+  UseSSL: False                  # True = LDAPS (recommended in production)
+
+  # --- Active Directory: users log in as DOMAIN\user (or user@domain).
+  # Set DefaultDomain so they can type just the user name.
+  # DefaultDomain: CORP
+  # SearchBase: DC=corp,DC=local
+  # SearchFilter: (sAMAccountName=%s)
+
+  # --- Generic (non-AD) LDAP: build the full bind DN from a short user name.
+  # BindDNTemplate: uid=%s,dc=example,dc=com
+  # SearchBase: dc=example,dc=com
+  # SearchFilter: (uid=%s)
+
+  # Directory attributes mapped into the auth data after the bind.
+  Attributes:
+    Email: mail
+    FirstName: givenName
+    LastName: sn
+    FullName: displayName
+    # Groups: memberOf

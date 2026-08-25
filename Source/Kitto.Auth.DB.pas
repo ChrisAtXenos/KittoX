@@ -442,10 +442,10 @@ uses
   Kitto.Config,
   Kitto.DatabaseRouter,
   Kitto.Web.Session,
-  BCrypt,
-  Base32U,
-  GoogleOTP,
-  DelphiZXingQRCode;
+  Kitto.BCrypt,
+  Kitto.Base32U,
+  Kitto.GoogleOTP,
+  Kitto.DelphiZXingQRCode;
 
 { TKDBAuthenticator }
 

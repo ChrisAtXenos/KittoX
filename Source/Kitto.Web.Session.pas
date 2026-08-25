@@ -36,7 +36,7 @@ uses
   System.DateUtils,
   System.Classes,
   System.Generics.Collections,
-  gnugettext,
+  Kitto.gnugettext,
   EF.Intf,
   EF.Tree,
   EF.Localization,
@@ -578,7 +578,7 @@ begin
   if TKWebSession.Current <> nil then
     Result := TKWebSession.Current.FGettextInstance
   else
-    Result := gnugettext.DefaultInstance;
+    Result := Kitto.gnugettext.DefaultInstance;
 end;
 
 procedure TKWebSessionLocalizationTool.TranslateComponent(const AComponent: TComponent);

@@ -259,18 +259,35 @@ type
   YamlChildTypeAttribute = class(TCustomAttribute)
   private
     FName: string;
+    FChildClass: TClass;
     FDefaultValue: string;
     FDescription: string;
   public
     /// <summary>
     ///  Creates the attribute declaring an addable child named AName, with an optional default value and description.
+    ///  Use this form for scalar/marker children (e.g. 'StringField' -> 'String(10)').
     /// </summary>
     constructor Create(const AName: string; const ADefaultValue: string = '';
-      const ADescription: string = '');
+      const ADescription: string = ''); overload;
+    /// <summary>
+    ///  Creates the attribute binding an addable child named AName to a descriptor
+    ///  class AChildClass. Use this form for heterogeneous config children whose
+    ///  per-type shape KIDE should edit (e.g. 'Field' -> TKLayoutFieldConfig,
+    ///  'FreeSearch' -> TKFilterItemFreeSearch). KIDE resolves the node to
+    ///  AChildClass via GetSubNodeClassFromParent and renders its property editor.
+    /// </summary>
+    constructor Create(const AName: string; const AChildClass: TClass;
+      const ADefaultValue: string = ''; const ADescription: string = ''); overload;
     /// <summary>
     ///  Node name for the child (e.g. 'StringField', 'ForceUpperCase').
     /// </summary>
     property Name: string read FName;
+    /// <summary>
+    ///  Descriptor class for the child node, or nil for scalar/marker children.
+    ///  When assigned, KIDE renders this class's [YamlNode]/[YamlSubNode] editor
+    ///  for the added child.
+    /// </summary>
+    property ChildClass: TClass read FChildClass;
     /// <summary>
     ///  Default value for the child node (e.g. 'String(10)', 'Integer').
     ///  Empty string if no default value.
@@ -384,6 +401,17 @@ constructor YamlChildTypeAttribute.Create(const AName: string;
 begin
   inherited Create;
   FName := AName;
+  FChildClass := nil;
+  FDefaultValue := ADefaultValue;
+  FDescription := ADescription;
+end;
+
+constructor YamlChildTypeAttribute.Create(const AName: string;
+  const AChildClass: TClass; const ADefaultValue: string; const ADescription: string);
+begin
+  inherited Create;
+  FName := AName;
+  FChildClass := AChildClass;
   FDefaultValue := ADefaultValue;
   FDescription := ADescription;
 end;

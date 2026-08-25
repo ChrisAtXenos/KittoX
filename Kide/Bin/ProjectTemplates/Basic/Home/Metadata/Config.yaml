@@ -1,7 +1,6 @@
 AppTitle: {AppTitle}
 
-# Default database connection name. ProcessConfigTemplate fills `Databases`
-# with `Main: <FD/DBX/ADO>` based on which drivers are enabled.
+# Default database connection name. Empty until a Databases entry is added.
 DefaultDatabaseName: Main
 
 Databases:

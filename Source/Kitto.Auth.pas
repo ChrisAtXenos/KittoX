@@ -47,6 +47,12 @@ type
   strict
   private
     FIsBCrypted: Boolean;
+    /// <summary>Opaque per-authenticator state owned and populated by the JWT
+    /// engine (Kitto.Auth.JWT) — its parsed TKJWTConfig for this authenticator.
+    /// Held as TObject so the core carries no JOSE dependency; freed with the
+    /// authenticator (and by the setter when replaced).</summary>
+    FJWTState: TObject;
+    procedure SetJWTState(const AValue: TObject);
     function GetAuthData: TEFNode; protected
     class function GetCurrent: TKAuthenticator; static;
     class procedure SetCurrent(const AValue: TKAuthenticator); static; protected
@@ -81,9 +87,9 @@ type
     /// <summary>
     ///  The body of the default InternalDefaultToAuthData: fills each auth item
     ///  from Config's Defaults/&lt;ItemName&gt; node. Not virtual, and kept apart
-    ///  from the virtual method so that a decorator (see TKAuthenticatorDecorator)
-    ///  which re-declares InternalDefaultToAuthData as abstract can still reach
-    ///  this behaviour when it has to answer locally.
+    ///  from the virtual method so that a subclass which re-declares
+    ///  InternalDefaultToAuthData can still reach this behaviour when it has to
+    ///  answer locally.
     /// </summary>
     procedure ApplyConfigDefaults(const AAuthData: TEFNode);
 
@@ -240,44 +246,66 @@ type
     function SupportsPasswordChange: Boolean; virtual;
 
     /// <summary>
-    ///  Returns the configuration node that callers should consult when they
-    ///  read user-facing auth options like DatabaseChoices, ValidatePassword,
-    ///  IsPassepartoutEnabled, etc. For a plain authenticator this is just
-    ///  the authenticator's own Config. For wrapping authenticators (notably
-    ///  TKJWTAuthenticator) it returns the wrapped Inner authenticator's
-    ///  Config, so that the same YAML keys keep working whether or not the
-    ///  app sits behind a JWT envelope.
+    ///  Returns the configuration node callers consult for user-facing auth
+    ///  options (DatabaseChoices, ValidatePassword, IsPassepartoutEnabled, ...).
+    ///  It is the authenticator's own Config: with the flat Auth model those keys
+    ///  live directly under the Auth node, whether or not a JWT block is present.
     /// </summary>
     function EffectiveConfigNode: TEFTree; virtual;
 
     /// <summary>
     ///  Per-request hook invoked by TKWebApplication just after ActivateInstance
-    ///  and before any route dispatch. Default does nothing. Authenticators
-    ///  that carry a request-bound credential (e.g. TKJWTAuthenticator) override
-    ///  this to validate the credential, hydrate the session, slide expirations,
-    ///  etc. — without forcing the framework runtime layer to depend on the
-    ///  authenticator's third-party libraries.
+    ///  and before any route dispatch. When IsJWTEnabled it delegates to the
+    ///  registered IKXJWTEngine to validate the request token, hydrate the
+    ///  session and slide the expiration; otherwise it does nothing. Kept virtual
+    ///  so a custom authenticator can still add per-request work.
     /// </summary>
     procedure AuthorizeRequest; virtual;
 
     /// <summary>
-    ///  Tells the framework whether this authenticator's credential already
-    ///  carries the session id (e.g. JWT 'sid' claim). When True, the engine
-    ///  must NOT emit a separate session id cookie because the credential
-    ///  itself binds the request to the server-side TKWebSession. Default is
-    ///  False — Auth: DB / TextFile / Null and similar plain authenticators
-    ///  rely on a separate session id cookie named after AppName.
-    ///
-    ///  Class function so the engine can probe the registered authenticator
-    ///  class at startup, well before any request thread sets up
-    ///  TKAuthenticator.Current — which is nil again by the time the engine's
-    ///  AfterHandleRequest runs (DeactivateInstance has already cleared it).
+    ///  True when this authenticator is configured to issue/validate a JWT — i.e.
+    ///  a JWT sub-node is present under its Auth config. When True the base
+    ///  delegates token issue/validate/clear to the registered IKXJWTEngine, and
+    ///  the credential itself carries the session id ('sid' claim), so the engine
+    ///  must NOT emit a separate session-id cookie.
     /// </summary>
-    class function CarriesSessionIdInCredential: Boolean; virtual;
+    function IsJWTEnabled: Boolean;
+
+    /// <summary>
+    ///  Issues the JWT cookie for the just-authenticated user and returns the
+    ///  compact token when IsJWTEnabled; otherwise returns ''. Delegates to the
+    ///  registered IKXJWTEngine. Used by the REST /token endpoint.
+    /// </summary>
+    function IssueToken: string;
+
+    /// <summary>Opaque per-authenticator state owned by the JWT engine (see the
+    /// field). Public so the engine can attach/read its parsed config; the base
+    /// frees it. Assigning a new value frees the previous one.</summary>
+    property JWTState: TObject read FJWTState write SetJWTState;
   end;
   /// <summary>Metaclass reference used to register and create authenticators
   /// by class.</summary>
   TKAuthenticatorClass = class of TKAuthenticator;
+
+  /// <summary>
+  ///  Crypto/transport engine for the optional JWT envelope. The base
+  ///  TKAuthenticator decides WHEN to issue/validate/clear a token (from the
+  ///  presence of a JWT sub-node in its config) but delegates the actual signing
+  ///  and validation — and the third-party JOSE dependency — to an engine
+  ///  registered by an opt-in unit (Kitto.Auth.JWT). Applications that do not use
+  ///  JWT never link JOSE.
+  /// </summary>
+  IKXJWTEngine = interface
+    ['{7E2A1B4C-9D6F-4A31-8C22-1F5E7B9A0D34}']
+    /// <summary>Builds and writes the JWT cookie for a just-authenticated user;
+    /// returns the compact token (for diagnostics).</summary>
+    function IssueToken(const AAuthenticator: TKAuthenticator): string;
+    /// <summary>Validates the request's token, hydrates the session and slides
+    /// the expiration. Returns True when the request carries a valid token.</summary>
+    function AuthorizeRequest(const AAuthenticator: TKAuthenticator): Boolean;
+    /// <summary>Clears the JWT cookie (logout).</summary>
+    procedure ClearToken(const AAuthenticator: TKAuthenticator);
+  end;
 
   /// <summary>
   ///   <para>An abstract authenticator that requires UserName and Password as
@@ -301,70 +329,6 @@ type
     ///  still reach this behaviour when it has to answer locally.
     /// </summary>
     procedure DefineStandardAuthData(const AAuthData: TEFNode);
-  end;
-
-  /// <summary>
-  ///  <para>Base class for an authenticator that WRAPS another one (the "Inner"
-  ///  authenticator) and stands in front of it: every call reaches the decorator
-  ///  first, which then decides whether to answer itself or pass the call on.
-  ///  TKJWTAuthenticator is the only such class in the framework today.</para>
-  ///
-  ///  <para><b>Why this class exists.</b> A decorator that simply inherits the
-  ///  members it forgets to pass on does not fail: it answers with the base
-  ///  implementation, which is a plausible-looking value, and the Inner
-  ///  authenticator's own version is never called — silently. That is not a
-  ///  hypothetical: it is how the framework shipped SetPassword (base body is
-  ///  EMPTY: the change-password dialog reported success and wrote nothing) and
-  ///  GetMustConfirmAccess (the privacy consent was never asked for), both
-  ///  eventually found and fixed as bugs; and it is why an application override
-  ///  of InternalDefaultToAuthData and TKOSDBAuthenticator's OS-user login are
-  ///  bypassed under Auth: JWT.</para>
-  ///
-  ///  <para><b>What it does about it.</b> Every member on which a decorator must
-  ///  take a decision is re-declared here as abstract, so a decorator CANNOT
-  ///  inherit it by accident — it has to write something, and what it writes is
-  ///  the decision, visible in code. Note that the enforcement needs the guard
-  ///  procedure at the bottom of the decorator's unit: the compiler only checks
-  ///  completeness where a class is constructed BY NAME, and authenticators are
-  ///  created through a factory (metaclass), which it cannot check.</para>
-  ///
-  ///  <para><b>If the compiler stopped you here</b> with E1020 "Constructing
-  ///  instance of ... containing abstract method ...": a member was added to this
-  ///  contract and your decorator does not implement it yet. Implement it, and
-  ///  make it one of two things — either pass the call on to the Inner
-  ///  authenticator, or answer locally AND write down why the Inner must not be
-  ///  asked. Do not add a member here just to silence something: the list is
-  ///  meant to stay short and deliberate.</para>
-  ///
-  ///  <para><b>Members deliberately NOT in the contract</b>, because a decorator
-  ///  needs the base implementation to run and cannot re-abstract it:
-  ///  Logout (the base clears auth data and the session flag), AuthorizeRequest,
-  ///  EffectiveConfigNode, CarriesSessionIdInCredential, InternalAfterAuthenticate
-  ///  and InternalBeforeAuthenticate. The last two also need no forwarding at all:
-  ///  a decorator authenticates by calling the Inner's public Authenticate, which
-  ///  runs the Inner's own before/after hooks. InternalAuthenticate, ResetPassword,
-  ///  QRGenerate and IsPasswordMatching need no entry either — they are already
-  ///  abstract in TKAuthenticator, so the compiler already demands them.</para>
-  /// </summary>
-  TKAuthenticatorDecorator = class(TKClassicAuthenticator)
-  protected
-    function GetIsAuthenticated: Boolean; override; abstract;
-    function GetIsBCrypted: Boolean; override; abstract;
-    function GetIsClearPassword: Boolean; override; abstract;
-    procedure InternalDefineAuthData(const AAuthData: TEFNode); override; abstract;
-    procedure InternalDefaultToAuthData(const AAuthData: TEFNode); override; abstract;
-    function GetUserName: string; override; abstract;
-    function GetPassword: string; override; abstract;
-    procedure SetPassword(const AValue: string); override; abstract;
-    function GetSecretCode: string; override; abstract;
-    function GetMustChangePassword: Boolean; override; abstract;
-    function GetMustConfirmAccess: Boolean; override; abstract;
-  public
-    /// <summary>Re-abstracted like the members above: whether a password can be
-    /// written at all is the wrapped authenticator's business, and answering it
-    /// here with the inherited True would offer the user a change that then
-    /// silently does nothing.</summary>
-    function SupportsPasswordChange: Boolean; override; abstract;
   end;
 
   /// <summary>The Null authenticator does not require authentication data and
@@ -427,6 +391,13 @@ type
     function CreateObject(const AClassId: string): TKAuthenticator;
   end;
 
+/// <summary>Registers the JWT engine — called from Kitto.Auth.JWT's
+/// initialization. The last registration wins.</summary>
+procedure RegisterJWTEngine(const AEngine: IKXJWTEngine);
+/// <summary>The registered JWT engine, or nil when no JWT-capable unit is
+/// linked into the application.</summary>
+function GetJWTEngine: IKXJWTEngine;
+
 implementation
 
 uses
@@ -436,6 +407,30 @@ uses
   Kitto.Types,
   Kitto.Web.Application,
   Kitto.Web.Session;
+
+var
+  FJWTEngine: IKXJWTEngine;
+
+procedure RegisterJWTEngine(const AEngine: IKXJWTEngine);
+begin
+  FJWTEngine := AEngine;
+end;
+
+function GetJWTEngine: IKXJWTEngine;
+begin
+  Result := FJWTEngine;
+end;
+
+// Returns the registered JWT engine, or raises a clear, actionable error when a
+// JWT block is configured but no JWT-capable unit was linked into the app.
+function RequireJWTEngine: IKXJWTEngine;
+begin
+  Result := FJWTEngine;
+  if not Assigned(Result) then
+    raise EKError.Create(_('Auth JWT is configured (a "JWT" block is present under Auth) ' +
+      'but JWT support is not linked into this application. Add "Kitto.Auth.JWT" to your ' +
+      'project''s UseKitto.pas.'));
+end;
 
 { TKNullAuthenticator }
 
@@ -549,6 +544,7 @@ end;
 
 destructor TKAuthenticator.Destroy;
 begin
+  FreeAndNil(FJWTState);
   inherited;
 end;
 
@@ -649,18 +645,51 @@ begin
   Result := Config;
 end;
 
-procedure TKAuthenticator.AuthorizeRequest;
+procedure TKAuthenticator.SetJWTState(const AValue: TObject);
 begin
-  // Default no-op. Descendants override.
+  if FJWTState <> AValue then
+  begin
+    FJWTState.Free;
+    FJWTState := AValue;
+  end;
 end;
 
-class function TKAuthenticator.CarriesSessionIdInCredential: Boolean;
+function TKAuthenticator.IsJWTEnabled: Boolean;
 begin
-  Result := False;
+  // A JWT sub-node under the auth config turns on the token envelope; the base
+  // then delegates issue/validate/clear to the registered IKXJWTEngine.
+  Result := Assigned(Config.FindNode('JWT'));
+end;
+
+function TKAuthenticator.IssueToken: string;
+begin
+  if IsJWTEnabled then
+    Result := RequireJWTEngine.IssueToken(Self)
+  else
+    Result := '';
+end;
+
+procedure TKAuthenticator.AuthorizeRequest;
+begin
+  // When a JWT envelope is configured, delegate to the engine to validate the
+  // request token, hydrate the session and slide the expiration. Otherwise
+  // there is nothing to do (plain session-cookie authenticators).
+  if IsJWTEnabled then
+    RequireJWTEngine.AuthorizeRequest(Self);
 end;
 
 procedure TKAuthenticator.Logout;
+var
+  LEngine: IKXJWTEngine;
 begin
+  // Clear the JWT cookie first (when configured) so the browser stops sending a
+  // stale token, then drop the server-side auth data and session flag.
+  if IsJWTEnabled then
+  begin
+    LEngine := GetJWTEngine;
+    if Assigned(LEngine) then
+      LEngine.ClearToken(Self);
+  end;
   ClearAuthData;
   TKWebSession.Current.IsAuthenticated := False;
 end;
@@ -696,6 +725,11 @@ begin
       InternalAfterAuthenticate(AAuthData);
       // Pick up any data changed by InternalAfterAuthenticate.
       TKWebSession.Current.AuthData.Assign(AAuthData);
+      // Issue the JWT cookie once the session carries the final identity, when a
+      // JWT envelope is configured. The engine reads the user name and the
+      // session claims (display name, database, language).
+      if IsJWTEnabled then
+        RequireJWTEngine.IssueToken(Self);
     end;
   finally
     if not Result then

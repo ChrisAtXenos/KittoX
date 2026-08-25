@@ -47,82 +47,83 @@ Databases:
       IsolationLevel: ReadCommitted
       Trim Char: False
 
-Auth: JWT
-  # Inner authenticator: the credential check is delegated to the LDAP
-  # authenticator (registered by Kitto.Auth.LDAP), which validates the user
-  # against Active Directory with a simple bind (native wldap32 API).
-  # TKJWTAuthenticator wraps it: on success it builds/signs a JWT, sets the
-  # kx_token HttpOnly cookie and validates it on every subsequent request
-  # via the auth gate in TKWebApplication.DoHandleRequest.
-  Inner: LDAP
-    # ============================================================
-    # DEMO CONFIG - public test LDAP server (no Windows domain needed).
-    # Log in with just the short name, e.g.:   tesla / password
-    # Other users: einstein, newton, galieleo (all password "password").
-    # ============================================================
-    Host: ldap.forumsys.com
-    Port: 389
-    UseSSL: False
-    # Generic (non-AD) LDAP: build the full bind DN from the short user name,
-    # so the user types only "tesla" instead of the whole DN.
-    BindDNTemplate: uid=%s,dc=example,dc=com
-    # Read the user's display attributes after the bind.
-    SearchBase: dc=example,dc=com
-    SearchFilter: (uid=%s)
-    Attributes:
-      Email: mail
-      FullName: cn
-      LastName: sn
-    #
-    # --- PRODUCTION Active Directory example (uncomment and edit) ---
-    # Host: dc01.corp.local
-    # Port: 389
-    # UseSSL: False
-    # DefaultDomain: CORP
-    # SearchBase: DC=corp,DC=local
-    # SearchFilter: (sAMAccountName=%s)
-    # Attributes:
-    #   Email: mail
-    #   FirstName: givenName
-    #   LastName: sn
-    #   FullName: displayName
-    #   Groups: memberOf
+Auth: LDAP
+  # The credential check is delegated to the LDAP authenticator (registered by
+  # Kitto.Auth.LDAP), which validates the user against Active Directory with a
+  # simple bind (native wldap32 API). The optional JWT: block below turns on the
+  # self-contained token envelope: on success the Kitto.Auth.JWT engine
+  # builds/signs a JWT, sets the kx_token HttpOnly cookie and validates it on
+  # every subsequent request via the auth request-filter.
+  # ============================================================
+  # DEMO CONFIG - public test LDAP server (no Windows domain needed).
+  # Log in with just the short name, e.g.:   tesla / password
+  # Other users: einstein, newton, galieleo (all password "password").
+  # ============================================================
+  Host: ldap.forumsys.com
+  Port: 389
+  UseSSL: False
+  # Generic (non-AD) LDAP: build the full bind DN from the short user name,
+  # so the user types only "tesla" instead of the whole DN.
+  BindDNTemplate: uid=%s,dc=example,dc=com
+  # Read the user's display attributes after the bind.
+  SearchBase: dc=example,dc=com
+  SearchFilter: (uid=%s)
+  Attributes:
+    Email: mail
+    FullName: cn
+    LastName: sn
+  #
+  # --- PRODUCTION Active Directory example (uncomment and edit) ---
+  # Host: dc01.corp.local
+  # Port: 389
+  # UseSSL: False
+  # DefaultDomain: CORP
+  # SearchBase: DC=corp,DC=local
+  # SearchFilter: (sAMAccountName=%s)
+  # Attributes:
+  #   Email: mail
+  #   FirstName: givenName
+  #   LastName: sn
+  #   FullName: displayName
+  #   Groups: memberOf
 
-  # JWT envelope settings.
-  # SigningAlgorithm: HS256/HS384/HS512 (HMAC, no OpenSSL DLL required from
-  # Delphi 10 Seattle onward) or RS256/RS384/RS512/ES256/ES384/ES512 (asymmetric,
-  # require OpenSSL libraries to be deployed alongside the binary).
-  SigningAlgorithm: HS256
-  # SigningKey accepts:
-  #   env:VAR_NAME    read from environment variable (recommended for prod)
-  #   file:/path      read raw bytes from a file (PEM for RS*/ES*)
-  #   inline literal  any other value, used as the raw key (DEV ONLY)
-  # The KEmployeeX demo overrides this via TKJWTSigningKeyRegistry in
-  # UseKitto.pas — the registered provider always takes precedence over
-  # this YAML setting. The env var fallback is kept here so that removing
-  # the provider from UseKitto.pas keeps the app running without code
-  # changes (just set KX_JWT_KEY_KEMPLOYEE).
-  SigningKey: env:KX_JWT_KEY_KEMPLOYEE
-  # iss/aud claims — verified on every request validation.
-  Issuer: KEmployeeX
-  Audience: kx-app
-  # exp claim relative to issue time, in seconds.
-  TokenLifetime: 3600
-  # When (exp - now) drops below SlidingThreshold seconds, the auth gate
-  # re-issues the cookie with a fresh exp. Set to 0 to disable sliding.
-  SlidingThreshold: 600
-  # Allowance (seconds) for clock skew between client and server during
-  # exp/nbf/iat validation.
-  ClockSkew: 60
-  Claims:
-    IncludeRoles: False
-    # IncludeDB left False because KEmployee uses a single Main database.
-    IncludeDB: False
-    IncludeDisplayName: True
-    IncludeLanguage: True
-    # The kx_acl claim is included automatically only when AccessControl
-    # below is set to JWT. KEmployee uses AccessControl: Null so the
-    # claim is omitted by the framework.
+  # Optional JWT envelope. Present = issue/validate a JWT (the engine is added
+  # by the Kitto.Auth.JWT unit referenced from UseKitto.pas).
+  JWT:
+    # SigningAlgorithm: HS256/HS384/HS512 (HMAC, no OpenSSL DLL required from
+    # Delphi 10 Seattle onward) or RS256/RS384/RS512/ES256/ES384/ES512 (asymmetric,
+    # require OpenSSL libraries to be deployed alongside the binary).
+    SigningAlgorithm: HS256
+    # SigningKey accepts:
+    #   env:VAR_NAME    read from environment variable (recommended for prod)
+    #   file:/path      read raw bytes from a file (PEM for RS*/ES*)
+    #   inline literal  any other value, used as the raw key (DEV ONLY)
+    # The KEmployeeX demo overrides this via TKJWTSigningKeyRegistry in
+    # UseKitto.pas — the registered provider always takes precedence over
+    # this YAML setting. The env var fallback is kept here so that removing
+    # the provider from UseKitto.pas keeps the app running without code
+    # changes (just set KX_JWT_KEY_KEMPLOYEE).
+    SigningKey: env:KX_JWT_KEY_KEMPLOYEE
+    # iss/aud claims — verified on every request validation.
+    Issuer: KEmployeeX
+    Audience: kx-app
+    # exp claim relative to issue time, in seconds.
+    TokenLifetime: 3600
+    # When (exp - now) drops below SlidingThreshold seconds, the auth gate
+    # re-issues the cookie with a fresh exp. Set to 0 to disable sliding.
+    SlidingThreshold: 600
+    # Allowance (seconds) for clock skew between client and server during
+    # exp/nbf/iat validation.
+    ClockSkew: 60
+    Claims:
+      IncludeRoles: False
+      # IncludeDB left False because KEmployee uses a single Main database.
+      IncludeDB: False
+      IncludeDisplayName: True
+      IncludeLanguage: True
+      # The kx_acl claim is included automatically only when AccessControl
+      # below is set to JWT. KEmployee uses AccessControl: Null so the
+      # claim is omitted by the framework.
 
 AccessControl: Null
 

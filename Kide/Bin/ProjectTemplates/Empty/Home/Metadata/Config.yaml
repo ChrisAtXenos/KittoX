@@ -1,7 +1,7 @@
 AppTitle: {AppTitle}
 
 # Default database connection name. Empty until a Databases entry is added.
-DefaultDatabaseName:
+DefaultDatabaseName: Main
 
 Databases:
 

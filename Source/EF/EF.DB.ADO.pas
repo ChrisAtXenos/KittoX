@@ -28,9 +28,9 @@ uses
   System.Contnrs,
   Data.DB,
   Data.Win.ADODB,
+  EF.Tree,
   EF.DB,
-  EF.YAML.Attributes,
-  Kitto.Metadata.SubNodes2;
+  EF.YAML.Attributes;
 
 type
   ///	<summary>
@@ -201,6 +201,39 @@ type
   end;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  ADO/OLEDB connection parameters.
+  ///  YAML path: DatabaseRouter/DatabaseName/Connection
+  /// </summary>
+  TEFDBADOConnectionConfig = class(TEFNode)
+  private
+    function GetProvider: string;
+    function GetTrusted_Connection: string;
+    function GetInitialCatalog: string;
+    function GetDataSource: string;
+    function GetUserId: string;
+    function GetPassword: string;
+  public
+    [YamlNode('Provider', 'OLE DB provider name')]
+    property Provider: string read GetProvider;
+
+    [YamlNode('Trusted_Connection', 'Use Windows integrated auth (yes/no)')]
+    property Trusted_Connection: string read GetTrusted_Connection;
+
+    [YamlNode('Initial Catalog', 'Database (catalog) name')]
+    property InitialCatalog: string read GetInitialCatalog;
+
+    [YamlNode('Data Source', 'Server name or instance')]
+    property DataSource: string read GetDataSource;
+
+    [YamlNode('User Id', 'Database user name')]
+    property UserId: string read GetUserId;
+
+    [YamlNode('Password', 'Database password')]
+    property Password: string read GetPassword;
+  end;
+
+  {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   ///	<summary>
   ///	  Database adapter that creates ADO/OLEDB connections. Registered with the
   ///	  adapter registry under the ClassId 'ADO'.
@@ -226,7 +259,6 @@ uses
   EF.Localization,
   EF.VariantUtils,
   EF.Types,
-  EF.Tree,
   EF.SQL,
   EF.Logger;
 
@@ -798,6 +830,38 @@ begin
   Result := nil; // RTTI discovery only
 end;
 
+{ TEFDBADOConnectionConfig }
+
+function TEFDBADOConnectionConfig.GetProvider: string;
+begin
+  Result := GetString('Provider');
+end;
+
+function TEFDBADOConnectionConfig.GetTrusted_Connection: string;
+begin
+  Result := GetString('Trusted_Connection');
+end;
+
+function TEFDBADOConnectionConfig.GetInitialCatalog: string;
+begin
+  Result := GetString('Initial Catalog');
+end;
+
+function TEFDBADOConnectionConfig.GetDataSource: string;
+begin
+  Result := GetString('Data Source');
+end;
+
+function TEFDBADOConnectionConfig.GetUserId: string;
+begin
+  Result := GetString('User Id');
+end;
+
+function TEFDBADOConnectionConfig.GetPassword: string;
+begin
+  Result := GetString('Password');
+end;
+
 initialization
 {$IFDEF MSWINDOWS}
   EF.DB.IsCOMNeeded := True;
@@ -806,5 +870,6 @@ initialization
 
 finalization
   TEFDBAdapterRegistry.Instance.UnregisterDBAdapter(TEFDBADOAdapter.GetClassId);
+
 
 end.

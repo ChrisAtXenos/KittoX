@@ -41,6 +41,13 @@ uses
   Kitto.Metadata.Models,
   Kitto.Metadata.Views,
   Kitto.Config.Server,
+  Kitto.Config.Auth,
+  Kitto.Config.Notifications,
+  Kitto.Config.UserFormats,
+  Kitto.Config.AccessControl,
+  Kitto.Config.Log,
+  Kitto.Config.Desktop,
+  Kitto.Config.Theme,
   Kitto.Metadata.SubNodes;
 
 const
@@ -86,6 +93,12 @@ type
     FModels: TKModels;
     FViews: TKViews;
     FServer: TKServerConfig;
+    FAuth: TKAuthConfig;
+    FNotifications: TKNotificationsConfig;
+    FUserFormats: TKUserFormatsConfig;
+    FAccessControl: TKAccessControlConfig;
+    FLogTextFile: TKLogTextFileConfig;
+    FDesktop: TKDesktopConfig;
     FUserFormatSettings: TFormatSettings;
 
     // Per-thread cached connections, released by ClearDatabase at end of each
@@ -504,13 +517,15 @@ begin
   { TODO : allow to change format settings on a per-user basis. }
   FUserFormatSettings := FormatSettings.Create;
 
-  FUserFormatSettings.ShortTimeFormat := Config.GetString('UserFormats/Time', FUserFormatSettings.ShortTimeFormat);
+  if UserFormats.Time <> '' then
+    FUserFormatSettings.ShortTimeFormat := UserFormats.Time;
   if Pos('.', FUserFormatSettings.ShortTimeFormat) > 0 then
     FUserFormatSettings.TimeSeparator := '.'
   else
     FUserFormatSettings.TimeSeparator := ':';
 
-  FUserFormatSettings.ShortDateFormat := Config.GetString('UserFormats/Date', FUserFormatSettings.ShortDateFormat);
+  if UserFormats.Date <> '' then
+    FUserFormatSettings.ShortDateFormat := UserFormats.Date;
   if Pos('.', FUserFormatSettings.ShortDateFormat) > 0 then
     FUserFormatSettings.DateSeparator := '.'
   else if Pos('-', FUserFormatSettings.ShortDateFormat) > 0 then
@@ -518,16 +533,16 @@ begin
   else
     FUserFormatSettings.DateSeparator := '/';
 
-  LDecimalSeparator := Config.GetString('UserFormats/Decimal', '');
+  LDecimalSeparator := UserFormats.Decimal;
   if LDecimalSeparator <> '' then
     FUserFormatSettings.DecimalSeparator := LDecimalSeparator[1];
 
-  LThousandSeparator := Config.GetString('UserFormats/Thousand', '');
+  LThousandSeparator := UserFormats.Thousand;
   if LThousandSeparator <> '' then
     FUserFormatSettings.ThousandSeparator := LThousandSeparator[1];
 
-  FUserFormatSettings.CurrencyString :=
-    Config.GetString('UserFormats/Currency', FUserFormatSettings.CurrencyString);
+  if UserFormats.Currency <> '' then
+    FUserFormatSettings.CurrencyString := UserFormats.Currency;
 
   //Set also global FormatSettings variable
   FormatSettings := FUserFormatSettings;
@@ -537,6 +552,12 @@ destructor TKConfig.Destroy;
 begin
   inherited;
   FreeAndNil(FServer);
+  FreeAndNil(FAuth);
+  FreeAndNil(FNotifications);
+  FreeAndNil(FUserFormats);
+  FreeAndNil(FAccessControl);
+  FreeAndNil(FLogTextFile);
+  FreeAndNil(FDesktop);
   FreeAndNil(FViews);
   FreeAndNil(FModels);
   FreeAndNil(FMacroExpansionEngine);
@@ -549,6 +570,18 @@ begin
   // the freshly reloaded tree (any code holding Config.Server keeps working).
   if FServer <> nil then
     FServer.Refresh(Config.FindNode('Server'));
+  if FAuth <> nil then
+    FAuth.Refresh(Config.FindNode('Auth'));
+  if FNotifications <> nil then
+    FNotifications.Refresh(Config.FindNode('Notifications'));
+  if FUserFormats <> nil then
+    FUserFormats.Refresh(Config.FindNode('UserFormats'));
+  if FAccessControl <> nil then
+    FAccessControl.Refresh(Config.FindNode('AccessControl'));
+  if FLogTextFile <> nil then
+    FLogTextFile.Refresh(Config.FindNode('Log/TextFile'));
+  if FDesktop <> nil then
+    FDesktop.Refresh(Config.FindNode('Desktop'));
 end;
 
 function TKConfig.Authenticator: TKAuthenticator;
@@ -1055,27 +1088,38 @@ end;
 
 function TKConfig.GetAuth: TKAuthConfig;
 begin
-  Result := nil; // RTTI discovery only
+  if FAuth = nil then
+    FAuth := TKAuthConfig.Create(Config.FindNode('Auth'));
+  Result := FAuth;
 end;
 
 function TKConfig.GetAccessControl: TKAccessControlConfig;
 begin
-  Result := nil; // RTTI discovery only
+  if FAccessControl = nil then
+    FAccessControl := TKAccessControlConfig.Create(Config.FindNode('AccessControl'));
+  Result := FAccessControl;
 end;
 
 function TKConfig.GetUserFormats: TKUserFormatsConfig;
 begin
-  Result := nil; // RTTI discovery only
+  // Typed reader, created lazily and cached; reads the 'UserFormats' subtree once.
+  if FUserFormats = nil then
+    FUserFormats := TKUserFormatsConfig.Create(Config.FindNode('UserFormats'));
+  Result := FUserFormats;
 end;
 
 function TKConfig.GetLogTextFile: TKLogTextFileConfig;
 begin
-  Result := nil; // RTTI discovery only
+  if FLogTextFile = nil then
+    FLogTextFile := TKLogTextFileConfig.Create(Config.FindNode('Log/TextFile'));
+  Result := FLogTextFile;
 end;
 
 function TKConfig.GetDesktop: TKDesktopConfig;
 begin
-  Result := nil; // RTTI discovery only
+  if FDesktop = nil then
+    FDesktop := TKDesktopConfig.Create(Config.FindNode('Desktop'));
+  Result := FDesktop;
 end;
 
 function TKConfig.GetTheme: TKThemeConfig;
@@ -1085,7 +1129,9 @@ end;
 
 function TKConfig.GetNotifications: TKNotificationsConfig;
 begin
-  Result := nil; // RTTI discovery only
+  if FNotifications = nil then
+    FNotifications := TKNotificationsConfig.Create(Config.FindNode('Notifications'));
+  Result := FNotifications;
 end;
 
 

@@ -81,8 +81,8 @@ uses
   Kitto.Chat.Provider,
   Kitto.Chat.Runner,
   Kitto.Web.Routing.Registry,
-  MarkdownProcessor,
-  MarkdownUtils;
+  Kitto.MarkdownProcessor,
+  Kitto.MarkdownUtils;
 
 function RoleToClass(const ARole: TKXChatRole): string;
 begin

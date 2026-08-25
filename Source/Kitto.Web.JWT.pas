@@ -709,7 +709,7 @@ begin
   begin
     if FKeySpec = '' then
       raise EKJWTError.Create(
-        'JWT signing key not configured. Set Auth/SigningKey in YAML (env: file: or inline)' +
+        'JWT signing key not configured. Set Auth/JWT/SigningKey in YAML (env: file: or inline)' +
         ' or register a provider via TKJWTSigningKeyRegistry from UseKitto.pas.');
     LBytes := ResolveKeySpec(FKeySpec);
     if Length(LBytes) = 0 then

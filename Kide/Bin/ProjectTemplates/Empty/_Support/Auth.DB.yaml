@@ -1,7 +1,7 @@
 Auth: DB
   IsClearPassword: False
   IsPassepartoutEnabled: False
-  PassepartoutPassword:
+  PassepartoutPassword: password
   AfterAuthenticateCommandText:
   ReadUserCommandText:
   SetPasswordCommandText:

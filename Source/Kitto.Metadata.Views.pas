@@ -87,13 +87,58 @@ type
 
   TKLayouts = class;
 
+  {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  Field-level layout overrides.
+  ///  YAML path: Layout/Field
+  /// </summary>
+  TKLayoutFieldConfig = class(TEFNode)
+  private
+    function GetCharWidth: Integer;
+    function GetDisplayWidth: Integer;
+    function GetAlignment: string;
+    function GetIsReadOnly: Boolean;
+    function GetDisplayFormat: string;
+  public
+    [YamlNode('CharWidth', 'Field width in characters')]
+    property CharWidth: Integer read GetCharWidth;
+
+    [YamlNode('DisplayWidth', 'Display width override in characters')]
+    property DisplayWidth: Integer read GetDisplayWidth;
+
+    [YamlNode('Alignment', 'Text alignment: left, center, right')]
+    property Alignment: string read GetAlignment;
+
+    [YamlNode('IsReadOnly', 'True', 'Force field to read-only in this layout')]
+    property IsReadOnly: Boolean read GetIsReadOnly;
+
+    [YamlNode('DisplayFormat', 'Format string for display rendering')]
+    property DisplayFormat: string read GetDisplayFormat;
+  end;
+
+  /// <summary>
+  ///  FieldSet grouping in a layout.
+  ///  YAML path: Layout/FieldSet
+  /// </summary>
+  TKLayoutFieldSetConfig = class(TEFNode)
+  private
+    function GetTitle: string;
+    function GetCollapsible: Boolean;
+  public
+    [YamlNode('Title', 'FieldSet title')]
+    property Title: string read GetTitle;
+
+    [YamlNode('Collapsible', 'True', 'Allow the fieldset to be collapsed')]
+    property Collapsible: Boolean read GetCollapsible;
+  end;
+
   /// <summary>
   ///  A layout: the persistent arrangement of fields (rows, fieldsets, page
   ///  breaks) and label/field sizing options used to render a form or grid.
   /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
-  [YamlChildType('Field', '', 'Form field')]
-  [YamlChildType('FieldSet', '', 'Grouped fieldset')]
+  [YamlChildType('Field', TKLayoutFieldConfig, '', 'Form field')]
+  [YamlChildType('FieldSet', TKLayoutFieldSetConfig, '', 'Grouped fieldset')]
   [YamlChildType('Row', '', 'Horizontal row of fields')]
   [YamlChildType('Pagebreak', '', 'Page break in layout')]
   TKLayout = class(TKMetadata)
@@ -953,6 +998,45 @@ end;
 function TKLayout.GetLabelSeparator: string;
 begin
   Result := GetString('LabelSeparator', ':');
+end;
+
+{ TKLayoutFieldConfig }
+
+function TKLayoutFieldConfig.GetCharWidth: Integer;
+begin
+  Result := GetInteger('CharWidth');
+end;
+
+function TKLayoutFieldConfig.GetDisplayWidth: Integer;
+begin
+  Result := GetInteger('DisplayWidth');
+end;
+
+function TKLayoutFieldConfig.GetAlignment: string;
+begin
+  Result := GetString('Alignment');
+end;
+
+function TKLayoutFieldConfig.GetIsReadOnly: Boolean;
+begin
+  Result := GetBoolean('IsReadOnly', False);
+end;
+
+function TKLayoutFieldConfig.GetDisplayFormat: string;
+begin
+  Result := GetString('DisplayFormat');
+end;
+
+{ TKLayoutFieldSetConfig }
+
+function TKLayoutFieldSetConfig.GetTitle: string;
+begin
+  Result := GetString('Title');
+end;
+
+function TKLayoutFieldSetConfig.GetCollapsible: Boolean;
+begin
+  Result := GetBoolean('Collapsible', False);
 end;
 
 initialization

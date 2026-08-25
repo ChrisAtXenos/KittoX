@@ -60,7 +60,7 @@ type
 implementation
 
 uses
-  gnugettext,
+  Kitto.gnugettext,
   Kitto.Config;
 
 { TKdxgettextLocalizationTool }
@@ -78,19 +78,19 @@ end;
 
 procedure TKdxgettextLocalizationTool.ForceLanguage(const ALanguageId: string);
 begin
-  gnugettext.UseLanguage(ALanguageId);
+  Kitto.gnugettext.UseLanguage(ALanguageId);
 end;
 
 function TKdxgettextLocalizationTool.GetCurrentLanguageId: string;
 begin
-  Result := gnugettext.GetCurrentLanguage;
+  Result := Kitto.gnugettext.GetCurrentLanguage;
 end;
 
 procedure TKdxgettextLocalizationTool.TranslateComponent(const AComponent: TComponent);
 begin
   EnsureTextDomainBound;
-  gnugettext.TranslateComponent(AComponent, KITTO_TEXT_DOMAIN);
-  gnugettext.TranslateComponent(AComponent, 'default');
+  Kitto.gnugettext.TranslateComponent(AComponent, KITTO_TEXT_DOMAIN);
+  Kitto.gnugettext.TranslateComponent(AComponent, 'default');
 end;
 
 function TKdxgettextLocalizationTool.TranslateString(const AString,
@@ -98,16 +98,16 @@ function TKdxgettextLocalizationTool.TranslateString(const AString,
 begin
   EnsureTextDomainBound;
   // Look in the Kitto text domain first, then in the application domain.
-  Result := gnugettext.dgettext(KITTO_TEXT_DOMAIN, AString);
+  Result := Kitto.gnugettext.dgettext(KITTO_TEXT_DOMAIN, AString);
   if Result = AString then
-    Result := gnugettext.dgettext('default', AString);
+    Result := Kitto.gnugettext.dgettext('default', AString);
 end;
 
 procedure TKdxgettextLocalizationTool.EnsureTextDomainBound;
 begin
   if not FTextDomainBound then
   begin
-    gnugettext.bindtextdomain(KITTO_TEXT_DOMAIN, TKConfig.Instance.SystemHomePath + 'locale');
+    Kitto.gnugettext.bindtextdomain(KITTO_TEXT_DOMAIN, TKConfig.Instance.SystemHomePath + 'locale');
     FTextDomainBound := True;
   end;
 end;

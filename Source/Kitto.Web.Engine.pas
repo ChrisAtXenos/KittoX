@@ -203,7 +203,10 @@ begin
         [LAuthType, LAuthType,
          String.Join(', ', TKAuthenticatorRegistry.Instance.GetClassIds)]);
     end;
-    FAuthCarriesSessionId := TKAuthenticatorClass(LAuthClass).CarriesSessionIdInCredential;
+    // Session-id-in-credential is a property of the JWT envelope: the credential
+    // carries the 'sid' claim exactly when the auth config declares a JWT
+    // sub-block (Auth/JWT), so no separate session-id cookie is emitted.
+    FAuthCarriesSessionId := Assigned(LConfig.Config.FindNode('Auth/JWT'));
     // Expand the '{apibase}' placeholder in the REST routes with the configured
     // base path (Server/RestBasePath, default '/api/v4') now that the config is
     // loaded, before any request is served. No-op for non-REST routes / apps.

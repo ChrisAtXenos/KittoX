@@ -39,7 +39,7 @@ td{
 <h1>Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX</h1>
 <p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a>
 <a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
-<p><strong>Latest Version 4.0.17 - 23 Aug 2026</strong></p>
+<p><strong>Latest Version 4.0.18 - 25 Aug 2026</strong></p>
 <p><img src="./images/kittoX_logo_200.png" alt="KittoX_logo.png"/></p>
 <p><strong>Kitto<sup>x</sup></strong> allows to create <strong>Rich Internet Applications</strong> based on a data model that can be mapped onto any database. The client-side part uses <strong>HTMX</strong> (through webbroker technology) to create a fully <strong>AJAX</strong> application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.</p>
 <p><strong>Kitto<sup>x</sup></strong> is aimed at <strong>Delphi</strong> developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.</p>
@@ -78,6 +78,32 @@ td{
 <p>Visit <a href="https://ethea.it/Kitto-Demo/">this site</a> for online demos.</p>
 <hr />
 <h1>Release Notes</h1>
+<h2>25 Aug 2026: ver. 4.0.18 Beta</h2>
+<h3>Authentication</h3>
+<ul>
+<li><strong>JWT is now a flat, opt-in envelope</strong> on any authenticator: write the real <code>Auth: &lt;X&gt;</code> and add an optional <code>JWT:</code> sub-node to issue the signed token — no more <code>Auth: JWT</code> + <code>Inner:</code> wrapper. JOSE stays out of the core (opt-in <code>Kitto.Auth.JWT</code> engine); example configs migrated to the flat model</li>
+</ul>
+<h3>Refactoring — config metadata reorganization</h3>
+<ul>
+<li><strong>Per-domain config readers</strong> (<code>Kitto.Config.&lt;Domain&gt;</code>) replace the monolithic sub-node stubs for Server, Auth, Notifications, UserFormats, AccessControl, Log, Desktop and Theme</li>
+<li><strong>View/model descriptors moved next to their consumer</strong> (DB connections → <code>EF.DB.*</code>, Chart → <code>ChartPanel</code>, ViewTable/Filter → <code>DataView</code>, Layout → <code>Views</code>, model fields → <code>Models</code>); the emptied <code>Kitto.Metadata.SubNodes2</code> unit was removed</li>
+<li>New <strong>typed <code>[YamlChildType(name, Class)]</code></strong> lets KIDE edit the per-type config of layout fields and filter items</li>
+</ul>
+<h3>KIDE<sup>x</sup> — New Project Wizard</h3>
+<ul>
+<li>Added <strong>ODAC (Oracle Data Access)</strong> as a selectable database engine; the generated app links <code>EF.DB.ODAC</code> and gets its <code>Databases</code> node</li>
+<li>Generated databases now get <strong>descriptive names</strong> — a primary <code>Main</code> (priority FireDAC → ODAC → ADO → DBExpress) plus the remaining engines named <code>FireDAC</code> / <code>ODAC</code> / <code>ADO</code> / <code>DBExpress</code>, instead of the old generic <code>Main</code> / <code>Other1</code> / <code>Other2</code> / <code>Other3</code></li>
+<li>Hourglass cursor while the project is being generated</li>
+</ul>
+<h3>Setup installer</h3>
+<ul>
+<li><strong>New installer that builds the packages for you</strong>: it now <strong>compiles the framework packages</strong> (Core + Enterprise + IDE) for every selected Delphi version (Win32 and Win64), creates the <strong><code>KITTOX_HOME</code></strong> environment variable, and registers the <strong>global IDE library search paths</strong> — so the examples and your own projects compile out of the box, no manual step.</li>
+</ul>
+<h3>Packaging</h3>
+<ul>
+<li><strong>Some ThirdParty units are being namespaced</strong> with a <code>Kitto.</code> prefix (MarkdownProcessor, gnugettext, Base32U, DelphiZXIngQRCode, ADOX_TypeLibrary, …) to avoid unit-name clashes with the same libraries shipped by other packages</li>
+<li><strong>delphi-jose-jwt updated</strong> and its vendored sources reorganized into the upstream <code>Common</code> / <code>JOSE</code> folder layout</li>
+</ul>
 <h2>23 Aug 2026: ver. 4.0.17 Beta</h2>
 <h3>Bug fixes</h3>
 <ul>

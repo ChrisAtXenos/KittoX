@@ -123,107 +123,108 @@ Databases:
       # Optional ALTER SESSION SET CURRENT_SCHEMA on connect.
       Schema: TASKITTO
 
-Auth: JWT
-  # Inner authenticator: the actual credential check stays delegated to the
-  # TasKitto custom DB authenticator (registered by Auth.pas). TKJWTAuthenticator
-  # wraps it: on successful Authenticate, builds and signs a JWT, sets it in
-  # the kx_token HttpOnly cookie, and reads/validates it on every subsequent
-  # request via the auth gate in TKWebApplication.DoHandleRequest.
-  Inner: TasKitto
-    IsPassepartoutEnabled: True
-    PassepartoutPassword: password
-    IsClearPassword: True
-    # Show an "Environment" combo before UserName on the login page so users can
-    # pick which database to connect to. Comma-separated list of database names
-    # defined under the Databases node above. The chosen value is exposed as
-    # %Auth:DatabaseName% AND embedded in the JWT 'db' claim, replacing the
-    # legacy kx_db cookie.
-    DatabaseChoices: FireDAC_MSSQL, FireDAC_PostgreSQL, FireDAC_Firebird, FireDAC_Oracle, ODAC_Oracle
-    .Defaults:
-      UserName: administrator
-      Password: password
-    ReadUserCommandText: |
-      select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD, FIRST_NAME, LAST_NAME
-      from KITTO_USERS
-      where IS_ACTIVE = %DB.TRUE% and UPPER(USER_NAME) = UPPER(:USER_NAME)
-    ValidatePassword:
-      Message: Min 8 with upper+lower+number+special chars
-      RegEx: ^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$
-    ResetMailMessage:
-      From: <support@kitto.org>
-      Subject: Reset password required from %Config:AppTitle%
-      Body: |
-        Hello #UserName#.
-        You have requested a password reset.
-        The new temporary password you need to use the next time you log in is #TempPassword#.
-        Best regards.
+Auth: TasKitto
+  # The credential check is performed by the TasKitto custom DB authenticator
+  # (registered by Auth.pas). The optional JWT: block below turns on the
+  # self-contained token envelope: on a successful login the Kitto.Auth.JWT
+  # engine builds and signs a JWT, sets it in the kx_token HttpOnly cookie, and
+  # reads/validates it on every subsequent request via the auth request-filter.
+  IsPassepartoutEnabled: True
+  PassepartoutPassword: password
+  IsClearPassword: True
+  # Show an "Environment" combo before UserName on the login page so users can
+  # pick which database to connect to. Comma-separated list of database names
+  # defined under the Databases node above. The chosen value is exposed as
+  # %Auth:DatabaseName% AND embedded in the JWT 'db' claim, replacing the
+  # legacy kx_db cookie.
+  DatabaseChoices: FireDAC_MSSQL, FireDAC_PostgreSQL, FireDAC_Firebird, FireDAC_Oracle, ODAC_Oracle
+  .Defaults:
+    UserName: administrator
+    Password: password
+  ReadUserCommandText: |
+    select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD, FIRST_NAME, LAST_NAME
+    from KITTO_USERS
+    where IS_ACTIVE = %DB.TRUE% and UPPER(USER_NAME) = UPPER(:USER_NAME)
+  ValidatePassword:
+    Message: Min 8 with upper+lower+number+special chars
+    RegEx: ^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$
+  ResetMailMessage:
+    From: <support@kitto.org>
+    Subject: Reset password required from %Config:AppTitle%
+    Body: |
+      Hello #UserName#.
+      You have requested a password reset.
+      The new temporary password you need to use the next time you log in is #TempPassword#.
+      Best regards.
 
-        The team of %Config:AppTitle%
-      HTMLBody: |
-        <p>Hello <b>#UserName#</b>.<br>
-        <p>You have requested a password reset.<br>
-        The new temporary password you need to use the next time you log in is <b>#TempPassword#</b>.<br>
-        Best regards.</p>
-        </p>
-        <p>The team of <b>%Config:AppTitle%</b><p>
-    NewUserMailMessage:
-      From: <support@kitto.org>
-      Subject: New user registration from %Config:AppTitle%
-      Body: |
-        Welcome #UserName#.
-        You have created a new user.
-        The new temporary password you need on your first log in is #TempPassword#.
-        Best regards.
+      The team of %Config:AppTitle%
+    HTMLBody: |
+      <p>Hello <b>#UserName#</b>.<br>
+      <p>You have requested a password reset.<br>
+      The new temporary password you need to use the next time you log in is <b>#TempPassword#</b>.<br>
+      Best regards.</p>
+      </p>
+      <p>The team of <b>%Config:AppTitle%</b><p>
+  NewUserMailMessage:
+    From: <support@kitto.org>
+    Subject: New user registration from %Config:AppTitle%
+    Body: |
+      Welcome #UserName#.
+      You have created a new user.
+      The new temporary password you need on your first log in is #TempPassword#.
+      Best regards.
 
-        The team of %Config:AppTitle%
-      HTMLBody: |
-        <p>Welcome <b>#UserName#</b>.<br>
-        <p>You have created a new user.<br>
-        The new temporary password you need on your first log in is <b>#TempPassword#</b>.<br>
-        Best regards.</p>
-        </p>
-        <p>The team of <b>%Config:AppTitle%</b><p>
+      The team of %Config:AppTitle%
+    HTMLBody: |
+      <p>Welcome <b>#UserName#</b>.<br>
+      <p>You have created a new user.<br>
+      The new temporary password you need on your first log in is <b>#TempPassword#</b>.<br>
+      Best regards.</p>
+      </p>
+      <p>The team of <b>%Config:AppTitle%</b><p>
 
-  # JWT envelope settings.
-  # SigningAlgorithm: HS256/HS384/HS512 (HMAC, no OpenSSL DLL required from
-  # Delphi 10 Seattle onward) or RS256/RS384/RS512/ES256/ES384/ES512 (asymmetric,
-  # require OpenSSL libraries to be deployed alongside the binary).
-  SigningAlgorithm: HS256
-  # SigningKey accepts:
-  #   env:VAR_NAME    read from environment variable (recommended for prod)
-  #   file:/path      read raw bytes from a file (PEM for RS*/ES*)
-  #   inline literal  any other value, used as the raw key (DEV ONLY)
-  # The TaskittoX demo overrides this via TKJWTSigningKeyRegistry in
-  # UseKitto.pas — the registered provider always takes precedence over
-  # this YAML setting. The env var fallback is kept here so that removing
-  # the provider from UseKitto.pas keeps the app running without code
-  # changes (just set KX_JWT_KEY_TASKITTO).
-  SigningKey: env:KX_JWT_KEY_TASKITTO
-  # iss/aud claims — verified on every request validation.
-  Issuer: TaskittoX
-  Audience: kx-app
-  # exp claim relative to issue time, in seconds.
-  TokenLifetime: 3600
-  # When (exp - now) drops below SlidingThreshold seconds, the auth gate
-  # re-issues the cookie with a fresh exp. Set to 0 to disable sliding.
-  SlidingThreshold: 600
-  # Allowance (seconds) for clock skew between client and server during
-  # exp/nbf/iat validation.
-  ClockSkew: 60
-  # Optional claim selection — only matters for downstream consumers that
-  # look at the embedded user profile.
-  Claims:
-    IncludeRoles: True
-    IncludeDB: True
-    IncludeDisplayName: True
-    IncludeLanguage: True
-    # The kx_acl claim is populated automatically at login when AccessControl
-    # below is set to JWT — no opt-in flag needed. TKJWTAuthenticator queries
-    # KITTO_PERMISSIONS + KITTO_USER_ROLES (using the SQL templates from
-    # AccessControl) and embeds the user's grant rows. TKJWTAccessController
-    # then evaluates IsAccessGranted against this snapshot without re-hitting
-    # the DB on every request. Trade-off: changes to the underlying tables
-    # are not reflected until the user logs in again.
+  # Optional JWT envelope. Present = issue/validate a JWT (the engine is added
+  # by the Kitto.Auth.JWT unit referenced from UseKitto.pas).
+  JWT:
+    # SigningAlgorithm: HS256/HS384/HS512 (HMAC, no OpenSSL DLL required from
+    # Delphi 10 Seattle onward) or RS256/RS384/RS512/ES256/ES384/ES512 (asymmetric,
+    # require OpenSSL libraries to be deployed alongside the binary).
+    SigningAlgorithm: HS256
+    # SigningKey accepts:
+    #   env:VAR_NAME    read from environment variable (recommended for prod)
+    #   file:/path      read raw bytes from a file (PEM for RS*/ES*)
+    #   inline literal  any other value, used as the raw key (DEV ONLY)
+    # The TaskittoX demo overrides this via TKJWTSigningKeyRegistry in
+    # UseKitto.pas — the registered provider always takes precedence over
+    # this YAML setting. The env var fallback is kept here so that removing
+    # the provider from UseKitto.pas keeps the app running without code
+    # changes (just set KX_JWT_KEY_TASKITTO).
+    SigningKey: env:KX_JWT_KEY_TASKITTO
+    # iss/aud claims — verified on every request validation.
+    Issuer: TaskittoX
+    Audience: kx-app
+    # exp claim relative to issue time, in seconds.
+    TokenLifetime: 3600
+    # When (exp - now) drops below SlidingThreshold seconds, the auth gate
+    # re-issues the cookie with a fresh exp. Set to 0 to disable sliding.
+    SlidingThreshold: 600
+    # Allowance (seconds) for clock skew between client and server during
+    # exp/nbf/iat validation.
+    ClockSkew: 60
+    # Optional claim selection — only matters for downstream consumers that
+    # look at the embedded user profile.
+    Claims:
+      IncludeRoles: True
+      IncludeDB: True
+      IncludeDisplayName: True
+      IncludeLanguage: True
+      # The kx_acl claim is populated automatically at login when AccessControl
+      # below is set to JWT — no opt-in flag needed. The JWT engine queries
+      # KITTO_PERMISSIONS + KITTO_USER_ROLES (using the SQL templates from
+      # AccessControl) and embeds the user's grant rows. TKJWTAccessController
+      # then evaluates IsAccessGranted against this snapshot without re-hitting
+      # the DB on every request. Trade-off: changes to the underlying tables
+      # are not reflected until the user logs in again.
 
 
 AccessControl: JWT

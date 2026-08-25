@@ -23,7 +23,7 @@ uses
   System.Classes,
   Data.DB,
   Data.Win.ADODB,
-  ADOX_TypeLibrary,
+  Kitto.ADOX_TypeLibrary,
   EF.Tree,
   Kitto.Metadata.DataView;
 

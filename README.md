@@ -2,7 +2,7 @@
 [![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
 
-**Latest Version 4.0.17 - 23 Aug 2026**
+**Latest Version 4.0.18 - 25 Aug 2026**
 
 ![KittoX_logo.png](./images/kittoX_logo_200.png)
 
@@ -54,7 +54,31 @@ Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
 
 # Release Notes
 
+## 25 Aug 2026: ver. 4.0.18 Beta
+
+### Refactoring — config metadata reorganization
+- **Per-domain config readers** (`Kitto.Config.<Domain>`) replace the monolithic sub-node stubs for Server, Auth, Notifications, UserFormats, AccessControl, Log, Desktop and Theme
+- **View/model descriptors moved next to their consumer** (DB connections → `EF.DB.*`, Chart → `ChartPanel`, ViewTable/Filter → `DataView`, Layout → `Views`, model fields → `Models`); the emptied `Kitto.Metadata.SubNodes2` unit was removed
+- New **typed `[YamlChildType(name, Class)]`** lets KIDE edit the per-type config of layout fields and filter items
+
+### KIDE<sup>x</sup> — New Project Wizard
+- Added **ODAC (Oracle Data Access)** as a selectable database engine; the generated app links `EF.DB.ODAC` and gets its `Databases` node
+- Generated databases now get **descriptive names** — a primary `Main` (priority FireDAC → ODAC → ADO → DBExpress) plus the remaining engines named `FireDAC` / `ODAC` / `ADO` / `DBExpress`, instead of the old generic `Main` / `Other1` / `Other2` / `Other3`
+- Hourglass cursor while the project is being generated
+
+### Setup installer
+- **New installer that builds the packages for you**: it now **compiles the framework packages** (Core + Enterprise + IDE) for every selected Delphi version (Win32 and Win64), creates the **`KITTOX_HOME`** environment variable, and registers the **global IDE library search paths** — so the examples and your own projects compile out of the box, no manual step.
+
+### Packaging
+- **Some ThirdParty units are being namespaced** with a `Kitto.` prefix (MarkdownProcessor, gnugettext, Base32U, DelphiZXIngQRCode, ADOX_TypeLibrary, …) to avoid unit-name clashes with the same libraries shipped by other packages
+- **delphi-jose-jwt updated** and its vendored sources reorganized into the upstream `Common` / `JOSE` folder layout
+
 ## 23 Aug 2026: ver. 4.0.17 Beta
+
+### Authentication — JWT envelope
+- The signed-cookie JWT is configured as an **optional `JWT:` sub-block** under any authenticator: write the authenticator directly (`Auth: DB`, `Auth: LDAP`, `Auth: TasKitto`, …) and add `JWT:` to issue and validate a self-contained `kx_token`. Presence of the `Auth/JWT` node enables it; without the block the same authenticator uses a plain session cookie
+- The authenticator's own keys (`ReadUserCommandText`, `DatabaseChoices`, `ValidatePassword`, `.Defaults`, …) sit **directly under `Auth/`**; only the token keys (`SigningAlgorithm`, `SigningKey`, `Issuer`, `Cookie:`, `Claims:`, …) sit under `Auth/JWT/`
+- Orchestration lives in the base `TKAuthenticator` (`IsJWTEnabled`, `AuthorizeRequest`/`Authenticate`/`Logout`, `IssueToken`); the JOSE crypto is delegated to an opt-in engine (`TKJWTEngine`, `IKXJWTEngine`) registered by `Kitto.Auth.JWT`, so the core carries **no** dependency on delphi-jose-jwt. See [JWT envelope](Config_AuthJWT)
 
 ### Bug fixes
 - **Opening a Calendar view no longer logs the user out** — the calendar loads its events with a `fetch` that cannot carry the `X-KittoX` header, so the navigation guard mistook it for a top-level navigation and bounced it to the app root (which signs the session out); the guard now uses the browser's **`Sec-Fetch-Mode`** header to tell a real navigation from a data request

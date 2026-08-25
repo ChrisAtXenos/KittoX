@@ -16,7 +16,7 @@
 
 /// <summary>
 ///   JWT-claim-based access controller. Reads grants from the kx_acl claim
-///   embedded in the JWT at login time (by TKJWTAuthenticator.BuildAclFromDB)
+///   embedded in the JWT at login time (by TKJWTEngine.BuildAclFromDB)
 ///   and replays the same matching logic as TKDBAccessController/TKUserPermissionStorage.
 ///
 ///   Closed-world: if the kx_acl claim is missing, or a (resource, mode) is
@@ -104,9 +104,9 @@ begin
   // ACL snapshotted at login. Closed-world: missing context, missing claim
   // or unmatched (resource, mode) all yield Null (deny).
   Result := Null;
-  if TKJWTAuthenticator.HasContext then
+  if TKJWTEngine.HasContext then
   begin
-    LContext := TKJWTAuthenticator.CurrentContext;
+    LContext := TKJWTEngine.CurrentContext;
     if LContext.HasAcl then
       Result := EvaluateFromClaim(LContext.Acl, AResourceURI, AMode);
   end;

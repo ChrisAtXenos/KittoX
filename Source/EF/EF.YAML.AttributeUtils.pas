@@ -100,6 +100,10 @@ type
   TYamlChildTypeInfo = record
     /// <summary>Node name (e.g. 'StringField', 'ForceUpperCase').</summary>
     Name: string;
+    /// <summary>Descriptor class for the child, or nil for scalar/marker children.
+    /// When assigned, KIDE resolves the added child node to this class and edits
+    /// its per-type properties (see GetSubNodeClassFromParent).</summary>
+    ChildClass: TClass;
     /// <summary>Default value (e.g. 'String(10)', 'Integer').</summary>
     DefaultValue: string;
     /// <summary>English description for KIDE tooltip.</summary>
@@ -378,6 +382,7 @@ begin
       begin
         LInfo := Default(TYamlChildTypeInfo);
         LInfo.Name := YamlChildTypeAttribute(LAttr).Name;
+        LInfo.ChildClass := YamlChildTypeAttribute(LAttr).ChildClass;
         LInfo.DefaultValue := YamlChildTypeAttribute(LAttr).DefaultValue;
         LInfo.Description := YamlChildTypeAttribute(LAttr).Description;
         LList.Add(LInfo);

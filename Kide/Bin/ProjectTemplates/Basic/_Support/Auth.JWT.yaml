@@ -1,19 +1,10 @@
-Auth: JWT
-  # JWT wraps an Inner authenticator (DB / DBServer / OSDB / TextFile) and
-  # issues a signed self-contained credential cookie (kx_token). On every
-  # request the cookie is verified against the embedded signature, with no
-  # server-side session-id lookup required.
-  # Default Inner is DB; edit to match your credential storage.
-  Inner: DB
-    IsClearPassword: False
-    IsPassepartoutEnabled: False
-    PassepartoutPassword:
-    ReadUserCommandText:
-    SetPasswordCommandText:
-    Defaults:
-      UserName:
-      Password:
-
+# Optional JWT envelope for the Auth block above. The presence of this JWT
+# node turns on issuing/validating a signed self-contained credential cookie
+# (kx_token): on every request the cookie is verified against the embedded
+# signature, with no server-side session-id lookup required. The engine is
+# added by the Kitto.Auth.JWT unit referenced from UseKitto.pas. Remove the
+# whole JWT node to fall back to a plain server-side session cookie.
+JWT:
   # Signing algorithm. HS* (HMAC) needs no OpenSSL DLL from Delphi 10
   # Seattle on; RS*/ES* (asymmetric) require OpenSSL libraries deployed
   # alongside the binary.

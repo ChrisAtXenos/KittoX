@@ -6,6 +6,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
   Constraints.MinHeight = 380
   Constraints.MinWidth = 480
   Position = poMainFormCenter
+  StyleElements = [seFont, seClient, seBorder]
   OnCreate = FormCreate
   ExplicitWidth = 484
   ExplicitHeight = 453
@@ -13,7 +14,9 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
   inherited PageControl: TPageControl
     Width = 468
     Height = 353
-    ActivePage = AppTypeTabSheet
+    ActivePage = OptionsTabSheet
+    ExplicitWidth = 468
+    ExplicitHeight = 353
     object AppTypeTabSheet: TTabSheet
       Caption = 'DeploymentModesTabSheet'
       ImageIndex = 4
@@ -114,9 +117,13 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         ParentShowHint = False
         ShowHint = True
         TabOrder = 0
+        ExplicitWidth = 157
+        ExplicitHeight = 322
         inherited ListView: TListView
           Width = 157
           Height = 322
+          ExplicitWidth = 157
+          ExplicitHeight = 322
         end
         inherited ImageList: TImageList
           Height = 64
@@ -2279,15 +2286,15 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
       Caption = 'OptionsTabSheet'
       ImageIndex = 1
       object DatabasesGroupBox: TGroupBox
-        Left = 9
+        Left = 3
         Top = 0
         Width = 200
-        Height = 97
+        Height = 121
         Caption = 'Database Adapters'
         TabOrder = 0
         object DBADOCheckBox: TCheckBox
           Left = 11
-          Top = 67
+          Top = 90
           Width = 180
           Height = 17
           Caption = 'ADO (Deprecated)'
@@ -2295,7 +2302,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         end
         object DBDBXCheckBox: TCheckBox
           Left = 11
-          Top = 44
+          Top = 67
           Width = 180
           Height = 17
           Caption = 'DBExpress (deprecated)'
@@ -2308,6 +2315,14 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
           Height = 17
           Caption = 'FireDac (connection pooling)'
           TabOrder = 0
+        end
+        object DBODACCheckBox: TCheckBox
+          Left = 11
+          Top = 43
+          Width = 180
+          Height = 17
+          Caption = 'ODAC Oracle Data Access'
+          TabOrder = 3
         end
       end
       object AccessControlGroupBox: TGroupBox
@@ -2420,15 +2435,15 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         end
       end
       object LanguageGroupBox: TGroupBox
-        Left = 9
-        Top = 103
+        Left = 3
+        Top = 127
         Width = 200
-        Height = 130
+        Height = 106
         Caption = 'Language && Encoding'
         TabOrder = 2
         object LanguageLabel: TLabel
           Left = 20
-          Top = 41
+          Top = 18
           Width = 47
           Height = 13
           Alignment = taRightJustify
@@ -2436,7 +2451,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         end
         object CharsetLabel: TLabel
           Left = 20
-          Top = 83
+          Top = 60
           Width = 38
           Height = 13
           Alignment = taRightJustify
@@ -2444,7 +2459,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         end
         object LanguageIdComboBox: TComboBox
           Left = 20
-          Top = 58
+          Top = 35
           Width = 160
           Height = 21
           ItemIndex = 0
@@ -2455,7 +2470,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         end
         object CharsetComboBox: TComboBox
           Left = 20
-          Top = 98
+          Top = 75
           Width = 160
           Height = 21
           ItemIndex = 0
@@ -2546,14 +2561,21 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
   inherited ButtonPanel: TPanel
     Top = 378
     Width = 468
+    StyleElements = [seFont, seClient, seBorder]
+    ExplicitTop = 378
+    ExplicitWidth = 468
     inherited BackButton: TButton
       Left = 308
+      ExplicitLeft = 308
     end
     inherited ForwardButton: TButton
       Left = 389
+      ExplicitLeft = 389
     end
   end
   inherited TitlePanel: TPanel
     Width = 458
+    StyleElements = [seFont, seClient, seBorder]
+    ExplicitWidth = 458
   end
 end

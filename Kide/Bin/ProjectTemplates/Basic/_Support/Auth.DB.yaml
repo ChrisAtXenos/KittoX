@@ -1,4 +1,10 @@
 ﻿Auth: DB
-  IsClearPassword: True
-  IsPassepartoutEnabled: True
-  PassepartoutPassword: qwerty
+  IsClearPassword: False
+  IsPassepartoutEnabled: False
+  PassepartoutPassword: password
+  AfterAuthenticateCommandText:
+  ReadUserCommandText:
+  SetPasswordCommandText:
+  Defaults:
+    UserName:
+    Password:

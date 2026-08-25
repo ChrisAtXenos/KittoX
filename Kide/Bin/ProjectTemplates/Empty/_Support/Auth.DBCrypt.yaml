@@ -1,0 +1,8 @@
+Auth: DBCrypt
+  # Passwords are bcrypt-hashed in the PASSWORD_B_HASH column of KITTO_USERS.
+  # BCryptCostValue: 12          # optional work factor (default 12)
+  IsPassepartoutEnabled: True
+  PassepartoutPassword: qwerty
+  ValidatePassword:
+    Message: At least 8 characters, with letters and digits
+    RegEx: '^(?=.*[A-Za-z])(?=.*\d)[ -~]{8,63}$'

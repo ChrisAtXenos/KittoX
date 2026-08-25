@@ -68,8 +68,7 @@ uses
   FireDAC.Comp.DataSet,
   EF.Tree,
   EF.DB,
-  EF.YAML.Attributes,
-  Kitto.Metadata.SubNodes2;
+  EF.YAML.Attributes;
 
 type
   ///	<summary>
@@ -257,6 +256,55 @@ type
     procedure Close; override;
     /// <summary>Returns True if the underlying TFDQuery is active.</summary>
     function IsOpen: Boolean; override;
+  end;
+
+  {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  FireDAC connection parameters.
+  ///  YAML path: DatabaseRouter/DatabaseName/Connection
+  /// </summary>
+  TEFDBFDConnectionConfig = class(TEFNode)
+  private
+    function GetDriverID: string;
+    function GetServer: string;
+    function GetApplicationName: string;
+    function GetDatabase: string;
+    function GetOSAuthent: string;
+    function GetIsolation: string;
+    function GetUser_Name: string;
+    function GetPassword: string;
+    function GetCharacterSet: string;
+    function GetProtocol: string;
+  public
+    [YamlNode('DriverID', 'FireDAC driver identifier (e.g. MSSQL, FB, PG)')]
+    property DriverID: string read GetDriverID;
+
+    [YamlNode('Server', 'Database server host name or address')]
+    property Server: string read GetServer;
+
+    [YamlNode('ApplicationName', 'Application name reported to the server')]
+    property ApplicationName: string read GetApplicationName;
+
+    [YamlNode('Database', 'Database name or path')]
+    property Database: string read GetDatabase;
+
+    [YamlNode('OSAuthent', 'OS-level authentication (Yes/No)')]
+    property OSAuthent: string read GetOSAuthent;
+
+    [YamlNode('Isolation', 'Transaction isolation level')]
+    property Isolation: string read GetIsolation;
+
+    [YamlNode('User_Name', 'Database user name')]
+    property User_Name: string read GetUser_Name;
+
+    [YamlNode('Password', 'Database password')]
+    property Password: string read GetPassword;
+
+    [YamlNode('CharacterSet', 'Connection character set')]
+    property CharacterSet: string read GetCharacterSet;
+
+    [YamlNode('Protocol', 'Network protocol')]
+    property Protocol: string read GetProtocol;
   end;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
@@ -1260,10 +1308,63 @@ begin
   Result := nil; // RTTI discovery only
 end;
 
+{ TEFDBFDConnectionConfig }
+
+function TEFDBFDConnectionConfig.GetDriverID: string;
+begin
+  Result := GetString('DriverID');
+end;
+
+function TEFDBFDConnectionConfig.GetServer: string;
+begin
+  Result := GetString('Server');
+end;
+
+function TEFDBFDConnectionConfig.GetApplicationName: string;
+begin
+  Result := GetString('ApplicationName');
+end;
+
+function TEFDBFDConnectionConfig.GetDatabase: string;
+begin
+  Result := GetString('Database');
+end;
+
+function TEFDBFDConnectionConfig.GetOSAuthent: string;
+begin
+  Result := GetString('OSAuthent');
+end;
+
+function TEFDBFDConnectionConfig.GetIsolation: string;
+begin
+  Result := GetString('Isolation');
+end;
+
+function TEFDBFDConnectionConfig.GetUser_Name: string;
+begin
+  Result := GetString('User_Name');
+end;
+
+function TEFDBFDConnectionConfig.GetPassword: string;
+begin
+  Result := GetString('Password');
+end;
+
+function TEFDBFDConnectionConfig.GetCharacterSet: string;
+begin
+  Result := GetString('CharacterSet');
+end;
+
+function TEFDBFDConnectionConfig.GetProtocol: string;
+begin
+  Result := GetString('Protocol');
+end;
+
 initialization
   TEFDBAdapterRegistry.Instance.RegisterDBAdapter(TEFDBFDAdapter.GetClassId, TEFDBFDAdapter.Create);
 
 finalization
   TEFDBAdapterRegistry.Instance.UnregisterDBAdapter(TEFDBFDAdapter.GetClassId);
+
 
 end.

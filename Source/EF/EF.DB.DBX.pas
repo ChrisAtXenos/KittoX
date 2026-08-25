@@ -31,8 +31,7 @@ uses
   Data.SqlExpr,
   EF.Tree,
   EF.DB,
-  EF.YAML.Attributes,
-  Kitto.Metadata.SubNodes2;
+  EF.YAML.Attributes;
 
 type
   ///	<summary>
@@ -219,6 +218,47 @@ type
     procedure Close; override;
     ///	<summary>DBX implementation of TEFDBQuery.IsOpen.</summary>
     function IsOpen: Boolean; override;
+  end;
+
+  {$RTTI EXPLICIT PROPERTIES([vcPublic])}
+  /// <summary>
+  ///  DBExpress connection parameters.
+  ///  YAML path: DatabaseRouter/DatabaseName/Connection
+  /// </summary>
+  TEFDBDBXConnectionConfig = class(TEFNode)
+  private
+    function GetDriverName: string;
+    function GetDatabase: string;
+    function GetUser_Name: string;
+    function GetPassword: string;
+    function GetServerCharSet: string;
+    function GetWaitOnLocks: string;
+    function GetIsolationLevel: string;
+    function GetHostName: string;
+  public
+    [YamlNode('DriverName', 'DBExpress driver name')]
+    property DriverName: string read GetDriverName;
+
+    [YamlNode('Database', 'Database name or path')]
+    property Database: string read GetDatabase;
+
+    [YamlNode('User_Name', 'Database user name')]
+    property User_Name: string read GetUser_Name;
+
+    [YamlNode('Password', 'Database password')]
+    property Password: string read GetPassword;
+
+    [YamlNode('ServerCharSet', 'Server character set')]
+    property ServerCharSet: string read GetServerCharSet;
+
+    [YamlNode('WaitOnLocks', 'Wait on locks behaviour')]
+    property WaitOnLocks: string read GetWaitOnLocks;
+
+    [YamlNode('IsolationLevel', 'Transaction isolation level')]
+    property IsolationLevel: string read GetIsolationLevel;
+
+    [YamlNode('HostName', 'Database server host name')]
+    property HostName: string read GetHostName;
   end;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
@@ -956,10 +996,53 @@ begin
   end;
 end;
 
+{ TEFDBDBXConnectionConfig }
+
+function TEFDBDBXConnectionConfig.GetDriverName: string;
+begin
+  Result := GetString('DriverName');
+end;
+
+function TEFDBDBXConnectionConfig.GetDatabase: string;
+begin
+  Result := GetString('Database');
+end;
+
+function TEFDBDBXConnectionConfig.GetUser_Name: string;
+begin
+  Result := GetString('User_Name');
+end;
+
+function TEFDBDBXConnectionConfig.GetPassword: string;
+begin
+  Result := GetString('Password');
+end;
+
+function TEFDBDBXConnectionConfig.GetServerCharSet: string;
+begin
+  Result := GetString('ServerCharSet');
+end;
+
+function TEFDBDBXConnectionConfig.GetWaitOnLocks: string;
+begin
+  Result := GetString('WaitOnLocks');
+end;
+
+function TEFDBDBXConnectionConfig.GetIsolationLevel: string;
+begin
+  Result := GetString('IsolationLevel');
+end;
+
+function TEFDBDBXConnectionConfig.GetHostName: string;
+begin
+  Result := GetString('HostName');
+end;
+
 initialization
   TEFDBAdapterRegistry.Instance.RegisterDBAdapter(TEFDBDBXAdapter.GetClassId, TEFDBDBXAdapter.Create);
 
 finalization
   TEFDBAdapterRegistry.Instance.UnregisterDBAdapter(TEFDBDBXAdapter.GetClassId);
+
 
 end.

@@ -147,7 +147,7 @@ begin
   // session-bound state (Auth: JWT ships the database in the 'db' claim), to
   // avoid a parallel kx_db cookie.
   if (ADatabaseName <> '')
-    and not LApp.Authenticator.CarriesSessionIdInCredential then
+    and not LApp.Authenticator.IsJWTEnabled then
     TKWebResponse.Current.SetCookie('kx_db', ADatabaseName,
       Now + COOKIE_DB_LIFETIME_DAYS);
 

@@ -259,8 +259,7 @@ begin
   //   Auth: TasKitto
   //     DatabaseChoices: FireDAC_MSSQL, FireDAC_PostgreSQL, FireDAC_Firebird
   // If this node is absent or empty, no combo is rendered (legacy behavior).
-  // Read via EffectiveConfigNode so that wrapping authenticators (e.g.
-  // TKJWTAuthenticator with Auth/Inner) expose the same key transparently.
+  // Read via EffectiveConfigNode (the authenticator's own Auth node).
   LChoicesNode := TKWebApplication.Current.Authenticator.EffectiveConfigNode
     .FindNode('DatabaseChoices');
   if not Assigned(LChoicesNode) then

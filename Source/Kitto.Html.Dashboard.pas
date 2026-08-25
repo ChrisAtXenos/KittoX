@@ -19,7 +19,6 @@ interface
 
 uses
   EF.YAML.Attributes,
-  Kitto.Metadata.SubNodes2,
   Kitto.Html.FlexPanel;
 
 type
