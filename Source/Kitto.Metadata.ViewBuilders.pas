@@ -41,7 +41,15 @@ type
   TKAutoViewBuilderBase = class(TKViewBuilder)
   strict private
     function BuildSearchString(const AFields: TKViewFields): string;
-    procedure AddFields(const AViewTable: TKViewTable; const AModel: TKModel);
+    /// <summary>
+    ///  Gives AViewTable its Fields node. ASourceFields, when passed, is a
+    ///  Fields node the caller already has and wins over the list generated
+    ///  from AModel; it must be passed per table, never looked up from the
+    ///  builder's configuration, or the main table's fields would be applied to
+    ///  every nested detail table as well.
+    /// </summary>
+    procedure AddFields(const AViewTable: TKViewTable; const AModel: TKModel;
+      const ASourceFields: TEFNode = nil);
     procedure AddDetailTables(const AViewTable: TKViewTable;
       const AModel: TKModel);
   strict protected
@@ -78,17 +86,31 @@ uses
 { TKAutoViewBuilderBase }
 
 procedure TKAutoViewBuilderBase.AddFields(const AViewTable: TKViewTable;
-  const AModel: TKModel);
+  const AModel: TKModel; const ASourceFields: TEFNode);
 var
   LFields: TKViewFields;
   I: Integer;
 begin
-  Assert(Assigned(AViewTable));
-  Assert(Assigned(AModel));
+  Assert(Assigned(AViewTable), 'Assigned(AViewTable)');
+  Assert(Assigned(AModel), 'Assigned(AModel)');
 
   LFields := AViewTable.AddChild(TKViewFields.Create('Fields')) as TKViewFields;
-  for I := 0 to AModel.FieldCount - 1 do
-    LFields.AddChild(TKViewField.Create(AModel.Fields[I].FieldName));
+
+  // The case that needs this is a detail table declared under
+  // DetailTables/Table in a master view with no ViewName of its own: that node
+  // is the only place carrying what the master view says about those columns --
+  // IsVisible, DisplayLabel, DisplayWidth, the order they appear in -- and
+  // rebuilding the list from the model discards all of it.
+  //
+  // Assign, not TEFNode.Clone: Clone is a (virtual) constructor, so calling it
+  // on TEFNode yields plain TEFNodes, while TKViewFields must hold TKViewField
+  // children -- BuildView casts this very node to TKViewFields. Assign creates
+  // each child through the destination's GetChildClass.
+  if Assigned(ASourceFields) and (ASourceFields.ChildCount > 0) then
+    LFields.Assign(ASourceFields)
+  else
+    for I := 0 to AModel.FieldCount - 1 do
+      LFields.AddChild(TKViewField.Create(AModel.Fields[I].FieldName));
 end;
 
 procedure TKAutoViewBuilderBase.AddDetailTables(const AViewTable: TKViewTable;
@@ -97,8 +119,8 @@ var
   I: Integer;
   LDetailTable: TKViewTable;
 begin
-  Assert(Assigned(AViewTable));
-  Assert(Assigned(AModel));
+  Assert(Assigned(AViewTable), 'Assigned(AViewTable)');
+  Assert(Assigned(AModel), 'Assigned(AModel)');
 
   for I := 0 to AModel.DetailReferenceCount - 1 do
   begin
@@ -166,7 +188,10 @@ begin
 
     LMainTable := Result.AddChild(TKViewTable.Create('MainTable')) as TKViewTable;
     LMainTable.SetString('Model', LModel.ModelName);
-    AddFields(LMainTable, LModel);
+
+    // MainTable/Fields, when declared, wins over the list generated from the
+    // model. See AddFields.
+    AddFields(LMainTable, LModel, FindNode('MainTable/Fields'));
     AddDetailTables(LMainTable, LModel);
 
     LFilters := LControllerNode.AddChild('Filters');
@@ -203,7 +228,7 @@ function TKAutoViewBuilderBase.BuildSearchString(const AFields: TKViewFields): s
 var
   I: Integer;
 begin
-  Assert(Assigned(AFields));
+  Assert(Assigned(AFields), 'Assigned(AFields)');
 
   Result := '';
   for I := 0 to AFields.FieldCount - 1 do
@@ -220,8 +245,8 @@ end;
 
 function TKAutoViewBuilderBase.GetModel: TKModel;
 begin
-  Assert(Assigned(Views));
-  Assert(Assigned(Views.Models));
+  Assert(Assigned(Views), 'Assigned(Views)');
+  Assert(Assigned(Views.Models), 'Assigned(Views.Models)');
 
   Result := Views.Models.ModelByName(GetString('Model'));
 end;

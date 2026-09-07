@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,7 @@ procedure ObjectPropertiesToNode(const AParentNode: TEFTree; const AInstance: TO
 var
   LProperty: TRttiProperty;
 begin
-  Assert(Assigned(AParentNode));
+  Assert(Assigned(AParentNode), 'Assigned(AParentNode)');
 
   if AInstance <> nil then
   begin
@@ -83,8 +83,8 @@ procedure ObjectToNode(const AObject: TObject; const ANode: TEFTree);
 var
   LContext: TRTTIContext;
 begin
-  Assert(Assigned(AObject));
-  Assert(Assigned(ANode));
+  Assert(Assigned(AObject), 'Assigned(AObject)');
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   LContext := TRTTIContext.Create;
   ObjectPropertiesToNode(ANode, AObject, LContext);
@@ -129,7 +129,7 @@ procedure NodeToObject(const ANode: TEFTree; const AObject: TObject);
 var
   LContext: TRTTIContext;
 begin
-  Assert(Assigned(AObject));
+  Assert(Assigned(AObject), 'Assigned(AObject)');
 
   if Assigned(ANode) then
   begin

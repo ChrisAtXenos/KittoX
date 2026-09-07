@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -662,6 +662,7 @@ uses
   System.Generics.Collections,
   EF.Sys,
   EF.Localization,
+  EF.Types,
   EF.StrUtils;
 
 type
@@ -669,7 +670,19 @@ type
   public
     function GetUserName: string; override;
     function ExecuteCommand(const AFileName: string): Integer; override;
+    procedure GetRandomBytes(var ABuffer; const ACount: Integer); override;
   end;
+
+const
+  // CNG, in bcrypt.dll since Windows Vista. Preferred over the older
+  // CryptGenRandom: no provider handle to acquire and release, and it is
+  // documented as safe to call from several threads at once -- which the RTL's
+  // Random is not, its state being the single global RandSeed.
+  BCRYPT_USE_SYSTEM_PREFERRED_RNG = $00000002;
+  STATUS_SUCCESS = 0;
+
+function BCryptGenRandom(hAlgorithm: Pointer; pbBuffer: PByte;
+  cbBuffer: ULONG; dwFlags: ULONG): Integer; stdcall; external 'bcrypt.dll';
 
 /// <summary>
 ///  Executes an application.
@@ -696,8 +709,8 @@ function InternalExecuteApplication(const AFileName: string;
   const ACurrentDirectory: string = '';
   const AOutput: TStrings = nil): Integer;
 var
-  LApplicationName: array[0..511] of char;
-  LCurrentDirectory: array[0..511] of char;
+  LCommandLine: string;
+  LCurrentDirectory: string;
   LPCurrentDirectory: PChar;
   LStartupInfo: TStartupInfo;
   LProcessInfo: TProcessInformation;
@@ -713,12 +726,27 @@ begin
   LOutputTempFileHandle := 0;
   try
     AProcessHandle := 0;
-    StrPCopy(LApplicationName, AFileName);
-    if ACurrentDirectory <> '' then
-    begin
-      StrPCopy(LCurrentDirectory, ACurrentDirectory);
-      LPCurrentDirectory := LCurrentDirectory;
-    end
+    if AFileName = '' then
+      Exit(-1);
+
+    // CreateProcess is allowed to write to lpCommandLine, so it needs a buffer
+    // of its own: UniqueString gives it one, of exactly the right size and with
+    // no limit of ours on top of the 32767 characters the API itself accepts.
+    //
+    // These two used to be array[0..511] of Char filled with StrPCopy, which
+    // takes no length and does not truncate: a longer command line was written
+    // straight past the end of the array, over the locals that follow it in the
+    // frame and, far enough along, the return address. Both callers can get
+    // there. EF.FOP builds its line out of four absolute paths plus about forty
+    // characters of switches and quotes, so an average of 117 characters per
+    // path is enough; and TKXDataCmdToolController in Kitto.Html.Tools appends
+    // parameters expanded from record values, whose length is bounded by what
+    // is in the database and by nothing here at all.
+    LCommandLine := AFileName;
+    UniqueString(LCommandLine);
+    LCurrentDirectory := ACurrentDirectory;
+    if LCurrentDirectory <> '' then
+      LPCurrentDirectory := PChar(LCurrentDirectory)
     else
       LPCurrentDirectory := nil;
 
@@ -735,7 +763,10 @@ begin
         @LOutputTempFileSecurityAttributes, CREATE_ALWAYS,
         FILE_ATTRIBUTE_TEMPORARY or FILE_FLAG_WRITE_THROUGH, 0);
       if LOutputTempFileHandle = INVALID_HANDLE_VALUE then
-        raise Exception.CreateFmt('Couldn''t write temporary file "%s".', [LOutputTempFileHandle]);
+        // The name, not the handle: '%s' with an integer argument made Format
+        // raise EConvertError, so the message that came out described the
+        // formatting and not the failure it was meant to report.
+        raise Exception.CreateFmt('Couldn''t write temporary file "%s".', [LOutputTempFileName]);
     end;
 
     FillChar(LStartupInfo, SizeOf(LStartupInfo), #0);
@@ -749,7 +780,7 @@ begin
       LStartupInfo.hStdOutput := LOutputTempFileHandle;
     end;
     LCreateProcessReturnValue := CreateProcess(
-      nil, LApplicationName, nil, nil, LUseOutputTempFile,
+      nil, PChar(LCommandLine), nil, nil, LUseOutputTempFile,
       CREATE_NEW_CONSOLE or NORMAL_PRIORITY_CLASS,
       nil, LPCurrentDirectory, LStartupInfo, LProcessInfo);
     if LCreateProcessReturnValue then
@@ -774,11 +805,18 @@ begin
     if LUseOutputTempFile then
     begin
       CloseHandle(LOutputTempFileHandle);
+      LOutputTempFileHandle := 0;
       if FileExists(LOutputTempFileName) then
         AOutput.LoadFromFile(LOutputTempFileName);
     end;
 
   finally
+    // In the finally, not only on the way out: an exception raised anywhere
+    // between CreateFile and the close above left the handle open, and the
+    // delete below then failed silently on a file still in use.
+    if (LOutputTempFileHandle <> 0)
+        and (LOutputTempFileHandle <> INVALID_HANDLE_VALUE) then
+      CloseHandle(LOutputTempFileHandle);
     if (LOutputTempFileName <> '') and FileExists(LOutputTempFileName) then
       DeleteFile(LOutputTempFileName);
   end;
@@ -790,7 +828,25 @@ function TEFSysWindows.ExecuteCommand(const AFileName: string): Integer;
 var
   LDummy: Cardinal;
 begin
-  Result := InternalExecuteApplication(AFileName, SW_NORMAL, False, False, LDummy);
+  // AWait = True: the interface promises synchronous execution and the
+  // process' exit code, and the callers rely on it - EF.FOP checked whether
+  // the PDF existed while the process was still starting up, and reported a
+  // perfectly good report as not produced.
+  Result := InternalExecuteApplication(AFileName, SW_NORMAL, True, False, LDummy);
+end;
+
+procedure TEFSysWindows.GetRandomBytes(var ABuffer; const ACount: Integer);
+var
+  LStatus: Integer;
+begin
+  if ACount <= 0 then
+    Exit;
+  LStatus := BCryptGenRandom(nil, @ABuffer, ACount,
+    BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+  if LStatus <> STATUS_SUCCESS then
+    raise EEFError.CreateFmt(_('Could not obtain %d random bytes from the ' +
+      'operating system: BCryptGenRandom returned status 0x%.8x.'),
+      [ACount, LStatus]);
 end;
 
 function TEFSysWindows.GetUserName: string;
@@ -798,7 +854,7 @@ var
   LBuffer: array[0..255] of Char;
   LSize: LongWord;
 begin
-  LSize := SizeOf(LBuffer);
+  LSize := Length(LBuffer);
   if WinApi.Windows.GetUserName(LBuffer, LSize) then
     Result := LBuffer
   else
@@ -906,7 +962,7 @@ var
   LBuffer: array[0..255] of Char;
   LSize: LongWord;
 begin
-  LSize := SizeOf(LBuffer);
+  LSize := Length(LBuffer);
   if GetComputerName(LBuffer, LSize) then
     Result := LBuffer
   else
@@ -919,8 +975,11 @@ var
   LCharCount: Longword;
 begin
   FillChar(LBuffer, SizeOf(LBuffer), #0);
-  LCharCount := GetWindowsDirectory(LBuffer, SizeOf(LBuffer));
-  if LCharCount > SizeOf(LBuffer) then
+  // These APIs count CHARACTERS, not bytes: with SizeOf they were told the
+  // buffer was twice its real size, and the guard below compared a count of
+  // characters with a count of bytes, so it could never fire.
+  LCharCount := GetWindowsDirectory(LBuffer, Length(LBuffer));
+  if LCharCount > Cardinal(Length(LBuffer)) then
     raise Exception.Create(_('SafeGetWindowsDirectory: buffer too small.'));
   Result := LBuffer;
 end;
@@ -931,8 +990,8 @@ var
   LCharCount: Longword;
 begin
   FillChar(LBuffer, SizeOf(LBuffer), #0);
-  LCharCount := GetSystemDirectory(LBuffer, SizeOf(LBuffer));
-  if LCharCount > SizeOf(LBuffer) then
+  LCharCount := GetSystemDirectory(LBuffer, Length(LBuffer));
+  if LCharCount > Cardinal(Length(LBuffer)) then
     raise Exception.Create(_('SafeGetSystemDirectory: buffer too small.'));
   Result := LBuffer;
 end;
@@ -992,17 +1051,23 @@ var
   LSearchRec: TSearchRec;
   LResult: Integer;
 begin
-  Assert(Assigned(AProc));
-  Assert(DirectoryExists(ARootPath));
+  Assert(Assigned(AProc), 'Assigned(AProc)');
+  Assert(DirectoryExists(ARootPath), ARootPath);
 
   LResult := FindFirst(IncludeTrailingPathDelimiter(ARootPath) + '*.*', faDirectory, LSearchRec);
-  while LResult = 0 do
-  begin
-    if ((LSearchRec.Attr and faDirectory <> 0) and (LSearchRec.Name <> '.') and (LSearchRec.Name <> '..')) then
-      AProc(LSearchRec.Name);
-    LResult := FindNext(LSearchRec);
+  // AProc is an arbitrary callback: if it raises - a malformed config, a
+  // denied folder - the search handle was never closed, and the directory
+  // stayed locked against rename or delete for the life of the process.
+  try
+    while LResult = 0 do
+    begin
+      if ((LSearchRec.Attr and faDirectory <> 0) and (LSearchRec.Name <> '.') and (LSearchRec.Name <> '..')) then
+        AProc(LSearchRec.Name);
+      LResult := FindNext(LSearchRec);
+    end;
+  finally
+    FindClose(LSearchRec);
   end;
-  FindClose(LSearchRec);
 end;
 
 function IsDirectoryEmpty(const APath: string): Boolean;
@@ -1458,6 +1523,7 @@ procedure TEFFileWriter.DoProcessFile(const ASourceFileName,
 var
   LErrorMsg: string;
   LastError: Integer;
+  LBytes: TBytes;
 begin
   if FileExists(ASourceFileName) then
   begin
@@ -1476,7 +1542,11 @@ begin
   with TFileStream.Create(ASourceFileName, fmCreate or fmShareDenyNone) do
   begin
     try
-      Write(FFileContent[1], Length(FFileContent));
+      // Length is a count of characters and Write wants bytes, so exactly
+      // half the content used to be written - as raw UTF-16 at that.
+      LBytes := TEncoding.UTF8.GetBytes(FFileContent);
+      if Length(LBytes) > 0 then
+        Write(LBytes[0], Length(LBytes));
     finally
       Free;
     end;
@@ -1575,8 +1645,8 @@ function TEFFileLister.ListFiles(const AFileNameList: TStrings;
 var
   LInitialItemCount: Integer;
 begin
-  Assert(Assigned(AFileNameList));
-  Assert(Length(AFileFormats) > 0);
+  Assert(Assigned(AFileNameList), 'Assigned(AFileNameList)');
+  Assert(Length(AFileFormats) > 0, 'Length(AFileFormats) > 0');
 
   FFileNameList := AFileNameList;
   FFileFormats := AFileFormats;

@@ -190,7 +190,7 @@ var
   LRefName: string;
   LObject: TObject;
 begin
-  Assert(Assigned(AInstantObject));
+  Assert(Assigned(AInstantObject), 'Assigned(AInstantObject)');
 
   LType :=  c.GetType(AInstantObject.ClassInfo) as TRttiInstanceType;
   LModel := ModelByRecord(ARecord);

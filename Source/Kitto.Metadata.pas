@@ -379,7 +379,7 @@ begin
       LObject: TKMetadata;
       LFreedObjects: TList<TKMetadata>;
     begin
-      Assert(IsOpen);
+      Assert(IsOpen, 'IsOpen');
 
       // Collect all unique objects to free, avoiding double-free when
       // the same object is registered in both NonpersistentObjects and DynamicObjects
@@ -432,7 +432,7 @@ procedure TKMetadataCatalog.DisposeObject(const AObject: TKMetadata);
 var
   LFileName: string;
 begin
-  Assert(Assigned(AObject));
+  Assert(Assigned(AObject), 'Assigned(AObject)');
 
   if AObject.PersistentName <> '' then
   begin
@@ -490,7 +490,7 @@ begin
     var
       LFileName: string;
     begin
-      Assert(IsOpen);
+      Assert(IsOpen, 'IsOpen');
 
       if ObjectExists(AObject.PersistentName) then
       begin
@@ -521,12 +521,12 @@ begin
     var
       LIndex: Integer;
     begin
-      Assert(IsOpen);
+      Assert(IsOpen, 'IsOpen');
 
       FDisposedObjects.Add(AObject);
       if FIndex.Find(AObject.PersistentName, LIndex) then
       begin
-        Assert(TKMetadata(FIndex.Objects[LIndex]) = AObject);
+        Assert(TKMetadata(FIndex.Objects[LIndex]) = AObject, 'TKMetadata(FIndex.Objects[LIndex]) = AObject');
         FIndex.Delete(LIndex);
         ObjectDisposed(AObject.PersistentFileName);
       end;
@@ -546,7 +546,7 @@ end;
 
 function TKMetadataCatalog.GetObject(I: Integer): TKMetadata;
 begin
-  Assert(IsOpen);
+  Assert(IsOpen, 'IsOpen');
 
   Result := nil;
   if (I >= 0) and (I < FIndex.Count) then
@@ -564,7 +564,7 @@ end;
 
 function TKMetadataCatalog.GetObjectCount: Integer;
 begin
-  Assert(IsOpen);
+  Assert(IsOpen, 'IsOpen');
 
   Result := FIndex.Count;
 end;
@@ -603,7 +603,7 @@ begin
   Synchronize(
     procedure
     begin
-      Assert(IsOpen);
+      Assert(IsOpen, 'IsOpen');
 
       RefreshIndex;
     end
@@ -613,7 +613,7 @@ end;
 {$WARN SYMBOL_PLATFORM OFF}
 procedure TKMetadataCatalog.RefreshIndex;
 begin
-  Assert(IsOpen);
+  Assert(IsOpen, 'IsOpen');
 
   Synchronize(
     procedure
@@ -649,7 +649,7 @@ procedure TKMetadataCatalog.Purge;
 var
   I: Integer;
 begin
-  Assert(IsOpen);
+  Assert(IsOpen, 'IsOpen');
 
   for I := ObjectCount - 1 downto 0 do
   begin
@@ -684,7 +684,7 @@ begin
       LIndex: Integer;
       LClass: TKMetadataClass;
     begin
-      Assert(IsOpen);
+      Assert(IsOpen, 'IsOpen');
 
       if FIndex.Find(AName, LIndex) then
       begin
@@ -723,8 +723,8 @@ begin
     var
       I: Integer;
     begin
-      Assert(IsOpen);
-      Assert(Assigned(APredicate));
+      Assert(IsOpen, 'IsOpen');
+      Assert(Assigned(APredicate), 'Assigned(APredicate)');
 
       for I := 0 to FIndex.Count - 1 do
       begin
@@ -838,7 +838,7 @@ end;
 
 function TKMetadataCatalog.ObjectExists(const AName: string): Boolean;
 begin
-  Assert(IsOpen);
+  Assert(IsOpen, 'IsOpen');
 
   Result := FIndex.IndexOf(AName) >= 0;
 end;
@@ -876,7 +876,7 @@ var
   LDeclaredClassName: string;
   LDeclaredClassType: TKMetadataClass;
 begin
-  Assert(Assigned(AObject));
+  Assert(Assigned(AObject), 'Assigned(AObject)');
 
   // Change object type according to the declaration, if present.
   LDeclaredClassName := AObject.GetString('Type', GetDefaultObjectTypeName);
@@ -919,9 +919,9 @@ begin
   Synchronize(
     procedure
     begin
-      Assert(IsOpen);
-      Assert(Assigned(AObject));
-      Assert(AObject.PersistentName <> '');
+      Assert(IsOpen, 'IsOpen');
+      Assert(Assigned(AObject), 'Assigned(AObject)');
+      Assert(AObject.PersistentName <> '', 'AObject.PersistentName <> ''''');
 
       if ObjectExists(AObject.PersistentName) then
         DuplicateObjectError(AObject.PersistentName);
@@ -959,7 +959,7 @@ begin
   Synchronize(
     procedure
     begin
-      Assert(not IsOpen);
+      Assert(not IsOpen, 'not IsOpen');
 
       CreateIndex;
       RefreshIndex;
@@ -974,7 +974,7 @@ begin
     var
       I: Integer;
     begin
-      Assert(IsOpen);
+      Assert(IsOpen, 'IsOpen');
 
       for I := 0 to FIndex.Count - 1 do
       begin
@@ -996,8 +996,8 @@ begin
   Synchronize(
     procedure
     begin
-      Assert(Assigned(AObject));
-      Assert(AObject.PersistentName <> '');
+      Assert(Assigned(AObject), 'Assigned(AObject)');
+      Assert(AObject.PersistentName <> '', 'AObject.PersistentName <> ''''');
 
       Writer.SaveTreeToFile(AObject, GetFullFileName(AObject.PersistentName));
     end
@@ -1055,7 +1055,7 @@ end;
 
 function TKMetadata.GetPersistentFileName: string;
 begin
-  Assert(Assigned(FCatalog));
+  Assert(Assigned(FCatalog), 'Assigned(FCatalog)');
 
   Result := FCatalog.GetFullFileName(PersistentName);
 end;

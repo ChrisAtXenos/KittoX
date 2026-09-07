@@ -213,7 +213,7 @@ procedure TEFComponent.DoLog(const AStrings: TStrings; const ALinePrefix: string
 var
   LLogLineIndex: Integer;
 begin
-  Assert(Assigned(AStrings));
+  Assert(Assigned(AStrings), 'Assigned(AStrings)');
 
   for LLogLineIndex := 0 to AStrings.Count - 1 do
     DoLog(ALinePrefix + AStrings[LLogLineIndex], ALogLevel);

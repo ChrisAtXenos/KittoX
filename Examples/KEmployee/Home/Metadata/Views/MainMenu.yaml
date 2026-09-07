@@ -6,7 +6,7 @@ Folder: Tables
 Folder: Business
   View: Customers
   View: Employees
-  View: SalaryHistories
+  View: Projects
 Folder: Maintenance
   View:
     Controller: Logout

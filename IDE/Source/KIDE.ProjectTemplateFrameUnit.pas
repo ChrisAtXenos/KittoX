@@ -63,11 +63,13 @@ uses
   Vcl.ComCtrls,
   Vcl.ActnList,
   Vcl.ImgList,
-  KIDE.BaseFrameUnit;
+  KIDE.BaseFrameUnit,
+  Vcl.VirtualImageList,
+  KIDE.MainDataModuleUnit;
 
 type
   TProjectTemplateFrame = class(TBaseFrame)
-    ImageList: TImageList;
+    ImageList: TVirtualImageList;
     ActionList: TActionList;
     ListView: TListView;
     procedure ListViewDblClick(Sender: TObject);

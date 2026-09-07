@@ -41,6 +41,10 @@ type
     FPrevIndent: Integer;
     FLastValueType: TEFYAMLValueType;
     FLastIndentIncrement: Integer;
+    // Nesting depth of the previous line. Kept rather than recomputed: now
+    // that FIndents shrinks on a dedent, looking the previous indentation up
+    // would search for a width that has just been popped off.
+    FPrevDepth: Integer;
     FNextValueType: TEFYAMLValueType;
     FMultiLineFirstLineIndent: Integer;
     FLastValueQuoted: Boolean;
@@ -168,6 +172,7 @@ implementation
 uses
   System.StrUtils,
   System.IOUtils,
+  System.Math,
   EF.Types,
   EF.StrUtils,
   EF.Sys,
@@ -195,6 +200,7 @@ var
   LLine: string;
   P: Integer;
   LIndent: Integer;
+  LDepth: Integer;
 
   procedure AddIndent(const AIndent: Integer);
   begin
@@ -204,9 +210,19 @@ var
       Exit
     else if (FIndents[FIndents.Count - 1] < AIndent) then
       FIndents.Add(AIndent)
-    // top indent > AIndent - check.
-    else if FIndents.IndexOf(AIndent) < 0 then
-      raise EEFError.CreateFmt('YAML syntax error. Indentation error in line: %s', [ALine]);
+    else
+    begin
+      // Dedent: the deeper levels belong to a branch that has just closed,
+      // so they are popped. Leaving them in made this list accumulate every
+      // width seen in the file, and since the index in it is used as the
+      // nesting depth, a branch that skipped a width recorded by another
+      // branch got the wrong number of pops - attaching a node to the wrong
+      // parent with no error at all, so that block simply stopped being read.
+      while (FIndents.Count > 0) and (FIndents[FIndents.Count - 1] > AIndent) do
+        FIndents.Delete(FIndents.Count - 1);
+      if (FIndents.Count = 0) or (FIndents[FIndents.Count - 1] <> AIndent) then
+        raise EEFError.CreateFmt('YAML syntax error. Indentation error in line: %s', [ALine]);
+    end;
   end;
 
   function FindQuotationEnd(const AString: string): Integer;
@@ -280,6 +296,15 @@ begin
   else
     AName := Copy(ALine, 1, Pred(P));
 
+  // A line whose name is empty -- ': value', or just ':' -- is a syntax error,
+  // and it is reported here with the other ones. It used to travel on until
+  // TEFTree.AddChild caught it with an Assert, which is not a validation
+  // mechanism: with assertions compiled out, as they are in Release since
+  // EF.Defines.inc stopped forcing {$C+}, the tree simply gained a node with no
+  // name and the file was reported as loaded successfully.
+  if Trim(AName) = '' then
+    raise EEFError.CreateFmt('YAML syntax error. Missing name before ":" in line: %s', [ALine]);
+
   LIndent := CountLeading(AName, ' ');
   AddIndent(LIndent);
 
@@ -310,18 +335,35 @@ begin
     AValue := '';
   // Keep track of how many indents we have incremented or decremented.
   // Users of this class will use this information to track nesting.
-  FLastIndentIncrement := FIndents.IndexOf(LIndent) - FIndents.IndexOf(FPrevIndent);
+  LDepth := FIndents.IndexOf(LIndent);
+  FLastIndentIncrement := LDepth - FPrevDepth;
+  FPrevDepth := LDepth;
   FPrevIndent := LIndent;
   Result := True;
 end;
 
 procedure TEFYAMLParser.Reset;
 begin
+  // Every field, not some of them. One reader reads the whole metadata
+  // catalogue - Kitto.Metadata keeps a single TEFYAMLReader and calls
+  // LoadTreeFromFile on it for every file - so whatever is left here is what
+  // the next file starts with, and a file that parses differently depending on
+  // which one was read before it is the hardest kind of defect to trace.
+  //
+  // FNextValueType was the one that mattered: a file whose last value is a
+  // multi-line block ('|' or '>') left the parser expecting more of that block,
+  // and the first line of the next file was taken as its continuation whenever
+  // it was indented -- an indented comment is enough. The reader then had a
+  // value and nothing to attach it to.
   FIndents.Clear;
   FPrevIndent := 0;
+  FPrevDepth := 0;
   FMultiLineFirstLineIndent := -1;
   FLastAnnotations.Clear;
   FLastValueQuoted := False;
+  FNextValueType := vtSingleLine;
+  FLastValueType := vtSingleLine;
+  FLastIndentIncrement := 0;
 end;
 
 { TEFYAMLReader }
@@ -359,9 +401,13 @@ class procedure TEFYAMLReader.LoadTree(const ATree: TEFTree; const AFileName: st
 var
   LInstance: TEFYAMLReader;
 begin
-  Assert(AFileName <> '');
-  Assert(FileExists(AFileName), AFileName);
-  Assert(Assigned(ATree));
+  Assert(AFileName <> '', 'AFileName <> ''''');
+  Assert(Assigned(ATree), 'Assigned(ATree)');
+  // Not an Assert: whether the file is there is a fact about the world, not a
+  // promise the caller makes. Compiled out of Release, it left the failure to
+  // whatever TFileStream happened to say further down.
+  if not FileExists(AFileName) then
+    raise EEFError.CreateFmt(_('YAML file not found: %s'), [AFileName]);
 
   LInstance := TEFYAMLReader.Create;
   try
@@ -375,7 +421,7 @@ class procedure TEFYAMLReader.ReadTree(const ATree: TEFTree; const AString: stri
 var
   LInstance: TEFYAMLReader;
 begin
-  Assert(Assigned(ATree));
+  Assert(Assigned(ATree), 'Assigned(ATree)');
 
   LInstance := TEFYAMLReader.Create;
   try
@@ -402,7 +448,7 @@ procedure TEFYAMLReader.LoadTreeFromFile(const ATree: TEFTree; const AFileName: 
 var
   LFileStream: TFileStream;
 begin
-  Assert(Assigned(ATree));
+  Assert(Assigned(ATree), 'Assigned(ATree)');
 
   LFileStream := TFileStream.Create(AFileName, fmOpenRead + fmShareDenyWrite);
   try
@@ -438,7 +484,7 @@ var
   end;
 
 begin
-  Assert(Assigned(ATree));
+  Assert(Assigned(ATree), 'Assigned(ATree)');
 
   LReader := TStreamReader.Create(AStream);
   try
@@ -491,14 +537,17 @@ begin
             end;
             vtMultiLineWithSpace:
             begin
+              // The line breaks are kept, exactly as for the '|' style above.
+              // Folding them into spaces here lost the shape of the value for
+              // good: the writer then had to guess it back with WrapText, which
+              // wraps at a fixed width, so saving a file rewrapped every folded
+              // value at points the author never chose. The '>' marker is still
+              // recorded in ValueAttributes, so the file keeps its own style.
               LCurrentValue := (LTop as TEFNode).AsString;
-              // When not preserving line breaks, empty lines mark paragraphs.
-              if LRawValue = '' then
-                LCurrentValue := LCurrentValue + sLineBreak
-              else if LCurrentValue = '' then
+              if LCurrentValue = '' then
                 LCurrentValue := LRawValue
               else
-                LCurrentValue := LCurrentValue + ' ' + LRawValue;
+                LCurrentValue := LCurrentValue + sLineBreak + LRawValue;
               (LTop as TEFNode).AsString := LCurrentValue;
               (LTop as TEFNode).ValueAttributes := '>';
             end;
@@ -545,8 +594,8 @@ class procedure TEFYAMLWriter.SaveTree(const ATree: TEFTree;
 var
   LWriter: TEFYAMLWriter;
 begin
-  Assert(Assigned(ATree));
-  Assert(AFileName <> '');
+  Assert(Assigned(ATree), 'Assigned(ATree)');
+  Assert(AFileName <> '', 'AFileName <> ''''');
 
   LWriter := TEFYAMLWriter.Create;
   try
@@ -564,7 +613,7 @@ var
   LPreambleLength: Integer;
   LEncoding: TEncoding;
 begin
-  Assert(Assigned(ATree));
+  Assert(Assigned(ATree), 'Assigned(ATree)');
 
   LWriter := TEFYAMLWriter.Create;
   try
@@ -575,10 +624,17 @@ begin
     try
       LEncoding := TEncoding.UTF8;
       LWriter.SaveTreeToStream(ATree, LStream);
-      LPreambleLength := Length(LEncoding.GetPreamble);
+      // A tree with no children writes nothing at all - not even the preamble,
+      // which TStreamWriter only emits on the first actual write - so the
+      // length must be clamped: subtracting the preamble from an empty stream
+      // asked for a negative length.
+      LPreambleLength := Min(LStream.Size, Length(LEncoding.GetPreamble));
       SetLength(LBytes, LStream.Size - LPreambleLength);
-      LStream.Position := LPreambleLength;
-      LStream.Read(LBytes[0], Length(LBytes));
+      if Length(LBytes) > 0 then
+      begin
+        LStream.Position := LPreambleLength;
+        LStream.Read(LBytes[0], Length(LBytes));
+      end;
       Result := LEncoding.GetString(LBytes);
     finally
       FreeAndNil(LStream);
@@ -592,7 +648,7 @@ procedure TEFYAMLWriter.SaveTreeToFile(const ATree: TEFTree; const AFileName: st
 var
   LFileStream: TFileStream;
 begin
-  Assert(Assigned(ATree));
+  Assert(Assigned(ATree), 'Assigned(ATree)');
 
   TDirectory.CreateDirectory(ExtractFilePath(AFileName));
   LFileStream := TFileStream.Create(AFileName, fmCreate + fmShareExclusive);
@@ -609,7 +665,7 @@ var
   I: Integer;
   LIndent: Integer;
 begin
-  Assert(Assigned(ATree));
+  Assert(Assigned(ATree), 'Assigned(ATree)');
 
   LIndent := 0;
   LWriter := TStreamWriter.Create(AStream, TEncoding.UTF8);
@@ -634,7 +690,7 @@ var
   LStrings: TStringList;
   LName: string;
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   for I := 0 to ANode.AnnotationCount - 1 do
   begin
@@ -659,16 +715,19 @@ begin
     begin
       LStrings := TStringList.Create;
       try
-        if ANode.IsMultiLineWithNLValue then
-        begin
-          LStrings.Text := LValue;
-          AWriter.WriteLine(StringOfChar(' ', FSpacingChars) + '|');
-        end
+        // Both styles write the value's own lines back: since the reader keeps
+        // the line breaks for '>' too, there is nothing left to guess. Only the
+        // marker differs, and it comes from the node's ValueAttributes, so a
+        // file keeps the style its author chose.
+        LStrings.Text := LValue;
+        // The marker comes from the style recorded while reading, not from the
+        // value: IsMultiLineWithNLValue also answers True for any value that
+        // merely contains a line break, which - now that folded values keep
+        // theirs - would turn every '>' in the file into a '|'.
+        if ContainsText(ANode.ValueAttributes, '>') then
+          AWriter.WriteLine(StringOfChar(' ', FSpacingChars) + '>')
         else
-        begin
-          LStrings.Text := WrapText(LValue);
-          AWriter.WriteLine(StringOfChar(' ', FSpacingChars) + '>');
-        end;
+          AWriter.WriteLine(StringOfChar(' ', FSpacingChars) + '|');
         for I := 0 to LStrings.Count - 1 do
           AWriter.WriteLine(StringOfChar(' ', AIndent + FIndentChars) + LStrings[I]);
       finally

@@ -66,11 +66,13 @@ uses
   Vcl.Buttons,
   Vcl.Samples.Spin,
   Vcl.Mask,
+  Vcl.ImgList,
   KIDE.BaseWizardFormUnit,
   KIDE.BaseFrameUnit,
   KIDE.ProjectTemplate,
   KIDE.ProjectTemplateFrameUnit
-  ;
+  
+  {$IFDEF KIDEGUI}, Vcl.StyledComponentsHooks{$ENDIF};
 
 type
   TNewProjectWizardForm = class(TBaseWizardForm)
@@ -173,7 +175,8 @@ uses
   EF.Sys.Windows,
   EF.StrUtils,
   KIDE.MRUOptions,
-  KIDE.Config;
+  KIDE.Config
+  {$IFDEF KIDEGUI}, Vcl.StyledMessagesHooks{$ENDIF};
 
 const
   // Visual order is fixed at runtime in FormCreate via TTabSheet.PageIndex,

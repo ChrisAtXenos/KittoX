@@ -134,7 +134,7 @@ begin
     TEFLogger.Instance.LogFmt('Auth: DBServer refused: the Databases/%s/Connection '+
       'block does not use %%Auth:UserName%% / %%Auth:Password%%, so opening it '+
       'checks nothing and every login would succeed.', [ADatabaseName],
-      TEFLogger.LOG_HIGH);
+      TEFLogger.LOG_ALWAYS);
     raise EKError.CreateFmt(
       _('Auth: DBServer cannot authenticate against database %s: its Connection block '+
         'has fixed credentials. This authenticator validates a login by opening the '+

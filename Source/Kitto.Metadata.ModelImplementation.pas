@@ -165,7 +165,11 @@ implementation
 uses
   System.TypInfo,
   EF.DB,
+  EF.Localization,
+  EF.Logger,
   Kitto.Config,
+  // For EKValidationError: a refusal the user can act on, not a failure.
+  Kitto.Rules,
   KItto.SQL,
   Kitto.Store,
   Kitto.Types;
@@ -186,14 +190,14 @@ end;
 
 procedure TKModelFieldHelper.AddField(const AField: TKModelField);
 begin
-  Assert(Assigned(AField));
+  Assert(Assigned(AField), 'Assigned(AField)');
 
   GetFields.AddChild(AField);
 end;
 
 procedure TKModelFieldHelper.DeleteField(const AField: TKModelField);
 begin
-  Assert(Assigned(AField));
+  Assert(Assigned(AField), 'Assigned(AField)');
 
   GetFields.RemoveChild(AField);
 end;
@@ -226,7 +230,7 @@ end;
 procedure TKModelDetailReferencesHelper.AddDetailReference(
   const ADetailReference: TKModelDetailReference);
 begin
-  Assert(Assigned(ADetailReference));
+  Assert(Assigned(ADetailReference), 'Assigned(ADetailReference)');
 
   AddChild(ADetailReference);
 end;
@@ -234,7 +238,7 @@ end;
 procedure TKModelDetailReferencesHelper.DeleteDetailReference(
   const ADetailReference: TKModelDetailReference);
 begin
-  Assert(Assigned(ADetailReference));
+  Assert(Assigned(ADetailReference), 'Assigned(ADetailReference)');
 
   RemoveChild(ADetailReference);
 end;
@@ -244,7 +248,7 @@ end;
 procedure TKDefaultModel.AddDetailReference(
   const ADetailReference: TKModelDetailReference);
 begin
-  Assert(Assigned(ADetailReference));
+  Assert(Assigned(ADetailReference), 'Assigned(ADetailReference)');
 
   GetDetailReferences.AddDetailReference(ADetailReference);
 end;
@@ -259,7 +263,7 @@ end;
 
 function TKDefaultModel.AddField(const AField: TKModelField): TKModelField;
 begin
-  Assert(Assigned(AField));
+  Assert(Assigned(AField), 'Assigned(AField)');
 
   Result := GetFields.AddChild(AField) as TKModelField;
 end;
@@ -267,14 +271,14 @@ end;
 procedure TKDefaultModel.DeleteDetailReference(
   const ADetailReference: TKModelDetailReference);
 begin
-  Assert(Assigned(ADetailReference));
+  Assert(Assigned(ADetailReference), 'Assigned(ADetailReference)');
 
   GetDetailReferences.DeleteDetailReference(ADetailReference);
 end;
 
 procedure TKDefaultModel.DeleteField(const AField: TKModelField);
 begin
-  Assert(Assigned(AField));
+  Assert(Assigned(AField), 'Assigned(AField)');
 
   GetFields.RemoveChild(AField);
 end;
@@ -283,8 +287,8 @@ function TKDefaultModel.LoadRecords(const AStore: TEFTree;
   const AFilterExpression, ASortExpression: string; const AStart, ALimit: Integer;
   const AForEachRecord: TProc<TEFNode>): Integer;
 begin
-  Assert(Assigned(AStore));
-  Assert(AStore is TKViewTableStore);
+  Assert(Assigned(AStore), 'Assigned(AStore)');
+  Assert(AStore is TKViewTableStore, 'AStore is TKViewTableStore');
 
   Result := InternalLoadRecords(TKViewTableStore(AStore), AFilterExpression, ASortExpression, AStart, ALimit,
     procedure (ARecord: TKViewTableRecord)
@@ -299,7 +303,7 @@ function TKDefaultModel.InternalLoadRecords(const AStore: TKViewTableStore;
   const AFilter, ASort: string; const AStart, ALimit: Integer;
   const AForEachRecord: TProc<TKViewTableRecord>): Integer;
 begin
-  Assert(Assigned(AStore));
+  Assert(Assigned(AStore), 'Assigned(AStore)');
 
   Result := AStore.Load(AFilter, ASort, AStart, ALimit, AForEachRecord);
 end;
@@ -343,13 +347,145 @@ var
   var
     I: Integer;
   begin
-    { TODO : implement cascade delete? }
     for I := 0 to ARecord.DetailStoreCount - 1 do
       ARecord.DetailStores[I].ViewTable.Model.SaveRecords(ARecord.DetailStores[I], True, nil);
   end;
 
+  /// <summary>
+  ///  The detail stores of this record whose relation declares CascadeDelete,
+  ///  loaded from the database. Empty when none does.
+  /// </summary>
+  function LoadCascadingDetailStores: TArray<TKViewTableStore>;
+  var
+    I: Integer;
+    LStore: TKViewTableStore;
+    LDetailReference: TKModelDetailReference;
+  begin
+    Result := [];
+    // The detail stores follow the VIEW's detail tables (see
+    // TKViewTableRecord.EnsureDetailStores), so a relation the view does not
+    // mention is not cascaded and the database refuses the delete instead.
+    ARecord.EnsureDetailStores;
+    for I := 0 to ARecord.DetailStoreCount - 1 do
+    begin
+      LStore := TKViewTableStore(ARecord.DetailStores[I]);
+      if not LStore.ViewTable.IsDetail then
+        Continue;
+      LDetailReference := LStore.ViewTable.ModelDetailReference;
+      if not Assigned(LDetailReference) or not LDetailReference.CascadeDelete then
+        Continue;
+      // Deleting a row needs the row: the delete path never loaded the details,
+      // it only ever had the master.
+      LStore.Load;
+      Result := Result + [LStore];
+    end;
+  end;
+
+  /// <summary>
+  ///  Deletes the rows of every detail that declares CascadeDelete, before the
+  ///  master's own delete, so the foreign keys are satisfied when it runs.
+  ///  Each of those deletes goes through SaveRecords and lands back here, so a
+  ///  detail's own details cascade too, deepest first.
+  /// </summary>
+  procedure CascadeDeleteDetails;
+  var
+    LStore: TKViewTableStore;
+    LStores: TArray<TKViewTableStore>;
+    J: Integer;
+  begin
+    LStores := LoadCascadingDetailStores;
+    for LStore in LStores do
+    begin
+      for J := 0 to LStore.RecordCount - 1 do
+        if LStore.Records[J].State <> rsDeleted then
+        begin
+          LStore.Records[J].ApplyBeforeRules;
+          LStore.Records[J].MarkAsDeleted;
+        end;
+      // Inside the master's transaction: InternalSaveRecords starts one only
+      // when not in one already, so a failure anywhere rolls the whole back.
+      LStore.ViewTable.Model.SaveRecords(LStore, True, nil);
+    end;
+  end;
+
+  /// <summary>
+  ///  Turns a refused delete into something the person in front of the screen
+  ///  can understand: which record, and what still refers to it.
+  /// </summary>
+  /// <remarks>
+  ///  Deliberately silent on how to change that: whether a master takes its
+  ///  details with it is a data-model decision, not something to ask an end
+  ///  user. The engine's own words name the constraint that refused, which
+  ///  diagnosis needs and a user does not, so they go to the log instead.
+  /// </remarks>
+  function DeleteRefusedMessage(const AOriginal: string): string;
+  var
+    I: Integer;
+    LStore: TKViewTableStore;
+    LWhat, LWho: string;
+    LTotal: Integer;
+    LCaptionField: TKModelField;
+    LCaption: TKViewTableField;
+  begin
+    TEFLogger.Instance.LogFmt('Delete refused on %s: %s',
+      [ARecord.Store.ViewTable.ModelName, AOriginal], TEFLogger.LOG_LOW);
+
+    LWhat := '';
+    LTotal := 0;
+    try
+      ARecord.EnsureDetailStores;
+      for I := 0 to ARecord.DetailStoreCount - 1 do
+      begin
+        LStore := TKViewTableStore(ARecord.DetailStores[I]);
+        if not LStore.ViewTable.IsDetail then
+          Continue;
+        LStore.Load;
+        if LStore.RecordCount > 0 then
+        begin
+          Inc(LTotal, LStore.RecordCount);
+          if LWhat <> '' then
+            LWhat := LWhat + ', ';
+          // One row is not "1 Invitations".
+          if LStore.RecordCount = 1 then
+            LWhat := LWhat + Format('%d %s', [1, LStore.ViewTable.DisplayLabel])
+          else
+            LWhat := LWhat + Format('%d %s', [LStore.RecordCount,
+              LStore.ViewTable.PluralDisplayLabel]);
+        end;
+      end;
+    except
+      // Counting is a courtesy: if it fails, the original message still goes
+      // out.
+      on E: Exception do
+        LWhat := '';
+    end;
+
+    if LWhat = '' then
+      Exit(AOriginal);
+
+    // Name the record the user was looking at, not just its kind.
+    LWho := ARecord.Store.ViewTable.DisplayLabel;
+    LCaptionField := ARecord.Store.ViewTable.Model.FindCaptionField;
+    if Assigned(LCaptionField) then
+    begin
+      LCaption := ARecord.FindField(
+        ARecord.Store.ViewTable.ApplyFieldAliasedName(LCaptionField.FieldName));
+      if Assigned(LCaption) and not LCaption.IsNull and (LCaption.AsString <> '') then
+        LWho := LWho + ' "' + LCaption.AsString + '"';
+    end;
+
+    // Two whole sentences rather than one with a spliced-in verb, which a
+    // translator could not inflect.
+    if LTotal = 1 then
+      Result := Format(_('%s cannot be deleted: %s still refers to it.'),
+        [LWho, LWhat])
+    else
+      Result := Format(_('%s cannot be deleted: %s still refer to it.'),
+        [LWho, LWhat]);
+  end;
+
 begin
-  Assert(Assigned(ARecord));
+  Assert(Assigned(ARecord), 'Assigned(ARecord)');
 
   if ARecord.State = rsClean then
   begin
@@ -367,6 +503,10 @@ begin
   if AUseTransactions then
     LDBConnection.StartTransaction;
   try
+    // Before the master's own delete, and inside its transaction.
+    if ARecord.State = rsDeleted then
+      CascadeDeleteDetails;
+
     LDBCommand := LDBConnection.CreateDBCommand;
     try
       TKSQLBuilder.CreateAndExecute(
@@ -382,7 +522,22 @@ begin
         end);
       if LDBCommand.CommandText <> '' then
       begin
-        LRowsAffected := LDBCommand.Execute;
+        if ARecord.State = rsDeleted then
+        begin
+          // A refused delete is almost always a foreign key, reported by
+          // constraint name. Say which record and what still holds it.
+          try
+            LRowsAffected := LDBCommand.Execute;
+          except
+            on E: Exception do
+              // EKValidationError, not EKError: the request filter renders
+              // a rule error as a warning and anything else as an error, and
+              // the REST layer answers 422 for it.
+              raise EKValidationError.Create(DeleteRefusedMessage(E.Message));
+          end;
+        end
+        else
+          LRowsAffected := LDBCommand.Execute;
         if LRowsAffected <> 1 then
           raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
       end;
@@ -412,8 +567,8 @@ var
   LDoIt: Boolean;
 begin
   inherited;
-  Assert(Assigned(ARecord));
-  Assert(ARecord is TKViewTableRecord);
+  Assert(Assigned(ARecord), 'Assigned(ARecord)');
+  Assert(ARecord is TKViewTableRecord, 'ARecord is TKViewTableRecord');
 
   LRecord := TKViewTableRecord(ARecord);
 
@@ -452,8 +607,8 @@ procedure TKDefaultModel.SaveRecords(const AStore: TEFTree;
   const APersist: Boolean; const AAfterPersist: TProc;
   const AUseTransaction: Boolean = True);
 begin
-  Assert(Assigned(AStore));
-  Assert(AStore is TKViewTableStore);
+  Assert(Assigned(AStore), 'Assigned(AStore)');
+  Assert(AStore is TKViewTableStore, 'AStore is TKViewTableStore');
 
   InternalSaveRecords(TKViewTableStore(AStore), APersist, AUseTransaction, AAfterPersist);
 end;

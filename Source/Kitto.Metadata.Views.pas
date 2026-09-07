@@ -530,8 +530,8 @@ function TKViews.BuildView(const ANode: TEFNode; const AViewBuilderName: string)
 var
   LViewBuilder: TKViewBuilder;
 begin
-  Assert(Assigned(ANode));
-  Assert(AViewBuilderName <> '');
+  Assert(Assigned(ANode), 'Assigned(ANode)');
+  Assert(AViewBuilderName <> '', 'AViewBuilderName <> ''''');
 
   LViewBuilder := TKViewBuilderFactory.Instance.CreateObject(AViewBuilderName);
   try
@@ -579,7 +579,7 @@ procedure TKViews.GetViewList(const AList: TKViewList);
 var
   I: Integer;
 begin
-  Assert(Assigned(AList));
+  Assert(Assigned(AList), 'Assigned(AList)');
   AList.Clear;
   if not IsOpen then
     Open
@@ -670,7 +670,7 @@ procedure TKLayouts.GetLayoutList(const AList: TKLayoutList);
 var
   I: Integer;
 begin
-  Assert(Assigned(AList));
+  Assert(Assigned(AList), 'Assigned(AList)');
   AList.Clear;
   if not IsOpen then
     Open
@@ -742,7 +742,7 @@ end;
 
 function TKTreeViewNode.FindView(const AViews: TKViews): TKView;
 begin
-  Assert(Assigned(AViews));
+  Assert(Assigned(AViews), 'Assigned(AViews)');
 
   Result := AViews.ViewByNode(Self);
 end;
@@ -751,7 +751,7 @@ function TKTreeViewNode.GetACURI(const AView: TKView): string;
 var
   LName: string;
 begin
-  Assert(Assigned(AView));
+  Assert(Assigned(AView), 'Assigned(AView)');
 
   LName := GetString('ACName');
   if LName = '' then
@@ -853,8 +853,8 @@ end;
 function TKViewBuilder.BuildView(const AViews: TKViews;
   const APersistentName: string; const ANode: TEFNode): TKView;
 begin
-  Assert(Assigned(AViews));
-  Assert(Assigned(AViews.Models));
+  Assert(Assigned(AViews), 'Assigned(AViews)');
+  Assert(Assigned(AViews.Models), 'Assigned(AViews.Models)');
 
   FViews := AViews;
   FPersistentName := APersistentName;

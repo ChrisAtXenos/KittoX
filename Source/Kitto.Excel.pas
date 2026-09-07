@@ -874,7 +874,7 @@ end;
 function TKExcelEngine.IsAcceptedViewField(const AViewField: TKViewField;
   AAcceptFieldEvent: TAcceptViewFieldEvent = nil): Boolean;
 begin
-  Assert(Assigned(AViewField));
+  Assert(Assigned(AViewField), 'Assigned(AViewField)');
   Result := AViewField.IsVisible;
   if Assigned(AAcceptFieldEvent) then
     AAcceptFieldEvent(AViewField, Result);
@@ -883,7 +883,7 @@ end;
 function TKExcelEngine.IsAccepterDataField(const AField: TField;
   AAcceptFieldEvent: TAcceptDataFieldEvent = nil): Boolean;
 begin
-  Assert(Assigned(AField));
+  Assert(Assigned(AField), 'Assigned(AField)');
   Result := AField.Visible;
   if Assigned(AAcceptFieldEvent) then
     AAcceptFieldEvent(AField, Result);

@@ -1,5 +1,5 @@
 ﻿{-------------------------------------------------------------------------------
-   Copyright 2019-2025 Ethea S.r.l.
+   Copyright 2019-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

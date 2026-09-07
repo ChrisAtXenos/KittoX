@@ -38,6 +38,18 @@ uses
   EF.YAML.Attributes,
   Kitto.Config.Reader;
 
+const
+  /// <summary>
+  ///  Default name of the cookie carrying the JWT, overridden by
+  ///  Auth/JWT/Cookie/Name. It lives in this unit, which declares the schema of
+  ///  that very node, because two unrelated places need the same default and
+  ///  neither should have to depend on the other: the JWT engine, which writes
+  ///  the cookie, and the web engine, which reads it back to recover the session
+  ///  id. Declaring it in Kitto.Web.JWT would drag JOSE into the web engine for
+  ///  a single string.
+  /// </summary>
+  DEFAULT_JWT_COOKIE_NAME = 'kx_token';
+
 type
   /// <summary>
   ///  Default credentials for authentication.
@@ -71,7 +83,7 @@ type
   protected
     procedure ReadConfig; override;
   public
-    [YamlNode('Name', 'kx_token', 'Cookie name carrying the JWT')]
+    [YamlNode('Name', DEFAULT_JWT_COOKIE_NAME, 'Cookie name carrying the JWT')]
     property Name: string read FName;
 
     [YamlNode('Path', 'Cookie path scope. Default: TKWebApplication.Path (the AppPath of this app)')]

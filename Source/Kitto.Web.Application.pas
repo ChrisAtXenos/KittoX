@@ -324,7 +324,50 @@ type
     ///  error-handler request filter (Kitto.Web.Routing.AppFilters) renders
     ///  exceptions uniformly for both the attribute and legacy pipelines.
     /// </summary>
-    procedure RenderErrorDialog(const AMessage: string; const AIsFatal: Boolean);
+    /// <summary>
+    ///  Renders the error dialog and, by default, answers 500. The status is a
+    ///  parameter because not every error is a server failure: pass 4xx where
+    ///  the request was understood and simply cannot be carried out. Pass 0 to
+    ///  leave the status untouched.
+    /// </summary>
+    procedure RenderErrorDialog(const AMessage: string; const AIsFatal: Boolean;
+      const AStatusCode: Integer = 500);
+
+    /// <summary>
+    ///  Renders AMessage as a dismissible WARNING, for an operation the
+    ///  application refused and is able to explain.
+    /// </summary>
+    /// <remarks>
+    ///  A delete held back by rows that still refer to the record is the case
+    ///  this exists for: nothing went wrong, so presenting it as an error
+    ///  would send people looking for a fault that is not there.
+    /// </remarks>
+    /// <summary>
+    ///  Renders the warning dialog and, by default, answers 422: the request
+    ///  was understood and refused on the application's own terms (a rule, a
+    ///  validation), which is not a failure of the server.
+    /// </summary>
+    procedure RenderWarningDialog(const AMessage: string;
+      const AStatusCode: Integer = 422);
+
+    /// <summary>
+    ///  The dialog both of the above are made of. AKind names the CSS variant
+    ///  ('error', 'warning', 'info'), ATitle the heading.
+    /// </summary>
+    /// <summary>
+    ///  Renders a modal dialog as the whole response, and sets AStatusCode
+    ///  unless it is 0.
+    ///
+    ///  The response also carries X-KittoX-Dialog: &lt;AKind&gt;. It is what lets the
+    ///  status be honest: HTMX does not swap a non-2xx response, so a dialog
+    ///  sent with 500 would never appear, and that is why every error used to
+    ///  travel as 200 -- indistinguishable, from the outside, from a success.
+    ///  The page template listens on htmx:beforeSwap and opts a response
+    ///  carrying this header back into the swap, so the dialog appears AND the
+    ///  status tells the truth to logs, proxies and DevTools.
+    /// </summary>
+    procedure RenderMessageDialog(const AMessage, AKind, ATitle: string;
+      const AIsFatal: Boolean; const AStatusCode: Integer);
 
     /// <summary>
     ///  True if the named view exists and is declared public (empty ACURI, i.e.
@@ -466,7 +509,7 @@ end;
 
 constructor TKApplicationMacroExpander.Create(const AApplication: TKWebApplication);
 begin
-  Assert(Assigned(AApplication));
+  Assert(Assigned(AApplication), 'Assigned(AApplication)');
 
   // We will pass Session.AuthData dynamically as needed, so we initialize the
   // expander with nil. We inherit from TEFTreeExpander only to inherit its
@@ -588,11 +631,15 @@ begin
 end;
 
 procedure TKWebApplication.FreeLoginNode;
+var
+  LView: TKView;
 begin
   // Free login node only if one was manufactured.
   if FOwnsLoginNode and Assigned(FLoginNode) then
   begin
+    LView := Config.Views.FindNonpersistentObject(FLoginNode) as TKView;
     Config.Views.DeleteNonpersistentObject(FLoginNode);
+    LView.Free;
     FreeAndNil(FLoginNode);
   end;
   FLoginNode := nil;
@@ -755,7 +802,7 @@ var
   LUser: string;
   LSession: TKWebSession;
 begin
-  Assert(Assigned(AView));
+  Assert(Assigned(AView), 'Assigned(AView)');
   Result := AView.IsAccessGranted(AMode);
   if not Result then
   begin
@@ -775,7 +822,7 @@ end;
 
 function TKWebApplication.RequireDataView(const AView: TKView): Boolean;
 begin
-  Assert(Assigned(AView));
+  Assert(Assigned(AView), 'Assigned(AView)');
   Result := AView is TKDataView;
   if not Result and Assigned(TKWebResponse.Current) then
     TKWebResponse.Current.StatusCode := 404;
@@ -784,7 +831,7 @@ end;
 
 procedure TKWebApplication.DisplayView(const AName: string);
 begin
-  Assert(AName <> '');
+  Assert(AName <> '', 'AName <> ''''');
 
   DisplayView(Config.Views.ViewByName(AName));
 end;
@@ -795,7 +842,7 @@ var
   LController: IKXController;
   LHtml: string;
 begin
-  Assert(Assigned(AView));
+  Assert(Assigned(AView), 'Assigned(AView)');
 
   if AView.IsAccessGranted(ACM_VIEW) then
   begin
@@ -881,10 +928,11 @@ begin
   Result := Assigned(LView) and (LView.GetACURI = '');
 end;
 
-procedure TKWebApplication.RenderErrorDialog(const AMessage: string;
-  const AIsFatal: Boolean);
+procedure TKWebApplication.RenderMessageDialog(const AMessage, AKind,
+  ATitle: string; const AIsFatal: Boolean; const AStatusCode: Integer);
 var
   LEncodedMsg: string;
+  LDialog: string;
   LOKAction: string;
   LOverlayClick: string;
 begin
@@ -907,19 +955,63 @@ begin
   // overlay without replacing the current content.
   TKWebResponse.Current.SetCustomHeader('HX-Retarget', 'body');
   TKWebResponse.Current.SetCustomHeader('HX-Reswap', 'beforeend');
-  TKWebResponse.Current.Items.AddHTML(
+  // The marker the page template's htmx:beforeSwap handler keys on to let a
+  // non-2xx response swap anyway. Sent whatever the status, so the handler
+  // needs no second rule for the 200 cases.
+  TKWebResponse.Current.SetCustomHeader('X-KittoX-Dialog', AKind);
+  if AStatusCode <> 0 then
+    TKWebResponse.Current.StatusCode := AStatusCode;
+  LDialog :=
     '<div class="kx-msgbox-overlay"' + LOverlayClick + '>' +
       '<div class="kx-msgbox-dialog" onclick="event.stopPropagation()">' +
-        '<div class="kx-msgbox-header kx-msgbox-error">' +
-          '<div class="kx-msgbox-icon kx-msgbox-icon-error"></div>' +
-          '<span>' + _('Error') + '</span>' +
+        '<div class="kx-msgbox-header kx-msgbox-' + AKind + '">' +
+          '<div class="kx-msgbox-icon kx-msgbox-icon-' + AKind + '"></div>' +
+          '<span>' + TNetEncoding.HTML.Encode(ATitle) + '</span>' +
         '</div>' +
         '<div class="kx-msgbox-body">' + LEncodedMsg + '</div>' +
         '<div class="kx-msgbox-footer">' +
           '<button onclick="' + LOKAction + '">OK</button>' +
         '</div>' +
       '</div>' +
-    '</div>');
+    '</div>';
+
+  if TKXWebResponse.Current.IsHtmxRequest then
+    // A fragment, swapped into the page that is already there by the
+    // HX-Retarget above.
+    TKWebResponse.Current.Items.AddHTML(LDialog)
+  else
+    // A TOP-LEVEL NAVIGATION -- the browser is loading this response AS the
+    // page. There is nothing to swap the fragment into, so sending one leaves
+    // the user on a bare white page with unstyled text and a button: which is
+    // what a failure during the post-login redirect to the application root
+    // looked like, since that redirect is a location.href, not an HTMX call.
+    //
+    // Wrapped in a document of its own, deliberately minimal: a charset, the
+    // application stylesheet, and the same markup. It does NOT go through the
+    // page template, the theme or the icon resolution -- this runs when
+    // something has already failed, and an error renderer that can fail in turn
+    // leaves the user with nothing at all. If even the stylesheet does not
+    // load, the message and the button are still there in readable HTML.
+    TKWebResponse.Current.Items.AddHTML(
+      '<!DOCTYPE html>' +
+      '<html><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>' + TNetEncoding.HTML.Encode(ATitle) + '</title>' +
+      '<link rel="stylesheet" href="' + FPath + '/res/css/kittox.css">' +
+      '</head><body>' + LDialog + '</body></html>');
+end;
+
+procedure TKWebApplication.RenderErrorDialog(const AMessage: string;
+  const AIsFatal: Boolean; const AStatusCode: Integer);
+begin
+  RenderMessageDialog(AMessage, 'error', _('Error'), AIsFatal, AStatusCode);
+end;
+
+procedure TKWebApplication.RenderWarningDialog(const AMessage: string;
+  const AStatusCode: Integer);
+begin
+  // Never fatal: the session is intact, the request simply did not go through.
+  RenderMessageDialog(AMessage, 'warning', _('Warning'), False, AStatusCode);
 end;
 
 function TKWebApplication.DoHandleRequest(const ARequest: TKWebRequest;
@@ -931,8 +1023,8 @@ function TKWebApplication.DoHandleRequest(const ARequest: TKWebRequest;
   end;
 
 begin
-  Assert(Assigned(ARequest));
-  Assert(Assigned(AResponse));
+  Assert(Assigned(ARequest), 'Assigned(ARequest)');
+  Assert(Assigned(AResponse), 'Assigned(AResponse)');
 
   Result := False;
   TEFLogger.Instance.Log('DoHandleRequest: URL.Path="' + AURL.Path +
@@ -1003,7 +1095,7 @@ var
   LLabelNode: TEFNode;
   LEnvironment: string;
 begin
-  Assert(Assigned(AAuthData));
+  Assert(Assigned(AAuthData), 'Assigned(AAuthData)');
   // Raw config name of the active database (session override, then default).
   LDatabaseName := Config.DatabaseName;
   AAuthData.SetString('DatabaseName', LDatabaseName);

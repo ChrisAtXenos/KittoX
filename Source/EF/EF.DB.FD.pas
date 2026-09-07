@@ -91,11 +91,18 @@ type
   private
     FConnection: TFDConnection;
     function FDDataTypeToEFDataType(const AFDDataType: TFDDataType): TEFDataType;
-    procedure FetchTableIndexColumns(const ATable: TEFDBTableInfo;
-      const AIndexName: string; const ColumnNames: TStrings);
-    procedure FetchTableForeignKeysColumns(const ATable: TEFDBTableInfo;
-      const AForeignKeyName: string; const ColumnNames, ReferencedColumnNames: TStrings);
   protected
+    /// <summary>Reads the columns of the named index into ColumnNames, each at
+    /// the place its COLUMN_POSITION says. Override to work around a driver
+    /// that reports index columns in a shape of its own.</summary>
+    procedure FetchTableIndexColumns(const ATable: TEFDBTableInfo;
+      const AIndexName: string; const ColumnNames: TStrings); virtual;
+    /// <summary>Reads the local and referenced columns of the named foreign key
+    /// into the two lists, each at the place its COLUMN_POSITION says. The two
+    /// lists come out coupled by position. Override to work around a driver
+    /// that reports foreign key columns in a shape of its own.</summary>
+    procedure FetchTableForeignKeysColumns(const ATable: TEFDBTableInfo;
+      const AForeignKeyName: string; const ColumnNames, ReferencedColumnNames: TStrings); virtual;
     procedure BeforeFetchInfo; override;
     procedure FetchTables(const ASchema: TEFDBSchemaInfo); override;
     procedure FetchTableColumns(const ATable: TEFDBTableInfo);
@@ -107,6 +114,24 @@ type
     constructor Create(const AConnection: TFDConnection);
     /// <summary>The FireDAC connection used to read the database metadata.</summary>
     property Connection: TFDConnection read FConnection write FConnection;
+
+    /// <summary>
+    ///  Appends to the target lists the column names the open metadata dataset
+    ///  reports, each at the place its COLUMN_POSITION says rather than the
+    ///  place its row happened to arrive in. ADataSet is read from the current
+    ///  record to the end. AReferencedColumnFieldName and ReferencedColumnNames
+    ///  are for a foreign key, which has two lists that come out coupled by
+    ///  position; pass '' and nil for an index. AWhat names the key in the
+    ///  error message.
+    ///
+    ///  Public because the two Fetch...Columns methods above are meant to be
+    ///  overridden, and an override needs this to build its lists the same way.
+    ///
+    ///  Raises EEFDBError when the positions are not 1..n, each exactly once.
+    /// </summary>
+    class procedure AddKeyColumnsInPositionOrder(const ADataSet: TDataSet;
+      const AColumnFieldName, AReferencedColumnFieldName: string;
+      const ColumnNames, ReferencedColumnNames: TStrings; const AWhat: string);
   end;
 
   /// <summary>Metaclass reference to a TEFDBFDQuery descendant.</summary>
@@ -223,6 +248,14 @@ type
     FOwnedConnection: TFDConnection;
     FParams: TEFDBFDParams;
     FCommandText: string;
+    /// <summary>
+    ///  Picks the TFDConnection this query must run on - the parent's shared
+    ///  one, or a private one from the pool. Called both when the connection is
+    ///  assigned and before each execution: deciding only at assignment time
+    ///  meant a query created before StartTransaction kept a private connection
+    ///  and executed OUTSIDE the transaction that was opened afterwards.
+    /// </summary>
+    procedure EnsureQueryConnection;
     // Copies the values in FParams to FQuery.Parameters.
     procedure UpdateInternalQueryParams;
     // Updates FQuery's command, if necessary, and prepares the query.
@@ -334,9 +367,14 @@ uses
   System.SysUtils,
   System.StrUtils,
   System.TypInfo,
+  System.SyncObjs,
   EF.StrUtils,
   EF.Localization,
   EF.Types;
+
+var
+  // Guards the process-wide FDManager connection definitions. See InternalOpen.
+  _PoolDefLock: TCriticalSection;
 
 function GetUseBooleanFields(ADriverID: string) : boolean;
 begin
@@ -383,6 +421,25 @@ begin
     LDestinationParameter := ADestination.FindParam(LSourceParam.Name);
     if Assigned(LDestinationParameter) then
     begin
+      // NULL is settled here, before the case: only the ftDateTime, ftDate and
+      // ftUnknown branches below used to check IsNull, so every other type read
+      // the value anyway and got the default a null TParam returns - writing 0
+      // for a Currency the user left empty, '' for a nullable string (and ''
+      // is not NULL: IS NULL filters and required-field checks stop working),
+      // an empty blob for a cleared attachment. Same shape as the ODAC adapter.
+      if LSourceParam.IsNull then
+      begin
+        // Keep a concrete type so a typed NULL is bound. ftUnknown is typical of
+        // detail queries with an empty master.
+        if LSourceParam.DataType = ftUnknown then
+          LDestinationParameter.DataType := ftString
+        else
+          LDestinationParameter.DataType := LSourceParam.DataType;
+        LDestinationParameter.Clear;
+        LDestinationParameter.Bound := True;
+        Continue;
+      end;
+
       case LSourceParam.DataType of
         ftBoolean:
           if AUseBooleanFields then
@@ -559,21 +616,40 @@ begin
   //can acquire its own TFDConnection from the pool — isolating queries from
   //each other and bypassing the FireDAC MARS-on-shared-connection issue.
   //POOL_MaximumItems defaults to 100 (overridable via Config.yaml).
-  LDefName := 'KittoPool_' + LDriverId + '_' +
-    FConnection.Params.Values['Database'];
+  // The pool is identified by the name this database has in the configuration:
+  // unique by construction, and the same name the rest of the framework refers
+  // it by. Naming it after driver and parameters described the connection by
+  // approximation instead - two entries can differ by user or schema alone, and
+  // the second one would have found the first one's definition already there,
+  // reused it credentials included, and worked on the wrong data in silence.
+  if DatabaseName <> '' then
+    LDefName := 'KittoPool_' + DatabaseName
+  else
+    // Connection built outside a configuration (tools, tests): keep the former
+    // scheme rather than have all of them share a single pool.
+    LDefName := 'KittoPool_' + LDriverId + '_' +
+      FConnection.Params.Values['Database'];
   FPoolDefName := LDefName;
-  if FDManager.ConnectionDefs.FindConnectionDef(LDefName) = nil then
-  begin
-    LPoolMaxItems := Config.GetInteger('Connection/POOL_MaximumItems', 100);
-    LPoolParams := TStringList.Create;
-    try
-      LPoolParams.Assign(FConnection.Params);
-      LPoolParams.Values['Pooled'] := 'True';
-      LPoolParams.Values['POOL_MaximumItems'] := IntToStr(LPoolMaxItems);
-      FDManager.AddConnectionDef(LDefName, LDriverId, LPoolParams);
-    finally
-      LPoolParams.Free;
+  // FDManager is global to the process, and this is a check-then-act on it: two
+  // threads opening their first connection would both find nothing and both try
+  // to add the definition.
+  _PoolDefLock.Enter;
+  try
+    if FDManager.ConnectionDefs.FindConnectionDef(LDefName) = nil then
+    begin
+      LPoolMaxItems := Config.GetInteger('Connection/POOL_MaximumItems', 100);
+      LPoolParams := TStringList.Create;
+      try
+        LPoolParams.Assign(FConnection.Params);
+        LPoolParams.Values['Pooled'] := 'True';
+        LPoolParams.Values['POOL_MaximumItems'] := IntToStr(LPoolMaxItems);
+        FDManager.AddConnectionDef(LDefName, LDriverId, LPoolParams);
+      finally
+        LPoolParams.Free;
+      end;
     end;
+  finally
+    _PoolDefLock.Leave;
   end;
   FConnection.ConnectionDefName := LDefName;
 
@@ -610,8 +686,11 @@ function TEFDBFDConnection.CreateDBCommand: TEFDBCommand;
 begin
   Result := TEFDBFDCommand.Create;
   try
-    Result.Connection := Self;
+    // Open first, then hand the connection over: a component binds itself to
+    // this connection the moment it is given one, and it has to find it ready.
+    // Open is idempotent, so this costs nothing when it is already open.
     Open;
+    Result.Connection := Self;
   except
     FreeAndNil(Result);
     raise;
@@ -641,8 +720,17 @@ function TEFDBFDConnection.CreateDBQuery: TEFDBQuery;
 begin
   Result := GetQueryClass.Create;
   try
-    Result.Connection := Self;
+    // Open before assigning, and not the other way round: EnsureQueryConnection
+    // runs as soon as the query is given this connection, and it reads
+    // PoolDefName to decide whether to take a private TFDConnection out of the
+    // pool or to share this wrapper's one. PoolDefName is set by InternalOpen,
+    // so with the assignment first every query built on a closed connection --
+    // that is, the first query of every connection -- was bound to the shared
+    // TFDConnection. TEFDBFDQuery.Open decides again and repaired it before
+    // anything executed, but a query should not depend on that repair to stay
+    // off a connection the rest of this class works to keep it off.
     Open;
+    Result.Connection := Self;
   except
     FreeAndNil(Result);
     raise;
@@ -663,7 +751,7 @@ end;
 
 function TEFDBFDConnection.ExecuteImmediate(const AStatement: string): Integer;
 begin
-  Assert(Assigned(FConnection));
+  Assert(Assigned(FConnection), 'Assigned(FConnection)');
 
   if AStatement = '' then
     raise EEFError.Create(_('Unspecified Statement text.'));
@@ -824,10 +912,17 @@ begin
 end;
 
 procedure TEFDBFDQuery.ConnectionChanged;
+begin
+  inherited;
+  EnsureQueryConnection;
+end;
+
+procedure TEFDBFDQuery.EnsureQueryConnection;
 var
   LParent: TEFDBFDConnection;
 begin
-  inherited;
+  if not Assigned(Connection) then
+    Exit;
   LParent := Connection.AsObject as TEFDBFDConnection;
   // If the parent wrapper is currently in a transaction, share its
   // TFDConnection so the query participates in the transaction. Otherwise
@@ -868,6 +963,9 @@ end;
 procedure TEFDBFDQuery.Open;
 begin
   try
+    // Re-decide here, not only when the connection was assigned: a transaction
+    // may have been opened in the meantime, and the query has to join it.
+    EnsureQueryConnection;
     UpdateInternalQueryCommandText;
     Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
     UpdateInternalQueryParams;
@@ -981,7 +1079,7 @@ end;
 procedure TEFDBFDInfo.BeforeFetchInfo;
 begin
   inherited;
-  Assert(Assigned(FConnection));
+  Assert(Assigned(FConnection), 'Assigned(FConnection)');
 end;
 
 procedure TEFDBFDInfo.FetchTables(const ASchema: TEFDBSchemaInfo);
@@ -1174,6 +1272,66 @@ begin
   end;
 end;
 
+// Position is not decoration here: throughout the framework a master's key and
+// a detail's reference are coupled to each other by position, so a list built
+// in the wrong order silently reads another master's rows. This code used to
+// Assert that the driver had already sorted the rows -- comparing
+// COLUMN_POSITION against the index the name landed on -- which reported a
+// driver's ordering as a programming error in Debug and, with assertions off in
+// Release since EF.Defines.inc stopped forcing {$C+}, let the wrong order
+// through in silence. A key quietly built out of unusable metadata is worse
+// than a view that fails to open, hence the raise rather than a best effort.
+class procedure TEFDBFDInfo.AddKeyColumnsInPositionOrder(const ADataSet: TDataSet;
+  const AColumnFieldName, AReferencedColumnFieldName: string;
+  const ColumnNames, ReferencedColumnNames: TStrings; const AWhat: string);
+var
+  LPositions: TArray<Integer>;
+  LNames, LReferencedNames: TArray<string>;
+  LOrdered, LOrderedReferenced: TArray<string>;
+  LTaken: TArray<Boolean>;
+  LCount, I, LPosition: Integer;
+begin
+  Assert(Assigned(ADataSet), 'Assigned(ADataSet)');
+  Assert(Assigned(ColumnNames), 'Assigned(ColumnNames)');
+
+  LCount := 0;
+  while not ADataSet.Eof do
+  begin
+    SetLength(LPositions, LCount + 1);
+    SetLength(LNames, LCount + 1);
+    SetLength(LReferencedNames, LCount + 1);
+    LPositions[LCount] := ADataSet.FieldByName('COLUMN_POSITION').AsInteger;
+    LNames[LCount] := ADataSet.FieldByName(AColumnFieldName).AsString;
+    if AReferencedColumnFieldName <> '' then
+      LReferencedNames[LCount] := ADataSet.FieldByName(AReferencedColumnFieldName).AsString;
+    Inc(LCount);
+    ADataSet.Next;
+  end;
+
+  SetLength(LOrdered, LCount);
+  SetLength(LOrderedReferenced, LCount);
+  SetLength(LTaken, LCount);
+  for I := 0 to LCount - 1 do
+  begin
+    LPosition := LPositions[I];
+    if (LPosition < 1) or (LPosition > LCount) or LTaken[LPosition - 1] then
+      raise EEFDBError.CreateFmt(_('The database driver reports column position ' +
+        '%d for %s, which does not fit a key of %d column(s): the positions have ' +
+        'to be 1 to %d, each of them once. The key cannot be built from this ' +
+        'metadata.'), [LPosition, AWhat, LCount, LCount]);
+    LTaken[LPosition - 1] := True;
+    LOrdered[LPosition - 1] := LNames[I];
+    LOrderedReferenced[LPosition - 1] := LReferencedNames[I];
+  end;
+
+  for I := 0 to LCount - 1 do
+  begin
+    ColumnNames.Add(LOrdered[I]);
+    if Assigned(ReferencedColumnNames) then
+      ReferencedColumnNames.Add(LOrderedReferenced[I]);
+  end;
+end;
+
 procedure TEFDBFDInfo.FetchTablePrimaryKey(const ATable: TEFDBTableInfo);
 var
   LPrimaryKeyDataSet: TFDMetaInfoQuery;
@@ -1185,11 +1343,15 @@ begin
     LPrimaryKeyDataSet.ObjectName := ATable.Name;
     LPrimaryKeyDataSet.MetaInfoKind := mkPrimaryKey;
     LPrimaryKeyDataSet.Open;
-    while not LPrimaryKeyDataSet.Eof do
+    // A table has one primary key, so one index: read the first row and stop.
+    // The former loop called FetchTableIndexColumns once per row, appending to
+    // the same list -- a driver reporting the key twice built a list of twice
+    // the columns, which is the state the Assert in there used to catch.
+    if not LPrimaryKeyDataSet.Eof then
     begin
       LIndexName := LPrimaryKeyDataSet.FieldByName('INDEX_NAME').AsString;
+      ATable.PrimaryKey.Name := LIndexName;
       FetchTableIndexColumns(ATable, LIndexName, ATable.PrimaryKey.ColumnNames);
-      LPrimaryKeyDataSet.Next;
     end;
   finally
     LPrimaryKeyDataSet.Free;
@@ -1200,8 +1362,6 @@ procedure TEFDBFDInfo.FetchTableIndexColumns(const ATable: TEFDBTableInfo;
   const AIndexName: string; const ColumnNames: TStrings);
 var
   LIndexFieldsDataSet: TFDMetaInfoQuery;
-  LIndexColumnName: string;
-  LPos, LIndexColumnPosition: Integer;
 begin
   LIndexFieldsDataSet := TFDMetaInfoQuery.Create(nil);
   try
@@ -1210,14 +1370,8 @@ begin
     LIndexFieldsDataSet.ObjectName := AIndexName;
     LIndexFieldsDataSet.MetaInfoKind := mkIndexFields;
     LIndexFieldsDataSet.Open;
-    while not LIndexFieldsDataSet.Eof do
-    begin
-      LIndexColumnName := LIndexFieldsDataSet.FieldByName('COLUMN_NAME').AsString;
-      LIndexColumnPosition := LIndexFieldsDataSet.FieldByName('COLUMN_POSITION').AsInteger;
-      LPos := ColumnNames.Add(LindexColumnName) +1;
-      Assert((LPos = LIndexColumnPosition), 'Index order wrong');
-      LIndexFieldsDataSet.Next;
-    end;
+    AddKeyColumnsInPositionOrder(LIndexFieldsDataSet, 'COLUMN_NAME', '',
+      ColumnNames, nil, Format('index %s of table %s', [AIndexName, ATable.Name]));
   finally
     LIndexFieldsDataSet.Free;
   end;
@@ -1227,8 +1381,6 @@ procedure TEFDBFDInfo.FetchTableForeignKeysColumns(const ATable: TEFDBTableInfo;
   const AForeignKeyName: string; const ColumnNames, ReferencedColumnNames: TStrings);
 var
   LFKFieldsDataSet: TFDMetaInfoQuery;
-  LFKColumnName, LRefColumnName: string;
-  LPos, LColumnPosition: Integer;
 begin
   LFKFieldsDataSet := TFDMetaInfoQuery.Create(nil);
   try
@@ -1237,17 +1389,11 @@ begin
     LFKFieldsDataSet.ObjectName := AForeignKeyName;
     LFKFieldsDataSet.MetaInfoKind := mkForeignKeyFields;
     LFKFieldsDataSet.Open;
-    while not LFKFieldsDataSet.Eof do
-    begin
-      LFKColumnName := LFKFieldsDataSet.FieldByName('COLUMN_NAME').AsString;
-      LRefColumnName := LFKFieldsDataSet.FieldByName('PKEY_COLUMN_NAME').AsString;
-      LColumnPosition := LFKFieldsDataSet.FieldByName('COLUMN_POSITION').AsInteger;
-      LPos := ColumnNames.Add(LFKColumnName) +1;
-      Assert((LPos = LColumnPosition), 'FK column position order wrong');
-      LPos := ReferencedColumnNames.Add(LRefColumnName) +1;
-      Assert((LPos = LColumnPosition), 'FK referenced column position order wrong');
-      LFKFieldsDataSet.Next;
-    end;
+    // One pass fills both lists, so they come out coupled by position: the
+    // local column at index I references the foreign column at index I.
+    AddKeyColumnsInPositionOrder(LFKFieldsDataSet, 'COLUMN_NAME',
+      'PKEY_COLUMN_NAME', ColumnNames, ReferencedColumnNames,
+      Format('foreign key %s of table %s', [AForeignKeyName, ATable.Name]));
   finally
     LFKFieldsDataSet.Free;
   end;
@@ -1266,25 +1412,31 @@ begin
     LForeignKeyDataSet.ObjectName := ATable.Name;
     LForeignKeyDataSet.MetaInfoKind := mkForeignKeys;
     LForeignKeyDataSet.Open;
-    try
-      while not LForeignKeyDataSet.Eof do
+    // No exception handler freeing LForeignKey here. The foreign key belongs to
+    // ATable.ForeignKeys -- a TObjectList with OwnsObjects -- from the instant
+    // AddForeignKey accepts it, and AddForeignKey is called right after the
+    // Create: there is no moment in which the foreign key is ours to free. The
+    // handler that used to be here freed it in every case (one just added to
+    // the table, one FindForeignKey had returned from a previous round, or an
+    // unassigned local when the very first FieldByName raised), leaving a
+    // dangling entry in the list. The raise then reached FetchTables, whose own
+    // handler frees the table, which freed the same foreign key a second time:
+    // an access violation inside that cleanup, reported as a failure to load
+    // the model with nothing pointing back to the cause.
+    while not LForeignKeyDataSet.Eof do
+    begin
+      LForeignKeyName := LForeignKeyDataSet.FieldByName('FKEY_NAME').AsString;
+      LForeignKey := ATable.FindForeignKey(LForeignKeyName);
+      if not Assigned(LForeignKey) then
       begin
-        LForeignKeyName := LForeignKeyDataSet.FieldByName('FKEY_NAME').AsString;
-        LForeignKey := ATable.FindForeignKey(LForeignKeyName);
-        if not Assigned(LForeignKey) then
-        begin
-          LForeignKey := TEFDBForeignKeyInfo.Create;
-          LForeignKey.Name := LForeignKeyName;
-          ATable.AddForeignKey(LForeignKey);
-        end;
-        LForeignKey.ForeignTableName := LForeignKeyDataSet.FieldByName('PKEY_TABLE_NAME').AsString;
-        FetchTableForeignKeysColumns(ATable, LForeignKeyName, 
-          LForeignKey.ColumnNames, LForeignKey.ForeignColumnNames);
-        LForeignKeyDataSet.Next;
+        LForeignKey := TEFDBForeignKeyInfo.Create;
+        LForeignKey.Name := LForeignKeyName;
+        ATable.AddForeignKey(LForeignKey);
       end;
-    except
-      FreeAndNil(LForeignKey);
-      raise;
+      LForeignKey.ForeignTableName := LForeignKeyDataSet.FieldByName('PKEY_TABLE_NAME').AsString;
+      FetchTableForeignKeysColumns(ATable, LForeignKeyName,
+        LForeignKey.ColumnNames, LForeignKey.ForeignColumnNames);
+      LForeignKeyDataSet.Next;
     end;
   finally
     LForeignKeyDataSet.Free;
@@ -1361,10 +1513,15 @@ begin
 end;
 
 initialization
+  // Serializes the check-then-add on FDManager's connection definitions, which
+  // are global to the process. Created here, before any connection can be
+  // opened, so it never has to be created lazily by whoever gets there first.
+  _PoolDefLock := TCriticalSection.Create;
   TEFDBAdapterRegistry.Instance.RegisterDBAdapter(TEFDBFDAdapter.GetClassId, TEFDBFDAdapter.Create);
 
 finalization
   TEFDBAdapterRegistry.Instance.UnregisterDBAdapter(TEFDBFDAdapter.GetClassId);
+  FreeAndNil(_PoolDefLock);
 
 
 end.

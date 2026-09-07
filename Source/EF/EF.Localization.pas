@@ -208,7 +208,13 @@ end;
 
 class procedure TEFLocalizationToolRegistry.UnregisterTool;
 begin
-  RegisterTool(nil);
+  // Back to the do-nothing tool, not to nil. Every _() call goes through
+  // CurrentTool without checking it, so leaving nil behind turned the next
+  // translated string into an access violation -- and the three callers are all
+  // finalization sections, where a unit finalized later can still log or raise
+  // something that wants translating. The null tool is what initialization
+  // installs in the first place.
+  RegisterTool(TEFNullLocalizationTool.Create);
 end;
 
 initialization

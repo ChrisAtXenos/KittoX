@@ -1,169 +1,72 @@
-// 10.4 "Sydney"
-{$IFDEF VER340}
-  {$DEFINE D7+}
-  {$DEFINE D9+}
-  {$DEFINE D10+}
-  {$DEFINE D11+}
-  {$DEFINE D12+}
-  {$DEFINE D14+}
-  {$DEFINE D15+}
-  {$DEFINE D16+}
-  {$DEFINE D17+}
-  {$DEFINE D18+}
-  {$DEFINE D19+}
-  {$DEFINE D20+}
-  {$DEFINE D21+}
-  {$DEFINE D22+}
-  {$DEFINE D23+}
-  {$DEFINE D24+}
-  {$DEFINE D25+}
-  {$DEFINE D26+}
-  {$DEFINE D27}
-  {$DEFINE D27+}
-{$ENDIF}
+// Shared include for every EF and Kitto unit (see also Kitto.Defines.inc).
+//
+// It holds ONLY what must be identical across the whole framework:
+//   * the legacy Dnn+ version defines;
+//   * the three UNSAFE_* warnings, which are noise outside .NET-targeted code.
+//
+// It deliberately does NOT set compiler switches ($O, $R, $Q, $C, $D, $W, ...).
+// Those belong to the project's Debug/Release configuration: a switch set here
+// silently overrides what the .dproj asked for, in EVERY unit that includes
+// this file. Doing so used to force optimization on and stack frames off in
+// Debug builds (making the debugger report wrong values and truncated call
+// stacks), keep range and overflow checking off even in Debug (so out-of-range
+// accesses corrupted memory instead of raising ERangeError where it could be
+// caught), and keep assertions and debug info on in Release builds.
 
-// 11 "Alexandria"
-{$IFDEF VER350}
-  {$DEFINE D7+}
-  {$DEFINE D9+}
-  {$DEFINE D10+}
-  {$DEFINE D11+}
-  {$DEFINE D12+}
-  {$DEFINE D14+}
-  {$DEFINE D15+}
-  {$DEFINE D16+}
-  {$DEFINE D17+}
-  {$DEFINE D18+}
-  {$DEFINE D19+}
-  {$DEFINE D20+}
-  {$DEFINE D21+}
-  {$DEFINE D22+}
-  {$DEFINE D23+}
-  {$DEFINE D24+}
-  {$DEFINE D25+}
-  {$DEFINE D26+}
-  {$DEFINE D27+}
-  {$DEFINE D28}
-  {$DEFINE D28+}
-{$ENDIF}
+// Version defines, inherited from Kitto 1. Only D15+ and D22+ are actually
+// tested by the code base; the rest of the cumulative series is kept for
+// application code that may rely on it.
+//
+// They are expressed as CompilerVersion ranges rather than VERxxx blocks on
+// purpose: with per-version blocks, a compiler newer than the last one listed
+// matched nothing, so every Dnn+ stayed undefined and the units silently fell
+// back to their pre-XE8 code paths instead of failing to build.
 
-// Delphi 12
-{$IFDEF VER360}
-  {$DEFINE D7+}
-  {$DEFINE D9+}
-  {$DEFINE D10+}
-  {$DEFINE D11+}
-  {$DEFINE D12+}
-  {$DEFINE D14+}
-  {$DEFINE D15+}
-  {$DEFINE D16+}
-  {$DEFINE D17+}
-  {$DEFINE D18+}
-  {$DEFINE D19+}
-  {$DEFINE D20+}
-  {$DEFINE D21+}
-  {$DEFINE D22+}
-  {$DEFINE D23+}
-  {$DEFINE D24+}
-  {$DEFINE D25+}
-  {$DEFINE D26+}
-  {$DEFINE D27+}
+{$IF CompilerVersion < 34}
+  {$MESSAGE FATAL 'KittoX requires Delphi 10.4 Sydney (CompilerVersion 34) or later.'}
+{$IFEND}
+
+// 10.4 Sydney and later (minimum supported).
+{$DEFINE D7+}
+{$DEFINE D9+}
+{$DEFINE D10+}
+{$DEFINE D11+}
+{$DEFINE D12+}
+{$DEFINE D14+}
+{$DEFINE D15+}
+{$DEFINE D16+}
+{$DEFINE D17+}
+{$DEFINE D18+}
+{$DEFINE D19+}
+{$DEFINE D20+}
+{$DEFINE D21+}
+{$DEFINE D22+}
+{$DEFINE D23+}
+{$DEFINE D24+}
+{$DEFINE D25+}
+{$DEFINE D26+}
+{$DEFINE D27+}
+
+// 11 Alexandria and later.
+{$IF CompilerVersion >= 35}
   {$DEFINE D28+}
-  {$DEFINE D29}
+{$IFEND}
+
+// 12 Athens and later.
+{$IF CompilerVersion >= 36}
   {$DEFINE D29+}
-{$ENDIF}
+{$IFEND}
 
-// Delphi 13
-{$IFDEF VER370}
-  {$DEFINE D7+}
-  {$DEFINE D9+}
-  {$DEFINE D10+}
-  {$DEFINE D11+}
-  {$DEFINE D12+}
-  {$DEFINE D14+}
-  {$DEFINE D15+}
-  {$DEFINE D16+}
-  {$DEFINE D17+}
-  {$DEFINE D18+}
-  {$DEFINE D19+}
-  {$DEFINE D20+}
-  {$DEFINE D21+}
-  {$DEFINE D22+}
-  {$DEFINE D23+}
-  {$DEFINE D24+}
-  {$DEFINE D25+}
-  {$DEFINE D26+}
-  {$DEFINE D27+}
-  {$DEFINE D28+}
-  {$DEFINE D29+}
-  {$DEFINE D37}
+// 13 Florence and later. D37+ names the compiler version rather than the
+// product one, unlike D27+/D28+/D29+ above; both spellings are defined so
+// that either test keeps working.
+{$IF CompilerVersion >= 37}
+  {$DEFINE D30+}
   {$DEFINE D37+}
-{$ENDIF}
+{$IFEND}
 
-{$IFDEF FPC}
-  {$DEFINE D7+}
-  {$DEFINE SUPPORTS_WIDESTRING}
-  {$DEFINE SUPPORTS_INTERFACE}
-  {$DEFINE SUPPORTS_INT64}
-  {$DEFINE SUPPORTS_DYNAMICARRAYS}
-  {$DEFINE SUPPORTS_DEFAULTPARAMS}
-  {$DEFINE SUPPORTS_OVERLOAD}
-  {$ASMMODE Intel}
-  {$MODE DELPHI}
-  {$UNDEF UseRegAsm}
-{$ENDIF}
-
-{$B-,C+,D+,E-,F-,G+,H+,I+,J-,K-,L+,M-,N+,O+,P+,Q-,R-,S-,T+,U-,V+,W-,X+,Y+,Z1}
-{$MINSTACKSIZE $00004000}
-{$MAXSTACKSIZE $00100000}
-{$IFDEF WINDOWS}
-{$IMAGEBASE $00400000}
-{$ENDIF}
-{$WARN SYMBOL_DEPRECATED ON}
-{$WARN SYMBOL_LIBRARY ON}
-{$WARN SYMBOL_PLATFORM ON}
-{$WARN UNIT_LIBRARY ON}
-{$WARN UNIT_PLATFORM ON}
-{$WARN UNIT_DEPRECATED ON}
-{$WARN HRESULT_COMPAT ON}
-{$WARN HIDING_MEMBER ON}
-{$WARN HIDDEN_VIRTUAL ON}
-{$WARN GARBAGE ON}
-{$WARN BOUNDS_ERROR ON}
-{$WARN ZERO_NIL_COMPAT ON}
-{$WARN STRING_CONST_TRUNCED ON}
-{$WARN FOR_LOOP_VAR_VARPAR ON}
-{$WARN TYPED_CONST_VARPAR ON}
-{$WARN ASG_TO_TYPED_CONST ON}
-{$WARN CASE_LABEL_RANGE ON}
-{$WARN FOR_VARIABLE ON}
-{$WARN CONSTRUCTING_ABSTRACT ON}
-{$WARN COMPARISON_FALSE ON}
-{$WARN COMPARISON_TRUE ON}
-{$WARN COMPARING_SIGNED_UNSIGNED ON}
-{$WARN COMBINING_SIGNED_UNSIGNED ON}
-{$WARN UNSUPPORTED_CONSTRUCT ON}
-{$WARN FILE_OPEN ON}
-{$WARN FILE_OPEN_UNITSRC ON}
-{$WARN BAD_GLOBAL_SYMBOL ON}
-{$WARN DUPLICATE_CTOR_DTOR ON}
-{$WARN INVALID_DIRECTIVE ON}
-{$WARN PACKAGE_NO_LINK ON}
-{$WARN PACKAGED_THREADVAR ON}
-{$WARN IMPLICIT_IMPORT ON}
-{$WARN HPPEMIT_IGNORED ON}
-{$WARN NO_RETVAL ON}
-{$WARN USE_BEFORE_DEF ON}
-{$WARN FOR_LOOP_VAR_UNDEF ON}
-{$WARN UNIT_NAME_MISMATCH ON}
-{$WARN NO_CFG_FILE_FOUND ON}
-{$WARN MESSAGE_DIRECTIVE ON}
-{$WARN IMPLICIT_VARIANTS ON}
-{$WARN UNICODE_TO_LOCALE ON}
-{$WARN LOCALE_TO_UNICODE ON}
-{$WARN IMAGEBASE_MULTIPLE ON}
-{$WARN SUSPICIOUS_TYPECAST ON}
-{$WARN PRIVATE_PROPACCESSOR ON}
+// Pointer-safety warnings: they only mean something for code compiled for
+// .NET, which this framework never was.
 {$WARN UNSAFE_TYPE OFF}
 {$WARN UNSAFE_CODE OFF}
 {$WARN UNSAFE_CAST OFF}

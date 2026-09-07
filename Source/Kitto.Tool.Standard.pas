@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -146,7 +146,7 @@ begin
   if not Assigned(FTargetView) then
     FTargetView := TKWebApplication.Current.Config.Views.FindViewByNode(View.FindNode('Controller/View'));
   Result := FTargetView;
-  Assert(Assigned(Result));
+  Assert(Assigned(Result), 'Assigned(Result)');
 end;
 
 initialization

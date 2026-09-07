@@ -68,15 +68,25 @@ begin
 
   if LReturnValue then
   begin
-    if AWait then
+    // SEE_MASK_NOCLOSEPROCESS asks for the process handle, but ShellExecuteEx
+    // succeeds with a null one when no process was started -- the document was
+    // handed to an instance already running. There is then nothing to wait for
+    // and nothing to close.
+    if AWait and (LExecInfo.hProcess <> 0) then
     begin
       WaitForSingleObject(LExecInfo.hProcess, INFINITE);
+      // GetExitCodeProcess leaves its argument untouched when it fails, and
+      // LUnsignedResult is a plain local: it used to be read either way, so a
+      // failed call returned whatever was on the stack as the document's exit
+      // code.
+      LUnsignedResult := 0;
       GetExitCodeProcess(LExecInfo.hProcess, LUnsignedResult);
       Result := LUnsignedResult;
     end
     else
       Result := 0;
-    CloseHandle(LExecInfo.hProcess);
+    if LExecInfo.hProcess <> 0 then
+      CloseHandle(LExecInfo.hProcess);
   end
   else
     Result := -1;

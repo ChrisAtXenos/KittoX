@@ -76,7 +76,7 @@ type
     LAYOUT_MINFIELDWIDTH = 5;
     FORM_LABELWIDTH = 120;
     DEFAULT_REQUIREDLABELTEMPLATE = '<b>{label}*</b>';
-    DEFAULT_LABELSEPARATOR = ':';
+    DEFAULT_LABELSEPARATOR = ': ';
     MULTILINE_EDIT_THRESHOLD = 200;
   strict private
     FViewName: string;

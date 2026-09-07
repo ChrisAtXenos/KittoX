@@ -8,6 +8,7 @@ Fields:
     PhysicalName: PROJ_DESC
   Product: String(12)
   TeamLeaderRef: Reference(Employee)
+    DisplayLabel: Team Leader
     PhysicalName: TEAM_LEADER
     Fields:
       TeamLeader:

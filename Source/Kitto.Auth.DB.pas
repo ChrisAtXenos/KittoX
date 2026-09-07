@@ -651,7 +651,7 @@ begin
           begin
             TEFLogger.Instance.Log('PIN login refused: the user record carries no '+
               'SECRET_CODE. Add the column to ReadUserCommandText and store a random '+
-              'per-user secret in it.', TEFLogger.LOG_HIGH);
+              'per-user secret in it.', TEFLogger.LOG_ALWAYS);
             Result := False;
           end
           else if not TryStrToInt(LSuppliedPasswordHash,LTokenValue) then
@@ -697,7 +697,7 @@ begin
     TEFLogger.Instance.LogFmt('Authentication refused for user %s: the user record '+
       'carries no password (the column is empty or NULL). Send the user a temporary '+
       'password with the password-reset flow instead: an empty stored password would '+
-      'otherwise be matched by an empty typed one.', [AUserName], TEFLogger.LOG_HIGH);
+      'otherwise be matched by an empty typed one.', [AUserName], TEFLogger.LOG_ALWAYS);
     Result := True;
   end;
 end;
@@ -717,7 +717,7 @@ begin
     if ASuppliedPassword = '' then
       TEFLogger.Instance.Log('Passepartout ignored: IsPassepartoutEnabled is True but '+
         'PassepartoutPassword is empty, which would let an empty password in for every '+
-        'user. Set PassepartoutPassword or disable the passepartout.', TEFLogger.LOG_HIGH);
+        'user. Set PassepartoutPassword or disable the passepartout.', TEFLogger.LOG_ALWAYS);
     Exit(False);
   end;
   Result := LIsPassepartoutEnabled and (ASuppliedPassword = LPassepartoutPassword);
@@ -751,8 +751,8 @@ procedure TKDBAuthenticator.ReadUserFromRecord(const AUser: TKAuthUser;
 var
   LSecretCodeField: TField;
 begin
-  Assert(Assigned(AUser));
-  Assert(Assigned(ADBQuery));
+  Assert(Assigned(AUser), 'Assigned(AUser)');
+  Assert(Assigned(ADBQuery), 'Assigned(ADBQuery)');
 
   AUser.Name := ADBQuery.DataSet.FieldByName('USER_NAME').AsString;
   AUser.PasswordHash := ADBQuery.DataSet.FieldByName('PASSWORD_HASH').AsString;
@@ -794,7 +794,7 @@ var
   LCommandText: string;
   LCommand: TEFDBCommand;
 begin
-  Assert(Assigned(AParams));
+  Assert(Assigned(AParams), 'Assigned(AParams)');
 
   LUserName := AParams.GetString('UserName');
   if LUserName = '' then
@@ -851,7 +851,7 @@ var
   LRow, LColumn: Integer;
   LSCaleFactor, LRowScale, LColumnScale: Integer;
 begin
-  Assert(Assigned(AParams));
+  Assert(Assigned(AParams), 'Assigned(AParams)');
 
   LUserName := AParams.GetString('UserName');
   if LUserName = '' then
@@ -968,11 +968,13 @@ end;
 { TKDBCryptAuthenticator }
 
 function TKDBCryptAuthenticator.GetRandomSpecialChar: char;
-var
-  LSpecialChars: string;
+const
+  SPECIAL_CHARS = '\<>!£$%&/()=?^*°[]{}-+@#€';
 begin
-  LSpecialChars := '\<>!£$%&/()=?^*°[]{}-+@#€';
-  Result := LSpecialChars[Random(LSpecialChars.Length)+1];
+  // Through GetRandomChar, not the RTL's Random: this character is appended to
+  // the password GenerateRandomPassword builds, and a predictable character in
+  // a password is a predictable character whatever the rest is made of.
+  Result := GetRandomChar(SPECIAL_CHARS);
 end;
 
 function TKDBCryptAuthenticator.GetBCryptedString(const AValue: string): string;
@@ -1043,7 +1045,7 @@ var
 begin
   // Example of enforcement of password strength rules.
   LValidatePasswordNode := Config.FindNode('ValidatePassword');
-  Assert(Assigned(LValidatePasswordNode));
+  Assert(Assigned(LValidatePasswordNode), 'Assigned(LValidatePasswordNode)');
   LErrorMsg := LValidatePasswordNode.GetExpandedString('Message','Minimun 8 characters');
   LRegEx := LValidatePasswordNode.GetExpandedString('RegEx','^[ -~]{8,63}$');
   LRegularExpression.Create(LRegEx);
@@ -1117,7 +1119,7 @@ begin
           begin
             TEFLogger.Instance.Log('PIN login refused: the user record carries no '+
               'SECRET_CODE. Add the column to ReadUserCommandText and store a random '+
-              'per-user secret in it.', TEFLogger.LOG_HIGH);
+              'per-user secret in it.', TEFLogger.LOG_ALWAYS);
             Result := False;
           end
           else if not TryStrToInt(LSuppliedPasswordHash,LTokenValue) then
@@ -1237,7 +1239,7 @@ var
   LCommandText: string;
   LCommand: TEFDBCommand;
 begin
-  Assert(Assigned(AParams));
+  Assert(Assigned(AParams), 'Assigned(AParams)');
 
   LUserName := AParams.GetString('UserName');
   if LUserName = '' then

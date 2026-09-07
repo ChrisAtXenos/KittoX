@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +15,7 @@
 -------------------------------------------------------------------------------}
 
 ///	<summary>
-///	  Regex support. Wraps TPerlRegEx in Delphi versions prior do Delphi XE.
+///	  Regex support.
 ///	</summary>
 unit EF.RegEx;
 
@@ -43,44 +43,20 @@ implementation
 
 uses
   System.SysUtils,
-  System.SyncObjs,
-  System.RegularExpressionsCore,
+  System.RegularExpressions,
   EF.StrUtils;
 
-// Creating an instance of this component is costly, so we cache it.
-var
-  _RegExEngine: TPerlRegEx;
-  _CriticalSection: TCriticalSection;
-
-function GetRegExEngine: TPerlRegEx;
-begin
-  if Assigned(_RegExEngine) then
-    Result := _RegExEngine
-  else
-  begin
-    _CriticalSection.Enter;
-    try
-      _RegExEngine := TPerlRegEx.Create;
-      Result := _RegExEngine;
-    finally
-      _CriticalSection.Enter;
-    end;
-  end;
-end;
-
 function RegExMatches(const AString, APattern: string): Boolean;
-var
-  LEngine: TPerlRegEx;
 begin
-  LEngine := GetRegExEngine;
-  {$IF CompilerVersion > 26}
-  LEngine.RegEx := APattern;
-  LEngine.Subject := AString;
-  {$ELSE}
-  LEngine.RegEx := UTF8Encode(APattern);
-  LEngine.Subject := UTF8Encode(AString);
-  {$IFEND}
-  Result := LEngine.Match;
+  // Each call gets its own state on purpose. A single TPerlRegEx instance used
+  // to be cached in a unit variable: since the instance carries both the
+  // pattern and the subject, two threads evaluating a permission at the same
+  // time overwrote each other's values, and the access controller could answer
+  // on somebody else's pattern. TRegEx is a record over the same PCRE engine,
+  // so pattern syntax and matching semantics are unchanged. Caching bought
+  // little anyway: assigning a different pattern recompiles it every time, so
+  // only the allocation was saved.
+  Result := TRegEx.IsMatch(AString, APattern);
 end;
 
 function RegExDoesntMatch(const AString, APattern: string): Boolean;
@@ -114,13 +90,6 @@ begin
 
   Result := LMatchFunction(AString, LPattern);
 end;
-
-initialization
-  _CriticalSection := TCriticalSection.Create;
-
-finalization
-  FreeAndNil(_RegExEngine);
-  FreeAndNil(_CriticalSection);
 
 end.
 

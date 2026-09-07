@@ -131,7 +131,7 @@ var
   LReplace: string;
 begin
   LOption := Options.GetString(AOptionName);
-  if LOption = '' then
+  if (LOption = '') or SameText(LOption, 'Null') then
     LReplace := ''
   else
     LReplace := Format(AUnitFormat, [LOption]);

@@ -31,11 +31,19 @@ uses
   , ToolsAPI
   , DesignIntf
   , KIDE.IOTA.ProjectWizard
+  , KIDE.MainDataModuleUnit
   , KIDE.YAMLHighlighter
   ;
 
 procedure Register;
 begin
+  // Le form del wizard contengono TVirtualImageList agganciate a
+  // MainDataModule.ImageCollection. Nell'applicazione standalone quel data
+  // module lo crea il .dpr di KIDEX; qui non lo creerebbe nessuno e le form si
+  // aprirebbero senza icone, senza alcun errore. Creato una volta sola, al
+  // caricamento del package.
+  EnsureMainDataModule;
+
   // YAML Syntax Highlighter
   RegisterYAMLHighlighter;
 

@@ -87,6 +87,7 @@ type
     [YamlNode('ExcelRangeName', 'Named range in the Excel workbook')]
     property ExcelRangeName: string read GetExcelRangeName;
     /// <summary>Optional source-field to destination-field name mappings for the import.</summary>
+    [YamlNode('FieldMappings', 'Source-to-destination field name mappings (each child is Source=Dest)')]
     property FieldMappings: TStringList read GetFieldMappings;
   end;
 

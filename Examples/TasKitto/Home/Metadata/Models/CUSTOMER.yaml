@@ -28,3 +28,4 @@ Fields:
 
 DetailReferences:
   PROJECT: PROJECT
+    CascadeDelete: True

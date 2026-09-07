@@ -64,7 +64,7 @@ type
     FORM_LABELWIDTH = 120;
     // Default required label template and label separator
     DEFAULT_REQUIREDLABELTEMPLATE = '<b>{label}*</b>';
-    DEFAULT_LABELSEPARATOR = ':';
+    DEFAULT_LABELSEPARATOR = ': ';
     // Threshold for rendering a string field as textarea (same as Kitto1)
     MULTILINE_EDIT_THRESHOLD = 200;
   strict private
@@ -174,6 +174,55 @@ begin
   end;
 end;
 
+/// <summary>
+///  True when a detail of AViewField's table shows this field through its
+///  reference back to that table: either as the caption of that reference, or
+///  as one of the fields its AutoAddFields declares.
+/// </summary>
+function IsShownByADetail(AViewField: TKViewField): Boolean;
+var
+  LModel: TKModel;
+  LDetailReference: TKModelDetailReference;
+  LBackReference: TKModelField;
+  LAutoAddFields: TEFNode;
+  I, J: Integer;
+begin
+  Result := False;
+  if not AViewField.HasModelField then
+    Exit;
+  LModel := AViewField.Table.Model;
+
+  // FindCaptionField, not CaptionField: the latter asserts, and assertions are
+  // compiled out of a Release build.
+  if AViewField.ModelField = LModel.FindCaptionField then
+    Exit(True);
+
+  // The model's detail references, not the view's detail tables: what a detail
+  // asks of its master is declared on the model. This only decides whether to
+  // notify, where being generous costs one request and being short of it costs
+  // an empty column.
+  for I := 0 to LModel.DetailReferenceCount - 1 do
+  begin
+    LDetailReference := LModel.DetailReferences[I];
+    // Resolved here rather than through TKModelDetailReference.ReferenceField,
+    // which RAISES when it cannot find the back-reference. A malformed
+    // DetailReferences node produces an entry that can never resolve, and
+    // deciding whether to notify a field is no place to bring the form down.
+    LBackReference := LDetailReference.DetailModel.FindReferenceField(LModel);
+    if not Assigned(LBackReference) and (LDetailReference.ReferenceFieldName <> '') then
+      LBackReference := LDetailReference.DetailModel.FindField(
+        LDetailReference.ReferenceFieldName);
+    if not Assigned(LBackReference) or not LBackReference.IsReference then
+      Continue;
+    LAutoAddFields := LBackReference.FindNode('AutoAddFields');
+    if not Assigned(LAutoAddFields) then
+      Continue;
+    for J := 0 to LAutoAddFields.ChildCount - 1 do
+      if SameText(LAutoAddFields.Children[J].Name, AViewField.ModelField.FieldName) then
+        Exit(True);
+  end;
+end;
+
 function GetFieldNotifyChange(AViewField: TKViewField): Boolean;
 var
   LNode: TEFNode;
@@ -211,6 +260,14 @@ begin
       Exit(True);
     // Rules that run on the server can only be applied there.
     if AViewField.HasServerSideRules then
+      Exit(True);
+    // A field this table's details display through their reference back to it.
+    // While this record has no row in the database no select can resolve those,
+    // so the server has to be told the value to hand it to
+    // TKViewTableRecord.RefreshMasterReferenceValues. Costs one round trip, on
+    // those fields alone, and only on a table that has details.
+    if (AViewField.Table.DetailTableCount > 0)
+        and IsShownByADetail(AViewField) then
       Exit(True);
   end;
 
@@ -780,35 +837,45 @@ begin
 
               LDBQuery.DataSet.Next;
             end;
-            // If the current value was not found in DB options (e.g. new master
-            // record not yet persisted), add a synthetic selected option.
-            // Try to find a display caption from the session store.
+            // The current value is not among the options the database
+            // returned: the row it points at is not there yet, as for a master
+            // that has only been confirmed. Emit a selected option for it.
             if (LCurrentKeyValue <> '') and not LFound then
             begin
-              LCaptionValue := LCurrentKeyValue; // fallback: show key
-              // Search session stores for a record whose key matches
-              var LRefModel := LModelField.ReferencedModel;
-              if Assigned(LRefModel) then
+              // The caption the record already carries: for the reference
+              // to its own master, what RefreshMasterReferenceValues took from
+              // the master record in memory, and what the detail grid
+              // renders.
+              LCaptionValue := '';
+              if Assigned(FRecord) then
               begin
-                var LCaptionField := LRefModel.FindCaptionField;
-                // Try to find the master record in any session store
-                var LSessionStore := TKWebSession.Current.FindStore(FViewName);
-                // The FK points to the master, which might be in a different view's store
-                // Search all session stores would be expensive; use the master form's store
-                // by looking at the caption field on the referenced model
-                if Assigned(LCaptionField) and Assigned(LSessionStore) and (LSessionStore.RecordCount > 0) then
+                var LOwnCaption := FRecord.FindField(AViewField.AliasedName);
+                if Assigned(LOwnCaption) and not LOwnCaption.IsNull then
+                  LCaptionValue := LOwnCaption.AsString;
+              end;
+              // Nothing on the record: ask the master record directly,
+              // through the detail store that owns this record and not by view
+              // name -- the master's store is registered under the MASTER
+              // view's name, not this form's.
+              if (LCaptionValue = '') and Assigned(FRecord) and Assigned(FRecord.Store) then
+              begin
+                var LMasterRec := FRecord.Store.MasterRecord;
+                if Assigned(LMasterRec) then
                 begin
-                  // This is a detail form; check if the FK value matches the master's key
-                  var LMasterRec := LSessionStore.Records[0];
-                  var LMasterKeyField := LMasterRec.FindField(AViewField.FieldNamesForUpdate);
-                  if Assigned(LMasterKeyField) and SameText(LMasterKeyField.AsString, LCurrentKeyValue) then
+                  var LCaptionField := LMasterRec.ViewTable.Model.FindCaptionField;
+                  if Assigned(LCaptionField) and (LCaptionField.Expression = '') then
                   begin
-                    var LCapField := LMasterRec.FindField(LCaptionField.FieldName);
+                    var LCapField := LMasterRec.FindField(
+                      LMasterRec.ViewTable.ApplyFieldAliasedName(LCaptionField.FieldName));
                     if Assigned(LCapField) and not LCapField.IsNull then
                       LCaptionValue := LCapField.AsString;
                   end;
                 end;
               end;
+              // Still nothing to say: the key is a poor label, but an empty
+              // option would hide that the field does hold a value.
+              if LCaptionValue = '' then
+                LCaptionValue := LCurrentKeyValue;
               SB.Append('<option value="').Append(TNetEncoding.HTML.Encode(LCurrentKeyValue))
                 .Append('" selected>').Append(TNetEncoding.HTML.Encode(LCaptionValue))
                 .Append('</option>');
@@ -911,8 +978,20 @@ begin
     else
       LCaptionFieldName := '';
 
+    // The caption the record already carries wins over any lookup. For the
+    // reference to its own master that is what RefreshMasterReferenceValues
+    // took from the master record in memory and what the detail grid renders,
+    // and it is the only source that works while the master has no row for the
+    // select below to find.
+    if Assigned(FRecord) then
+    begin
+      LRecordField := FRecord.FindField(AViewField.AliasedName);
+      if Assigned(LRecordField) and not LRecordField.IsNull then
+        LCurrentCaption := LRecordField.AsString;
+    end;
+
     // Load caption for the current FK value (single record lookup)
-    if (LCurrentKeyValue <> '') and (LCaptionFieldName <> '') then
+    if (LCurrentCaption = '') and (LCurrentKeyValue <> '') and (LCaptionFieldName <> '') then
     begin
       LDBConnection := TKConfig.DatabaseFor(LRefModel.DatabaseName);
       LDBQuery := LDBConnection.CreateDBQuery;

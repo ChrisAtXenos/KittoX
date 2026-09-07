@@ -63,6 +63,18 @@ type
       const AOldValue, ANewValue: Variant); virtual;
 
     /// <summary>
+    ///  Finds a detail record in the master's in-memory detail store, by the
+    ///  key the request supplied, or nil. Reads masterView and detailIndex from
+    ///  the query string and answers nil when either is missing.
+    /// </summary>
+    /// <remarks>
+    ///  A detail row that has been confirmed but not saved is in that store and
+    ///  not in the database, so anything locating a detail record from a request
+    ///  has to look here before querying.
+    /// </remarks>
+    function FindPendingDetailRecord(const AKeyStr: string): TKViewTableRecord;
+
+    /// <summary>
     ///  Combines a record-locating filter (typically built from the key the
     ///  request supplied) with the view's own Controller/FilterExpression, macro
     ///  expanded — the node an application uses to restrict a view to the rows
@@ -130,7 +142,9 @@ type
     [TKXPath('/detail/{Index}/save')] [TKXPOST]
     procedure HandleDetailSave([TKXPathParam('ViewName')] const AViewName: string;
       [TKXPathParam('Index')] const AIndex: Integer); virtual;
-    /// Mark a detail record deleted (or clean if new) in the in-memory store.
+    /// Delete a detail record from the master's in-memory store: a record that
+    /// was already persisted is marked rsDeleted, one that was never saved is
+    /// removed outright.
     [TKXPath('/detail/{Index}/delete')] [TKXPOST]
     procedure HandleDetailDelete([TKXPathParam('ViewName')] const AViewName: string;
       [TKXPathParam('Index')] const AIndex: Integer); virtual;
@@ -206,13 +220,16 @@ uses
 ///  Records a failed save in the log. Without this the message reaches the
 ///  browser and nowhere else, which leaves nothing to look at once the dialog
 ///  is closed - and nothing at all when the failure is reported second-hand.
-///  Logged at the LOG_HIGH level, so it shows up without turning the log up to
-///  its most verbose setting.
+///  Logged at LOG_ALWAYS, the only level no configuration filters out: it used
+///  to be LOG_HIGH, which reads like 'important' and means 'verbose', so the
+///  line was written only when Level was raised to 'high' or beyond -- never in
+///  the default configuration, which is exactly the one a failure is reported
+///  from.
 /// </summary>
 procedure LogSaveError(const AException: Exception);
 begin
   TEFLogger.Instance.LogFmt('Save failed: %s: %s',
-    [AException.ClassName, AException.Message], TEFLogger.LOG_HIGH);
+    [AException.ClassName, AException.Message], TEFLogger.LOG_ALWAYS);
 end;
 
 /// <summary>
@@ -227,8 +244,8 @@ var
   LField: TKViewField;
   LRecordField: TKViewTableField;
 begin
-  Assert(Assigned(ARecord));
-  Assert(Assigned(AViewTable));
+  Assert(Assigned(ARecord), 'Assigned(ARecord)');
+  Assert(Assigned(AViewTable), 'Assigned(AViewTable)');
 
   Result := '';
   for I := 0 to AViewTable.FieldCount - 1 do
@@ -264,6 +281,63 @@ end;
 
 procedure TKXViewHandlerBase.OnAfterDelete(const ARecord: TKViewTableRecord);
 begin
+end;
+
+function TKXViewHandlerBase.FindPendingDetailRecord(
+  const AKeyStr: string): TKViewTableRecord;
+var
+  LMasterViewName: string;
+  LIndexStr: string;
+  LIndex: Integer;
+  LSessionStore: TKViewTableStore;
+  LDetailStore: TKViewTableStore;
+  LKeyParts, LPair: TArray<string>;
+  LFieldName, LFieldValue: string;
+  I, K: Integer;
+begin
+  Result := nil;
+  if AKeyStr = '' then
+    Exit;
+  LMasterViewName := TNetEncoding.URL.Decode(
+    TKWebRequest.Current.GetQueryField('masterView'));
+  LIndexStr := TKWebRequest.Current.GetQueryField('detailIndex');
+  if (LMasterViewName = '') or not TryStrToInt(LIndexStr, LIndex) or (LIndex < 0) then
+    Exit;
+
+  LSessionStore := TKWebSession.Current.FindStore(LMasterViewName);
+  if not Assigned(LSessionStore) or (LSessionStore.RecordCount = 0) then
+    Exit;
+  if LSessionStore.Records[0].DetailStoreCount <= LIndex then
+    Exit;
+  LDetailStore := TKViewTableStore(LSessionStore.Records[0].DetailStores[LIndex]);
+
+  // Same matching as HandleDetailSave: every field named in the key must be
+  // present and equal, and a row already marked deleted is not a candidate.
+  LKeyParts := AKeyStr.Split(['&']);
+  for I := 0 to LDetailStore.RecordCount - 1 do
+  begin
+    var LCandidate := LDetailStore.Records[I];
+    if LCandidate.State = rsDeleted then
+      Continue;
+    var LMatch := True;
+    for K := 0 to Length(LKeyParts) - 1 do
+    begin
+      LPair := LKeyParts[K].Split(['=']);
+      if Length(LPair) = 2 then
+      begin
+        LFieldName := TNetEncoding.URL.Decode(LPair[0]);
+        LFieldValue := TNetEncoding.URL.Decode(LPair[1]);
+        var LF := LCandidate.FindField(LFieldName);
+        if not Assigned(LF) or (LF.AsString <> LFieldValue) then
+        begin
+          LMatch := False;
+          Break;
+        end;
+      end;
+    end;
+    if LMatch then
+      Exit(LCandidate);
+  end;
 end;
 
 function TKXViewHandlerBase.CombineWithViewFilter(const AView: TKView;
@@ -978,6 +1052,7 @@ var
   LStore: TKViewTableStore;
   LRecord: TKViewTableRecord;
   LSourceRecord: TKViewTableRecord;
+  LPendingRecord: TKViewTableRecord;
   LOperation: string;
   LKeyStr, LKeyFilter: string;
   LKeyParts: TArray<string>;
@@ -1029,7 +1104,24 @@ begin
        SameText(LOperation, 'dup') then
     begin
       if LKeyStr = '' then
+      begin
+        // Writing no response makes the engine answer with its own default
+        // body, which is not a fragment. See kxAcceptResponse in kxgrid.js.
+        // 400, not 500: nothing failed here, the request arrived without the
+        // record it needed.
+        LApp.RenderErrorDialog(_('No record was selected.'), False, 400);
         Exit;
+      end;
+
+      // A confirmed but unsaved detail row is only in the master's in-memory
+      // store. Its values are shown as they stand; the save goes through
+      // HandleDetailSave, which finds the same row by the same key.
+      LPendingRecord := FindPendingDetailRecord(LKeyStr);
+      if Assigned(LPendingRecord) then
+      begin
+        LRecord := LStore.Records.AppendAndInitialize;
+        LRecord.Assign(LPendingRecord);
+      end;
 
       // Build SQL filter from key
       LKeyFilter := '';
@@ -1052,16 +1144,28 @@ begin
         end;
       end;
 
-      if LKeyFilter = '' then
-        Exit;
+      // A pending row has no counterpart to select, so the query is skipped.
+      if not Assigned(LRecord) then
+      begin
+        if LKeyFilter = '' then
+        begin
+          // 409: the request conflicts with the state of the data, it is not a
+          // server failure.
+          LApp.RenderErrorDialog(_('The record cannot be identified.'), False, 409);
+          Exit;
+        end;
 
-      // The key alone is not enough: the view's own filter must constrain which
-      // record that key may reach. See CombineWithViewFilter.
-      LStore.Load(CombineWithViewFilter(LView, LKeyFilter), '', 0, 1);
-      if LStore.RecordCount > 0 then
-        LRecord := LStore.Records[0]
-      else
-        Exit; // Record not found
+        // The key alone is not enough: the view's own filter must constrain which
+        // record that key may reach. See CombineWithViewFilter.
+        LStore.Load(CombineWithViewFilter(LView, LKeyFilter), '', 0, 1);
+        if LStore.RecordCount > 0 then
+          LRecord := LStore.Records[0]
+        else
+        begin
+          LApp.RenderErrorDialog(_('The record is no longer available.'), False, 409);
+          Exit;
+        end;
+      end;
 
       if SameText(LOperation, 'edit') then
         LRecord.ApplyEditRecordRules
@@ -1726,10 +1830,22 @@ begin
       LViewBuilder := TKViewBuilderFactory.Instance.CreateObject('AutoList');
       try
         LViewBuilder.SetString('Model', LDetailViewName);
-        // Copy detail table Controller config (e.g., Form/Layout) to auto-built view
+        // Hand the builder the Controller and Fields nodes the master view
+        // declares for this detail table; without Fields the builder rebuilds
+        // the column list from the model, ignoring IsVisible, labels, widths
+        // and order.
+        //
+        // Not the whole declaration, on purpose: the view built here is
+        // registered under the DETAIL MODEL's name and so is shared by every
+        // master view with a detail on that model, and a setting carried in
+        // from one would apply to all the others.
+        var LBuilderMainTable := LViewBuilder.GetNode('MainTable', True);
         var LSourceCtrlNode := LDetailTable.FindNode('Controller');
         if Assigned(LSourceCtrlNode) then
-          LViewBuilder.AddChild(TEFNode.Create('MainTable')).AddChild(TEFNode.Clone(LSourceCtrlNode));
+          LBuilderMainTable.GetNode('Controller', True).Assign(LSourceCtrlNode);
+        var LSourceFieldsNode := LDetailTable.FindNode('Fields');
+        if Assigned(LSourceFieldsNode) and (LSourceFieldsNode.ChildCount > 0) then
+          LBuilderMainTable.GetNode('Fields', True).Assign(LSourceFieldsNode);
         LViewBuilder.BuildView(LApp.Config.Views, LDetailViewName, nil);
       finally
         FreeAndNil(LViewBuilder);
@@ -1757,9 +1873,24 @@ begin
     if Assigned(LRefField) and LRefField.IsReference then
     begin
       // The reference field (e.g. PROJECT) has sub-fields (e.g. PROJECT_ID)
-      // that are the actual FK columns. Match each master key field with the
-      // corresponding sub-field by name.
+      // that are the actual FK columns, and the key string carries the master's
+      // key fields by aliased name. Two strategies, in this order:
+      //
+      // 1) match the name against the sub-fields, as before. This is what has
+      //    always worked when the detail's FK column is named like the master's
+      //    key (PROJECT_ID on both sides), and it stays first so that no
+      //    previously working pairing can change;
+      // 2) if no name matches, pair BY POSITION: key field i of the master with
+      //    sub-field i of the reference. That is the pairing the rest of the
+      //    framework uses (TKViewTableRecord.SetDetailFieldValues,
+      //    TKSQLBuilder.GetSelectWhereClause), and it is what makes a prefixed
+      //    FK column work (master key column MASTER_ID, detail column
+      //    DET_MASTER_ID). Before, such a column matched nothing, the filter
+      //    stayed empty and — since an empty filter means "master not saved
+      //    yet, Add form" — the grid was left empty with no error at all.
       var LRefSubFields := LRefField.GetReferenceFields;
+      var LMasterKeyNames := LViewTable.GetKeyFieldAliasedNames;
+      var LPairedCount := 0;
       LKeyParts := LKeyStr.Split(['&']);
       for I := 0 to Length(LKeyParts) - 1 do
       begin
@@ -1768,22 +1899,48 @@ begin
         begin
           LFieldName := TNetEncoding.URL.Decode(LPair[0]);
           LFieldValue := TNetEncoding.URL.Decode(LPair[1]);
-          // Find the FK sub-field matching this master key field name
+          var LKeyIndex := -1;
           for var J := 0 to Length(LRefSubFields) - 1 do
-          begin
             if SameText(LRefSubFields[J].FieldName, LFieldName) or
                SameText(LRefSubFields[J].DBColumnName, LFieldName) then
             begin
-              if LFilterExpr <> '' then
-                LFilterExpr := LFilterExpr + ' and ';
-              LFilterExpr := LFilterExpr +
-                LDetailViewTable.Model.DBTableName + '.' +
-                LRefSubFields[J].DBColumnName + ' = ''' +
-                ReplaceStr(LFieldValue, '''', '''''') + '''';
+              LKeyIndex := J;
               Break;
             end;
+          if LKeyIndex < 0 then
+          begin
+            LKeyIndex := IndexText(LFieldName, LMasterKeyNames);
+            if LKeyIndex > High(LRefSubFields) then
+              LKeyIndex := -1;
+          end;
+          if LKeyIndex >= 0 then
+          begin
+            if LFilterExpr <> '' then
+              LFilterExpr := LFilterExpr + ' and ';
+            LFilterExpr := LFilterExpr +
+              LDetailViewTable.Model.DBTableName + '.' +
+              LRefSubFields[LKeyIndex].DBColumnName + ' = ''' +
+              ReplaceStr(LFieldValue, '''', '''''') + '''';
+            Inc(LPairedCount);
           end;
         end;
+      end;
+
+      // All or nothing: a filter that constrains only SOME of the foreign key
+      // columns does not identify the master record — it returns the rows of
+      // every master that shares the constrained values, which is silently
+      // wrong data in a detail grid. When even one key field cannot be paired,
+      // drop the filter entirely and let the grid render empty (the same state
+      // used for an unsaved master), which is visible and harmless.
+      if LPairedCount <> Length(LRefSubFields) then
+      begin
+        if LFilterExpr <> '' then
+          TEFLogger.Instance.LogFmt(
+            'Detail grid %s: only %d of %d foreign key columns could be paired ' +
+            'with the master key; filter discarded and grid left empty.',
+            [LDetailViewTable.ModelName, LPairedCount, Length(LRefSubFields)],
+            TEFLogger.LOG_LOW);
+        LFilterExpr := '';
       end;
     end;
   end;
@@ -1867,6 +2024,10 @@ begin
     begin
       LStore := TKViewTableStore(LMasterRecord.DetailStores[AIndex]);
       LOwnsStore := False; // Session owns this store
+      // On every render, not only when the row is added, so a later edit of
+      // the master's caption is reflected.
+      for var LRI := 0 to LStore.RecordCount - 1 do
+        LStore.Records[LRI].RefreshMasterReferenceValues;
     end;
   end;
 
@@ -2105,6 +2266,13 @@ begin
       LRecord.MarkAsModified;
     end;
 
+    // The position matters. AFTER PopulateRecordFromPost, which ends in
+    // RefreshDerivedReferenceValues and nulls these values when the master has
+    // no row yet; BEFORE the rules below, which may compute a stored column
+    // out of them.
+    if Assigned(LRecord) then
+      LRecord.RefreshMasterReferenceValues;
+
     // Apply each field's AfterFieldChange rules on the freshly-populated
     // record, so computed fields get set (e.g. Descrizione via CalcDescrizione).
     // In Kitto1 these ran during interactive editing; the save-cache flow
@@ -2238,9 +2406,14 @@ begin
   if not Assigned(LRecord) then
     Exit;
 
-  // Mark as deleted (or clean if was new — never needs DB DELETE)
+  // A record that was never saved has no row to delete, but it has to LEAVE
+  // the store. Marking it rsClean would assert the opposite -- that it is what
+  // the database holds -- and the grid, which skips only rsDeleted, would go on
+  // drawing it.
   if LRecord.State = rsNew then
-    LRecord.MarkAsClean
+    // Records owns its children, so this frees LRecord: nothing may touch it
+    // after this point.
+    LDetailStore.RemoveRecord(LRecord)
   else
     LRecord.MarkAsDeleted;
 
@@ -2362,6 +2535,21 @@ begin
       TKXToolJob.Create(AViewName, AToolName,
         TKXToolExecutor.BuildStore(AViewName, LLoadFilter)), LTitle, LUser);
     LApp.Toast(_('Operation started in the background; you will be notified when the result is ready.'));
+    // And nothing in the body: the job runs on a worker, the user is told
+    // through the HX-Trigger toast above, and there is no fragment to attach.
+    // 204 says that explicitly. Finishing with an empty body instead makes the
+    // engine substitute its own '<HTML><BODY><B>200 OK</B></BODY></HTML>',
+    // which the client's response gate (kxAcceptResponse in kxgrid.js) rightly
+    // refuses as not ours: the user saw 'The server did not return a valid
+    // response (tool)' while the job ran perfectly well. That gate returns
+    // false SILENTLY for an empty body, so 204 is all it takes.
+    //
+    // Set HERE and not in TKWebResponse.Send: turning EVERY empty 200 into a
+    // 204 in the engine looked like the general cure and is not one -- it broke
+    // authentication outright (the application came up without the login and
+    // would not go back to it), because handlers legitimately answer with an
+    // empty 200 and the client reads 204 as 'nothing happened'. Reverted.
+    TKWebResponse.Current.StatusCode := 204;
   end
   else
     TKXToolExecutor.ExecuteToolCore(AViewName, AToolName, LLoadFilter, '',

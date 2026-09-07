@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,6 +60,8 @@ function StripSuffix(const AString, ASuffix: string): string;
 ///	<summary>
 ///	  Generates a random string of ALength characters in the 'A'..'Z' and
 ///	  '0'..'9' printable sets. Excludes the specified characters.
+///	  The characters come from the operating system's cryptographic random
+///	  source, not from the RTL's Random: this feeds password generation.
 ///	</summary>
 function GetRandomString(const ALength: Integer; const AExcludeChars: string = ''): string;
 
@@ -69,6 +71,12 @@ function GetRandomString(const ALength: Integer; const AExcludeChars: string = '
 ///   Excludes the specified characters.
 ///	</summary>
 function GetRandomStringEx(const ALength: Integer; const AExcludeChars: string = ''): string;
+
+/// <summary>
+///  One character of AChars, chosen uniformly from the operating system's
+///  cryptographic random source. Raises if AChars is empty.
+/// </summary>
+function GetRandomChar(const AChars: string): Char;
 
 ///	<summary>
 ///	  Returns True if APattern matches AString. APattern may contain the
@@ -350,7 +358,80 @@ uses
   System.Character,
   System.Generics.Defaults,
   IdHashMessageDigest,
-  IdHash;
+  IdHash,
+  EF.Sys;
+
+type
+  /// <summary>
+  ///  Hands out bytes from the operating system's cryptographic random source,
+  ///  a bufferful at a time so that building a string costs one or two calls
+  ///  into the OS instead of one per character. Callers keep their own
+  ///  instance on the stack, so there is no shared state to race over -- which
+  ///  is the second half of what was wrong with drawing from the RTL's Random,
+  ///  whose state is the single global RandSeed.
+  /// </summary>
+  TEFRandomByteSource = record
+  strict private
+    const BLOCK_SIZE = 64;
+    var
+      FBuffer: TBytes;
+      FPosition: Integer;
+  public
+    /// <summary>
+    ///  Zeroes the read position. Necessary, and not obvious: the compiler
+    ///  initialises only the MANAGED fields of a local record -- FBuffer, being
+    ///  a dynamic array, comes out nil -- and leaves the rest holding whatever
+    ///  was on the stack. A negative FPosition made the test below false, so
+    ///  the buffer was never filled and the first read indexed a nil array at a
+    ///  negative offset: ERangeError under {$R+}, and a quiet read of arbitrary
+    ///  memory in a Release build, inside password generation.
+    /// </summary>
+    class operator Initialize(out ADest: TEFRandomByteSource);
+    /// <summary>The next random byte.</summary>
+    function NextByte: Byte;
+    /// <summary>
+    ///  A value uniformly distributed over 0..ALimit - 1. Byte values in the
+    ///  incomplete last block of ALimit values are discarded and redrawn:
+    ///  taking the remainder without that would make the low values of the
+    ///  range likelier than the high ones whenever ALimit does not divide 256.
+    /// </summary>
+    function NextBelow(const ALimit: Integer): Integer;
+  end;
+
+{ TEFRandomByteSource }
+
+class operator TEFRandomByteSource.Initialize(out ADest: TEFRandomByteSource);
+begin
+  ADest.FPosition := 0;
+end;
+
+function TEFRandomByteSource.NextByte: Byte;
+begin
+  // Position zero and an empty buffer on the first call, so it gets filled.
+  if FPosition >= Length(FBuffer) then
+  begin
+    if Length(FBuffer) = 0 then
+      SetLength(FBuffer, BLOCK_SIZE);
+    EFSys.GetRandomBytes(FBuffer[0], Length(FBuffer));
+    FPosition := 0;
+  end;
+  Result := FBuffer[FPosition];
+  Inc(FPosition);
+end;
+
+function TEFRandomByteSource.NextBelow(const ALimit: Integer): Integer;
+var
+  LCutoff: Integer;
+begin
+  Assert(ALimit > 0, 'ALimit > 0');
+  Assert(ALimit <= 256, 'ALimit <= 256');
+
+  LCutoff := (256 div ALimit) * ALimit;
+  repeat
+    Result := NextByte;
+  until Result < LCutoff;
+  Result := Result mod ALimit;
+end;
 
 function RightPos(const ASubString, AString: string): Integer;
 var
@@ -388,49 +469,70 @@ begin
   Result := StripPrefixAndSuffix(AString, '', ASuffix);
 end;
 
+// These two used to draw every character from the RTL's Random. That is a
+// linear generator over a 32-bit state held in the global RandSeed: not
+// cryptographic, and not thread-safe. Both matter here, because this is where
+// TKDBAuthenticator.GenerateRandomPassword gets the provisional password it
+// mails to a user who asked for a reset. Someone who asks for a reset of their
+// OWN account sees eight characters of that generator's output, which is
+// enough to recover its state and predict the passwords issued to other users
+// immediately afterwards. The bytes now come from the operating system's
+// cryptographic source, through EFSys.GetRandomBytes.
+//
+// The way a character is chosen is unchanged: first the class, then a
+// character within it. That makes digits likelier than any individual letter,
+// which costs about a sixth of a bit per character against a flat draw from
+// the 36 symbols -- not worth changing the output of a password generator for.
 function GetRandomString(const ALength: Integer; const AExcludeChars: string = ''): string;
 var
   LNextChar: Char;
+  LRandom: TEFRandomByteSource;
 begin
-  // If this function is moved out of this unit, then a call to Randomize should
-  // be made somewhere in the application. See this unit's initialization section.
   Result := '';
   while Length(Result) < ALength do
   begin
     // Randomly decide whether the next character will be a letter or a number.
-    if Random(2) = 1 then
+    if LRandom.NextBelow(2) = 1 then
       // A random character between '0' and '9'.
-      LNextChar := Chr(Random(Ord('9') - Ord('0') + 1) + Ord('0'))
+      LNextChar := Chr(LRandom.NextBelow(Ord('9') - Ord('0') + 1) + Ord('0'))
     else
       // A random character between 'A' e 'Z'.
-      LNextChar := Chr(Random(Ord('Z') - Ord('A') + 1) + Ord('A'));
+      LNextChar := Chr(LRandom.NextBelow(Ord('Z') - Ord('A') + 1) + Ord('A'));
 
     if (AExcludeChars = '') or not AExcludeChars.Contains(LNextChar) then
       Result := Result + LNextChar;
   end;
 end;
 
+function GetRandomChar(const AChars: string): Char;
+var
+  LRandom: TEFRandomByteSource;
+begin
+  if AChars = '' then
+    raise EEFError.Create('GetRandomChar: no characters to choose from.');
+  Result := AChars[Low(AChars) + LRandom.NextBelow(Length(AChars))];
+end;
+
 function GetRandomStringEx(const ALength: Integer; const AExcludeChars: string = ''): string;
 var
   LNextChar: Char;
-  LRandom: Integer;
+  LClass: Integer;
+  LRandom: TEFRandomByteSource;
 begin
-  // If this function is moved out of this unit, then a call to Randomize should
-  // be made somewhere in the application. See this unit's initialization section.
   Result := '';
   while Length(Result) < ALength do
   begin
-    LRandom := Random(3);
+    LClass := LRandom.NextBelow(3);
     // Randomly decide whether the next character will be a letter or a number.
-    if LRandom = 0 then
+    if LClass = 0 then
       // A random character between '0' and '9'.
-      LNextChar := Chr(Random(Ord('9') - Ord('0') + 1) + Ord('0'))
-    else if LRandom = 1 then
+      LNextChar := Chr(LRandom.NextBelow(Ord('9') - Ord('0') + 1) + Ord('0'))
+    else if LClass = 1 then
       // A random character between 'a' e 'z'.
-      LNextChar := Chr(Random(Ord('z') - Ord('a') + 1) + Ord('a'))
+      LNextChar := Chr(LRandom.NextBelow(Ord('z') - Ord('a') + 1) + Ord('a'))
     else
       // A random character between 'A' e 'Z'.
-      LNextChar := Chr(Random(Ord('Z') - Ord('A') + 1) + Ord('A'));
+      LNextChar := Chr(LRandom.NextBelow(Ord('Z') - Ord('A') + 1) + Ord('A'));
 
     if (AExcludeChars = '') or not AExcludeChars.Contains(LNextChar) then
       Result := Result + LNextChar;
@@ -671,10 +773,17 @@ begin
   Result := '';
   if FileExists(AFileName) then
   begin
+    // DetectBOM = True: a file carrying a byte order mark is decoded by the
+    // mark, whatever AEncoding says. Without it the mark came through as
+    // characters and a UTF-8 file was decoded with the ANSI codepage, so every
+    // accented character came out wrong too. It showed up in the %FILE()%
+    // macro, which returned a stray U+FEFF at the head of each fragment it
+    // loaded. A file with no mark still falls back to AEncoding, so nothing
+    // that worked before changes.
     if Assigned(AEncoding) then
-      LReader := TStreamReader.Create(AFileName, AEncoding)
+      LReader := TStreamReader.Create(AFileName, AEncoding, True)
     else
-      LReader := TStreamReader.Create(AFileName, TEncoding.Default);
+      LReader := TStreamReader.Create(AFileName, TEncoding.Default, True);
     try
       Result := LReader.ReadToEnd;
     finally
@@ -688,7 +797,7 @@ procedure AppendStringToStream(const AString: string; const AStream: TStream;
 var
   LBuffer: TBytes;
 begin
-  Assert(Assigned(AStream));
+  Assert(Assigned(AStream), 'Assigned(AStream)');
 
   if AEncoding <> nil then
     LBuffer := AEncoding.GetBytes(AString)
@@ -940,7 +1049,7 @@ end;
 
 function IsoDayOfWeekToDayOfWeek(const ADay: Integer): Integer;
 begin
-  Assert((ADay >= 1) and (ADay <= 7));
+  Assert((ADay >= 1) and (ADay <= 7), '(ADay >= 1) and (ADay <= 7)');
   Result := Succ(ADay);
   if Result > 7 then
     Result := 1;
@@ -1092,18 +1201,21 @@ var
   LPos: Integer;
   LLength: Integer;
 begin
-  if AOldPattern = ANewPattern then
+  if (AOldPattern = '') or (AOldPattern = ANewPattern) then
     Exit;
 
-  LPos := Pos(AOldPattern, AString);
   LLength := Length(AOldPattern);
-  if LPos <> 0 then
+  LPos := Pos(AOldPattern, AString);
+  while LPos <> 0 do
   begin
-    repeat
-      Delete(AString, LPos, LLength);
-      Insert(ANewPattern, AString, LPos);
-      LPos := Pos(AOldPattern, AString);
-    until LPos = 0;
+    Delete(AString, LPos, LLength);
+    Insert(ANewPattern, AString, LPos);
+    // Resume the search past the text just inserted. Searching from the start
+    // of the string again looped forever whenever the replacement contained
+    // the pattern - each pass re-found it and made the string one step longer.
+    // Macro values are the obvious way in: they can carry the very name of the
+    // macro being expanded (a request header, a user field read from the DB).
+    LPos := Pos(AOldPattern, AString, LPos + Length(ANewPattern));
   end;
 end;
 
@@ -1144,12 +1256,15 @@ begin
   Result := StringReplace(Result,'<',ValidChar,[rfReplaceAll]);
   Result := StringReplace(Result,'>',ValidChar,[rfReplaceAll]);
   Result := StringReplace(Result,'|',ValidChar,[rfReplaceAll]);
-  Result := StringReplace(Result,'�',ValidChar,[rfReplaceAll]);
+  Result := StringReplace(Result,'°',ValidChar,[rfReplaceAll]);
   if not SpaceIsValid then
     Result := StringReplace(Result,' ',ValidChar,[rfReplaceAll]);
 end;
 
 initialization
+  // Kept for application code that uses the RTL's Random. Nothing in EF does
+  // any more: GetRandomString, GetRandomStringEx and GetRandomChar draw from
+  // the operating system's cryptographic source, which has no seed to set.
   Randomize;
 
 end.

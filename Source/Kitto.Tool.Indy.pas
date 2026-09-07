@@ -115,11 +115,35 @@ begin
     LSMTP.Username := ExpandServerRecordValues(LServerNode.GetExpandedString('UserName'));
     LSMTP.Password := ExpandServerRecordValues(LServerNode.GetExpandedString('Password'));
     LSMTP.Port := LServerNode.GetInteger('Port');
-    if (LServerNode.GetBoolean('UseTLS')) then
+    if (LServerNode.GetBoolean('UseTLS', True)) then
     begin
       LIdSSLIOHandler := TIdSSLIOHandlerSocketOpenSSL.Create;
+      // TLS 1.2 only: 1.0 and 1.1 are deprecated and refused by most providers,
+      // and leaving the version list to the Indy default silently allowed them.
+      LIdSSLIOHandler.SSLOptions.SSLVersions := [sslvTLSv1_2];
+      LIdSSLIOHandler.SSLOptions.Mode := sslmClient;
+      // Check the server certificate. Without this, encryption stops anyone
+      // reading the traffic but not anyone impersonating the server, so the
+      // credentials can still be handed to the wrong party. VerifyCertificate:
+      // False is there for an internal server with a self-signed certificate -
+      // an explicit choice, not a silent default.
+      if LServerNode.GetBoolean('VerifyCertificate', True) then
+        LIdSSLIOHandler.SSLOptions.VerifyMode := [sslvrfPeer]
+      else
+        LIdSSLIOHandler.SSLOptions.VerifyMode := [];
+      LIdSSLIOHandler.SSLOptions.VerifyDepth := 9;
+      LIdSSLIOHandler.Host := LSMTP.Host;
+      LIdSSLIOHandler.Port := LSMTP.Port;
       LSMTP.IOHandler := LIdSSLIOHandler;
-      LSMTP.UseTLS := utUseRequireTLS;
+      // How TLS is established. Explicit (STARTTLS) is the common case on 587;
+      // Implicit is TLS from the first byte, on 465. It used to be hardcoded to
+      // Required, so a server on 465 could not be configured at all.
+      if SameText(LServerNode.GetString('TLSMode', 'Explicit'), 'Implicit') then
+        LSMTP.UseTLS := utUseImplicitTLS
+      else if SameText(LServerNode.GetString('TLSMode', 'Explicit'), 'Required') then
+        LSMTP.UseTLS := utUseRequireTLS
+      else
+        LSMTP.UseTLS := utUseExplicitTLS;
     end
     else
       LSMTP.UseTLS := utNoTLSSupport;

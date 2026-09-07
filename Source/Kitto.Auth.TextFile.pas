@@ -201,7 +201,7 @@ begin
     // say so out loud. No Exit: only the password comparison is off the table.
     TEFLogger.Instance.LogFmt('User %s has no password in the user list file %s: the '+
       'line carries no value after the "=", so no password can authenticate it.',
-      [LUserName, GetUserListFileName], TEFLogger.LOG_HIGH);
+      [LUserName, GetUserListFileName], TEFLogger.LOG_ALWAYS);
 
   // An empty stored hash never takes part in the comparison: it used to match an empty
   // supplied password, which let anybody in by typing any user name - one absent from

@@ -15,10 +15,13 @@ uses
   // client/server DB, so building it needs a license upgrade from Professional
   // to Enterprise (or Architect). With Professional you can only target a local
   // DB (SQLite/InterBase). (ADO/dbGo and SQLite/InterBase are in Professional.)
+  // {DB/ODAC} -> EF.DB.ODAC needs Devart ODAC (third-party, commercial)
+  // installed and its library path added to the project.
   // ---------------------------------------------------------------------------
   {DB/ADO},
   {DB/FD},
-  {DB/DBX},{AC}{Auth}
+  {DB/DBX},
+  {DB/ODAC},{AC}{Auth}
   Kitto.Metadata.ModelImplementation,
   Kitto.Metadata.ViewBuilders,
   // Activates the file logger endpoint declared in Config.yaml under

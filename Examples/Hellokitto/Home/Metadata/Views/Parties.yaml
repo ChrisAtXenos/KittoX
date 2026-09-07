@@ -55,7 +55,7 @@ MainTable:
       Fields:
         Invitation_Id:
         Party:
-          IsVisible: False
+          IsVisible: True
         Invitee:
         Accepted:
       Controller:

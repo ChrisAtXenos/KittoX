@@ -139,7 +139,7 @@ Auth: TasKitto
   # legacy kx_db cookie.
   DatabaseChoices: FireDAC_MSSQL, FireDAC_PostgreSQL, FireDAC_Firebird, FireDAC_Oracle, ODAC_Oracle
   .Defaults:
-    UserName: administrator
+    UserName: admin
     Password: password
   ReadUserCommandText: |
     select USER_NAME, PASSWORD_HASH, EMAIL_ADDRESS, MUST_CHANGE_PASSWORD, FIRST_NAME, LAST_NAME

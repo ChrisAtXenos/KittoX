@@ -409,7 +409,7 @@ end;
 
 procedure TEFRegistry.UnregisterClass(const AId: string);
 begin
-  Assert(AId <> '');
+  Assert(AId <> '', 'AId <> ''''');
 
   if FClasses.ContainsKey(AId) then
     FClasses.Remove(AId);
@@ -428,7 +428,7 @@ end;
 
 constructor TEFFactory.Create(const ARegistry: TEFRegistry);
 begin
-  Assert(Assigned(ARegistry));
+  Assert(Assigned(ARegistry), 'Assigned(ARegistry)');
 
   inherited Create;
   FRegistry := ARegistry;

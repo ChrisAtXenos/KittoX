@@ -33,3 +33,19 @@ MainTable:
         Controller: ExportTextTool
           RequireSelection: True
           ClientFileName: Employees_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
+  DetailTables:
+    Controller:
+      # Tabs/Popup/Bottom. Default = Tabs.
+      Style: Tabs
+    Table:
+      Model: SalaryHistory
+      Fields:
+        EmpNoRef:
+          Fields:
+            EmpNo:
+          IsVisible: False
+        ChangeDate:
+        UpdaterId:
+        OldSalary:
+        PercentChange:
+        NewSalary:

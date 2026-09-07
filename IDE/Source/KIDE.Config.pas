@@ -87,20 +87,36 @@ uses
 { TKideConfig }
 
 class function TKideConfig.GetBasePath: string;
+
+  function HasConfig(const APath: string): Boolean;
+  begin
+    Result := (APath <> '') and FileExists(APath + 'Config.yaml');
+  end;
+
 var
-  LKittoXHome: string;
+  LModulePath, LKittoXHome: string;
 begin
-  // KIDEX standalone (.exe): the path of the executable's folder is the Bin folder.
-  // KittoXIDE plugin (.bpl loaded by bds.exe): ParamStr(0) is bds.exe, so we must
-  // use GetModuleName(HInstance) to get the package's own location instead.
-  // For a packaged install, ProjectTemplates/ lives next to the .bpl. For dev
-  // environments where the package is loaded from the source tree, the
-  // KITTOX_HOME env var (e.g. D:\ETHEA\KittoX\Kide\Bin) overrides both.
+  // The base folder is ALWAYS the module's own folder first. We use
+  // GetModuleName(HInstance) (NOT ParamStr(0)) so that:
+  //  - KIDEX / MCPKittoX standalone (.exe): the executable's folder is the Bin
+  //    folder, where Config.yaml and the shared resources live.
+  //  - KittoXIDE plugin (.bpl loaded by bds.exe): we get the package's own
+  //    location instead of bds.exe; for a packaged install Config.yaml and
+  //    ProjectTemplates/ live next to the .bpl (installed under <root>\Kide\Bin).
+  LModulePath := IncludeTrailingPathDelimiter(ExtractFilePath(GetModuleName(HInstance)));
+  if HasConfig(LModulePath) then
+    Exit(LModulePath);
+
+  // Fallback (dev only): the .bpl is loaded from a Delphi build-output dir with
+  // no Config.yaml alongside. KITTOX_HOME is set (by the setup) to the install
+  // ROOT (e.g. C:\Dev\KittoX_4.0); the KIDE Bin lives under <root>\Kide\Bin.
+  // Must NOT be reached by a standalone exe (handled above), which would
+  // otherwise look in the root instead of Bin.
   LKittoXHome := GetEnvironmentVariable('KITTOX_HOME');
   if LKittoXHome <> '' then
-    Result := IncludeTrailingPathDelimiter(LKittoXHome)
-  else
-    Result := IncludeTrailingPathDelimiter(ExtractFilePath(GetModuleName(HInstance)));
+    Exit(IncludeTrailingPathDelimiter(LKittoXHome) + 'Kide\Bin\');
+
+  Result := LModulePath;
 end;
 
 function TKideConfig.GetConfigFileName: string;

@@ -63,7 +63,8 @@ uses
   Vcl.ComCtrls,
   Vcl.ActnList,
   Vcl.ExtCtrls,
-  KIDE.BaseFormUnit;
+  KIDE.BaseFormUnit
+  {$IFDEF KIDEGUI}, Vcl.StyledComponentsHooks{$ENDIF};
 
 type
   TBaseWizardForm = class(TBaseForm)
@@ -128,8 +129,15 @@ type
     property PageIndex: Integer read GetPageIndex;
 
     procedure FinishWizard; virtual;
+    {
+      Catches Esc (which a wizard, having no Cancel button, would otherwise
+      ignore) and closes the form through CloseQuery, so it asks for confirmation
+      just like the X button.
+    }
+    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
   public
     constructor Create(AOwner: TComponent); override;
+    function CloseQuery: Boolean; override;
   end;
 
 implementation
@@ -182,6 +190,33 @@ begin
   inherited;
   ForwardAction.Caption := _('Next >>');
   BackAction.Caption := _('<< Previous');
+  // Let the form see Esc before the focused control (a wizard has no Cancel
+  // button, so Esc would otherwise be ignored).
+  KeyPreview := True;
+end;
+
+procedure TBaseWizardForm.KeyDown(var Key: Word; Shift: TShiftState);
+begin
+  inherited;
+  if (Key = VK_ESCAPE) and (Shift = []) then
+  begin
+    Key := 0;
+    Close; // routes through CloseQuery -> confirmation, same as the X button
+  end;
+end;
+
+function TBaseWizardForm.CloseQuery: Boolean;
+begin
+  Result := inherited CloseQuery;
+  if not Result then
+    Exit;
+  // Finishing the wizard (Forward on the last page) sets ModalResult := mrOk and
+  // closes without asking. Any other close — the X button, or a Cancel — leaves
+  // ModalResult <> mrOk: confirm, so the user does not lose the wizard's work by
+  // accidentally closing the window (this fires on any page, last one included).
+  if ModalResult <> mrOk then
+    Result := MessageDlg(_('Close the wizard without finishing? Any changes will be lost.'),
+      mtConfirmation, [mbYes, mbNo], 0) = mrYes;
 end;
 
 procedure TBaseWizardForm.BackActionExecute(Sender: TObject);
@@ -236,7 +271,18 @@ begin
 end;
 
 procedure TBaseWizardForm.FormShow(Sender: TObject);
+var
+  LNode: TEFNode;
 begin
+  // Establish the wizard's default size BEFORE inherited: RestorePositionAndSize
+  // uses the current Width/Height as the fallback when no size is stored in the
+  // MRU, and overrides them with the remembered size when it is. Setting the
+  // size here (instead of in InitWizard, which runs AFTER inherited) stops the
+  // restored size from being clobbered — previously the wizard always reopened
+  // at the default size while Left/Top were correctly remembered.
+  LNode := TKideConfig.Instance.Config.GetNode(Self.Name+'/Size', True);
+  Width := LNode.GetValue('Width', 900);
+  Height := LNode.GetValue('Height', 700);
   inherited;
   InitWizard;
 end;
@@ -244,12 +290,7 @@ end;
 procedure TBaseWizardForm.InitWizard;
 var
   I: Integer;
-  LNode: TEFNode;
 begin
-  LNode := TKideConfig.Instance.Config.GetNode(Self.Name+'/Size', True);
-  Width := LNode.GetValue('Width', 900);
-  Height := LNode.GetValue('Height',700);
-
   for I := 0 to PageControl.PageCount - 1 do
     PageControl.Pages[I].TabVisible := False;
 

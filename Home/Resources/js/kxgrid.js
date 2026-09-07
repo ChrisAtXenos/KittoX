@@ -255,6 +255,42 @@ function kxReportRequestError(errOrResponse, onRetry) {
 }
 
 /**
+ * Gate in front of every response whose content gets attached to the document
+ * body. Returns true when the text is a fragment this application produced,
+ * false -- after telling the user -- when it is not.
+ *
+ * Nothing may be attached to the body without passing through here. A handler
+ * that finishes without writing a response makes the engine answer with its own
+ * default body, "<HTML><BODY><B>200 OK</B></BODY></HTML>", which attached
+ * blindly shows as a strip of text along the bottom of the application. That is
+ * a server-side bug wherever it happens, but an unrecognisable reply must never
+ * reach the page.
+ *
+ * A fragment is recognised by carrying a kx- class, on itself or on a
+ * descendant -- every panel, form and dialog the server emits does -- or by
+ * being script only, which is what the save handlers reply with.
+ *
+ * @param {string} html the response text
+ * @param {string} [what] short context, shown in the message
+ * @returns {boolean} whether the caller may go on and attach it
+ */
+function kxAcceptResponse(html, what) {
+  if (!html || !html.trim()) return false;
+  var probe = document.createElement('div');
+  probe.innerHTML = html;
+  if (probe.querySelector('script')) return true;
+  if (probe.querySelector('[class*="kx-"]')) return true;
+  var S = window.KX_STRINGS || {};
+  kxGrid.showConfirm(
+    S.errorTitle || 'Error',
+    (S.serverUnexpectedReply || 'The server did not return a valid response') +
+      (what ? ' (' + what + ')' : ''),
+    'OK', '', null
+  );
+  return false;
+}
+
+/**
  * Draggable dialog support — event delegation on document.
  * Drag starts on mousedown on .kx-dialog-header, moves the .kx-dialog via
  * absolute positioning within the .kx-dialog-overlay.
@@ -786,6 +822,7 @@ var kxGrid = {
       })
       .then(function(html) {
         if (html === null) return;
+        if (!kxAcceptResponse(html, 'form')) return;
         var div = document.createElement('div');
         div.innerHTML = html;
         if (div.firstElementChild) {
@@ -946,7 +983,7 @@ var kxGrid = {
             } catch (e) { /* ignore malformed trigger */ }
           }
           return response.text().then(function(html) {
-            if (html && html.trim()) {
+            if (kxAcceptResponse(html, 'tool')) {
               var div = document.createElement('div');
               div.innerHTML = html;
               if (div.firstElementChild)
@@ -1293,7 +1330,7 @@ var kxForm = {
     })
     .then(function(r) { if (!r.ok) { kxReportRequestError(r); return null; } return r.text(); })
     .then(function(html) {
-      if (html && html.trim()) {
+      if (kxAcceptResponse(html, 'save')) {
         var div = document.createElement('div');
         div.innerHTML = html;
         // Execute any inline scripts returned by the server
@@ -1432,7 +1469,7 @@ var kxForm = {
     })
     .then(function(r) { return r.text(); })
     .then(function(html) {
-      if (html && html.trim()) {
+      if (kxAcceptResponse(html, 'save')) {
         var div = document.createElement('div');
         div.innerHTML = html;
         div.querySelectorAll('script').forEach(function(script) {
@@ -1614,7 +1651,7 @@ var kxForm = {
     })
     .then(function(r) { return r.text(); })
     .then(function(html) {
-      if (html && html.trim()) {
+      if (kxAcceptResponse(html, 'detail')) {
         var div = document.createElement('div');
         div.innerHTML = html;
         div.querySelectorAll('script').forEach(function(script) {
@@ -1782,6 +1819,7 @@ var kxForm = {
       .then(function(r) { if (!r.ok) { kxReportRequestError(r); return null; } return r.text(); })
       .then(function(html) {
         if (html === null) return;
+        if (!kxAcceptResponse(html, 'lookup')) return;
         var div = document.createElement('div');
         div.innerHTML = html;
         var overlay = div.firstElementChild;
@@ -2321,6 +2359,12 @@ var kxForm = {
     // record in session, so {MasterRecord.*} macros in LookupFilter resolve.
     if (masterView) {
       extra += (extra ? '&' : '') + 'masterView=' + encodeURIComponent(masterView);
+    }
+    // detailIndex says WHICH of the master's detail stores the row belongs to.
+    // Without it the server can only look for the record in the database, where
+    // a row that has been confirmed but not saved is not.
+    if (tabIndex !== undefined && tabIndex !== null && tabIndex !== '') {
+      extra += (extra ? '&' : '') + 'detailIndex=' + encodeURIComponent(tabIndex);
     }
     // Get key from alias grid for edit/view/dup
     var key = '';
@@ -3164,6 +3208,7 @@ var kxCalendar = {
     kxFetchWithTimeout(url, { headers: { 'X-KittoX': 'true' } })
       .then(function(r) { return r.text(); })
       .then(function(html) {
+        if (!kxAcceptResponse(html, 'form')) return;
         var div = document.createElement('div');
         div.innerHTML = html;
         if (div.firstElementChild) {

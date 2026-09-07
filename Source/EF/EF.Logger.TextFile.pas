@@ -60,6 +60,12 @@ type
     /// </summary>
     class procedure FreeSingletonInstance;
     /// <summary>
+    ///   The singleton instance. Without it the public FileName property below
+    ///   could not be reached, so an application had no way to change the log
+    ///   file at run time other than through the whole logger configuration.
+    /// </summary>
+    class property Instance: TEFTextFileLogEndpoint read FInstance;
+    /// <summary>
     ///   Sets the default file name (the module name with a '.log' extension).
     /// </summary>
     procedure AfterConstruction; override;
@@ -90,7 +96,12 @@ end;
 
 destructor TEFTextFileLogEndpoint.Destroy;
 begin
-  FreeAndNil(FStream);
+  MonitorEnter(Self);
+  try
+    FreeAndNil(FStream);
+  finally
+    MonitorExit(Self);
+  end;
   inherited;
 end;
 
@@ -123,7 +134,22 @@ end;
 procedure TEFTextFileLogEndpoint.DoLog(const AString: string);
 begin
   if IsEnabled then
-    Stream.WriteLn(FormatDateTime('[yyyy-mm-dd hh:nn:ss.zzz] ', Now()) +  AString);
+  begin
+    // The whole write goes inside the lock, not just the creation of the stream
+    // as it used to. Two reasons: a single file is being written to, so the
+    // writes have to be serialized or the lines of concurrent requests end up
+    // interleaved; and SetFileName can free the stream in the window between
+    // GetStream returning it and WriteLn using it, which under ISAPI/Apache
+    // meant an access violation in a thread that had nothing to do with the
+    // reconfiguration. TMonitor is reentrant, so GetStream taking the same lock
+    // again is not a problem.
+    MonitorEnter(Self);
+    try
+      Stream.WriteLn(FormatDateTime('[yyyy-mm-dd hh:nn:ss.zzz] ', Now()) +  AString);
+    finally
+      MonitorExit(Self);
+    end;
+  end;
 end;
 
 function TEFTextFileLogEndpoint.GetConfigPath: string;
@@ -157,10 +183,17 @@ end;
 
 procedure TEFTextFileLogEndpoint.SetFileName(const AValue: string);
 begin
-  if AValue <> FFileName then
-  begin
-    FFileName := AValue;
-    FreeAndNil(FStream);
+  // Under the same lock as DoLog: this frees the stream other threads may be
+  // writing to right now. The next DoLog reopens it on the new name.
+  MonitorEnter(Self);
+  try
+    if AValue <> FFileName then
+    begin
+      FFileName := AValue;
+      FreeAndNil(FStream);
+    end;
+  finally
+    MonitorExit(Self);
   end;
 end;
 

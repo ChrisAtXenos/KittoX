@@ -45,3 +45,5 @@ Fields:
     IsVisible: False
 DetailReferences:
   Invitation: Invitation
+    ReferenceField: Party
+    CascadeDelete: True

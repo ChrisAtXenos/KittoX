@@ -343,7 +343,7 @@ var
   LPersistentFileName: string;
   LFileStream: TFileStream;
 begin
-  Assert(Assigned(AStream));
+  Assert(Assigned(AStream), 'Assigned(AStream)');
 
   LPersistentFileName := GetPersistentFileName;
   if LPersistentFileName <> '' then

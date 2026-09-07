@@ -190,12 +190,12 @@ var
   LRecordCount: Integer;
   I: Integer;
 begin
-  Assert(Assigned(AProc));
+  Assert(Assigned(AProc), 'Assigned(AProc)');
 
   LKey := TEFNode.Create;
   try
     LKey.Assign(ServerStore.Key);
-    Assert(LKey.ChildCount > 0);
+    Assert(LKey.ChildCount > 0, 'LKey.ChildCount > 0');
     LRecordCount := Length(Split(TKWebRequest.Current.GetQueryField(LKey[0].Name), ','));
     for I := 0 to LRecordCount - 1 do
       AProc(ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, I));
@@ -208,7 +208,7 @@ procedure TKXDataToolController.ExecuteInTransaction(const AProc: TProc);
 var
   LDBConnection: TEFDBConnection;
 begin
-  Assert(Assigned(AProc));
+  Assert(Assigned(AProc), 'Assigned(AProc)');
 
   LDBConnection := TKConfig.DatabaseFor(ViewTable.DatabaseName);
   LDBConnection.StartTransaction;

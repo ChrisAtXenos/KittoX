@@ -1,4 +1,4 @@
-﻿{-------------------------------------------------------------------------------
+{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -353,12 +353,14 @@ type
     ///  Optional filter to use when creating select lists. Only applies to
     ///  reference fields.
     /// </summary>
+    [YamlNode('DefaultFilter', 'SQL filter for reference selection lists')]
     property DefaultFilter: string read GetDefaultFilter;
 
     /// <summary>
     ///  Optional filter to use when creating lookup lists. Only applies to
     ///  reference fields.
     /// </summary>
+    [YamlNode('LookupFilter', 'SQL filter for lookup combo queries')]
     property LookupFilter: string read GetLookupFilter;
 
     /// <summary>
@@ -378,6 +380,10 @@ type
     ///  physical fields that make up the reference.
     /// </summary>
     property Fields[I: Integer]: TKModelField read GetField;
+    /// <summary>The sub-fields collection (the constituent fields of a reference
+    /// field). Exposed for RTTI discovery of the YAML 'Fields' container.</summary>
+    [YamlContainer('Fields', TKModelField, 'Constituent fields of a reference field')]
+    property FieldList: TKModelFields read GetFields;
 
     /// <summary>Returns the sub-field with the given name; raises if absent.</summary>
     function FieldByName(const AName: string): TKModelField;
@@ -667,6 +673,23 @@ type
   ///  identifying the child model and the foreign-key field that links back to
   ///  this master model.
   /// </summary>
+  /// <remarks>
+  ///  The node's own value is the detail model's name:
+  ///
+  ///    DetailReferences:
+  ///      Invitation: Invitation
+  ///        CascadeDelete: True
+  ///
+  ///  Everything else is a child of it -- CascadeDelete above is a child of
+  ///  Invitation, not a sibling. Written one level out it becomes a detail
+  ///  reference of its own, named CascadeDelete, and is silently ignored as a
+  ///  setting.
+  ///
+  ///  The nodes below carry [YamlNode] so KIDE and the MCP server know them.
+  ///  TYamlAttributeReader reads the whole set at once and a class that
+  ///  declares none is not checked at all (see KIDE.TreeValidator), so adding
+  ///  one means declaring them all.
+  /// </remarks>
   TKModelDetailReference = class(TKModelSubobject)
   strict private
     function GetDetailReferenceName: string;
@@ -677,14 +700,17 @@ type
     function GetDisplayLabel: string;
     function GetDBForeignKeyName: string;
     function GetPhysicalName: string;
+    function GetCascadeDelete: Boolean;
   strict protected
     class function BeautifyDetailName(const ADetailName: string): string; virtual;
   public
     /// <summary>The detail reference's physical (DB foreign-key) name.</summary>
+    [YamlNode('PhysicalName', 'Physical DB foreign-key name of this relation')]
     property PhysicalName: string read GetPhysicalName;
     /// <summary>Returns PhysicalName.</summary>
     property DBForeignKeyName: string read GetDBForeignKeyName;
     /// <summary>Label shown for the detail table (defaults to a beautified name).</summary>
+    [YamlNode('DisplayLabel', '', 'Label shown for the detail table (defaults to the detail model''s)', True)]
     property DisplayLabel: string read GetDisplayLabel;
     /// <summary>The detail reference's logical name.</summary>
     property DetailReferenceName: string read GetDetailReferenceName;
@@ -700,7 +726,28 @@ type
     /// DetailReference.</summary>
     property ReferenceField: TKModelField read GetReferenceField;
     /// <summary>Name of the counterpart reference field in the detail model.</summary>
+    [YamlNode('ReferenceField', '', 'Which reference of the detail model links back here, when it has more than one')]
     property ReferenceFieldName: string read GetReferenceFieldName;
+
+    /// <summary>
+    ///  Whether deleting a master deletes the rows of this detail along with
+    ///  it. False unless the model says otherwise.
+    /// </summary>
+    /// <remarks>
+    ///  Off by default on purpose: on by default would make one delete take an
+    ///  unknown number of rows with it, in every application, without anyone
+    ///  having asked. An application that wants it says so, per relation:
+    ///
+    ///    DetailReferences:
+    ///      Invitation: Invitation
+    ///        CascadeDelete: True
+    ///
+    ///  Where it is not said the delete is refused, with a message that names
+    ///  the master and counts the rows holding it back instead of quoting a
+    ///  constraint name at the user.
+    /// </remarks>
+    [YamlNode('CascadeDelete', 'False', 'Delete this detail''s rows along with the master')]
+    property CascadeDelete: Boolean read GetCascadeDelete;
   end;
 
   /// <summary>The collection of master-detail references of a model.</summary>
@@ -780,6 +827,9 @@ type
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDetailReferences: TKModelDetailReferences;
+    /// <summary>Builds the containers the accessors would otherwise create on
+    /// first read, while the catalogue's load still holds its lock.</summary>
+    procedure InternalAfterLoad; override;
     class function BeautifyModelName(const AModelName: string): string; virtual;
     class function GetClassNameForResourceURI: string; override;
   public
@@ -790,7 +840,11 @@ type
     /// <summary>The models catalog this model belongs to.</summary>
     property Catalog: TKModels read GetCatalog;
 
-    [YamlRequiredNode('ModelName', 'Unique model identifier')]
+    // ModelName is the model's identity and is ALWAYS the PersistentName (the
+    // file name) — GetModelName never reads a 'ModelName' node. It is therefore
+    // NOT required (and normally absent); an optional YamlNode only so a legacy
+    // redundant 'ModelName:' line is still recognized rather than flagged.
+    [YamlNode('ModelName', 'Model identifier (defaults to the file name; normally omitted)')]
     property ModelName: string read GetModelName;
 
     /// <summary>The default plural model name (the English plural of ModelName).</summary>
@@ -836,6 +890,11 @@ type
     property FieldCount: Integer read GetFieldCount;
     /// <summary>The first-level fields, by index.</summary>
     property Fields[I: Integer]: TKModelField read GetField;
+    /// <summary>The fields collection. Exposed (in addition to the indexed
+    /// accessor) so the YAML 'Fields' container is discoverable via RTTI by the
+    /// tree validator and the KIDE/MCP metadata tooling.</summary>
+    [YamlContainer('Fields', TKModelField, 'The fields of this model')]
+    property FieldList: TKModelFields read GetFields;
     /// <summary>Returns the field with the given name; raises if absent.</summary>
     function FieldByName(const AName: string): TKModelField;
     /// <summary>Returns the field with the given name, or nil.</summary>
@@ -875,6 +934,11 @@ type
     property DetailReferenceCount: Integer read GetDetailReferenceCount;
     /// <summary>The detail references, by index.</summary>
     property DetailReferences[I: Integer]: TKModelDetailReference read GetDetailReference;
+    /// <summary>The detail references collection. Exposed (in addition to the
+    /// indexed accessor) so the YAML 'DetailReferences' container is discoverable
+    /// via RTTI by the tree validator and the KIDE/MCP metadata tooling.</summary>
+    [YamlContainer('DetailReferences', TKModelDetailReference, 'Master-detail relationships navigated as detail grids')]
+    property DetailReferenceList: TKModelDetailReferences read GetDetailReferences;
     /// <summary>Returns the detail reference with the given name; raises if absent.</summary>
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
     /// <summary>Returns the default caption field (heuristic), or nil.</summary>
@@ -1207,6 +1271,44 @@ procedure TKModel.BeforeNewRecord(const ARecord: TEFNode; const AIsCloned: Boole
 begin
 end;
 
+procedure TKModel.InternalAfterLoad;
+
+  // Reading FieldCount goes through GetFields, and Rules through GetRules:
+  // evaluating them is the whole point, so they are handed to something that
+  // does nothing with them rather than assigned to variables nobody reads.
+  procedure Touch(const AContainer: TObject);
+  begin
+    Assert(Assigned(AContainer), 'Assigned(AContainer)');
+  end;
+
+  procedure PrepareField(const AField: TKModelField);
+  var
+    I: Integer;
+  begin
+    Touch(AField.Rules);
+    // A field's own Fields are its parts, when it is a multi-part field.
+    for I := 0 to AField.FieldCount - 1 do
+      PrepareField(AField.Fields[I]);
+  end;
+
+var
+  I: Integer;
+begin
+  inherited;
+
+  // This object is cached by the catalogue and read by every request thread
+  // from here on. TEFTree is not thread-safe, so anything that CREATES a node
+  // has to happen now, while TKMetadataCatalog.LoadObject still holds its
+  // lock: the accessors below build their container on first read, and two
+  // threads reaching one of them at the same time on a shared model is a race
+  // with nothing anywhere to protect it.
+  Touch(GetRules);
+  Touch(GetDetailReferences);
+  Touch(GetFields);
+  for I := 0 to FieldCount - 1 do
+    PrepareField(Fields[I]);
+end;
+
 procedure TKModel.BeforeSave;
 begin
   inherited;
@@ -1294,7 +1396,7 @@ function TKModel.FindReferenceField(const AForeignKeyName: string): TKModelField
 var
   I: Integer;
 begin
-  Assert(AForeignKeyName <> '');
+  Assert(AForeignKeyName <> '', 'AForeignKeyName <> ''''');
 
   Result := nil;
   for I := 0 to FieldCount - 1 do
@@ -1314,8 +1416,8 @@ var
   LSubFieldIdx: Integer;
   LFound: Boolean;
 begin
-  Assert(AModelName <> '');
-  Assert(Length(AFieldNames) > 0);
+  Assert(AModelName <> '', 'AModelName <> ''''');
+  Assert(Length(AFieldNames) > 0, 'Length(AFieldNames) > 0');
 
   Result := nil;
   for LFieldIdx := 0 to FieldCount - 1 do
@@ -1366,7 +1468,7 @@ var
   I: Integer;
   LCount: Integer;
 begin
-  Assert(Assigned(AModel));
+  Assert(Assigned(AModel), 'Assigned(AModel)');
 
   Result := nil;
   LCount := 0;
@@ -1500,7 +1602,22 @@ var
   LKeyFieldNames: TStringDynArray;
 begin
   LKeyFieldNames := GetKeyFieldNames;
-  Assert(Length(LKeyFieldNames) > I);
+  // Not an Assert. This index comes from the metadata, not from a contract
+  // between callers: TKModelField.GetSize and GetDecimalPrecision pass the
+  // position of a reference's subfield, and a reference that declares one
+  // subfield more than the referenced model has key fields lands here. With
+  // assertions compiled out, as they are in Release, the read went past the end
+  // of the array and FieldByName then looked for whatever was in memory.
+  //
+  // Callers that index KeyFields[0] are covered too: a referenced model with no
+  // primary key at all reaches this with an empty array, and one of them --
+  // TKXFormPanelController building the WHERE clause that reads a reference's
+  // caption -- is a live request path with no guard of its own.
+  if (I < 0) or (I >= Length(LKeyFieldNames)) then
+    raise EKError.CreateFmt(_('Model %s has %d key field(s), so there is no ' +
+      'key field %d. A reference field pointing at this model has to declare ' +
+      'exactly as many subfields as it has key fields, in the same order.'),
+      [ModelName, Length(LKeyFieldNames), I]);
   Result := FieldByName(LKeyFieldNames[I]);
 end;
 
@@ -1517,7 +1634,7 @@ var
   var
     LLength: Integer;
   begin
-    Assert(Assigned(AField));
+    Assert(Assigned(AField), 'Assigned(AField)');
 
     if AField.IsKey then
     begin
@@ -1551,7 +1668,7 @@ var
   var
     LLength: Integer;
   begin
-    Assert(Assigned(AField));
+    Assert(Assigned(AField), 'Assigned(AField)');
 
     if AField.IsKey then
     begin
@@ -1620,7 +1737,7 @@ end;
 function TKModel.GetCaptionField: TKModelField;
 begin
   Result := FindCaptionField;
-  Assert(Result <> nil);
+  Assert(Result <> nil, 'Result <> nil');
 end;
 
 function TKModel.GetCaptionFieldName: string;
@@ -2024,8 +2141,9 @@ begin
   Result := DataType;
   if (Result is TKReferenceDataType) then
   begin
-    Assert(Assigned(ReferencedModel));
-    Assert(ReferencedModel.KeyFieldCount > 0);
+    Assert(Assigned(ReferencedModel), 'Assigned(ReferencedModel)');
+    // No assertion on the key field count: KeyFields reports a missing one
+    // properly now, naming the model and how many it has.
     Result := ReferencedModel.KeyFields[0].GetActualDataType;
   end;
 end;
@@ -2173,7 +2291,17 @@ begin
     Result := ParentField.ReferencedModel.KeyFields[Index].DecimalPrecision
   else
     GetFieldSpec(LDataType, LSize, Result, LIsRequired, LIsKey, LReferencedModel);
-  if Result = 0 then
+  // '<= 0', not '= 0'. GetFieldSpec sets -1 for a reference field, meaning
+  // 'not applicable', and the guard here used to catch only the 0 that a
+  // non-reference field gets when its spec does not say. The -1 travelled all
+  // the way to TKField.GetAsJSONValue, which assigns this to
+  // TFormatSettings.CurrencyDecimals -- a Byte -- so rendering any list or
+  // form containing a reference raised a range error on that assignment.
+  // Invisible for as long as {$R} was forced off in Debug builds, which
+  // EF.Defines.inc did until the first correction of this review; in Release
+  // the -1 was stored as 255 and the value was formatted with 255 decimals
+  // asked for.
+  if Result <= 0 then
     Result := 2;
 end;
 
@@ -2483,7 +2611,7 @@ begin
 
   Result := LParent as TKModel;
 
-  Assert(Assigned(Result));
+  Assert(Assigned(Result), 'Assigned(Result)');
 end;
 
 { TKModels }
@@ -2539,7 +2667,7 @@ procedure TKModels.GetModelList(const AList: TKModelList);
 var
   I: Integer;
 begin
-  Assert(Assigned(AList));
+  Assert(Assigned(AList), 'Assigned(AList)');
   AList.Clear;
   if not IsOpen then
     Open
@@ -2601,6 +2729,11 @@ end;
 function TKModelDetailReference.GetDBForeignKeyName: string;
 begin
   Result := PhysicalName;
+end;
+
+function TKModelDetailReference.GetCascadeDelete: Boolean;
+begin
+  Result := GetBoolean('CascadeDelete', False);
 end;
 
 function TKModelDetailReference.GetDetailModel: TKModel;

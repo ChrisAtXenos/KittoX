@@ -12,5 +12,5 @@ MainTable:
     QuartHeadCnt:
     ProjectedBudget:
     DeptNoRef:
-    Proj:
+    ProjIdRef:
   Controller:

@@ -324,8 +324,8 @@ var
   LMethod: TRttiMethod;
   LType: string;
 begin
-  Assert(Assigned(AView));
-  Assert(AMethodName <> '');
+  Assert(Assigned(AView), 'Assigned(AView)');
+  Assert(AMethodName <> '', 'AMethodName <> ''''');
 
   Result := ADefaultValue;
 
@@ -346,7 +346,7 @@ function GetDisplayLabelFromNode(const ANode: TKTreeViewNode; const AViews: TKVi
 var
   LView: TKView;
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   LView := ANode.FindView(AViews);
   if Assigned(LView) then
@@ -369,8 +369,8 @@ end;
 
 function GetTreeViewNodeImageName(const ANode: TKTreeViewNode; const AView: TKView): string;
 begin
-  Assert(Assigned(ANode));
-  Assert(Assigned(AView));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
+  Assert(Assigned(AView), 'Assigned(AView)');
 
   Result := ANode.GetString('ImageName');
   if Result = '' then
@@ -456,7 +456,7 @@ var
 {$ENDIF}
 
 begin
-  Assert(Assigned(AStream));
+  Assert(Assigned(AStream), 'Assigned(AStream)');
 
   {$IFDEF MSWINDOWS}
   LFileExt := ExtractFileExt(AFileName);

@@ -22,7 +22,8 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, KIDE.BaseWizardForm, Vcl.ActnList,
   Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, KIDE.BaseFrame, KIDE.ProjectTemplate,
   KIDE.ProjectTemplateFrame, Vcl.Buttons, System.Actions, Vcl.Samples.Spin,
-  Vcl.Mask;
+  Vcl.Mask
+  {$IFDEF KIDEGUI}, Vcl.StyledComponentsHooks{$ENDIF};
 
 type
   TNewProjectWizardForm = class(TBaseWizardForm)
@@ -110,7 +111,8 @@ uses
   , EF.StrUtils
   , KIDE.MRUOptions
   , KIDE.Config
-  ;
+  
+  {$IFDEF KIDEGUI}, Vcl.StyledMessagesHooks{$ENDIF};
 
 const
   PAGE_TEMPLATE = 0;

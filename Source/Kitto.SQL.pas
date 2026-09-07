@@ -229,7 +229,7 @@ var
   LCommandText: string;
   LOrderBy: string;
 begin
-  Assert(Assigned(AViewTable));
+  Assert(Assigned(AViewTable), 'Assigned(AViewTable)');
 
   Clear;
   FViewTable := AViewTable;
@@ -284,7 +284,7 @@ var
   LCommandText: string;
   LWhereClause: string;
 begin
-  Assert(Assigned(AViewTable));
+  Assert(Assigned(AViewTable), 'Assigned(AViewTable)');
 
   Clear;
   FViewTable := AViewTable;
@@ -322,7 +322,7 @@ var
   I: Integer;
   LWhereClause: string;
 begin
-  Assert(Assigned(AModel));
+  Assert(Assigned(AModel), 'Assigned(AModel)');
 
   Clear;
   FModel := AModel;
@@ -362,7 +362,7 @@ var
   I: Integer;
   LCommandText: string;
 begin
-  Assert(Assigned(AViewTable));
+  Assert(Assigned(AViewTable), 'Assigned(AViewTable)');
 
   Clear;
   FViewTable := AViewTable;
@@ -421,16 +421,16 @@ var
 
   function IsRefFieldProcessed(const AViewField: TKViewField): Boolean;
   begin
-    Assert(Assigned(AViewField));
-    Assert(AViewField.IsReference);
+    Assert(Assigned(AViewField), 'Assigned(AViewField)');
+    Assert(AViewField.IsReference, 'AViewField.IsReference');
 
     Result := LProcessedRefFields.Contains(AViewField);
   end;
 
   procedure MarkRefFieldAsProcessed(const AViewField: TKViewField);
   begin
-    Assert(Assigned(AViewField));
-    Assert(AViewField.IsReference);
+    Assert(Assigned(AViewField), 'Assigned(AViewField)');
+    Assert(AViewField.IsReference, 'AViewField.IsReference');
 
     LProcessedRefFields.Add(AViewField);
   end;
@@ -450,8 +450,8 @@ var
   end;
 
 begin
-  Assert(Assigned(ADBCommand));
-  Assert(Assigned(ARecord));
+  Assert(Assigned(ADBCommand), 'Assigned(ADBCommand)');
+  Assert(Assigned(ARecord), 'Assigned(ARecord)');
 
   FDBEngineType := ADBCommand.Connection.DBEngineType;
   if ADBCommand.Prepared then
@@ -504,7 +504,7 @@ begin
       var
         LDefaultValue: Variant;
       begin
-        Assert(Assigned(AField));
+        Assert(Assigned(AField), 'Assigned(AField)');
 
         LDefaultValue := AField.DefaultValue;
         if not VarIsNull(LDefaultValue) and (ARecord.ViewTable.FindFieldByModelField(AField) = nil) then
@@ -552,23 +552,23 @@ var
 
   function IsRefFieldProcessed(const AViewField: TKViewField): Boolean;
   begin
-    Assert(Assigned(AViewField));
-    Assert(AViewField.IsReference);
+    Assert(Assigned(AViewField), 'Assigned(AViewField)');
+    Assert(AViewField.IsReference, 'AViewField.IsReference');
 
     Result := LProcessedRefFields.Contains(AViewField);
   end;
 
   procedure MarkRefFieldAsProcessed(const AViewField: TKViewField);
   begin
-    Assert(Assigned(AViewField));
-    Assert(AViewField.IsReference);
+    Assert(Assigned(AViewField), 'Assigned(AViewField)');
+    Assert(AViewField.IsReference, 'AViewField.IsReference');
 
     LProcessedRefFields.Add(AViewField);
   end;
 
 begin
-  Assert(Assigned(ADBCommand));
-  Assert(Assigned(ARecord));
+  Assert(Assigned(ADBCommand), 'Assigned(ADBCommand)');
+  Assert(Assigned(ARecord), 'Assigned(ARecord)');
 
   FDBEngineType := ADBCommand.Connection.DBEngineType;
   if ADBCommand.Prepared then
@@ -644,8 +644,8 @@ var
   LKeyFields: TStringDynArray;
   LParamName: string;
 begin
-  Assert(Assigned(ADBCommand));
-  Assert(Assigned(ARecord));
+  Assert(Assigned(ADBCommand), 'Assigned(ADBCommand)');
+  Assert(Assigned(ARecord), 'Assigned(ARecord)');
 
   FDBEngineType := ADBCommand.Connection.DBEngineType;
   if ADBCommand.Prepared then
@@ -687,11 +687,11 @@ var
   LDBColumnName: string;
   LKeyValues: TArray<string>;
 begin
-  Assert(Assigned(AViewField));
-  Assert(AViewField.IsReference);
-  Assert(Assigned(ADBQuery));
+  Assert(Assigned(AViewField), 'Assigned(AViewField)');
+  Assert(AViewField.IsReference, 'AViewField.IsReference');
+  Assert(Assigned(ADBQuery), 'Assigned(ADBQuery)');
   LDerivedFields := AViewField.GetDerivedFields;
-  Assert(Length(LDerivedFields) > 0);
+  Assert(Length(LDerivedFields) > 0, 'Length(LDerivedFields) > 0');
 
   Result := False;
   LModel := AViewField.ModelField.ReferencedModel;
@@ -727,7 +727,7 @@ begin
     ADBQuery.Params.Clear;
 
     LKeyDBColumnNames := LModel.GetKeyDBColumnNames;
-    Assert(Length(LKeyDBColumnNames) > 0);
+    Assert(Length(LKeyDBColumnNames) > 0, 'Length(LKeyDBColumnNames) > 0');
     if Length(LKeyDBColumnNames) <> 1 then
       LKeyValues := AKeyValues.Split([TKConfig.Instance.MultiFieldSeparator], TStringSplitOptions.None)
     else
@@ -809,7 +809,7 @@ class procedure TKSQLBuilder.CreateAndExecute(const AProc: TProc<TKSQLBuilder>);
 var
   LSQLBuilder: TKSQLBuilder;
 begin
-  Assert(Assigned(AProc));
+  Assert(Assigned(AProc), 'Assigned(AProc)');
 
   LSQLBuilder := TKSQLBuilder.Create;
   try
@@ -831,7 +831,7 @@ function TKSQLBuilder.GetFromClause: string;
 var
   I: Integer;
 begin
-  Assert(Assigned(FViewTable));
+  Assert(Assigned(FViewTable), 'Assigned(FViewTable)');
 
   Result := DelimitId(FViewTable.Model.DBTableName);
   for I := 0 to FUsedReferenceFields.Count - 1 do
@@ -853,9 +853,9 @@ var
   LLookupSearchModel, LSearchOperator, LSearchValue, LSearchClause: string;
   I: Integer;
 begin
-  Assert(Assigned(AViewField));
-  Assert(Assigned(ADBQuery));
-  Assert(AViewField.IsReference);
+  Assert(Assigned(AViewField), 'Assigned(AViewField)');
+  Assert(Assigned(ADBQuery), 'Assigned(ADBQuery)');
+  Assert(AViewField.IsReference, 'AViewField.IsReference');
 
   FDBEngineType := ADBQuery.Connection.DBEngineType;
   LLookupModel := AViewField.ModelField.ReferencedModel;
@@ -954,7 +954,7 @@ var
     LParam: TParam;
   begin
     LForeignField := AViewField.ModelField.ReferencedModel.FieldByName(AForeignFieldName);
-    Assert(LForeignField.FieldCount = AReferenceField.FieldCount);
+    Assert(LForeignField.FieldCount = AReferenceField.FieldCount, 'LForeignField.FieldCount = AReferenceField.FieldCount');
     for I := 0 to AReferenceField.FieldCount - 1 do
     begin
       if LForeignField.Fields[I].Expression <> '' then
@@ -972,9 +972,9 @@ var
   end;
 
 begin
-  Assert(Assigned(AViewField));
-  Assert(Assigned(ADBQuery));
-  Assert(Assigned(ARecord));
+  Assert(Assigned(AViewField), 'Assigned(AViewField)');
+  Assert(Assigned(ADBQuery), 'Assigned(ADBQuery)');
+  Assert(Assigned(ARecord), 'Assigned(ARecord)');
 
   LFilterByFields := AViewField.GetFilterByFields;
   if Length(LFilterByFields) > 0 then
@@ -984,7 +984,7 @@ begin
       LClause := '';
       for I := Low(LFilterByFields) to High(LFilterByFields) do
       begin
-        Assert(LFilterByFields[I].SourceField.IsReference);
+        Assert(LFilterByFields[I].SourceField.IsReference, 'LFilterByFields[I].SourceField.IsReference');
         LClause := LClause + GetReferenceClause(LFilterByFields[I].SourceField.ModelField, LFilterByFields[I].ForeignFieldName);
         if I < High(LFilterByFields) then
           LClause := LClause + ' and ';
@@ -1015,7 +1015,7 @@ var
   LReferencedModelDefaultFilter: string;
   LFieldDefaultFilter: string;
 begin
-  Assert(Assigned(AReferenceField));
+  Assert(Assigned(AReferenceField), 'Assigned(AReferenceField)');
 
   LCorrelationName := AReferenceField.DBColumnName;
 
@@ -1026,9 +1026,9 @@ begin
   Result := GetJoinKeyword + ' ' + DelimitId(AReferenceField.ReferencedModel.DBTableName)
     + ' ' + DelimitId(LCorrelationName) + ' on (';
   LLocalFields := AReferenceField.GetReferenceFields;
-  Assert(Length(LLocalFields) > 0);
+  Assert(Length(LLocalFields) > 0, 'Length(LLocalFields) > 0');
   LForeignDBColumnNames := AReferenceField.ReferencedModel.GetKeyDBColumnNames;
-  Assert(Length(LForeignDBColumnNames) = Length(LLocalFields));
+  Assert(Length(LForeignDBColumnNames) = Length(LLocalFields), 'Length(LForeignDBColumnNames) = Length(LLocalFields)');
 
   for I := Low(LLocalFields) to High(LLocalFields) do
   begin
@@ -1072,9 +1072,9 @@ var
   end;
 
 begin
-  Assert(Assigned(FViewTable));
-  Assert(Assigned(AViewField));
-  Assert(AViewField.IsReference);
+  Assert(Assigned(FViewTable), 'Assigned(FViewTable)');
+  Assert(Assigned(AViewField), 'Assigned(AViewField)');
+  Assert(AViewField.IsReference, 'AViewField.IsReference');
 
   if not FUsedReferenceFields.Contains(AViewField.ModelField) then
     FUsedReferenceFields.Add(AViewField.ModelField);
@@ -1173,16 +1173,18 @@ begin
   if FViewTable.IsDetail then
   begin
     // Get master and detail field names...
+    // The parameter is named after the master's key COLUMN: it stays a physical
+    // identifier, independent of any Alias declared by the view.
+    // AssignSelectQueryParams translates it back to the master's field name.
     LMasterFieldDBColumnNames := FViewTable.MasterTable.Model.GetKeyDBColumnNames;
-    Assert(Length(LMasterFieldDBColumnNames) > 0);
+    Assert(Length(LMasterFieldDBColumnNames) > 0, 'Length(LMasterFieldDBColumnNames) > 0');
     LDetailFieldDBColumnNames := FViewTable.ModelDetailReference.ReferenceField.GetDBColumnNames;
-    Assert(Length(LDetailFieldDBColumnNames) = Length(LMasterFieldDBColumnNames));
+    Assert(Length(LDetailFieldDBColumnNames) = Length(LMasterFieldDBColumnNames), 'Length(LDetailFieldDBColumnNames) = Length(LMasterFieldDBColumnNames)');
     LClause := '';
     for I := 0 to High(LDetailFieldDBColumnNames) do
     begin
-      // ...and alias master field names. Don'alias detail field names used in the where clause.
+      // Don't alias detail field names used in the where clause.
       LParamName := LMasterFieldDBColumnNames[I];
-      LParamName := FViewTable.MasterTable.ApplyFieldAliasedName(LParamName);
       LClause := LClause + DelimitId(FViewTable.Model.DBTableName) + '.' + DelimitId(LDetailFieldDBColumnNames[I]) + ' = :' + LParamName;
       ADBQuery.Params.CreateParam(ftUnknown, LParamName, ptInput);
       if I < High(LDetailFieldDBColumnNames) then
@@ -1238,20 +1240,26 @@ var
   LParam: TParam;
   LFieldName: string;
 begin
-  Assert((ADBQuery.Params.Count = 0) or Assigned(AMasterValues));
+  Assert((ADBQuery.Params.Count = 0) or Assigned(AMasterValues), '(ADBQuery.Params.Count = 0) or Assigned(AMasterValues)');
   for I := 0 to ADBQuery.Params.Count - 1 do
   begin
     LParam := ADBQuery.Params[I];
-    LField := AViewTable.Model.FindFieldByPhysicalName(LParam.Name);
+    // Each parameter is created by GetSelectWhereClause and named after a key
+    // COLUMN of the master, while the master record addresses its values by
+    // FIELD name (aliased as the store names them). Resolve the column on the
+    // MASTER model: the lookup used to be done on AViewTable.Model, which is
+    // the DETAIL model and has no field named after the master's key column,
+    // so it always missed and fell back to using the column name as a field
+    // name — which worked only while the two coincided, and broke as soon as
+    // they diverged (models imported from Oracle: column MASTER_ID, field
+    // MasterId). FindFieldByPhysicalName descends into reference sub-fields,
+    // so a master key that lives inside a reference resolves as well.
+    // The fallback is kept for the cases that do not resolve.
+    LField := nil;
+    if Assigned(AViewTable.MasterTable) then
+      LField := AViewTable.MasterTable.Model.FindFieldByPhysicalName(LParam.Name);
     if Assigned(LField) then
-    begin
-      if LField.IsReference then
-        LFieldName := LField.ReferencedModel.Fields[I].FieldName
-      else if Assigned(LField.ParentField) and LField.ParentField.IsReference then
-        LFieldName := LField.ParentField.ReferencedModel.Fields[I].FieldName
-      else
-        LFieldName := LField.FieldName;
-    end
+      LFieldName := AViewTable.MasterTable.ApplyFieldAliasedName(LField.FieldName)
     else
       LFieldName := LParam.Name;
     AMasterValues.GetNode(LFieldName).AssignValueToParam(LParam);

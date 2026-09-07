@@ -101,7 +101,7 @@ var kxWizard = {
     })
     .then(function(r) { return r.text(); })
     .then(function(html) {
-      if (html && html.trim()) {
+      if (kxAcceptResponse(html, 'wizard')) {
         var div = document.createElement('div');
         div.innerHTML = html;
         div.querySelectorAll('script').forEach(function(script) {

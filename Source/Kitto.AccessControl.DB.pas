@@ -369,8 +369,8 @@ var
   LDBConnection: TEFDBConnection;
   LPermissionDBQuery: TEFDBQuery;
 begin
-  Assert(AGranteeId <> '');
-  Assert(FReadPermissionsCommandText <> '');
+  Assert(AGranteeId <> '', 'AGranteeId <> ''''');
+  Assert(FReadPermissionsCommandText <> '', 'FReadPermissionsCommandText <> ''''');
 
   LDBConnection := TKConfig.DatabaseFor(GetDatabaseName);
   LPermissionDBQuery := LDBConnection.CreateDBQuery;
@@ -442,9 +442,9 @@ var
   LDBConnection: TEFDBConnection;
   LRoleDBQuery: TEFDBQuery;
 begin
-  Assert(AUserId <> '');
-  Assert(Assigned(ARoleList));
-  Assert(FReadRolesCommandText <> '');
+  Assert(AUserId <> '', 'AUserId <> ''''');
+  Assert(Assigned(ARoleList), 'Assigned(ARoleList)');
+  Assert(FReadRolesCommandText <> '', 'FReadRolesCommandText <> ''''');
 
   LDBConnection := TKConfig.DatabaseFor(GetDatabaseName);
   LRoleDBQuery := LDBConnection.CreateDBQuery;

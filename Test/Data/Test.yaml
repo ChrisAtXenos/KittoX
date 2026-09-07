@@ -1,0 +1,15 @@
+# Fixture for the YAML reader/writer tests. Every oddity here is deliberate:
+# see EF.YAMLTests.pas for what each one pins down.
+FirstNode:
+  SubNode1: Value1
+  # A comment about the second subnode.
+  # Here comes the second subnode.
+  SubNode2: Value2
+  SubNode3: Value3
+  SubNode4: Value4
+ANodeWithColonsInTheValue: A:Value:With:Colons
+ANodeWithoutColons: A value with "s
+AnEmptyNode:
+AFoldedNode: >
+  A folded value.
+AnHtmlNode: <div><span style="float:left">TEST</span></div>

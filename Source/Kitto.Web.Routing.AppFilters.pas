@@ -102,6 +102,9 @@ uses
   EF.Logger,
   Kitto.Config,
   Kitto.Auth,
+  // For EKRuleError: what tells a refusal the application can explain from a
+  // failure it cannot.
+  Kitto.Rules,
   Kitto.Web.Application,
   Kitto.Web.Session,
   Kitto.Web.Request,
@@ -290,16 +293,33 @@ begin
   // exception used to leave NO trace at all, so an access violation or any
   // other failure escaping a handler was invisible in the log even at
   // Level: 5 — which makes a bug report impossible to act on. Class, message
-  // and endpoint, at LOG_HIGH so it survives a low log level. Same reasoning
-  // as LogSaveError in Kitto.Web.Handler.View.
+  // and endpoint, at LOG_ALWAYS. It was LOG_HIGH, which reads like 'important'
+  // and means 'verbose': the levels are thresholds and Log emits only when
+  // LogLevel >= ALogLevel, so this line was written only where Level had been
+  // raised to 'high' or beyond -- never in the default configuration, which is
+  // LOG_LOW. An exception escaping a handler therefore still left no trace at
+  // all, which is how a 200 carrying an error dialog looks untrapped from the
+  // outside. Same reasoning as LogSaveError in Kitto.Web.Handler.View.
   TEFLogger.Instance.LogFmt('Unhandled %s on %s: %s',
-    [E.ClassName, AContext.Path, E.Message], TEFLogger.LOG_HIGH);
+    [E.ClassName, AContext.Path, E.Message], TEFLogger.LOG_ALWAYS);
 
   // Every exception bubbling out of a handler is shown as a NON-FATAL modal
   // dialog so the session stays alive and the user can retry. E.Message already
   // carries the formatted "Errore <sql-error> nella query: {GUID}" wrapping for
   // EEFDBError (see EF.DB.pas). Matches the legacy DoHandleRequest except block.
-  TKWebApplication.Current.RenderErrorDialog(_('Load error:') + ' ' + E.Message, False);
+  //
+  // Two kinds: a rule error is the application refusing something and saying
+  // why -- a delete held back by the rows referring to the record, a validation
+  // that did not pass -- so it is a warning. Anything else is a failure and
+  // stays an error.
+  //
+  // And no prefix: this is the last resort for the WHOLE filter chain, so it
+  // sees saves, deletes, tools and lookups alike, and cannot name the
+  // operation. Which endpoint it was is in the log line above.
+  if E is EKRuleError then
+    TKWebApplication.Current.RenderWarningDialog(E.Message)
+  else
+    TKWebApplication.Current.RenderErrorDialog(E.Message, False);
   Result := True;
 end;
 

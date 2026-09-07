@@ -409,7 +409,7 @@ end;
 
 function TEFDBADOConnection.ExecuteImmediate(const AStatement: string): Integer;
 begin
-  Assert(Assigned(FConnection));
+  Assert(Assigned(FConnection), 'Assigned(FConnection)');
 
   if AStatement = '' then
     raise EEFError.Create(_('Unspecified Statement text.'));
@@ -678,7 +678,7 @@ end;
 procedure TEFDBADOInfo.BeforeFetchInfo;
 begin
   inherited;
-  Assert(Assigned(FConnection));
+  Assert(Assigned(FConnection), 'Assigned(FConnection)');
 end;
 
 procedure TEFDBADOInfo.FetchTables(const ASchema: TEFDBSchemaInfo);
@@ -788,25 +788,25 @@ begin
     FConnection.OpenSchema(siForeignKeys,
       VarArrayOf([Unassigned, Unassigned, Unassigned, Unassigned, Unassigned, ATable.Name]),
       EmptyParam, LForeignKeyDataSet);
-    try
-      while not LForeignKeyDataSet.Eof do
+    // No exception handler freeing LForeignKey here -- see the equivalent
+    // comment in EF.DB.FD.FetchTableForeignKeys. The foreign key belongs to
+    // ATable.ForeignKeys from the instant AddForeignKey accepts it, so the
+    // handler that used to be here left a dangling entry in the table's list
+    // and the table freed the same object a second time.
+    while not LForeignKeyDataSet.Eof do
+    begin
+      LForeignKey := ATable.FindForeignKey(LForeignKeyDataSet.FieldByName('FK_NAME').AsString);
+      if not Assigned(LForeignKey) then
       begin
-        LForeignKey := ATable.FindForeignKey(LForeignKeyDataSet.FieldByName('FK_NAME').AsString);
-        if not Assigned(LForeignKey) then
-        begin
-          LForeignKey := TEFDBForeignKeyInfo.Create;
-          LForeignKey.Name := LForeignKeyDataSet.FieldByName('FK_NAME').AsString;
-          ATable.AddForeignKey(LForeignKey);
-        end;
-        LForeignKey.ForeignTableName := LForeignKeyDataSet.FieldByName('PK_TABLE_NAME').AsString;
-        LForeignKey.ColumnNames.Add(LForeignKeyDataSet.FieldByName('FK_COLUMN_NAME').AsString);
-        LForeignKey.ForeignColumnNames.Add(LForeignKeyDataSet.FieldByName('PK_COLUMN_NAME').AsString);
-
-        LForeignKeyDataSet.Next;
+        LForeignKey := TEFDBForeignKeyInfo.Create;
+        LForeignKey.Name := LForeignKeyDataSet.FieldByName('FK_NAME').AsString;
+        ATable.AddForeignKey(LForeignKey);
       end;
-    except
-      FreeAndNil(LForeignKey);
-      raise;
+      LForeignKey.ForeignTableName := LForeignKeyDataSet.FieldByName('PK_TABLE_NAME').AsString;
+      LForeignKey.ColumnNames.Add(LForeignKeyDataSet.FieldByName('FK_COLUMN_NAME').AsString);
+      LForeignKey.ForeignColumnNames.Add(LForeignKeyDataSet.FieldByName('PK_COLUMN_NAME').AsString);
+
+      LForeignKeyDataSet.Next;
     end;
   finally
     LForeignKeyDataSet.Free;

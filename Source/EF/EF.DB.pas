@@ -610,6 +610,11 @@ type
     FDBEngineType: TEFDBEngineType;
     FStandardFormatSettings: TFormatSettings;
     FDelimitIdentifiers: Boolean;
+    FDatabaseName: string;
+    /// <summary>Set when a nested level asked for a rollback: the outer commit
+    /// must then roll the whole transaction back instead of confirming work
+    /// that an inner level had already rejected.</summary>
+    FRollbackOnly: Boolean;
     function GetDBEngineType: TEFDBEngineType;
   protected
     function GetStandardFormatSettings: TFormatSettings;
@@ -639,6 +644,14 @@ type
     ///	containing spaces are valid. Set from the per-database DelimitedIdent
     ///	config flag and propagated to the DBEngineType.</summary>
     property DelimitIdentifiers: Boolean read FDelimitIdentifiers write FDelimitIdentifiers;
+
+    ///	<summary>The name this connection is known by in the application
+    ///	configuration (the key under Databases). Unique by construction, and the
+    ///	same name the rest of the framework refers a database by
+    ///	(DefaultDatabaseName, a model's DatabaseName, the database routers), so
+    ///	it also identifies the connection pool. Empty when the connection was
+    ///	not built from a configuration.</summary>
+    property DatabaseName: string read FDatabaseName write FDatabaseName;
 
     ///	<summary>Creates and returns a database info object suitable to read
     ///	database metadata.</summary>
@@ -833,13 +846,15 @@ begin
 end;
 
 procedure TEFDBAdapterRegistry.BeforeDestruction;
-var
-  LAdapter: TEFDBAdapter;
 begin
   inherited;
-  for LAdapter in FDBAdapters.Values do
-    LAdapter.Free;
-  FDBAdapters.Clear;
+  // The dictionary owns the adapters through AdaptersValueNotify: destroying it
+  // frees every one still registered. Freeing them here as well freed each of
+  // them twice -- harmless as long as every EF.DB.* unit unregisters its own
+  // adapter in its finalization section (which runs first, leaving the
+  // dictionary empty), a double free as soon as one adapter survives until
+  // here, as an application-supplied adapter normally does.
+  FDefaultAdapter := nil;
   FreeAndNil(FDBAdapters);
 end;
 
@@ -965,7 +980,7 @@ function TEFDBConnection.GetSingletonValue(
 var
   LQuery: TEFDBQuery;
 begin
-  Assert(ASQLStatement <> '');
+  Assert(ASQLStatement <> '', 'ASQLStatement <> ''''');
 
   LQuery := CreateDBQuery;
   try
@@ -1013,6 +1028,8 @@ begin
   begin
     InternalStartTransaction;
     FTransactionCount := 1;
+    // A new physical transaction starts clean, whatever happened in the last one.
+    FRollbackOnly := False;
   end
   else
     Inc(FTransactionCount);
@@ -1022,9 +1039,19 @@ procedure TEFDBConnection.CommitTransaction;
 begin
   if (FTransactionCount = 1) then
   begin
+    FTransactionCount := 0;
+    if FRollbackOnly then
+    begin
+      // An inner level rolled back. Confirming here would persist work that the
+      // application had already rejected - and silently, which is how a record
+      // refused by a business rule used to end up in the table anyway.
+      FRollbackOnly := False;
+      if IsInTransaction then
+        InternalRollbackTransaction;
+      raise EEFDBError.Create(_('The transaction was rolled back at an inner level and cannot be committed.'));
+    end;
     if IsInTransaction then
       InternalCommitTransaction;
-    FTransactionCount := 0;
   end
   else
     Dec(FTransactionCount);
@@ -1035,11 +1062,19 @@ begin
   if (FTransactionCount = 1) then
   begin
     FTransactionCount := 0;
+    FRollbackOnly := False;
     if IsInTransaction then
       InternalRollbackTransaction;
   end
   else
+  begin
+    // A nested rollback cannot undo its own work by itself - there are no
+    // savepoints here - but it must not let the outer level commit it either.
+    // Before this, a nested rollback and a nested commit did exactly the same
+    // thing: decrement the counter.
+    FRollbackOnly := True;
     Dec(FTransactionCount);
+  end;
 end;
 
 procedure TEFDBConnection.Open;
@@ -1106,7 +1141,7 @@ end;
 
 function TEFDBTableInfo.AddColumn(const AColumn: TEFDBColumnInfo): Integer;
 begin
-  Assert(Assigned(AColumn));
+  Assert(Assigned(AColumn), 'Assigned(AColumn)');
 
   Result := FColumns.Add(AColumn);
   AColumn.FTableInfo := Self;
@@ -1193,7 +1228,7 @@ procedure TEFDBTableInfo.GetForeignKeysTo(const ATableName: string;
 var
   I: Integer;
 begin
-  Assert(Assigned(AList));
+  Assert(Assigned(AList), 'Assigned(AList)');
 
   for I := 0 to ForeignKeyCount - 1 do
     if SameText(ForeignKeys[I].ForeignTableName, ATableName) then
@@ -1206,7 +1241,7 @@ var
   I: Integer;
   J: Integer;
 begin
-  Assert(Assigned(AList));
+  Assert(Assigned(AList), 'Assigned(AList)');
 
   for I := 0 to SchemaInfo.TableCount - 1 do
   begin
@@ -1258,13 +1293,13 @@ var
   I: Integer;
   LColumnInfo: TEFDBColumnInfo;
 begin
-  Assert(Assigned(FTableInfo));
+  Assert(Assigned(FTableInfo), 'Assigned(FTableInfo)');
 
   Result := False;
   for I := 0 to ColumnCount - 1 do
   begin
     LColumnInfo := FTableInfo.FindColumn(ColumnNames[I]);
-    Assert(Assigned(LColumnInfo));
+    Assert(Assigned(LColumnInfo), 'Assigned(LColumnInfo)');
     if LColumnInfo.IsRequired then
     begin
       Result := True;
@@ -1277,7 +1312,7 @@ end;
 
 function TEFDBSchemaInfo.AddTable(const ATable: TEFDBTableInfo): Integer;
 begin
-  Assert(Assigned(ATable));
+  Assert(Assigned(ATable), 'Assigned(ATable)');
 
   Result := FTables.Add(ATable);
   ATable.FSchemaInfo := Self;
@@ -1368,7 +1403,7 @@ end;
 
 procedure TEFDBComponent.InternalBeforeExecute;
 begin
-  Assert(Assigned(FConnection));
+  Assert(Assigned(FConnection), 'Assigned(FConnection)');
 
   if not FConnection.IsOpen then
     FConnection.Open;
@@ -1395,8 +1430,8 @@ var
   LBookmark: TBookmark;
   LString: string;
 begin
-  Assert(Assigned(AField));
-  Assert(AField.DataSet = DataSet);
+  Assert(Assigned(AField), 'Assigned(AField)');
+  Assert(AField.DataSet = DataSet, 'AField.DataSet = DataSet');
 
   LBookmark := AField.DataSet.Bookmark;
   try
@@ -1441,11 +1476,15 @@ function TEFDBEngineType.AddLimitClause(
   const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
   const AFrom: Integer; const AFor: Integer): string;
 begin
+  // Clause conventions, as built by TKSQLBuilder: the where clause carries a
+  // leading space and no trailing one (' where (...)'), the order by clause
+  // carries neither ('order by ...'). Whoever joins them must supply the
+  // separator, or the statement comes out as 'where (X)order by Y'.
   Result := ASelectClause + ' ' + AFromClause + ' ' + AWhereClause;
   if (AFrom <> 0) or (AFor <> 0) then
   begin
     if AOrderByClause <> '' then
-      Result := Result + AOrderByClause + ' ' +
+      Result := Result + ' ' + AOrderByClause + ' ' +
         Format(' rows %d to %d', [AFrom + 1, AFrom + 1 + AFor - 1])
     else
       raise EEFError.Create('Cannot add limit clause without order by clause.');
@@ -1690,7 +1729,7 @@ function TEFDBColumnInfo.GetIsForeignKey: Boolean;
 var
   I: Integer;
 begin
-  Assert(Assigned(FTableInfo));
+  Assert(Assigned(FTableInfo), 'Assigned(FTableInfo)');
 
   Result := False;
   for I := 0 to FTableInfo.ForeignKeyCount - 1 do
@@ -1705,7 +1744,7 @@ end;
 
 function TEFDBColumnInfo.GetIsKey: Boolean;
 begin
-  Assert(Assigned(FTableInfo));
+  Assert(Assigned(FTableInfo), 'Assigned(FTableInfo)');
 
   Result := FTableInfo.PrimaryKey.ColumnNames.IndexOf(Name) >= 0;
 end;
@@ -1812,7 +1851,9 @@ end;
 function TEFOracleDBEngineType.AddLimitClause(const ASelectClause, AFromClause,
   AWhereClause, AOrderByClause: string; const AFrom, AFor: Integer): string;
 begin
-  Result := ASelectClause + ' ' + AFromClause + ' ' + AWhereClause + AOrderByClause;
+  // See the note on clause conventions in TEFDBEngineType.AddLimitClause: the
+  // order by clause has no leading space of its own.
+  Result := ASelectClause + ' ' + AFromClause + ' ' + AWhereClause + ' ' + AOrderByClause;
   if (AFrom <> 0) or (AFor <> 0) then
   begin
     // Standard Oracle top-N pagination. ROWNUM starts at 1, so the upper bound

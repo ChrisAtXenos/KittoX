@@ -688,6 +688,22 @@ type
     ///  for freshly-added in-memory records.
     /// </summary>
     procedure RefreshDerivedReferenceValues;
+    /// <summary>
+    ///  Fills the values this record shows through its reference to its own
+    ///  master -- the caption and the reference's derived (AutoAddFields)
+    ///  fields -- from the master record in memory, instead of querying the
+    ///  referenced model.
+    /// </summary>
+    /// <remarks>
+    ///  RefreshDerivedReferenceValues resolves those with a select, which
+    ///  cannot work while the master has no row yet, and the master record is
+    ///  right there in the store. None of these values is a column of the
+    ///  detail's own table -- they are what its join brings in -- so filling
+    ///  them changes what is shown, never what is written.
+    ///  Idempotent, and meant to be called again on every render: the master
+    ///  may have been edited after the detail row was added.
+    /// </remarks>
+    procedure RefreshMasterReferenceValues;
     /// <summary>Returns the detail store for the given model name, or nil (AForceLoad loads its rows).</summary>
     function FindDetailStoreByModelName(const AModelName: string; const AForceLoad: Boolean = False): TKViewTableStore;
     /// <summary>Like FindDetailStoreByModelName but raises if not found.</summary>
@@ -1291,6 +1307,7 @@ type
     ///   of the detail reference in the master view table's model. Otherwise
     ///   it's empty.
     /// </summary>
+    [YamlNode('DetailReference', 'Name of the detail reference in the master table''s model')]
     property ModelDetailReferenceName: string read GetModelDetailReferenceName;
 
     /// <summary>If the view table is a detail, this property returns the model
@@ -1305,13 +1322,36 @@ type
     [YamlNode('PluralDisplayLabel', '', 'Plural label shown for lists', True)]
     property PluralDisplayLabel: string read GetPluralDisplayLabel;
 
-    /// <summary>The model this view table is based on.</summary>
+    /// <summary>
+    ///  The model this view table is based on. Raises, naming the table and the
+    ///  view, when there is none: a caller that reaches this without checking
+    ///  has assumed a table that the metadata does not declare. Use FindModel
+    ///  where having no model is a legitimate outcome.
+    /// </summary>
     property Model: TKModel read GetModel;
+    /// <summary>
+    ///  The model this view table is based on, or nil when it declares none.
+    ///
+    ///  A data view without a Model is a normal shape, not a broken one:
+    ///  'Type: Data' picks the metadata class, so that the node tree has
+    ///  MainTable/Fields semantics and the controller is a data controller, but
+    ///  it promises no table. A Dashboard, a ChartPanel or a tool panel draws
+    ///  its own content -- for the dashboard, the views listed under Items --
+    ///  and never has one. Anything that only DECORATES a table (its label, its
+    ///  image) must therefore degrade quietly instead of raising, which is what
+    ///  GetImageName, GetPluralDisplayLabel and GetDefaultDisplayLabel now do.
+    /// </summary>
+    function FindModel: TKModel;
 
     /// <summary>Number of view fields.</summary>
     property FieldCount: Integer read GetFieldCount;
     /// <summary>The view fields, by index.</summary>
     property Fields[I: Integer]: TKViewField read GetField;
+    /// <summary>The view fields collection. Exposed (in addition to the indexed
+    /// accessor) so the YAML 'Fields' container is discoverable via RTTI by the
+    /// tree validator and the KIDE/MCP metadata tooling.</summary>
+    [YamlContainer('Fields', TKViewField, 'The fields shown by this view table')]
+    property FieldList: TKViewFields read GetFields;
     /// <summary>Returns all view field names (aliased), in order.</summary>
     function GetFieldNames: TStringDynArray;
     /// <summary>Returns the field with the given name, or nil.</summary>
@@ -1386,6 +1426,11 @@ type
     property DetailTableCount: Integer read GetDetailTableCount;
     /// <summary>The detail (child) tables, by index.</summary>
     property DetailTables[I: Integer]: TKViewTable read GetDetailTable;
+    /// <summary>The detail tables collection. Exposed (in addition to the indexed
+    /// accessor) so the YAML 'DetailTables' container is discoverable via RTTI by
+    /// the tree validator and the KIDE/MCP metadata tooling.</summary>
+    [YamlContainer('DetailTables', TKViewTable, 'Detail (child) tables shown under this table')]
+    property DetailTableList: TKViewTables read GetDetailTables;
     /// <summary>Returns the detail table with the given name; raises if absent.</summary>
     function DetailTableByName(const AName: string): TKViewTable;
     /// <summary>Returns the index of the given detail table, or -1.</summary>
@@ -1483,6 +1528,9 @@ type
     function GetDisplayLabel: string; override;
     function GetDefaultImageName: string; override;
     function GetImageName: string; override;
+    /// <summary>Builds the containers the accessors would otherwise create on
+    /// first read, while the catalogue's load still holds its lock.</summary>
+    procedure InternalAfterLoad; override;
   public
     [YamlSubNode('MainTable', TKViewTable, 'Primary data table for this view')]
     property MainTable: TKViewTable read GetMainTable;
@@ -1573,6 +1621,52 @@ begin
   Result := GetNode('MainTable', True) as TKViewTable;
 end;
 
+procedure TKDataView.InternalAfterLoad;
+
+  // See the same helper in TKModel.InternalAfterLoad: evaluating the accessor
+  // is what matters, not what it returns.
+  procedure Touch(const AContainer: TObject);
+  begin
+    Assert(Assigned(AContainer), 'Assigned(AContainer)');
+  end;
+
+  procedure PrepareViewTable(const AViewTable: TKViewTable);
+  var
+    LFields: TKViewFields;
+    I: Integer;
+  begin
+    Touch(AViewTable.Rules);
+
+    // The Fields CONTAINER, through GetNode and not through TKViewTable.Fields.
+    // That accessor does more than create the container: when the view
+    // declares no fields it goes on to CreateDefaultFields, which needs the
+    // table's model. A view table without one -- a dashboard's MainTable, for
+    // instance -- has no fields to default and nothing ever asks it for any, so
+    // forcing it here raised 'Object not found' on an empty model name and took
+    // the whole catalogue down with it: KIDE could not open a project at all.
+    //
+    // The rule for anything added to this method: only accessors that create
+    // their container and do nothing else. Building the default fields early
+    // would close one more race, but not this way.
+    LFields := AViewTable.GetNode('Fields', True) as TKViewFields;
+    // FieldCount here is the container's ChildCount, so this walks the fields
+    // the YAML declares and creates nothing.
+    for I := 0 to LFields.FieldCount - 1 do
+      Touch(LFields[I].Rules);
+
+    for I := 0 to AViewTable.DetailTableCount - 1 do
+      PrepareViewTable(AViewTable.DetailTables[I]);
+  end;
+
+begin
+  inherited;
+
+  // As in TKModel.InternalAfterLoad: this view is cached and shared from here
+  // on, so every container is built now, inside the catalogue's lock, and the
+  // request threads only read.
+  PrepareViewTable(MainTable);
+end;
+
 function TKDataView.IsAccessGranted(const AMode: string): Boolean;
 var
   LMainTable: TEFNode;
@@ -1596,7 +1690,7 @@ end;
 
 procedure TKViewTable.AddDetailTable(const AViewTable: TKViewTable);
 begin
-  Assert(Assigned(AViewTable));
+  Assert(Assigned(AViewTable), 'Assigned(AViewTable)');
 
   GetDetailTables.AddChild(AViewTable);
 end;
@@ -1618,7 +1712,7 @@ var
   LRuleImpl: TKRuleImpl;
   LRule: TKRule;
 begin
-  Assert(Assigned(AApplyProc));
+  Assert(Assigned(AApplyProc), 'Assigned(AApplyProc)');
 
   // Apply rules at the View level.
   for I := 0 to Rules.RuleCount - 1 do
@@ -1634,6 +1728,9 @@ begin
   end;
   // Always apply rules at the model level as well. View-level record rules
   // augment model-level rules but cannot overwrite or disable them.
+  // Same rule as everywhere else in this class: no model, no model rules.
+  if not HasModelName then
+    Exit;
   for I := 0 to Model.Rules.RuleCount - 1 do
   begin
     LRule := Model.Rules[I];
@@ -1758,21 +1855,40 @@ begin
   Result := ModelName <> '';
 end;
 
+function TKViewTable.FindModel: TKModel;
+begin
+  if ModelName = '' then
+    Result := nil
+  else
+    Result := View.Catalog.Models.FindModel(ModelName);
+end;
+
 function TKViewTable.GetModel: TKModel;
 begin
+  // Say WHICH view table has no Model, rather than asking the catalogue for
+  // the object named '': that raised 'Object  not found.', with an empty name
+  // and nothing to act on. The Assert that used to follow ModelByName was
+  // unreachable in either case -- ModelByName raises when the name does not
+  // resolve, it never returns nil.
+  if ModelName = '' then
+    raise EKError.CreateFmt(_('View table %s of view %s declares no Model.'),
+      [Name, View.PersistentName]);
   Result := View.Catalog.Models.ModelByName(ModelName);
-  Assert(Assigned(Result), Format('Model "%s" not found', [ModelName]));
 end;
 
 function TKViewTable.GetModelDetailReference: TKModelDetailReference;
 begin
   Result := nil;
-  if Assigned(MasterTable) then
-  begin
-    Result := MasterTable.Model.FindDetailReferenceByModel(Model);
-    if not Assigned(Result) and (ModelDetailReferenceName <> '') then
-      Result := MasterTable.Model.FindDetailReference(ModelDetailReferenceName);
-  end;
+  // A table with no master is not a detail, so it has no detail reference and
+  // nil is the answer -- not an error. The raise below used to be reached in
+  // that case too, and formatting its own message dereferenced the master that
+  // is not there: an access violation instead of a diagnosis, on a MainTable,
+  // which is the commonest shape there is.
+  if not Assigned(MasterTable) then
+    Exit;
+  Result := MasterTable.Model.FindDetailReferenceByModel(Model);
+  if not Assigned(Result) and (ModelDetailReferenceName <> '') then
+    Result := MasterTable.Model.FindDetailReference(ModelDetailReferenceName);
   if not Assigned(Result) then
     raise EKError.CreateFmt('Couldn''t find detail reference from %s to %s.',
       [MasterTable.ModelName, ModelName]);
@@ -1786,7 +1902,7 @@ end;
 function TKViewTable.GetDefaultSorting: string;
 begin
   Result := GetString('DefaultSorting');
-  if Result = '' then
+  if (Result = '') and HasModelName then
     Result := Model.DefaultSorting;
 end;
 
@@ -1816,7 +1932,7 @@ begin
   else
   begin
     Result := View.DatabaseName;
-    if Result = '' then
+    if (Result = '') and HasModelName then
       Result := Model.DatabaseName;
   end;
 end;
@@ -1832,8 +1948,12 @@ function TKViewTable.GetDefaultDisplayLabel: string;
 begin
   if IsDetail then
     Result := ModelDetailReference.DisplayLabel
+  else if HasModelName then
+    Result := Model.DisplayLabel
   else
-    Result := Model.DisplayLabel;
+    // No model, no label to derive: the view's own DisplayLabel is all there
+    // is, and for a dashboard or a chart that is exactly right.
+    Result := '';
 end;
 
 function TKViewTable.GetDetailTableCount: Integer;
@@ -1940,7 +2060,20 @@ var
 
 begin
   LFields := GetNode('Fields', True) as TKViewFields;
-  if LFields.FieldCount = 0 then
+  // No Model, no default fields: there is nothing to derive them from. A view
+  // table without one is not a broken table -- a dashboard, a chart, a tool
+  // panel declares Type: Data for the controller's sake and never a MainTable
+  // -- and it legitimately has no fields at all.
+  //
+  // Without this guard CreateDefaultFields went on to read Model.FieldCount,
+  // which asked the catalogue for the object named '' and raised
+  // 'Object  not found.' -- a message that names nothing and points nowhere,
+  // from a place nothing in the stack relates to the view being rendered. It
+  // is what a TasKitto login landed on: the Dashboard is among the SubViews
+  // the home TabPanel opens, and rendering it asks its MainTable for fields.
+  // TKDataView.InternalAfterLoad already avoids this path for the same reason,
+  // and said so in a comment; the render path had no such guard.
+  if (LFields.FieldCount = 0) and HasModelName then
     CreateDefaultFields;
   Result := LFields;
 end;
@@ -1976,7 +2109,9 @@ end;
 function TKViewTable.GetImageName: string;
 begin
   Result := GetString('ImageName');
-  if Result = '' then
+  // Only fall back to the model when there IS one. See FindModel: a view table
+  // with no Model is legitimate, and a property getter must not raise on it.
+  if (Result = '') and HasModelName then
     Result := Model.ImageName;
 end;
 
@@ -1993,6 +2128,8 @@ begin
   LNode := FindNode('IsLarge');
   if Assigned(LNode) then
     Result := LNode.AsBoolean
+  else if not HasModelName then
+    Result := False // no table, so no amount of rows to be careful about
   else
     Result := Model.IsLarge;
 end;
@@ -2009,6 +2146,10 @@ begin
   LNode := FindNode('IsReadOnly');
   if Assigned(LNode) then
     Result := LNode.AsBoolean
+  // No model: see FindModel. There is no table to write to, so read-only is
+  // the only truthful answer.
+  else if not HasModelName then
+    Result := True
   else
     Result := Model.IsReadOnly;
 end;
@@ -2020,6 +2161,8 @@ begin
   LNode := FindNode('Controller/PreventAdding');
   if Assigned(LNode) then
     Result := LNode.AsBoolean
+  else if not HasModelName then
+    Result := True // no table, nothing to add to
   else
     Result := Model.PreventAdding;
 end;
@@ -2031,6 +2174,8 @@ begin
   LNode := FindNode('Controller/PreventEditing');
   if Assigned(LNode) then
     Result := LNode.AsBoolean
+  else if not HasModelName then
+    Result := True // no table, nothing to edit
   else
     Result := Model.PreventEditing;
 end;
@@ -2042,6 +2187,8 @@ begin
   LNode := FindNode('Controller/PreventDeleting');
   if Assigned(LNode) then
     Result := LNode.AsBoolean
+  else if not HasModelName then
+    Result := True // no table, nothing to delete
   else
     Result := Model.PreventDeleting;
 end;
@@ -2060,7 +2207,7 @@ begin
     Result := GetString('PluralDisplayLabel2')
   else
     Result := GetString('PluralDisplayLabel');
-  if Result = '' then
+  if (Result = '') and HasModelName then
     Result := Model.PluralDisplayLabel;
 end;
 
@@ -2174,16 +2321,24 @@ end;
 
 function TKViewTable.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetACURI, AMode)
-    // A dataview and its main table currently share the same resource URI,
-    // so it's useless to test it twice.
-    //and TKConfig.Instance.IsAccessGranted(View.GetACURI, AMode)
-    and TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, Model.GetACURI, AMode);
+  // A dataview and its main table currently share the same resource URI, so
+  // testing the view's too would be useless:
+  //   and TKConfig.Instance.IsAccessGranted(View.GetACURI, AMode)
+  Result := TKAccessController.Current.IsAccessGranted(
+    TKAuthenticator.Current.UserName, GetACURI, AMode);
+  // The model's URI is a SECOND gate, and there is one to check only when the
+  // table declares a model. A dashboard's does not (see FindModel), and asking
+  // for it raised in the middle of rendering the home page: this is the call
+  // that put 'declares no Model' on screen at every login, because the home
+  // checks access on every view it opens.
+  if Result and HasModelName then
+    Result := TKAccessController.Current.IsAccessGranted(
+      TKAuthenticator.Current.UserName, Model.GetACURI, AMode);
 end;
 
 function TKViewTable.IsFieldVisible(const AField: TKViewField): Boolean;
 begin
-  Assert(Assigned(AField));
+  Assert(Assigned(AField), 'Assigned(AField)');
 
   Result := AField.IsVisible
     or MatchText(AField.AliasedName, GetStringArray('Controller/VisibleFields'));
@@ -2246,7 +2401,7 @@ var
   LConcatenation: string;
   LStrValue: string;
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   // Get regular default value.
   LValue := DefaultValue;
@@ -2296,7 +2451,7 @@ var
   LRule: TKRule;
   LInterrupted: Boolean;
 begin
-  Assert(Assigned(AEnumFunc));
+  Assert(Assigned(AEnumFunc), 'Assigned(AEnumFunc)');
 
   LInterrupted := False;
   // Apply rules at the View level.
@@ -2384,13 +2539,13 @@ var
   LDerivedFields: TArray<TKViewField>;
   LStore: TKStore;
 begin
-  Assert(IsReference);
+  Assert(IsReference, 'IsReference');
 
   LStore := TKStore.Create;
   try
     // Set header.
     LDerivedFields := GetDerivedFields;
-    Assert(Length(LDerivedFields) > 0);
+    Assert(Length(LDerivedFields) > 0, 'Length(LDerivedFields) > 0');
 
     LStore.DoWithChangeNotificationsDisabled(
       procedure
@@ -2431,7 +2586,7 @@ var
   LCaptionField: TKModelField;
   LKeyFieldNames: string;
 begin
-  Assert(IsReference);
+  Assert(IsReference, 'IsReference');
 
   Result := TKStore.Create;
   try
@@ -2464,7 +2619,7 @@ var
   LDBQuery: TEFDBQuery;
   LStore: TKStore;
 begin
-  Assert(IsReference);
+  Assert(IsReference, 'IsReference');
 
   LStore := TKStore.Create;
   try
@@ -2775,8 +2930,11 @@ end;
 
 function TKViewField.GetDecimalPrecision: Integer;
 begin
+  // '<= 0' for the same reason as in TKModelField.GetDecimalPrecision: a
+  // number of decimal digits is never negative, and one that is has to fall
+  // back rather than travel on to a Byte.
   Result := GetInteger('DecimalPrecision');
-  if Result = 0 then
+  if Result <= 0 then
     Result := ModelField.DecimalPrecision;
 end;
 
@@ -2816,7 +2974,7 @@ end;
 
 function TKViewField.GetDerivedFields: TArray<TKViewField>;
 begin
-  Assert(IsReference);
+  Assert(IsReference, 'IsReference');
 
   Result := Table.GetFieldArray(
     function (AField: TKViewField): Boolean
@@ -3185,7 +3343,7 @@ end;
 
 constructor TKViewTableStore.Create(const AViewTable: TKViewTable);
 begin
-  Assert(Assigned(AViewTable));
+  Assert(Assigned(AViewTable), 'Assigned(AViewTable)');
 
   inherited Create;
   FViewTable := AViewTable;
@@ -3222,7 +3380,7 @@ var
     const ADataType: TEFDataType; const AIsKey, AIsAccessGranted: Boolean;
     const AModelField: TKModelField);
   begin
-    Assert(Assigned(AViewField));
+    Assert(Assigned(AViewField), 'Assigned(AViewField)');
 
     if AIsAccessGranted or AIsKey then
     begin
@@ -3254,7 +3412,7 @@ begin
     // 3) a field that is the concatenation of all fields at (2).
     if LViewField.IsReference then
     begin
-      Assert(LViewField.ModelField.FieldCount > 0);
+      Assert(LViewField.ModelField.FieldCount > 0, 'LViewField.ModelField.FieldCount > 0');
 
       for LModelFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
       begin
@@ -3316,7 +3474,7 @@ var
   LDBConnection: TEFDBConnection;
   LDBQuery: TEFDBQuery;
 begin
-  Assert(Assigned(FViewTable));
+  Assert(Assigned(FViewTable), 'Assigned(FViewTable)');
 
   LDBConnection := TKConfig.DatabaseFor(ViewTable.DatabaseName);
   LDBQuery := LDBConnection.CreateDBQuery;
@@ -3534,7 +3692,7 @@ var
   LValues: TEFNode;
   LKeyDefaultValues: TEFNode;
 begin
-  Assert(Assigned(ASource));
+  Assert(Assigned(ASource), 'Assigned(ASource)');
 
   LValues := TEFNode.Clone(ASource,
     // Don't copy PK values: the clone must get a key of its own.
@@ -3627,7 +3785,7 @@ end;
 procedure TKViewTableRecord.ApplyNewRecordRulesAndFireEvents(const AViewTable: TKViewTable;
   const AIsCloned: Boolean; const AFireFieldChangeRules: Boolean);
 begin
-  Assert(Assigned(AViewTable));
+  Assert(Assigned(AViewTable), 'Assigned(AViewTable)');
 
   AViewTable.Model.BeforeNewRecord(Self, AIsCloned);
   Self.ApplyNewRecordRules(AFireFieldChangeRules);
@@ -3653,7 +3811,7 @@ var
   LDBConnection: TEFDBConnection;
   LDBQuery: TEFDBQuery;
 begin
-  Assert(Assigned(ViewTable));
+  Assert(Assigned(ViewTable), 'Assigned(ViewTable)');
 
   LDBConnection := TKConfig.DatabaseFor(ViewTable.DatabaseName);
   LDBQuery := LDBConnection.CreateDBQuery;
@@ -3736,7 +3894,7 @@ var
   LFieldValues: TArray<string>;
   LFilteredByFields: TArray<TKFilterByViewField>;
 begin
-  Assert(AField is TKViewTableField);
+  Assert(AField is TKViewTableField, 'AField is TKViewTableField');
 
   LField := TKViewTableField(AField);
   LViewField := LField.ViewField;
@@ -3755,7 +3913,7 @@ begin
     else
     begin
       LFieldValues := string(ANewValue).Split([TKConfig.Instance.MultiFieldSeparator], TStringSplitOptions.None);
-      Assert(Length(LFieldNames) = Length(LFieldValues));
+      Assert(Length(LFieldNames) = Length(LFieldValues), 'Length(LFieldNames) = Length(LFieldValues)');
       for I := Low(LFieldNames) to High(LFieldNames) do
         FieldByName(LFieldNames[I]).Value := LFieldValues[I];
     end;
@@ -3848,8 +4006,14 @@ begin
     // Only single-key references (the common case); composite keys are left as-is.
     if LViewField.ModelField.ReferencedModel.KeyFieldCount <> 1 then
       Continue;
-    if not LViewField.DerivedFieldsExist then
-      Continue;
+    // No DerivedFieldsExist test here, on purpose: that function answers
+    // whether the view table carries fields derived FROM this reference -- the
+    // dotted <reference>.<field> ones, which GetFields materialises from
+    // AutoAddFields only for a table that declares no Fields: of its own. The
+    // reference's OWN caption depends on none of that: GetDerivedFields always
+    // includes Self, and BuildDerivedSelectQuery handles that entry by
+    // selecting the referenced model's CaptionField. The two guards below are
+    // the ones that belong here: caption still empty and the foreign key set.
     // Skip if the reference caption is already resolved (records loaded from DB,
     // or references already refreshed by the per-field notify cycle).
     LCaptionField := FindField(LViewField.AliasedName);
@@ -3890,6 +4054,95 @@ begin
   end;
 end;
 
+procedure TKViewTableRecord.RefreshMasterReferenceValues;
+var
+  I: Integer;
+  LViewField: TKViewField;
+  LMasterRecord: TKViewTableRecord;
+  LMasterViewTable: TKViewTable;
+
+  // Copies one value from the master record onto ADestField, by the name of the
+  // master's own field. Silent when there is nothing to copy: for a master read
+  // from the database the detail rows already carry what the join brought.
+  procedure CopyFromMaster(const AMasterFieldName: string;
+    const ADestField: TKViewTableField);
+  var
+    LMasterValue: TKViewTableField;
+  begin
+    if not Assigned(ADestField) or (AMasterFieldName = '') then
+      Exit;
+    LMasterValue := LMasterRecord.FindField(
+      LMasterViewTable.ApplyFieldAliasedName(AMasterFieldName));
+    if not Assigned(LMasterValue) or LMasterValue.IsNull then
+      Exit;
+    Store.DoWithChangeNotificationsDisabled(
+      procedure
+      begin
+        ADestField.AssignValue(LMasterValue);
+      end);
+  end;
+
+  procedure CopyReferenceValues(const AReferenceField: TKViewField);
+  var
+    LCaptionField: TKModelField;
+    LDerivedFields: TArray<TKViewField>;
+    LDerivedField: TKViewField;
+    LDerivedModelField: TKModelField;
+  begin
+    // FindCaptionField, not CaptionField: the latter asserts, and assertions are
+    // compiled out of a Release build, so it would return nil and crash there
+    // and only there.
+    LCaptionField := LMasterViewTable.Model.FindCaptionField;
+    // A caption that is an expression is computed by the database (see
+    // TKSQLBuilder.AddReferenceFieldTerms): nothing in memory corresponds to
+    // it.
+    if Assigned(LCaptionField) and (LCaptionField.Expression = '') then
+      CopyFromMaster(LCaptionField.FieldName, FindField(AReferenceField.AliasedName));
+
+    // The reference's derived fields -- what AutoAddFields declares. Each
+    // names a field of the referenced model, which here is the master, so its
+    // value is in the master record. GetDerivedFields includes the reference
+    // itself, which is the caption handled above.
+    LDerivedFields := AReferenceField.GetDerivedFields;
+    for LDerivedField in LDerivedFields do
+    begin
+      if LDerivedField = AReferenceField then
+        Continue;
+      // FindModelField, NOT HasModelField: the two disagree on a dotted
+      // field. FindModelField resolves through Model, which for
+      // <reference>.<field> is the REFERENCED model, while HasModelField looks
+      // the same name up in Table.ModelName -- the detail's own model, where a
+      // field belonging to the master does not exist.
+      LDerivedModelField := LDerivedField.FindModelField;
+      if not Assigned(LDerivedModelField) or (LDerivedModelField.Expression <> '') then
+        Continue;
+      CopyFromMaster(LDerivedModelField.FieldName,
+        FindField(LDerivedField.AliasedName));
+    end;
+  end;
+
+begin
+  if not Assigned(Store) or not Assigned(Store.MasterRecord) then
+    Exit;
+  if not ViewTable.IsDetail then
+    Exit;
+  LMasterRecord := Store.MasterRecord;
+  LMasterViewTable := LMasterRecord.ViewTable;
+
+  for I := 0 to ViewTable.FieldCount - 1 do
+  begin
+    LViewField := ViewTable.Fields[I];
+    // IsDetailReference, not "points at the master's model": a detail model
+    // can reference the master more than once -- the reason
+    // DetailReferences/ReferenceField exists -- and only one of those is the
+    // link. TKViewField.IsDetailReference compares against
+    // ModelDetailReference.ReferenceField, which is that one.
+    if not LViewField.IsReference or not LViewField.IsDetailReference then
+      Continue;
+    CopyReferenceValues(LViewField);
+  end;
+end;
+
 procedure TKViewTableRecord.FieldChanging(const AField: TKField;
   const AOldValue: Variant; var ANewValue: Variant; var ADoIt: Boolean);
 var
@@ -3899,7 +4152,7 @@ var
   LDoIt: Boolean;
 begin
   inherited;
-  Assert(AField is TKViewTableField);
+  Assert(AField is TKViewTableField, 'AField is TKViewTableField');
 
   LField := TKViewTableField(AField);
   LOldValue := AOldValue;
@@ -3978,7 +4231,13 @@ procedure TKViewTableRecord.InternalAfterReadFromNode;
 begin
   inherited;
   if Records.Store.MasterRecord <> nil then
+  begin
     SetDetailFieldValues(Records.Store.MasterRecord);
+    // The key alone is not enough to show the row: the reference to the master
+    // is rendered by its caption, which no query can produce while the master
+    // has no row yet.
+    RefreshMasterReferenceValues;
+  end;
 end;
 
 procedure TKViewTableRecord.ExpandExpression(var AExpression: string);
@@ -4019,13 +4278,13 @@ var
   LDetailFieldNames: TStringDynArray;
   I: Integer;
 begin
-  Assert(Records.Store.ViewTable.IsDetail);
+  Assert(Records.Store.ViewTable.IsDetail, 'Records.Store.ViewTable.IsDetail');
 
   // Get master and detail field names...
   LMasterFieldNames := Records.Store.ViewTable.MasterTable.Model.GetKeyFieldNames;
-  Assert(Length(LMasterFieldNames) > 0);
+  Assert(Length(LMasterFieldNames) > 0, 'Length(LMasterFieldNames) > 0');
   LDetailFieldNames := Records.Store.ViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
-  Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
+  Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames), 'Length(LDetailFieldNames) = Length(LMasterFieldNames)');
 
   for I := 0 to High(LDetailFieldNames) do
   begin

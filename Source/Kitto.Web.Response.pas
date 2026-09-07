@@ -191,7 +191,7 @@ end;
 
 constructor TKWebResponse.Create(const AResponse: TWebResponse; const AOwnsResponse: Boolean);
 begin
-  Assert(Assigned(AResponse));
+  Assert(Assigned(AResponse), 'Assigned(AResponse)');
   inherited Create;
   FResponse := AResponse;
   FOwnsResponse := AOwnsResponse;
@@ -199,7 +199,7 @@ end;
 
 destructor TKWebResponse.Destroy;
 begin
-  Assert(FItems.Count = 1);
+  Assert(FItems.Count = 1, 'FItems.Count = 1');
   FItems.Pop.Free;
   FreeAndNil(FItems);
   if FOwnsResponse then
@@ -224,7 +224,7 @@ end;
 
 function TKWebResponse.GetItems: TKWebResponseContent;
 begin
-  Assert(FItems.Count > 0);
+  Assert(FItems.Count > 0, 'FItems.Count > 0');
   Result := FItems.Peek;
 end;
 

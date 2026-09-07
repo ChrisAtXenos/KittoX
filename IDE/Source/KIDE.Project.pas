@@ -94,8 +94,8 @@ type
     property FileName: string read FFileName;
     property BaseName: string read GetBaseName;
     function GetMRUKeyName: string;
-    function GetViewImageIndex(const AView: TKView): Integer;
-    function GetLayoutImageIndex(const ALayout: TKLayout): Integer;
+    function GetViewImageName(const AView: TKView): string;
+    function GetLayoutImageName(const ALayout: TKLayout): string;
     property KittoEngineFileName: string read GetKittoEngineFileName;
     property KittoEngineHandle: Cardinal read FKittoEngineHandle write FKittoEngineHandle;
     property IsKittoEngineRunning: Boolean read GetIsKittoEngineRunning;
@@ -313,7 +313,7 @@ begin
   Result := ChangeFileExt(FileName, '.exe');
 end;
 
-function TProject.GetLayoutImageIndex(const ALayout: TKLayout): Integer;
+function TProject.GetLayoutImageName(const ALayout: TKLayout): string;
 begin
   if SameText(RightStr(ALayout.PersistentName,5),'_Grid') then
     Result := LAYOUT_GRID
@@ -333,9 +333,17 @@ begin
   Result := Directory + '..\Source';
 end;
 
-function TProject.GetViewImageIndex(const AView: TKView): Integer;
+function TProject.GetViewImageName(const AView: TKView): string;
 begin
-  if MatchText(AView.GetString('Controller'), ['Viewport', 'Window']) then
+  // Home e MainMenu si riconoscono dal nome, non dal Controller: il Controller
+  // non le distingue da nessun'altra view. Home usa BorderPanel come molte
+  // altre (il ramo Viewport/Window sotto non scatta per nessuno dei progetti
+  // in repository) e MainMenu e' una Type: Tree come qualunque albero.
+  if SameText(AView.PersistentName, 'Home') then
+    Result := HOME_VIEW
+  else if SameText(AView.PersistentName, 'MainMenu') then
+    Result := MAINMENU_VIEW
+  else if MatchText(AView.GetString('Controller'), ['Viewport', 'Window']) then
     Result := HOME_VIEW
   else if SameText(AView.GetString('Type'), 'Data') then
   begin

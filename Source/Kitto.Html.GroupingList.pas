@@ -379,14 +379,14 @@ var
       begin
         TEFLogger.Instance.LogFmt(
           'Grouping/Aggregates: field "%s" not found in view table "%s" - aggregate ignored.',
-          [LNode.Name, AViewTable.ModelName], TEFLogger.LOG_HIGH);
+          [LNode.Name, AViewTable.ModelName], TEFLogger.LOG_ALWAYS);
         Continue;
       end;
       if not (LVF.DataType is TEFNumericDataTypeBase) then
       begin
         TEFLogger.Instance.LogFmt(
           'Grouping/Aggregates: field "%s" is not numeric (%s) - aggregate ignored.',
-          [LNode.Name, LVF.DataType.GetTypeName], TEFLogger.LOG_HIGH);
+          [LNode.Name, LVF.DataType.GetTypeName], TEFLogger.LOG_ALWAYS);
         Continue;
       end;
       LDef.ViewField := LVF;

@@ -157,8 +157,8 @@ function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText:
 var
   LDBQuery: TEFDBQuery;
 begin
-  Assert(Assigned(ADBConnection));
-  Assert(ADBConnection.IsOpen);
+  Assert(Assigned(ADBConnection), 'Assigned(ADBConnection)');
+  Assert(ADBConnection.IsOpen, 'ADBConnection.IsOpen');
 
   LDBQuery := ADBConnection.CreateDBQuery;
   try
@@ -180,8 +180,8 @@ var
   I: Integer;
   LKeyValue: string;
 begin
-  Assert(Assigned(ADataSet));
-  Assert(ADataSet.Active);
+  Assert(Assigned(ADataSet), 'Assigned(ADataSet)');
+  Assert(ADataSet.Active, 'ADataSet.Active');
 
   Result := '';
   ADataSet.DisableControls;
@@ -245,11 +245,48 @@ begin
 end;
 
 function JSONEscape(const AString: string): string;
+var
+  LChar: Char;
+  LBuilder: TStringBuilder;
+  I: Integer;
 begin
-  Result := ReplaceStr(AString, '\', '\\');
-  Result := ReplaceStr(Result, sLineBreak, '\n');
-  Result := ReplaceStr(Result, #10, '\n');
-  Result := ReplaceStr(Result, #13, '\n');
+  // Every character below #32 must be escaped: RFC 8259 forbids them raw inside
+  // a JSON string. Leaving them through meant that a single TAB in a database
+  // field - routine in imported or memo data - made JSON.parse fail on the
+  // client and the whole grid came back empty.
+  // Double quotes are deliberately left alone: they were not escaped before
+  // either, and the callers that need them quoted go through QuoteJSONStr.
+  LBuilder := TStringBuilder.Create(Length(AString));
+  try
+    I := 1;
+    while I <= Length(AString) do
+    begin
+      LChar := AString[I];
+      case LChar of
+        '\': LBuilder.Append('\\');
+        #8:  LBuilder.Append('\b');
+        #9:  LBuilder.Append('\t');
+        #12: LBuilder.Append('\f');
+        #10: LBuilder.Append('\n');
+        #13:
+          begin
+            LBuilder.Append('\n');
+            // A CRLF pair collapses to a single \n, as it did before.
+            if (I < Length(AString)) and (AString[I + 1] = #10) then
+              Inc(I);
+          end;
+      else
+        if LChar < #32 then
+          LBuilder.Append('\u').Append(IntToHex(Ord(LChar), 4))
+        else
+          LBuilder.Append(LChar);
+      end;
+      Inc(I);
+    end;
+    Result := LBuilder.ToString;
+  finally
+    LBuilder.Free;
+  end;
 end;
 
 procedure AddJSONPair(const AJSONPair: TJSONPair; const ATree: TEFTree);
@@ -273,8 +310,8 @@ procedure LoadJSONObjectInTree(const AJSONObject: TJSONObject; const ATree: TEFT
 var
   LJSONPair: TJSONPair;
 begin
-  Assert(Assigned(AJSONObject));
-  Assert(Assigned(ATree));
+  Assert(Assigned(AJSONObject), 'Assigned(AJSONObject)');
+  Assert(Assigned(ATree), 'Assigned(ATree)');
 
   for LJSONPair in AJSONObject do
     AddJSONPair(LJSONPair, ATree);

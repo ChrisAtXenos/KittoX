@@ -25,26 +25,31 @@ inherited BaseWizardForm: TBaseWizardForm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 1
-    DesignSize = (
-      684
-      36)
     object BackButton: TButton
-      Left = 524
-      Top = 6
+      AlignWithMargins = True
+      Left = 525
+      Top = 3
       Width = 75
-      Height = 25
+      Height = 30
       Action = BackAction
-      Anchors = [akTop, akRight]
+      Align = alRight
       TabOrder = 0
+      ExplicitLeft = 524
+      ExplicitTop = 6
+      ExplicitHeight = 25
     end
     object ForwardButton: TButton
-      Left = 605
-      Top = 6
+      AlignWithMargins = True
+      Left = 606
+      Top = 3
       Width = 75
-      Height = 25
+      Height = 30
       Action = ForwardAction
-      Anchors = [akTop, akRight]
+      Align = alRight
       TabOrder = 1
+      ExplicitLeft = 605
+      ExplicitTop = 6
+      ExplicitHeight = 25
     end
   end
   object TitlePanel: TPanel

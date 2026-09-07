@@ -287,6 +287,7 @@ uses
   EF.StrUtils,
   EF.Logger,
   Kitto.Config,
+  Kitto.Config.Auth,
   Kitto.Web.Request,
   Kitto.Web.Response,
   JOSE.Core.Base,
@@ -299,7 +300,9 @@ const
   DEFAULT_TOKEN_LIFETIME = 3600;
   DEFAULT_SLIDING_THRESHOLD = 600;
   DEFAULT_CLOCK_SKEW = 60;
-  DEFAULT_COOKIE_NAME = 'kx_token';
+  // Single definition, in the unit that declares the Auth/JWT/Cookie schema:
+  // the web engine defaults to the same name when it reads the cookie back.
+  DEFAULT_COOKIE_NAME = DEFAULT_JWT_COOKIE_NAME;
   DEFAULT_COOKIE_SAMESITE = 'Lax';
   CLAIM_SID = 'sid';
   CLAIM_DB = 'db';
@@ -600,7 +603,7 @@ end;
 procedure TKJWTSigningKeyRegistry.RegisterProvider(const AAppName: string;
   const AProvider: TKJWTSigningKeyProvider);
 begin
-  Assert(Assigned(AProvider));
+  Assert(Assigned(AProvider), 'Assigned(AProvider)');
   FProviders.AddOrSetValue(LowerCase(AAppName), AProvider);
 end;
 
@@ -621,7 +624,7 @@ end;
 
 constructor TKJWTConfig.Create(const AAppName: string; const AAuthNode: TEFTree);
 begin
-  Assert(Assigned(AAuthNode));
+  Assert(Assigned(AAuthNode), 'Assigned(AAuthNode)');
   inherited Create;
   FAppName := AAppName;
   FAuthNode := AAuthNode;

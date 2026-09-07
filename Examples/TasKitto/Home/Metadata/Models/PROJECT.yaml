@@ -21,3 +21,4 @@ Fields:
       Terminated: _(Terminated)
 DetailReferences:
   PHASE: PHASE
+    CascadeDelete: True

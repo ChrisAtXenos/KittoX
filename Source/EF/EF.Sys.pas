@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +35,15 @@ type
     ///  exit code (or <> 0 in case of errors).
     /// </summary>
     function ExecuteCommand(const AFileName: string): Integer; virtual; abstract;
+
+    /// <summary>
+    ///  Fills ACount bytes of ABuffer from the operating system's
+    ///  cryptographic random source. Raises on failure and never falls back to
+    ///  a weaker source: a caller asking for these bytes is generating a
+    ///  password, a token or a salt, and silently handing it predictable ones
+    ///  is worse than failing.
+    /// </summary>
+    procedure GetRandomBytes(var ABuffer; const ACount: Integer); virtual; abstract;
   end;
 
 var
@@ -137,7 +146,7 @@ procedure StreamToFile(const AStream: TStream; const AFileName: string);
 var
   LFileStream: TFileStream;
 begin
-  Assert(Assigned(AStream));
+  Assert(Assigned(AStream), 'Assigned(AStream)');
 
   LFileStream := TFileStream.Create(AFileName, fmCreate or fmShareExclusive);
   try
@@ -267,8 +276,15 @@ function GetFileSize(const AFileName: string): Longint;
 var
   LSearchRec: TSearchRec;
 begin
+  // FindFirst opens a search handle that has to be closed, whatever the
+  // outcome: without FindClose every call leaked one, and a long-running
+  // service ends up unable to open files at all.
   if FindFirst(ExpandFileName(AFileName), faAnyFile, LSearchRec) = 0 then
-    Result := LSearchRec.Size
+  try
+    Result := LSearchRec.Size;
+  finally
+    FindClose(LSearchRec);
+  end
   else
     Result := -1;
 end;

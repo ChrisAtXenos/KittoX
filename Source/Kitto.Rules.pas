@@ -476,7 +476,7 @@ procedure TKRuleImpl.CheckRuleParam(const APath: string);
 var
   LNode: TEFNode;
 begin
-  Assert(Assigned(Rule));
+  Assert(Assigned(Rule), 'Assigned(Rule)');
 
   LNode := Rule.FindNode(APath);
   if not Assigned(LNode) or LNode.IsNull or (LNode.AsString = '') then
@@ -485,7 +485,7 @@ end;
 
 procedure TKRuleImpl.CheckRuleValueParam;
 begin
-  Assert(Assigned(Rule));
+  Assert(Assigned(Rule), 'Assigned(Rule)');
 
   if Rule.IsNull or (Rule.AsString = '') then
     raise EKRuleError.CreateFmt('Missing value in rule %s', [GetClassid]);
@@ -541,7 +541,7 @@ begin
   begin
     LRecord := ARecord as TKViewTableRecord;
     LReferenceField := LRecord.FieldByName(AReferenceName).ModelField;
-    Assert(LReferenceField.IsReference);
+    Assert(LReferenceField.IsReference, 'LReferenceField.IsReference');
     Result := LRecord.ViewTable.FieldByName(AReferenceName).CreateReferencedModelStore(
       LRecord.GetFieldValues(LReferenceField.GetFieldNames));
     FReferencedModelStores.Add(AReferenceName, Result);

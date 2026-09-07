@@ -37,9 +37,9 @@ td{
 }
 </style>
 <h1>Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX</h1>
-<p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a>
-<a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
-<p><strong>Latest Version 4.0.18 - 25 Aug 2026</strong></p>
+<p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a></p>
+<p><a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
+<p><strong>Latest Version 4.0.19 - 07 Sep 2026</strong></p>
 <p><img src="./images/kittoX_logo_200.png" alt="KittoX_logo.png"/></p>
 <p><strong>Kitto<sup>x</sup></strong> allows to create <strong>Rich Internet Applications</strong> based on a data model that can be mapped onto any database. The client-side part uses <strong>HTMX</strong> (through webbroker technology) to create a fully <strong>AJAX</strong> application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.</p>
 <p><strong>Kitto<sup>x</sup></strong> is aimed at <strong>Delphi</strong> developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.</p>
@@ -48,9 +48,12 @@ td{
 <hr />
 <h2>Full documentation</h2>
 <ul>
-<li><a href="https://ethea.it/docs/kittox/">Documentation site</a> with 150+ pages</li>
-<li>Pages for all controllers, filters, data concepts, how-to guides, FAQ</li>
-<li>Three example applications: HelloKitto, TasKitto, KEmployee</li>
+<li><p><a href="https://ethea.it/docs/kittox/">Documentation site</a> with 150+ pages</p>
+</li>
+<li><p>Pages for all controllers, filters, data concepts, how-to guides, FAQ</p>
+</li>
+<li><p>Three example applications: HelloKitto, TasKitto, KEmployee</p>
+</li>
 </ul>
 <hr />
 <h2>Enterprise Edition</h2>
@@ -78,456 +81,172 @@ td{
 <p>Visit <a href="https://ethea.it/Kitto-Demo/">this site</a> for online demos.</p>
 <hr />
 <h1>Release Notes</h1>
+<h2>07 Sep 2026: ver. 4.0.19 Beta</h2>
+<ul>
+<li><strong>Automated test suite</strong> — 216 tests, green on Win64/Win32 × Debug/Release; 24 of them run against real MSSQL, PostgreSQL, Firebird and Oracle servers, and the whole metadata catalogue of the three examples is loaded and walked. <code>Test\run_tests.cmd</code></li>
+<li><strong>Detail grids work before the master exists</strong>: full data entry on a master still in memory, saved to the database exactly as the grid showed it</li>
+<li><strong><code>CascadeDelete</code></strong> on a detail reference deletes the details inside the master's transaction, recursively. Off by default; where it is not declared the refusal names the record and counts what holds it back</li>
+<li><strong>The framework's own messages in four languages</strong> — 93 strings now translated in it/de/es/pt: wizard buttons, grid and calendar toolbars, GoogleMap controls, dialogs, authenticator messages. New <code>Tools\update_locale.cmd</code> keeps the catalogues in step and recompiles the <code>.mo</code></li>
+<li><strong>KIDE<sup>x</sup> — Update Database Structure</strong>: the reverse of the Model Wizard, generating and running the DDL that brings the database in line with the Models, multi-dialect, with an editable preview. <em>New and incomplete — read the limitations</em></li>
+<li><strong>KIDE<sup>x</sup> — YAML validation driven by RTTI</strong>: the validator reads the declarations on the framework classes instead of a hand-written list, and checks enum and integer values too</li>
+<li><strong>KIDE<sup>x</sup> — configuration editor completed</strong>: Auth, Email/SMTP, Defaults, Log and Help Chat now offer every node the framework reads</li>
+<li><strong>KIDE<sup>x</sup> — scalable DPI-aware icons</strong>, a theme selector with a live preview of the twelve VCL styles, and an SVG editor for the project's own icons</li>
+<li><strong>Changed</strong>: a server-rendered error dialog now carries a truthful HTTP status (500 / 422 / 400 / 409) and an <code>X-KittoX-Dialog</code> header. <strong>If you drive Kitto<sup>x</sup> endpoints from your own client, a dialog response is no longer a <code>2xx</code></strong></li>
+</ul>
 <h2>25 Aug 2026: ver. 4.0.18 Beta</h2>
-<h3>Authentication</h3>
 <ul>
-<li><strong>JWT is now a flat, opt-in envelope</strong> on any authenticator: write the real <code>Auth: &lt;X&gt;</code> and add an optional <code>JWT:</code> sub-node to issue the signed token — no more <code>Auth: JWT</code> + <code>Inner:</code> wrapper. JOSE stays out of the core (opt-in <code>Kitto.Auth.JWT</code> engine); example configs migrated to the flat model</li>
-</ul>
-<h3>Refactoring — config metadata reorganization</h3>
-<ul>
-<li><strong>Per-domain config readers</strong> (<code>Kitto.Config.&lt;Domain&gt;</code>) replace the monolithic sub-node stubs for Server, Auth, Notifications, UserFormats, AccessControl, Log, Desktop and Theme</li>
-<li><strong>View/model descriptors moved next to their consumer</strong> (DB connections → <code>EF.DB.*</code>, Chart → <code>ChartPanel</code>, ViewTable/Filter → <code>DataView</code>, Layout → <code>Views</code>, model fields → <code>Models</code>); the emptied <code>Kitto.Metadata.SubNodes2</code> unit was removed</li>
-<li>New <strong>typed <code>[YamlChildType(name, Class)]</code></strong> lets KIDE edit the per-type config of layout fields and filter items</li>
-</ul>
-<h3>KIDE<sup>x</sup> — New Project Wizard</h3>
-<ul>
-<li>Added <strong>ODAC (Oracle Data Access)</strong> as a selectable database engine; the generated app links <code>EF.DB.ODAC</code> and gets its <code>Databases</code> node</li>
-<li>Generated databases now get <strong>descriptive names</strong> — a primary <code>Main</code> (priority FireDAC → ODAC → ADO → DBExpress) plus the remaining engines named <code>FireDAC</code> / <code>ODAC</code> / <code>ADO</code> / <code>DBExpress</code>, instead of the old generic <code>Main</code> / <code>Other1</code> / <code>Other2</code> / <code>Other3</code></li>
-<li>Hourglass cursor while the project is being generated</li>
-</ul>
-<h3>Setup installer</h3>
-<ul>
-<li><strong>New installer that builds the packages for you</strong>: it now <strong>compiles the framework packages</strong> (Core + Enterprise + IDE) for every selected Delphi version (Win32 and Win64), creates the <strong><code>KITTOX_HOME</code></strong> environment variable, and registers the <strong>global IDE library search paths</strong> — so the examples and your own projects compile out of the box, no manual step.</li>
-</ul>
-<h3>Packaging</h3>
-<ul>
-<li><strong>Some ThirdParty units are being namespaced</strong> with a <code>Kitto.</code> prefix (MarkdownProcessor, gnugettext, Base32U, DelphiZXIngQRCode, ADOX_TypeLibrary, …) to avoid unit-name clashes with the same libraries shipped by other packages</li>
-<li><strong>delphi-jose-jwt updated</strong> and its vendored sources reorganized into the upstream <code>Common</code> / <code>JOSE</code> folder layout</li>
+<li><strong>Per-domain config readers</strong> (<code>Kitto.Config.&lt;Domain&gt;</code>) for Server, Auth, Notifications, UserFormats, AccessControl, Log, Desktop and Theme, with each view/model descriptor moved next to its consumer; new typed <strong><code>[YamlChildType(name, Class)]</code></strong></li>
+<li><strong>The setup installer now compiles the framework packages</strong> (Core + Enterprise + IDE) for every selected Delphi version, creates <code>KITTOX_HOME</code> and registers the IDE library search paths — the examples and your own projects compile with no manual step</li>
+<li><strong>KIDE<sup>x</sup> Model Wizard follows changes to the schema</strong>: re-running <em>Update models</em> reports added, removed and reordered key and foreign-key columns, a foreign key redirected to another table, and a changed primary key</li>
+<li><strong>KIDE<sup>x</sup> New Project Wizard</strong>: ODAC as a selectable engine, and generated databases named after their engine instead of <code>Other1</code>/<code>Other2</code></li>
+<li>Master and detail no longer require the Model's field names to match the database's column names</li>
+<li>ThirdParty units namespaced with a <code>Kitto.</code> prefix, to avoid clashes with the same libraries shipped by other packages</li>
 </ul>
 <h2>23 Aug 2026: ver. 4.0.17 Beta</h2>
-<h3>Bug fixes</h3>
 <ul>
-<li><strong>Opening a Calendar view no longer logs the user out</strong> — the calendar loads its events with a <code>fetch</code> that cannot carry the <code>X-KittoX</code> header, so the navigation guard mistook it for a top-level navigation and bounced it to the app root (which signs the session out); the guard now uses the browser's <strong><code>Sec-Fetch-Mode</code></strong> header to tell a real navigation from a data request</li>
-</ul>
-<h3>Desktop host</h3>
-<ul>
-<li>The MainForm <strong>log is now asynchronous and thread-safe</strong> — worker threads enqueue log lines, the UI drains them onto the memo from a timer (no more cross-thread VCL access)</li>
-</ul>
-<h3>Refactoring</h3>
-<ul>
-<li>New <strong>typed config readers</strong></li>
+<li><strong>The JWT envelope is an optional <code>JWT:</code> sub-block under any authenticator</strong>: write <code>Auth: DB</code>, <code>Auth: LDAP</code>, <code>Auth: MyOwn</code> and add <code>JWT:</code> to issue and validate a self-contained <code>kx_token</code>; without the block the same authenticator uses a plain session cookie. The JOSE crypto lives in an opt-in engine, so the core carries no dependency on it</li>
 </ul>
 <h2>21 Aug 2026: ver. 4.0.16 Beta</h2>
-<h3>Help Chat — AI provider (Claude)</h3>
 <ul>
-<li>New <strong><code>claude</code></strong> provider: streams answers from Anthropic's Claude, grounded on the documentation index (RAG); the reply fills in <strong>token by token</strong> via the existing client polling (no server-push), on every deployment mode</li>
-<li>Assistant replies rendered from Markdown to safe HTML with the <strong>MarkdownProcessor</strong> library (headings, lists, tables, code blocks)</li>
-<li>Help Chat and Notification Center are now <strong>opt-in units</strong> added to <code>UseKitto.pas</code> (no longer forced by <code>Kitto.Html.All</code>); a clear startup error names the missing unit when a feature is enabled in config but not linked</li>
-<li>API key kept out of the public repo (config macro / <code>ANTHROPIC_API_KEY</code> environment variable)</li>
-</ul>
-<h3>Forms &amp; data — bug fixes</h3>
-<ul>
-<li><strong>Save &amp; Clone / Dup</strong> now insert a new record instead of updating the source</li>
-<li>A <strong>validation error</strong> no longer leaves the record unusable for further editing</li>
-<li>Fields with <strong>server-side rules</strong> notify their change again — the <code>AfterFieldChange</code> cascade (computed totals, derived data) works even with <code>AlwaysNotifyChange: False</code>; form rules run again on standalone <strong>Add</strong> Form views</li>
-<li><strong>Currency</strong> fields select their content on focus; <strong>double-click</strong> in a lookup window selects the row</li>
-<li><strong>GroupingList</strong> honours the Grid layout in headers and rows, with column aggregates in the group headers</li>
-</ul>
-<h3>Authentication</h3>
-<ul>
-<li>Restored the <strong>first-access</strong> authentication chain and <strong>logout on root</strong> / return-to-home after logout</li>
-<li><strong>Change password</strong> no longer asks for the old one when the change is enforced</li>
-</ul>
-<h3>Other</h3>
-<ul>
-<li>Fixed the languages offered by the <strong>LanguageSwitcher</strong> and the related application reloads</li>
+<li><strong>Help Chat can answer through Claude</strong>: streamed token by token, grounded on the documentation index (RAG), with replies rendered from Markdown to safe HTML, on every deployment mode</li>
+<li>Help Chat and Notification Center are <strong>opt-in units</strong>: add them to <code>UseKitto.pas</code>, and a clear startup error names the one missing when a feature is enabled in config</li>
 </ul>
 <h2>12 Aug 2026: ver. 4.0.15 Beta</h2>
-<h3>Localization — full multi-language support</h3>
 <ul>
-<li>Updated some views of Examples</li>
-</ul>
-<h3>Security</h3>
-<ul>
-<li>A request without a session cookie is no longer attached to an existing session: the lookup fell back on the client address, which behind a reverse proxy is the same for every user</li>
-<li><code>Controller/FilterExpression</code> now also constrains a record key supplied by the client (<code>/form</code>, <code>/save</code>, <code>/delete</code>, <code>/blob</code>); <code>DefaultFilter</code> was never affected</li>
-<li>Imposed steps (<code>MustChangePassword</code>, <code>MustConfirmAccess</code>) enforced on every request, not only by the home page</li>
-<li><code>LoginType: PIN</code> requires a per-user <code>SECRET_CODE</code>: the TOTP secret is no longer derived from the (public) user name</li>
-<li><code>Auth: DBServer</code> refuses to start unless its <code>Connection</code> block reads the typed credentials through <code>%Auth:...%</code></li>
-<li>New <code>TKAuthenticator.SupportsPasswordChange</code>, checked before writing: <code>TextFile</code>, <code>LDAP</code>, <code>DBServer</code> and <code>Null</code> no longer report a successful password change while discarding it</li>
-<li><code>Auth: TextFile</code> no longer accepts an empty password. <code>GetStringHash('')</code> returns <code>''</code> and <code>TStrings.Values[]</code> returns <code>''</code> for a missing key, so any user name with a blank password compared two empty strings and logged in — including a user disabled with a leading <code>#</code>. An empty password is now refused outright and an empty stored hash never takes part in the comparison. The passepartout is compared with the password as typed (never with its hash) and ignored when left empty, but it keeps working as a master password for any <strong>listed</strong> user, matching what <code>Auth: DB</code> does</li>
-<li><strong>No account can be entered with an empty or NULL stored password.</strong> The comparison was a plain string equality, and <code>GetStringHash('')</code> returns <code>''</code>, so an active <code>KITTO_USERS</code> row whose password column was empty or NULL was matched by a blank typed password — on <code>DB</code> and on <code>DBCrypt</code>, where the legacy branch went further and <em>stored</em> a bcrypt hash of the empty password. The refusal is keyed on the new <code>IsPasswordTheStoredCredential</code>, so <code>Auth: OSDB</code> keeps authenticating the operating-system user without a password, which is legitimate. A user with no password gets in through the password-reset flow, which mails them a temporary password and forces a change; that flow does not go through authentication and is unaffected</li>
-<li>The <strong>passepartout</strong> is refused when <code>PassepartoutPassword</code> is left empty: with the passepartout enabled and no master password configured, both sides of the comparison were <code>''</code>, so a blank password logged in as any existing user</li>
-<li><code>Auth: DBServer</code> refuses an empty password before opening the connection</li>
-</ul>
-<h3>Authenticators</h3>
-<ul>
-<li><code>Auth: DBCrypt</code> works: the <code>PASSWORD_B_HASH</code> column was never read, so no bcrypt password could be validated</li>
-<li><code>Auth: Null</code> works: the session was never marked as authenticated</li>
-<li>An unknown <code>Auth:</code> class id fails at startup, listing the registered ones, instead of serving a blank page</li>
-<li>New <code>TKAuthenticatorDecorator</code>: the JWT wrapper's forwarding contract is now checked by the compiler</li>
-</ul>
-<h3>Bug fixes</h3>
-<ul>
-<li>Fixed Clone Record function.</li>
-<li>Fixed access violations on session termination (use-after-free in the deferred session-end closure) and in the VCL session monitor</li>
-<li>Unhandled exceptions raised while serving a request are logged, so service / ISAPI / Apache deployments have a trace</li>
+<li>New <strong><code>TKAuthenticator.SupportsPasswordChange</code></strong>, interrogated before writing, so an authenticator that does not own the credentials can refuse instead of reporting a success it discarded</li>
+<li>New <strong><code>TKAuthenticatorDecorator</code></strong>: the forwarding contract of a wrapping authenticator is now checked by the compiler</li>
+<li>A security pass over the authentication and session layer. <strong>Upgrading is recommended</strong></li>
 </ul>
 <h2>10 Aug 2026: ver. 4.0.14 Beta</h2>
-<h3>Localization — full multi-language support</h3>
 <ul>
-<li>New <strong>LanguageSwitcher</strong> controller (flag dropdown) on both the login and the home, alongside the ThemeSwitcher (Takitto and HelloKitto demos).</li>
-<li>Interface language <strong>auto-detected from the browser</strong> (<code>Accept-Language</code>) when <code>LanguageId</code> is left empty</li>
-<li>Examples now shipped in <strong>English, Italian, German, Spanish and Portuguese</strong>; framework and app translation catalogs completed</li>
-</ul>
-<h3>Help Chat — new</h3>
-<ul>
-<li>In-app help assistant: a floating bubble + drawer, enabled per app with <code>HelpChat/Enabled</code></li>
-<li>Pluggable provider model with a deterministic <strong>docsearch</strong> provider that answers from the KittoX documentation index and links back to the doc pages</li>
-<li>Runs on a dedicated async worker pool (separate from the HTTP threads and the notification job runner); attribute-routed endpoints; XSS-safe markdown replies</li>
-<li>Contextual <strong>?</strong> button on List/Form toolbars opens the chat anchored to the current screen</li>
-</ul>
-<h3>Notification Center — refinements</h3>
-<ul>
-<li>Now <strong>opt-in</strong> via <code>Notifications/Enabled</code> (default off)</li>
-<li>Header with close and <strong>clear-all</strong> (finished jobs only), themed SVG icons, per-job remove; new <code>POST /kx/notifications/clear</code></li>
-<li>Downloads via fetch + blob — no more top-level navigation closing the app on a 404</li>
-</ul>
-<h3>Client error handling</h3>
-<ul>
-<li>New <code>[Retry]/[Reset]</code> error dialog (like htmx) for every <strong>user-initiated</strong> fetch action; background polling stays silent</li>
-</ul>
-<h3>Bug fixes</h3>
-<ul>
-<li>Toast messages with accented / non-ASCII text no longer corrupted (the <code>HX-Trigger</code> header is now ASCII-escaped)</li>
-<li>Help button no longer appears on display-only panels (e.g. dashboard KPI); added the <code>PreventHelp</code> flag</li>
+<li><strong>Full multi-language support</strong>: new <strong>LanguageSwitcher</strong> controller (flag dropdown) for login and home, interface language auto-detected from the browser when <code>LanguageId</code> is empty, and the examples shipped in English, Italian, German, Spanish and Portuguese</li>
+<li><strong>Help Chat</strong> — an in-app assistant: floating bubble and drawer, enabled with <code>HelpChat/Enabled</code>, with a pluggable provider model and a deterministic <strong>docsearch</strong> provider that answers from the documentation index and links back to it. Contextual <strong>?</strong> button on the List and Form toolbars</li>
+<li><strong>Notification Center</strong> refinements: opt-in via <code>Notifications/Enabled</code>, clear-all, per-job remove, downloads via fetch + blob</li>
+<li>New <strong><code>[Retry]/[Reset]</code> dialog</strong> for every user-initiated action that fails or times out; background polling stays silent</li>
 </ul>
 <h2>04 Aug 2026: ver. 4.0.13 Beta</h2>
-<h3>Notification Center &amp; background tools — new</h3>
 <ul>
-<li>Run a download-file tool (CSV/TXT/XML/Excel, MergePDF, ReportBuilder) as a <strong>background job</strong> on a worker pool separate from the HTTP threads — opt-in per tool with a single YAML line, <code>RunMode: Background</code></li>
-<li>A <strong>notification center</strong> bell shows each job with its status (queued/running %, completed, failed) and lets the user <strong>download</strong>, cancel or dismiss the result; the badge stays until the job leaves the list</li>
-<li>Jobs are <strong>persisted per-user on disk</strong> and reloaded on startup, so results survive logout/login and a process restart</li>
-<li>Configurable via <code>Server/Jobs</code> (<code>PoolSize</code>, <code>Directory</code>, <code>ArtifactRetentionHours</code>)</li>
-</ul>
-<h3>Licensing — new</h3>
-<ul>
-<li>License Registration into Registry under HKEY_CURRENT_USER\Software\Ethea\KIDEX</li>
-<li>Updated License procedure (Company Name + developer email)</li>
-<li>Now is possible to use multiple versions of KittoX in the same machine.</li>
-</ul>
-<h3>Repository layout — changed</h3>
-<ul>
-<li>The framework packages folder has been <strong>renamed from <code>Projects/</code> to <code>Packages/</code></strong>.</li>
+<li><strong>Notification Center and background tools</strong> — run a download-file tool (CSV/TXT/XML/Excel, MergePDF, ReportBuilder) as a <strong>background job</strong> on a worker pool separate from the HTTP threads, opt-in per tool with one YAML line, <code>RunMode: Background</code>. A bell shows each job with its status and lets the user download, cancel or dismiss it; jobs are persisted per user on disk and survive logout and a process restart. Configurable under <code>Server/Jobs</code></li>
+<li><strong>Licensing</strong>: registration under <code>HKEY_CURRENT_USER\Software\Ethea\KIDEX</code>, company name and developer e-mail, and several versions of Kitto<sup>x</sup> usable on the same machine</li>
+<li><strong>Changed</strong>: the framework packages folder is renamed from <code>Projects/</code> to <code>Packages/</code></li>
 </ul>
 <h2>31 Jul 2026: ver. 4.0.12 Beta</h2>
-<h3>LDAP / Active Directory authentication — new</h3>
 <ul>
-<li>New <strong>Kitto.Auth.LDAP</strong> authenticator (<code>Auth: LDAP</code>): LDAP simple bind (Active Directory or generic LDAP), no local user table, reads name/e-mail from the directory</li>
-</ul>
-<h3>ReportBuilder Tool — ported</h3>
-<ul>
-<li><code>Controller: ReportBuilderTool</code> updated to latest ReportBuilder version</li>
+<li><strong>LDAP / Active Directory authentication</strong> — new <code>Auth: LDAP</code>: simple bind against Active Directory or a generic LDAP, no local user table, name and e-mail read from the directory</li>
+<li><code>Controller: ReportBuilderTool</code> updated to the latest ReportBuilder</li>
 </ul>
 <h2>28 Jul 2026: ver. 4.0.11 Beta</h2>
-<h3>REST / JSON API (opt-in) — new</h3>
 <ul>
-<li>Expose an app's data views as a <strong>REST/JSON web service</strong>, by default under <strong><code>/api/v4/{View}</code></strong> in parallel to the HTML<sup>x</sup> GUI, on the same engine, models, rules and ACL — opt-in</li>
-<li>Plugin available adding <strong>Kitto.Web.Rest</strong> unit to <strong>UseKitto.pas</strong></li>
-<li>Full <strong>CRUD</strong> with model-level permissions</li>
-<li><strong>Bearer-token (stateless) auth</strong></li>
-<li>Self-describing <strong>OpenAPI 3.0</strong> spec and a built-in <strong>Swagger UI</strong></li>
-<li><strong>Configurable base path</strong>, opt-in <strong>CORS</strong></li>
-</ul>
-<h3>Bug fixes</h3>
-<ul>
-<li><strong><code>TEFDBConnection.Open</code> made idempotent</strong> — fixes open datasets being silently emptied when a query is created on a busy connection</li>
-<li><strong>Robust date parsing</strong> in <code>ValueToDateTime</code>/<code>ValueToDate</code> (locale dates no longer raise <code>EConvertError</code>)</li>
+<li><strong>REST / JSON API</strong> — expose an application's data views as a web service, by default under <code>/api/v4/{View}</code>, in parallel to the HTML<sup>x</sup> GUI and on the same engine, models, rules and ACL. Opt-in by adding <code>Kitto.Web.Rest</code> to <code>UseKitto.pas</code>: full CRUD with model-level permissions, stateless bearer-token auth, a self-describing <strong>OpenAPI 3.0</strong> spec with a built-in <strong>Swagger UI</strong>, configurable base path and opt-in CORS</li>
 </ul>
 <h2>20 Jul 2026: ver. 4.0.10 Beta</h2>
-<h3>Oracle &amp; Database</h3>
 <ul>
-<li><strong>Oracle is now a fully supported backend</strong>: new DDL + Data scripts for the HelloKitto and TasKitto examples (Oracle XE 21c), plus <code>TasKitto_Oracle_ShiftDates.sql</code> to re-center the demo dashboard dates</li>
-<li><strong>Oracle SQL dialect fixes</strong>: corrected the top-N pagination off-by-one (Oracle <code>ROWNUM</code> is 1-based — single-row fetches previously returned 0 rows, full pages were short by one) and reintroduced the portable <strong><code>%DB.CONCAT%</code></strong> macro (<code>||</code> on Oracle/PostgreSQL/Firebird, <code>+</code> on SQL Server); new <strong><code>%DB.FROM_DUAL%</code></strong> and <strong><code>%DB.CURRENT_DATE%</code></strong> macros make hand-written YAML SQL portable across all five dialects</li>
-<li><strong>FireDAC Oracle</strong> wired up in the examples: the <code>Ora</code> driver is registered in <code>UseKitto.pas</code> and a ready-to-use <code>FireDAC_Oracle</code> connection block ships (commented) in <code>Config.yaml</code></li>
-<li><strong>New optional ODAC backend</strong> (<code>EF.DB.ODAC</code>, ClassId <code>ODAC</code>): an alternative Oracle path built on Devart ODAC, modelled on the FireDAC adapter (connection, commands, queries, transactions, metadata introspection via the Oracle data dictionary). It reuses the existing Oracle dialect and is <strong>not</strong> in the core package (commercial dependency) — enable it per-app by referencing the unit; the examples ship it defined-but-disabled so they still compile without ODAC installed</li>
-<li>Fix <strong><code>ftUnknown</code> parameter binding under MS ODBC Driver 17/18</strong>: with <code>DirectExecute</code> the driver no longer infers untyped parameter types (as SQL Server Native Client 11 did), which rejected optional/unassigned columns — now bound safely</li>
-<li>New <code>KittoX_Oracle.md</code> documenting the full Oracle setup; a note in every <code>UseKitto.pas</code> clarifies that the client/server FireDAC/DBExpress drivers require Delphi Enterprise/Architect (Professional ships only local/embedded drivers)</li>
-</ul>
-<h3>Routing (attribute-based refactor complete)</h3>
-<ul>
-<li>The whole <code>kx/*</code> request surface is now <strong>attribute-routed</strong>: after the auth family in 4.0.9, this release migrates the entire <strong>view domain</strong> (<code>view</code>, <code>data</code>, <code>form</code>, <code>save</code>, <code>delete</code>) and <strong>all ancillary endpoints</strong> (<code>lookup</code>, <code>tool</code>, <code>blob</code>, <code>upload</code>, <code>notify</code>, master-detail <code>detail/{i}/data|save|delete</code>, <code>wizard-finish</code>) into typed handlers running under a single shared request-filter chain (error → JWT auth → navigation guard → authorization)</li>
-<li>Legacy <code>TKWebApplication.DoHandleRequest</code> now serves <strong>only</strong> the Home page (<code>/</code>); <strong>zero</strong> <code>IsKX*Request</code> matchers remain (down from ~24) — the monolithic dispatcher is gone</li>
-<li>New <strong><code>TKXResourceRegistry.RegisterOverride</code></strong> API: an application can subclass a framework handler and override a single endpoint or hook (e.g. a custom <code>save</code>) <strong>without forking</strong> the whole route — register the subclass and it replaces the default for its base path</li>
-</ul>
-<h3>Security</h3>
-<ul>
-<li><strong>Navigation guard</strong>: direct browser navigation to an internal <code>kx/*</code> fragment endpoint (e.g. pasting <code>.../kx/view/SomeChart</code> in the address bar) is now <strong>rejected and redirected</strong> to login / home. Only in-app HTMX requests are served the partial; typing a fragment URL no longer leaks a bare HTML partial (when logged in) nor returns a bald <code>404</code> (when not)</li>
-</ul>
-<h3>Master-Detail &amp; Forms</h3>
-<ul>
-<li><strong><code>{MasterRecord.*}</code> macros now resolve in detail-form lookup filters</strong>: the detail store is linked to the session master record, so dependent lookups populate correctly instead of coming up empty</li>
-<li><strong>Dedicated lookup grids apply the calling field's <code>LookupFilter</code></strong> (including <code>{MasterRecord.*}</code>), with search/paging state preserved</li>
-<li><strong>Detail-record rules fire on save</strong>: <code>HandleDetailSave</code> now applies each field's <code>AfterFieldChange</code> rules (calculated fields — avoids NOT NULL violations) and <code>ApplyBeforeRules</code> (rules that roll detail values up into the master, e.g. totals)</li>
-<li><strong>Reference caption &amp; AutoAddFields resolve on newly-added in-memory records</strong>: the derived-values cascade (previously skipped because populate runs with notifications off) now runs via <code>RefreshDerivedReferenceValues</code>, so a reference column is filled immediately instead of staying blank until reloaded from the DB</li>
-</ul>
-<h3>UI</h3>
-<ul>
-<li><strong>Mobile dashboard fix</strong>: cards in a maximized-dialog dashboard (<code>Controller: Dashboard</code> / FlexPanel) no longer overflow the screen width and the panel now scrolls vertically, so cards below the fold are reachable</li>
-</ul>
-<h3>Documentation</h3>
-<ul>
-<li>Framework <strong>public-API XMLDoc coverage raised from <sub>32% to </sub>74%</strong>, spanning the routing namespace, the in-memory store, the metadata system, the web engine/server, the HTML<sup>x</sup> controllers, <code>EF.DB</code>, the config/rules/SQL core, the tool controllers and the third-party integration shims — surfaced in KIDE<sup>x</sup> through <code>[YamlNode]</code> descriptions</li>
+<li><strong>Oracle is a fully supported backend</strong>: DDL and data scripts for the examples on Oracle XE 21c, the Oracle SQL dialect completed, and FireDAC's <code>Ora</code> driver wired into the examples. New portable <code>%DB.CONCAT%</code>, <code>%DB.FROM_DUAL%</code> and <code>%DB.CURRENT_DATE%</code> macros make hand-written YAML SQL work across all five dialects</li>
+<li><strong>New optional ODAC backend</strong> (<code>EF.DB.ODAC</code>) on Devart ODAC, an alternative Oracle path enabled per application</li>
+<li><strong>Attribute-based routing complete</strong>: the whole <code>kx/*</code> surface is served by typed handlers under one shared request-filter chain, and the monolithic dispatcher is gone. New <strong><code>TKXResourceRegistry.RegisterOverride</code></strong> lets an application subclass a framework handler and replace a single endpoint <strong>without forking</strong> the route</li>
+<li><strong>Navigation guard</strong>: a browser navigation typed straight at an internal <code>kx/*</code> fragment endpoint is rejected and redirected, instead of serving a bare partial</li>
+<li><strong><code>{MasterRecord.*}</code> macros resolve in detail-form lookup filters</strong>, so dependent lookups populate from the master record being edited</li>
+<li>Public-API documentation coverage raised from <sub>32% to </sub>74%, surfaced in KIDE<sup>x</sup> through <code>[YamlNode]</code> descriptions</li>
 </ul>
 <h2>06 Jul 2026: ver. 4.0.9 Beta</h2>
-<h3>Bug fixes</h3>
 <ul>
-<li><strong>Double URL-decode of request values</strong> — form/query values were URL-decoded twice (a second decode over already-decoded text), silently corrupting any value containing <code>%</code>, <code>+</code> or (on some RTL versions) <code>?</code>: passwords (login failing), saved form fields (e.g. <code>50%</code>, <code>C++</code>), search/filter terms and record keys. Values are now decoded exactly once</li>
-</ul>
-<h3>Routing</h3>
-<ul>
-<li>The authentication family (<code>kx/login</code>, <code>kx/logout</code>, <code>kx/resetpassword</code>, <code>kx/changepassword</code>) migrated to the <strong>attribute-based router</strong> — first core group to &ldquo;bring its own routing&rdquo; (the login page is still served by <code>Home()</code> at <code>/</code>, unchanged)</li>
-<li>Attribute-routed requests now run inside the full per-request context (authenticator, macro engine, and — for <code>Auth: JWT</code> — a session hydrated from the verified token)</li>
-</ul>
-<h3>Tooling</h3>
-<ul>
-<li><code>Examples/build_Examples.cmd</code> now accepts command-line arguments to build a single example / deploy mode / config, e.g. <code>build_Examples.cmd TasKitto Desktop Debug</code> (the interactive menu is kept when run with no arguments)</li>
+<li>The authentication family (<code>kx/login</code>, <code>kx/logout</code>, <code>kx/resetpassword</code>, <code>kx/changepassword</code>) is the first group to <strong>bring its own routing</strong> through the attribute-based router, running inside the full per-request context</li>
+<li><code>Examples/build_Examples.cmd</code> takes arguments, so a single example, deployment mode and configuration can be built from the command line</li>
 </ul>
 <h2>08 Jun 2026: ver. 4.0.8 Beta</h2>
-<h3>Theming</h3>
 <ul>
-<li><strong>User-selectable theme</strong>: set <code>Theme/UserSelection: True</code> and drop a <code>Controller: ThemeSwitcher</code> anywhere in the GUI — the end user picks Light / Auto / Dark live, persisted per-app in <code>localStorage</code>, FOUC-safe boot, no page reload</li>
-<li><strong><code>Theme</code> is now a structured config block</strong> discoverable by KIDE<sup>x</sup>: <code>Theme/Mode</code> (Auto/Light/Dark), shared font/icon settings, and per-mode <code>Light:</code>/<code>Dark:</code> palettes (each with its own <code>Primary-Color</code>) — replaces the old flat <code>Theme: &lt;mode&gt;</code> value (existing configs still load)</li>
-</ul>
-<h3>Login</h3>
-<ul>
-<li>Full-width footer and side-panel layout refinements; optional per-section theme switcher</li>
-</ul>
-<h3>KIDE<sup>x</sup></h3>
-<ul>
-<li>Boolean <code>[YamlNode]</code> defaults now carry the inverse of the runtime default, so the &ldquo;Add node&rdquo; menu writes the meaningful value instead of a no-op</li>
-</ul>
-<h3>MCP-KittoX</h3>
-<ul>
-<li>Many new tools added — full CRUD on Models / Views / Layouts, database introspection (connections, tables, columns), config read/update, locale (<code>.po</code>) reading, metadata validation, and grid/list view scaffolding (40+ tools total, up from 16)</li>
+<li><strong>User-selectable theme</strong>: set <code>Theme/UserSelection: True</code>, drop a <code>Controller: ThemeSwitcher</code> anywhere in the GUI, and the end user picks Light / Auto / Dark live, persisted per application, with no page reload</li>
+<li><strong><code>Theme</code> is a structured config block</strong> discoverable by KIDE<sup>x</sup>: <code>Mode</code>, shared font and icon settings, and per-mode <code>Light:</code> / <code>Dark:</code> palettes each with its own <code>Primary-Color</code></li>
+<li><strong>MCP-KittoX: 40+ tools</strong> (up from 16) — full CRUD on Models, Views and Layouts, database introspection, config read and update, <code>.po</code> reading, metadata validation and view scaffolding</li>
 </ul>
 <h2>18 May 2026: ver. 4.0.7 Beta</h2>
 <ul>
-<li><code>Controller/AutoOpen</code> and <code>Controller/PagingTools</code> based on model's <code>IsLarge</code> flag</li>
-<li>A Reference field whose target Model has <code>IsLarge: True</code> renders as a searchable lookup popup</li>
-</ul>
-<h3>JWT / ACL hardening</h3>
-<ul>
-<li><code>Auth: JWT</code> no longer emits the legacy <code>&lt;AppName&gt;</code> session-id cookie nor <code>kx_db</code> — the JWT <code>sid</code> and <code>db</code> claims carry the same info</li>
-<li>Server-side ACL enforcement on every <code>HandleKX*</code> route (view/data/save/delete/form/lookup/blob/upload/tool/detail*/wizard)</li>
-<li>New auth gate in <code>DoHandleRequest</code> returns 404 on protected routes for unauthenticated requests (public views excluded)</li>
-<li>Toolbar Add/Edit/Delete/Dup stay <code>disabled</code> for ACL-denied users</li>
-<li>Per-thread JWT context cache uses <code>TObjectDictionary&lt;TThreadID, ...&gt;</code></li>
-</ul>
-<h3>IDE / wizard</h3>
-<ul>
-<li>New <strong>RAD Studio IDE plugin gallery</strong>: <code>KittoXIDE.bpl</code> registers 4 entries under <strong>File > New > Other > KittoX Projects</strong> (Standalone .exe / Desktop .exe / ISAPI .dll / Apache .dll)</li>
-<li><strong>Three paths</strong> to scaffold a new app: KIDE<sup>x</sup> standalone, the new IDE gallery, and <code>MCP-KittoX project_create_app</code></li>
-<li>New project default: <code>Auth: TextFile</code> with a ready-to-use <code>Home/FileAuthenticator.txt</code> (admin/admin demo accounts) so the generated app authenticates out of the box, no users table required. JWT envelope kept as default. <code>AccessControl</code> default switched to <code>Null</code> to avoid deny-all post-login on a brand-new project. <code>DB.FD.yaml</code> template now sets <code>ODBCAdvanced: TrustServerCertificate=yes</code> so SQL Server ODBC Driver 17/18 connects on first try</li>
-<li>Model Wizard <code>Beautify names</code> option now also handles DB names with spaces (Northwind-style: <code>Quarterly Orders</code> → <code>QuarterlyOrders</code>, <code>Sales by Category</code> → <code>SalesByCategory</code>); the original name is preserved in <code>PhysicalName</code> for the SQL layer</li>
-<li>Model Wizard — new editable <strong><code>DisplayLabel</code></strong> and <strong><code>Hint</code></strong> fields on every Add/Update Field action: auto-populated from the database's native column comment when present (MSSQL <code>MS_Description</code>, PostgreSQL <code>pg_description</code>, Firebird <code>RDB$DESCRIPTION</code>, MySQL <code>COLUMN_COMMENT</code>, Oracle <code>USER_COL_COMMENTS</code>), fully editable before Apply</li>
-<li>Action &ldquo;New TreeView&hellip;&rdquo; on the Views folder is now <strong>idempotent</strong>: pointing it at an existing <code>MainMenu.yaml</code> merges the Models that aren't yet referenced under the <code>Folder: Menu</code> block, preserving every hand-edited entry, instead of raising a duplicate-object error</li>
-</ul>
-<h3>MCP-KittoX</h3>
-<ul>
-<li>New tool <strong><code>models_create_from_db</code></strong> — the headless equivalent of the Model Wizard. AI agents can reverse-engineer Models from a database connection conversationally: defaults to <code>dry_run: true</code> (preview only); pass <code>dry_run: false</code> to commit. Output is byte-identical to what the visual wizard writes. <code>DisplayLabel</code> auto-populated from the database's native column comments; optional <code>field_descriptions</code> array lets the agent inject labels from a non-DB source (CSV, glossary, prior YAML) with per-property override precedence</li>
-<li>New tools <strong><code>models_list</code> / <code>models_read</code> / <code>views_list</code> / <code>views_read</code> / <code>resources_list</code> / <code>resources_read</code></strong> — enumerate and read project metadata and static resources headlessly</li>
-<li>New tool <strong><code>menu_generate_main_menu</code></strong> — create or refresh <code>MainMenu.yaml</code> with one entry per Model under a top-level <code>Folder: Menu</code>; idempotent (existing entries preserved, only missing Models appended)</li>
-<li><strong>Database column comments</strong> are now auto-fetched for all 5 supported engines (MSSQL, PostgreSQL, Firebird, MySQL, Oracle) and flow into both the KIDE<sup>x</sup> wizard and the MCP tool</li>
-<li>16 tools now implemented (was 9)</li>
-<li>Better error reporting from MCP tools: errors are now propagated verbatim to the JSON-RPC client (class name + message) instead of being replaced by a generic fallback</li>
-</ul>
-<h3>Setup / tooling</h3>
-<ul>
-<li>Setup installer ships <code>MCPKittoX.exe</code> alongside <code>KIDEX.exe</code> sharing OnGuard license</li>
-<li><code>Tools/SetVersion.ps1</code> now also bumps the 12 dprojs of the 3 official examples (HelloKitto, TasKitto, KEmployee — 4 deployment variants each), and inserts <code>&lt;VerInfo_Release&gt;</code> and other VerInfo tags when the .dproj has them stripped (Delphi removes VerInfo tags whose value is 0)</li>
+<li><strong>RAD Studio IDE plugin gallery</strong>: four entries under <strong>File > New > Other > KittoX Projects</strong> (Standalone, Desktop, ISAPI, Apache), so there are now <strong>three ways to scaffold an application</strong> — KIDE<sup>x</sup>, the IDE gallery, and MCP-KittoX</li>
+<li>A generated project <strong>authenticates out of the box</strong>: <code>Auth: TextFile</code> with a ready-to-use file, no users table required</li>
+<li><strong>Model Wizard</strong>: editable <code>DisplayLabel</code> and <code>Hint</code> on every field, auto-populated from the database's own column comments (MSSQL, PostgreSQL, Firebird, MySQL, Oracle); <em>Beautify names</em> handles names with spaces; <em>New TreeView…</em> is idempotent and merges into an existing <code>MainMenu.yaml</code></li>
+<li><strong>MCP-KittoX <code>models_create_from_db</code></strong> — the headless Model Wizard, so an AI agent can reverse-engineer Models conversationally, byte-identical to what the visual wizard writes. Plus <code>models_list</code>/<code>read</code>, <code>views_list</code>/<code>read</code>, <code>resources_list</code>/<code>read</code> and <code>menu_generate_main_menu</code></li>
+<li><code>Controller/AutoOpen</code> and <code>Controller/PagingTools</code> follow the Model's <code>IsLarge</code> flag, and a Reference to a large Model renders as a searchable lookup popup</li>
+<li><strong>ACL enforced server-side on every endpoint</strong>, with the toolbar's Add/Edit/Delete/Dup disabled for a denied user</li>
 </ul>
 <h2>01 May 2026: ver. 4.0.6 Beta</h2>
 <ul>
-<li>New <code>Auth: JWT</code> wrapper authenticator (signed <code>kx_token</code> cookie, sliding expiration, programmatic key registration)</li>
-<li>New <code>AccessControl: JWT</code> reading grants from <code>kx_acl</code> claim snapshotted at login, with optional DB fallback</li>
-<li>Updated examples to JWT Auth (TasKitto / HelloKitto / KEmployee)</li>
-<li>Updated TasKitto example with three-tier ACL (<code>admin</code> / <code>user</code> / <code>viewer</code>)</li>
-<li>Multi-database support on TasKitto and HelloKitto: SQL Server / PostgreSQL / Firebird</li>
-<li>Cross-dialect macros: <code>%DB.TRUE%</code> / <code>%DB.FALSE%</code>, <code>%DB.DATEDIFF</code>, <code>%DB.DATETIME_FROM</code></li>
-<li>Login form with optional &ldquo;Environment&rdquo; combo for multi-database apps (<code>Auth/DatabaseChoices</code>)</li>
-<li>Native boolean types on the three sample DBs (<code>BIT</code> / <code>BOOLEAN</code>); Firebird setup is now SQL-script-only</li>
-<li>Firebird Activity Dashboard views translated from the SQL Server originals</li>
-<li>TasKitto SQL Server DDL split (tables / views in separate scripts because of T-SQL batch rules)</li>
-<li>New <code>Tools/SetVersion.ps1</code>: one-shot version bump across constant, dproj, README and Inno Setup</li>
-<li>New <code>Projects/BuildAllPackagesD{10_4,11,12,13}.ps1</code> wrappers: rebuild Core + Enterprise per Delphi version</li>
-<li>YAML metadata files included in every <code>.dproj</code> (visible in Project Manager, KIDE<sup>x</sup> highlighting)</li>
-<li><code>EF.Logger.TextFile</code> active out-of-the-box for the standalone Indy hosts</li>
+<li>New <strong><code>Auth: JWT</code></strong> wrapper authenticator (signed <code>kx_token</code> cookie, sliding expiration) and <strong><code>AccessControl: JWT</code></strong>, reading grants from a <code>kx_acl</code> claim snapshotted at login</li>
+<li><strong>Multi-database applications</strong>: TasKitto and HelloKitto on SQL Server, PostgreSQL and Firebird, with an optional <em>Environment</em> combo on the login form (<code>Auth/DatabaseChoices</code>) and cross-dialect macros <code>%DB.TRUE%</code>, <code>%DB.FALSE%</code>, <code>%DB.DATEDIFF</code>, <code>%DB.DATETIME_FROM</code></li>
+<li>New <code>Tools/SetVersion.ps1</code>: one-shot version bump across constant, dproj, README and installer script</li>
+<li>YAML metadata files included in every <code>.dproj</code>, visible in the Project Manager with KIDE<sup>x</sup> highlighting</li>
 </ul>
 <h2>23 Apr 2026: ver. 4.0.5 Beta</h2>
 <ul>
-<li>Architectural refactor: DB connection ownership unified in <code>TKConfig</code></li>
-<li>New API <code>TKConfig.DatabaseFor(Name)</code> and <code>TKConfig.CreateStandaloneDBConnection(Name)</code></li>
-<li><code>CreateDBConnection</code> moved from <code>public</code> to <code>protected</code></li>
-<li><code>ClearDatabase</code> / <code>DestroyInstance</code> now clear both <code>FDatabase</code> and <code>FDatabases</code></li>
-<li>New <code>InDBConnection</code> / <code>InDBTransaction</code> helpers</li>
+<li>Database connection ownership unified in <code>TKConfig</code>, with the new <code>DatabaseFor(Name)</code> and <code>CreateStandaloneDBConnection(Name)</code> API and the <code>InDBConnection</code> / <code>InDBTransaction</code> helpers</li>
 </ul>
 <h2>22 Apr 2026: ver. 4.0.4 Beta</h2>
 <ul>
-<li>Manual column resize in grids</li>
-<li>Tooltip on truncated grid cells (only when actually truncated)</li>
-<li>Fix: in-memory lookup popup closing on resize</li>
-<li>Tooltip on TreePanel menu nodes</li>
-<li>Multi-column sort in grids</li>
+<li><strong>DetailTables Style</strong>: <code>Tabs</code>, <code>Bottom</code> or <code>Popup</code></li>
+<li>Multi-column sort and manual column resize in grids, with a tooltip on a cell only when its text is actually truncated</li>
 <li>Multi-page form validation</li>
-<li>Edit-mode accent border for combobox and other non-text-editable fields</li>
-<li>SunEditor readonly rendering</li>
-<li>Checkbox styled like other form inputs</li>
-<li>DetailTables Style (Tabs/Bottom/Popup)</li>
-<li>Added CSS <code>.disabled</code> class</li>
+<li>Edit-mode accent border on comboboxes and other non-text-editable fields</li>
 </ul>
 <h2>23 Apr 2026: ver. 4.0.3 Beta</h2>
 <ul>
-<li>Editing-mode field borders</li>
-<li>Form toolbar anchoring</li>
-<li>DateTime field fixes</li>
-<li>Fixed KittoEmailSenderSrvc</li>
+<li><strong>ExportExcel / ExportFlexCel</strong> tools</li>
 <li>Grid keyboard navigation</li>
-<li>SunEditor theming and resize</li>
-<li>Dialog focus</li>
-<li>DetailTables Style (Tabs/Bottom/Popup)</li>
-<li>ExportExcel / ExportFlexCel</li>
-<li>Fixed Date/time filters SQL conversion</li>
-<li>Date/time filter trigger</li>
-<li>Error dialog consistency</li>
-<li><code>Controller: Window</code> restored backward-compatibility</li>
+<li>Editing-mode field borders and form toolbar anchoring</li>
 </ul>
 <h2>19 Apr 2026: ver. 4.0.2 Beta</h2>
 <ul>
-<li>Simplified Apache/IIS deployment: static resources served internally, no RewriteRule needed</li>
-<li>New deployment mode: Windows Service + reverse proxy (nginx/Apache/IIS) with install/uninstall scripts</li>
-<li>Fixed ViewMode to EditMode save bug in master-detail forms</li>
-<li>Implemented Apply*Rules event chain (EditRecord, NewRecord, Duplicate, AfterShowEditWindow)</li>
-<li>Master-detail: &ldquo;Confirm&rdquo; button (save-cache) and &ldquo;Save All&rdquo; only visible in ViewMode</li>
-<li>HTTP error feedback (htmx:responseError) with Retry/Reset dialog</li>
-<li>Updated Italian localization (.po/.mo) with all KittoX strings</li>
-<li>Extensive documentation updates (deploy, proxy, localization, form state machine, routing)</li>
-<li>Added DDL and DML script for Example databases</li>
+<li><strong>Apache and IIS deployment simplified</strong>: static resources are served internally, with no <code>RewriteRule</code> to write</li>
+<li><strong>New deployment mode</strong>: Windows Service behind a reverse proxy (nginx, Apache, IIS), with install and uninstall scripts</li>
+<li>The <code>Apply*Rules</code> event chain (<code>EditRecord</code>, <code>NewRecord</code>, <code>Duplicate</code>, <code>AfterShowEditWindow</code>)</li>
+<li>HTTP error feedback with a Retry/Reset dialog</li>
+<li>DDL and DML scripts for the example databases</li>
 </ul>
 <h2>09 Apr 2026: ver. 4.0.1 Beta</h2>
-<ul>
-<li>Fixed Field Rules client-side (ForceUpperCase, ForceCamelCaps, MinValue/MaxValue)</li>
-<li>Fixed PackageGroup</li>
-<li>Fixed modal lookup for Reference fields</li>
-<li>Fixed Example for Apache modules</li>
-</ul>
+<p><em>Corrections only.</em></p>
 <h2>07 Apr 2026: ver. 4.0.0 Beta (first public release)</h2>
-<p>First public release of <strong>Kitto<sup>x</sup></strong>, the fourth generation of the Kitto framework. Complete rewrite of the client-side from ExtJS to HTMX + AlpineJS + TemplatePro, with a new modular server architecture.</p>
+<p>First public release of <strong>Kitto<sup>x</sup></strong>, the fourth generation of the Kitto framework: a complete rewrite of the client side from ExtJS to <strong>HTMX + AlpineJS + TemplatePro</strong>, on a new modular server architecture.</p>
 <h3>Architecture</h3>
 <ul>
-<li><strong>HTMX + AlpineJS client</strong>: server-generated HTML fragments with partial page updates via AJAX. No heavy JavaScript framework.</li>
-<li><strong>Attribute-Based Routing (RTTI)</strong>: URL routing via Delphi custom attributes, inspired by MARS/WiRL. Resource classes register in <code>initialization</code> sections; the framework discovers them via RTTI. Dependency injection for request context (<code>[TKXContext]</code>). Dynamic JS/CSS injection via <code>TKXScriptRegistry</code>.</li>
-<li><strong>Open Core licensing</strong>: Core (Apache 2.0), Enterprise modules (AGPL-3.0 / Commercial), KIDEX (Commercial only). Separate packages: <code>KittoXCore.dpk</code> and <code>KittoXEnterprise.dpk</code>.</li>
-<li><strong>Server-Side Store</strong>: persistent in-session data stores with record state tracking (<code>rsNew</code>, <code>rsClean</code>, <code>rsDirty</code>, <code>rsDeleted</code>), transactional master-detail saving (INSERT/UPDATE/DELETE in a single DB transaction), blob lazy-loading, and store lifecycle management (save/cancel/close/timeout).</li>
+<li><strong>HTMX + AlpineJS client</strong>: the server generates HTML fragments and the page updates in place. No heavy JavaScript framework</li>
+<li><strong>Attribute-based routing (RTTI)</strong>: URL routing declared with Delphi custom attributes, resource classes discovered at startup, request context injected</li>
+<li><strong>Server-side store</strong>: in-session data stores with record state tracking, transactional master-detail saving in a single database transaction, blob lazy-loading</li>
+<li><strong>Open Core licensing</strong>: Core under Apache 2.0, Enterprise modules under AGPL-3.0 or commercial, KIDE<sup>x</sup> commercial</li>
 </ul>
 <h3>Controllers</h3>
 <ul>
-<li><strong>List</strong> (grid with CRUD toolbar, server-side paging, sorting, column layouts, row colors, grouping)</li>
-<li><strong>GroupingList</strong> (collapsible group headers)</li>
-<li><strong>Form</strong> (data-aware editing with field pages, detail tabs, ViewMode/EditMode state machine)</li>
-<li><strong>Wizard</strong> (multi-step data-aware with Back/Next/Finish, per-step validation)</li>
+<li><strong>List</strong> (grid with CRUD toolbar, server-side paging, sorting, column layouts, row colours, grouping), <strong>GroupingList</strong>, <strong>Form</strong> (field pages, detail tabs, ViewMode/EditMode), <strong>Wizard</strong> (multi-step with per-step validation)</li>
 <li><strong>BorderPanel</strong>, <strong>TabPanel</strong>, <strong>FlexPanel</strong>, <strong>TreePanel</strong>, <strong>TilePanel</strong>, <strong>HtmlPanel</strong>, <strong>StatusBar</strong>, <strong>ToolBar</strong></li>
-<li><strong>Enterprise</strong>: ChartPanel (Chart.js), CalendarPanel (EventCalendar), GoogleMap (Google Maps JS API), Dashboard (auto-refresh)</li>
-<li><strong>Card View</strong>: List controller with <code>TemplateFileName</code> for custom HTML card layouts with full CRUD</li>
-<li><strong>Desktop Embedded Mode</strong>: KittoX app inside a WebView2 (TEdgeBrowser) VCL window</li>
+<li><strong>Enterprise</strong>: <strong>ChartPanel</strong> (Chart.js), <strong>CalendarPanel</strong>, <strong>GoogleMap</strong>, <strong>Dashboard</strong> (auto-refresh)</li>
+<li><strong>Card view</strong>: the List controller with a <code>TemplateFileName</code> for custom HTML cards, with full CRUD</li>
 </ul>
-<h3>Data &amp; Database</h3>
+<h3>Data and forms</h3>
 <ul>
-<li><strong>Database agnostic</strong>: pluggable via FireDAC (preferred), DBExpress, ADO</li>
-<li><strong>Master-detail transactional save</strong>: master + all detail stores persisted in one transaction</li>
-<li><strong>Detail CRUD in memory</strong>: add/edit/delete detail records without DB round-trips until final Save All</li>
-<li><strong>Record state after Load</strong>: records loaded from DB correctly marked as <code>rsClean</code></li>
-<li><strong>Server-Side Store cache</strong>: blob lazy-load from session store, store released on save/cancel/close/timeout</li>
+<li><strong>Database agnostic</strong> through FireDAC (preferred), DBExpress or ADO</li>
+<li><strong>Detail CRUD in memory</strong>: add, edit and delete detail records with no database round-trip until Save All</li>
+<li><strong>Form state machine</strong>: ViewMode (Edit / Save All / Close) and EditMode (Save / Cancel)</li>
+<li><strong>Filter panel</strong>: <code>FreeSearch</code>, <code>List</code>, <code>DynaList</code>, <code>ButtonList</code>, <code>DynaButtonList</code>, plus <code>DateSearch</code>, <code>TimeSearch</code>, <code>DateTimeSearch</code>, <code>NumericSearch</code>, <code>BooleanSearch</code></li>
+<li><strong>Custom layouts</strong> for grid and form, including a multi-page form with collapsible regions</li>
 </ul>
-<h3>Forms &amp; Editing</h3>
+<h3>Mobile</h3>
 <ul>
-<li><strong>Form State Machine</strong>: ViewMode (Edit / Save All / Close) and EditMode (Save / Cancel) with CSS-based button toggling</li>
-<li><strong>Save-cache endpoint</strong>: saves master to memory without DB persistence, enables Save All workflow</li>
-<li><strong>Detail tables</strong>: lazy-loaded tabs, auto-built views, FK pre-fill on Add, transactional cascading save</li>
-<li><strong>Unified Editor Factory</strong> (<code>Kitto.Html.Editors</code>): centralized HTML input generation shared between Form and FilterPanel</li>
-<li><strong>Help button</strong>: configurable via <code>Defaults/Help/HRef</code> in Config.yaml, appears in forms (first button) and list toolbar (after Refresh)</li>
+<li>Automatic detection from user agent and screen size, fullscreen dialogs, a <strong>TilePanel</strong> menu for phone home pages, and a home view chosen per size (<code>HomeTinyView</code>, <code>HomeSmallView</code>, <code>HomeView</code>)</li>
 </ul>
-<h3>Mobile Support</h3>
+<h3>Authentication and tools</h3>
 <ul>
-<li><strong>Automatic mobile detection</strong>: user agent + screen size cookie</li>
-<li><strong>Fullscreen dialogs on mobile</strong>: <code>IsModal</code> + <code>Maximized</code> forced for all fragment views/forms via <code>AdjustControllerForContext</code></li>
-<li><strong>Panel properties</strong>: <code>IsModal</code> (dialog overlay), <code>Maximized</code> (fullscreen viewport), <code>AllowClose</code> (X button and Close button)</li>
-<li><strong>Width/Height getters</strong>: return 0 when Maximized is True (original values preserved for restore)</li>
-<li><strong><code>kxApp.openView</code></strong>: single JS function for view opening from menus (TreePanel and TilePanel use identical logic)</li>
-<li><strong><code>body.kx-mobile</code> CSS class</strong>: forces dialog and login fullscreen on mobile devices</li>
-<li><strong>TilePanel</strong>: tile-based menu controller for mobile home pages, with touch support (<code>role="button"</code>, <code>touch-action: manipulation</code>)</li>
-<li><strong>Home view selection</strong>: <code>HomeTinyView</code> (phone), <code>HomeSmallView</code> (tablet), <code>HomeView</code> (desktop)</li>
-</ul>
-<h3>UI &amp; UX</h3>
-<ul>
-<li><strong>Toast notifications</strong>: shown after save (&ldquo;Data saved&rdquo;) and delete (&ldquo;Data deleted&rdquo;), auto-dismiss 3 seconds</li>
-<li><strong>Error handling</strong>: DB errors (EEFDBError) non-fatal with clean messages (driver prefixes stripped). Session-level errors trigger reload.</li>
-<li><strong>Draggable dialogs</strong>: all message boxes and error dialogs draggable by title bar via <code>kxMakeDraggable</code></li>
-<li><strong>Refresh button</strong>: in CRUD toolbar (visible by default, hidden with <code>PreventRefreshing</code> or on read-only controllers)</li>
-<li><strong>Column sorting</strong>: click to sort ascending, click again for descending, sort arrows via CSS pseudo-elements</li>
-<li><strong>Double-click to open</strong>: automatic edit/view form from grid rows</li>
-<li><strong>Session lost detection</strong>: fatal error dialog with reload on server restart</li>
-<li><strong>Timeout handling</strong>: configurable <code>AjaxTimeout</code> for both HTMX and fetch channels, Retry/Reset dialog</li>
-</ul>
-<h3>Filters</h3>
-<ul>
-<li>Filter Panel with: <code>FreeSearch</code>, <code>List</code>, <code>DynaList</code>, <code>ButtonList</code>, <code>DynaButtonList</code></li>
-<li><code>DateSearch</code>, <code>TimeSearch</code>, <code>DateTimeSearch</code>, <code>NumericSearch</code>, <code>BooleanSearch</code></li>
-<li>Layout with <code>ColumnBreak</code> and <code>LabelWidth</code></li>
-</ul>
-<h3>Custom Layouts</h3>
-<ul>
-<li>Custom Layout for Grid and Form</li>
-<li>Grid Layout with Column position, alignment</li>
-<li>Form Layout &ldquo;multipage&rdquo;, with collapsible regions</li>
-</ul>
-<h3>Authentication &amp; Access Control</h3>
-<ul>
-<li>Pluggable authenticators: <code>DB</code>, <code>DBCrypt</code>, <code>TextFile</code>, <code>DBServer</code>, <code>OSDB</code>, <code>Null</code></li>
-<li>Pluggable access controllers: <code>DB</code>, <code>Null</code></li>
-<li>BCrypt password hashing, Google OTP (TOTP) two-factor authentication, QR code generation</li>
-<li>Session abstraction: <code>IKXSessionProvider</code> with <code>TKXCookieSessionProvider</code> (JWT-ready for future)</li>
-</ul>
-<h3>Tools</h3>
-<ul>
-<li>CSV export (<code>ExportCSVTool</code>), Excel export via ADO (<code>ExportExcelTool</code>), SQL tool, file download/upload</li>
-<li>FlexCel integration (commercial, Enterprise edition)</li>
-<li>ReportBuilder integration (commercial, Enterprise edition)</li>
-<li>DebenuQuickPDF for PDF merging</li>
+<li>Pluggable authenticators <code>DB</code>, <code>DBCrypt</code>, <code>TextFile</code>, <code>DBServer</code>, <code>OSDB</code>, <code>Null</code> and access controllers <code>DB</code>, <code>Null</code>, with BCrypt hashing, TOTP two-factor and QR code generation</li>
+<li>CSV and Excel export, SQL tool, file download and upload; FlexCel, ReportBuilder and DebenuQuickPDF integration (commercial)</li>
 </ul>
 <h3>Deployment</h3>
 <ul>
-<li><strong>Standalone</strong> (VCL desktop or Windows service with embedded Indy HTTP server)</li>
-<li><strong>Desktop Embedded</strong> (WebView2 inside VCL window)</li>
-<li><strong>Console</strong> (headless server)</li>
-<li><strong>IIS</strong> (ISAPI DLL via WebBroker)</li>
-<li><strong>Apache</strong> (module via WebBroker)</li>
+<li><strong>Standalone</strong> (VCL desktop or Windows service, embedded Indy HTTP server), <strong>Desktop Embedded</strong> (WebView2 in a VCL window), <strong>Console</strong>, <strong>IIS</strong> (ISAPI) and <strong>Apache</strong> (module)</li>
 </ul>
-<h3>KIDEX (Visual IDE — Enterprise)</h3>
+<h3>KIDE<sup>x</sup> (visual IDE — Enterprise)</h3>
 <ul>
-<li>RTTI-based property discovery (replaced 215 MetadataTemplate YAML files)</li>
-<li>6 custom YAML attributes: <code>YamlNode</code>, <code>YamlRequiredNode</code>, <code>YamlContainer</code>, <code>YamlSubNode</code>, <code>YamlChildType</code>, <code>YamlEnumValue</code></li>
-<li>SVG icon support (Material Design Icons)</li>
-<li>Database reverse engineering (model creation from DB schema)</li>
-<li>Project wizard, validators, tree editors</li>
+<li>RTTI-based property discovery, replacing 215 template files, through six YAML attributes; SVG icons; database reverse engineering; project wizard, validators and tree editors</li>
 </ul>
 <h3>Examples</h3>
 <ul>
-<li><strong>HelloKitto</strong>: simple party/invitation manager (Parties, Girls, Dolls, Invitations)</li>
-<li><strong>TasKitto</strong>: activity tracking with dashboard, charts, calendar, projects, customers</li>
-<li><strong>KEmployee</strong>: employee/customer management with master-detail, card views</li>
+<li><strong>HelloKitto</strong> (party and invitation manager), <strong>TasKitto</strong> (activity tracking with dashboard, charts and calendar), <strong>KEmployee</strong> (employee management with master-detail and card views)</li>
 </ul>
-<h3>Supported Delphi Versions</h3>
-<p>Available from Delphi 10.4 to Latest (Win32 or Win64 platforms).</p>
+<h3>Supported Delphi versions</h3>
+<p>Delphi 10.4 to the latest, Win32 and Win64.</p>
 <p><img src="./images/SupportingDelphi.jpg" alt="Supporting Delphi"/></p>
-<p>Related links: <a href="https://www.embarcadero.com/">www.embarcadero.com</a> - <a href="https://learndelphi.org/">https://learndelphi.org</a></p>

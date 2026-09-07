@@ -274,7 +274,7 @@ function TKAccessController.GetAccessGrantValue(const AUserId, AResourceURI,
 var
   LAllResult: Variant;
 begin
-  Assert(AMode <> '');
+  Assert(AMode <> '', 'AMode <> ''''');
 
   // Empty UserId means a non authenticated session
   if AUserId = '' then

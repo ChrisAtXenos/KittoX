@@ -375,7 +375,7 @@ end;
 
 function TEFDBDBXConnection.ExecuteImmediate(const AStatement: string): Integer;
 begin
-  Assert(Assigned(FConnection));
+  Assert(Assigned(FConnection), 'Assigned(FConnection)');
 
   if AStatement = '' then
     raise EEFError.Create(_('Unspecified Statement text.'));
@@ -706,8 +706,12 @@ end;
 
 procedure TEFDBDBXQuery.SetPrepared(const AValue: Boolean);
 begin
-  if AValue then
-    FQuery.Prepared := True;
+  // Assigned either way. 'if AValue then' made unpreparing a no-op, so the
+  // "unprepare, then clear the parameters" sequence that EF.SQL performs
+  // before rebuilding a statement was clearing the parameters of a statement
+  // that was still prepared.
+  if FQuery.Prepared <> AValue then
+    FQuery.Prepared := AValue;
 end;
 
 { TEFDBDBXAdapter }
@@ -732,7 +736,7 @@ end;
 procedure TEFDBDBXInfo.BeforeFetchInfo;
 begin
   inherited;
-  Assert(Assigned(FConnection));
+  Assert(Assigned(FConnection), 'Assigned(FConnection)');
 end;
 
 procedure TEFDBDBXInfo.FetchTables(const ASchemaInfo: TEFDBSchemaInfo);
@@ -788,7 +792,7 @@ end;
 
 procedure TEFDBDBXInfo.StoreServerCharSet;
 begin
-  Assert(Assigned(FConnection));
+  Assert(Assigned(FConnection), 'Assigned(FConnection)');
 
   // Workaround for Firebird driver bug
   // http://qc.embarcadero.com/wc/qcmain.aspx?d=90414
@@ -802,7 +806,7 @@ end;
 
 procedure TEFDBDBXInfo.RestoreServerCharSet;
 begin
-  Assert(Assigned(FConnection));
+  Assert(Assigned(FConnection), 'Assigned(FConnection)');
 
   // Workaround for Firebird driver bug
   // http://qc.embarcadero.com/wc/qcmain.aspx?d=90414

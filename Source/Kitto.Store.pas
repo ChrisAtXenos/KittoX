@@ -707,7 +707,7 @@ function TKStore.FindRecord(const AKey: TEFTree;
 var
   LKeyNode: TEFNode;
 begin
-  Assert(Assigned(AKey));
+  Assert(Assigned(AKey), 'Assigned(AKey)');
 
   LKeyNode := TEFNode.Create;
   try
@@ -868,7 +868,7 @@ function TKStore.GetRecord(const AKey: TEFTree; const AFormatSettings: TFormatSe
 var
   LKeyNode: TEFNode;
 begin
-  Assert(Assigned(AKey));
+  Assert(Assigned(AKey), 'Assigned(AKey)');
 
   LKeyNode := TEFNode.Create;
   try
@@ -895,7 +895,7 @@ procedure TKStore.Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean;
 var
   LRecord: TKRecord;
 begin
-  Assert(Assigned(ADBQuery));
+  Assert(Assigned(ADBQuery), 'Assigned(ADBQuery)');
 
   DoWithChangeNotificationsDisabled(
     procedure
@@ -926,8 +926,8 @@ procedure TKStore.Load(const ADBConnection: TEFDBConnection;
 var
   LDBQuery: TEFDBQuery;
 begin
-  Assert(Assigned(ADBConnection));
-  Assert(ACommandText <> '');
+  Assert(Assigned(ADBConnection), 'Assigned(ADBConnection)');
+  Assert(ACommandText <> '', 'ACommandText <> ''''');
 
   LDBQuery := ADBConnection.CreateDBQuery;
   try
@@ -984,7 +984,7 @@ function TKRecords.AppendAndInitialize: TKRecord;
 begin
   Result := Append;
   Store.Header.Apply(Result);
-  Assert(Result.FieldCount = Store.Header.ChildCount);
+  Assert(Result.FieldCount = Store.Header.ChildCount, 'Result.FieldCount = Store.Header.ChildCount');
 end;
 
 procedure TKRecords.Clear;
@@ -1010,7 +1010,7 @@ function TKRecords.FindRecord(const AValues: TEFNode): TKRecord;
 var
   I: Integer;
 begin
-  Assert(Assigned(AValues));
+  Assert(Assigned(AValues), 'Assigned(AValues)');
 
   Result := nil;
   for I := 0 to RecordCount - 1 do
@@ -1208,7 +1208,7 @@ procedure TKKey.SetFieldNames(const AFieldNames: TStringDynArray);
 var
   I: Integer;
 begin
-  Assert(Length(AFieldNames) > 0);
+  Assert(Length(AFieldNames) > 0, 'Length(AFieldNames) > 0');
 
   Clear;
   for I := Low(AFieldNames) to High(AFieldNames) do
@@ -1396,7 +1396,7 @@ end;
 
 function TKRecord.GetDetailsStore(I: Integer): TKStore;
 begin
-  Assert(Assigned(FDetailStores));
+  Assert(Assigned(FDetailStores), 'Assigned(FDetailStores)');
 
   Result := FDetailStores[I];
 end;
@@ -1518,7 +1518,7 @@ function TKRecord.MatchesValues(const AValues: TEFNode): Boolean;
 var
   I: Integer;
 begin
-  Assert(Assigned(AValues));
+  Assert(Assigned(AValues), 'Assigned(AValues)');
 
   Result := True;
   for I := 0 to AValues.ChildCount - 1 do
@@ -1538,9 +1538,9 @@ var
   LFieldName: string;
   LValue: string;
 begin
-  Assert(Assigned(AFields));
+  Assert(Assigned(AFields), 'Assigned(AFields)');
   if AByIndex then
-    Assert(FieldCount = AFields.Count);
+    Assert(FieldCount = AFields.Count, 'FieldCount = AFields.Count');
 
   Backup;
   try
@@ -1590,7 +1590,7 @@ var
   I: Integer;
   LSourceNode: TEFNode;
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   Backup;
   try
@@ -1619,7 +1619,7 @@ end;
 
 procedure TKRecord.Restore;
 begin
-  Assert(Assigned(FBackup));
+  Assert(Assigned(FBackup), 'Assigned(FBackup)');
 
   // Fields are re-created by cloning the backup's ones, which carry the header
   // field along (see Backup): the restored record is therefore fully usable,
@@ -1713,14 +1713,14 @@ end;
 
 function TKField.GetDataType: TEFDataType;
 begin
-  Assert(Assigned(FHeaderField));
+  Assert(Assigned(FHeaderField), 'Assigned(FHeaderField)');
 
   Result := FHeaderField.DataType;
 end;
 
 function TKField.GetFieldName: string;
 begin
-  Assert(Assigned(FHeaderField));
+  Assert(Assigned(FHeaderField), 'Assigned(FHeaderField)');
 
   Result := FHeaderField.FieldName;
 end;
@@ -1820,7 +1820,7 @@ procedure TKHeader.Apply(const ARecord: TKRecord);
 var
   I: Integer;
 begin
-  Assert(Assigned(ARecord));
+  Assert(Assigned(ARecord), 'Assigned(ARecord)');
 
   ARecord.ClearChildren;
   for I := 0 to FieldCount - 1 do

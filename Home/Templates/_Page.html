@@ -127,7 +127,31 @@
     document.body.addEventListener("htmx:timeout", kxTimeoutHandler);
     document.body.addEventListener("htmx:sendError", kxTimeoutHandler);
 
-    // Handler for HTTP error responses (404, 500, etc.)
+    // A KittoX dialog (error or warning) rendered by the server travels with a
+    // truthful status: 500 for a failure, 4xx where the request was understood
+    // and could not be carried out. HTMX does not swap a non-2xx response
+    // (config.responseHandling), so without this the dialog would never appear
+    // and the specific message would be replaced by the generic one below. That
+    // is exactly why those responses used to be sent as 200.
+    //
+    // Only responses carrying the X-KittoX-Dialog header are opted back in, so
+    // a genuine 404 or a crash with no dialog still reaches the handler below
+    // instead of injecting whatever body it came with into the page. HX-Retarget
+    // and HX-Reswap are already applied by the time beforeSwap fires, so the
+    // dialog still lands as an overlay appended to body. Clearing isError also
+    // suppresses htmx:responseError for this response.
+    document.body.addEventListener("htmx:beforeSwap", function(evt) {
+      var xhr = evt.detail.xhr;
+      if (!xhr || evt.detail.shouldSwap) return;
+      var kind;
+      try { kind = xhr.getResponseHeader("X-KittoX-Dialog"); } catch (e) { return; }
+      if (!kind) return;
+      evt.detail.shouldSwap = true;
+      evt.detail.isError = false;
+    });
+
+    // Handler for HTTP error responses with no KittoX dialog in them
+    // (a 404 on a wrong path, a crash before the error filter could render).
     document.body.addEventListener("htmx:responseError", function(evt) {
       var xhr = evt.detail.xhr;
       var status = xhr ? xhr.status : 0;

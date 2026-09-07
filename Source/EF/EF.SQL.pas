@@ -157,8 +157,8 @@ var
   LKeyFieldNameIndex: Integer;
   LCommandText: string;
 begin
-  Assert(Assigned(AKeyFieldNames));
-  Assert(Assigned(ACommand));
+  Assert(Assigned(AKeyFieldNames), 'Assigned(AKeyFieldNames)');
+  Assert(Assigned(ACommand), 'Assigned(ACommand)');
   if ATableName = '' then
     raise EEFError.Create(_('Unspecified table name.'));
   if AKeyFieldNames.Count = 0 then
@@ -187,7 +187,7 @@ end;
 class procedure TEFSQLBuilder.BuildEmptyTableCommand(const ATableName: string;
   const ACommand: TEFDBCommand);
 begin
-  Assert(Assigned(ACommand));
+  Assert(Assigned(ACommand), 'Assigned(ACommand)');
   if ATableName = '' then
     raise EEFError.Create(_('Unspecified table name.'));
 
@@ -202,8 +202,8 @@ var
   LFieldNameIndex: Integer;
   LCommandText: string;
 begin
-  Assert(Assigned(AFieldNames));
-  Assert(Assigned(ACommand));
+  Assert(Assigned(AFieldNames), 'Assigned(AFieldNames)');
+  Assert(Assigned(ACommand), 'Assigned(ACommand)');
   if ATableName = '' then
     raise EEFError.Create(_('Unspecified table name.'));
   if AFieldNames.Count = 0 then
@@ -243,8 +243,8 @@ var
   LKeyFieldNameIndex: Integer;
   LCommandText: string;
 begin
-  Assert(Assigned(AKeyFieldNames));
-  Assert(Assigned(AQuery));
+  Assert(Assigned(AKeyFieldNames), 'Assigned(AKeyFieldNames)');
+  Assert(Assigned(AQuery), 'Assigned(AQuery)');
   if ATableName = '' then
     raise EEFError.Create(_('Unspecified table name.'));
   if ASelectList = '' then
@@ -279,9 +279,9 @@ var
   LCommandText: string;
   LSetClause: string;
 begin
-  Assert(Assigned(AFieldNames));
-  Assert(Assigned(AKeyFieldNames));
-  Assert(Assigned(ACommand));
+  Assert(Assigned(AFieldNames), 'Assigned(AFieldNames)');
+  Assert(Assigned(AKeyFieldNames), 'Assigned(AKeyFieldNames)');
+  Assert(Assigned(ACommand), 'Assigned(ACommand)');
 
   if ATableName = '' then
     raise EEFError.Create(_('Unspecified table name.'));
@@ -392,12 +392,15 @@ function RemoveSQLQuotes(const AString: string): string;
 var
   LStringLength: Integer;
 begin
+  // Start from the input: a string long enough but not quoted used to leave
+  // Result unassigned, and for a managed type the return slot is often the
+  // caller's own variable, so the function handed back whatever that variable
+  // happened to hold.
+  Result := AString;
   LStringLength := Length(AString);
-  if LStringLength < 2 then
-    Result := AString
-  else
-    if (AString[1] = SQLQuote) and (AString[LStringLength] = SQLQuote) then
-      Result := Copy(AString, 2, LStringLength - 2);
+  if (LStringLength >= 2) and (AString[1] = SQLQuote)
+      and (AString[LStringLength] = SQLQuote) then
+    Result := Copy(AString, 2, LStringLength - 2);
 end;
 
 const

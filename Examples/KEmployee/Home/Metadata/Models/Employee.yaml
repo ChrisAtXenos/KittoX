@@ -30,4 +30,6 @@ Fields:
       JobCountry:
         PhysicalName: JOB_COUNTRY
     DisplayWidth: 40
+DetailReferences:
+  SalaryHistory: SalaryHistory
 ImageName: how_to_reg

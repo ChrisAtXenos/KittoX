@@ -62,6 +62,7 @@
 
   /* Error */
   --kx-error: #c0392b;
+  --kx-warning: #b8860b;
   --kx-error-surface: #fdecea;
   --kx-error-border: #f5c6cb;
 
@@ -111,6 +112,7 @@ html[data-theme="dark"] {
   --kx-input-border: #4b5563;
 
   --kx-error: #dc2626;
+  --kx-warning: #d97706;
   --kx-error-surface: rgba(220, 38, 38, 0.15);
   --kx-error-border: #7f1d1d;
 
@@ -159,6 +161,7 @@ html[data-theme="dark"] {
     --kx-input-border: #4b5563;
 
     --kx-error: #dc2626;
+    --kx-warning: #d97706;
     --kx-error-surface: rgba(220, 38, 38, 0.15);
     --kx-error-border: #7f1d1d;
 
@@ -989,6 +992,10 @@ html, body {
   background: var(--kx-error);
 }
 
+.kx-msgbox-header.kx-msgbox-warning {
+  background: var(--kx-warning);
+}
+
 .kx-msgbox-header.kx-msgbox-confirm {
   background: var(--kx-chrome-dark);
 }
@@ -1005,6 +1012,13 @@ html, body {
 
 .kx-msgbox-icon-error {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='9' fill='%23fff'/%3E%3Cpath d='M6.5 6.5l7 7M13.5 6.5l-7 7' stroke='%23c0392b' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* A refused operation the user can act on -- a delete held back by rows that
+   refer to the record, say -- is not a failure, and gets a triangle rather than
+   the error cross. */
+.kx-msgbox-icon-warning {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 2L19 18H1z' fill='%23fff'/%3E%3Cpath d='M10 7.5v5' stroke='%23b8860b' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='15.5' r='1.1' fill='%23b8860b'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
 .kx-msgbox-icon-confirm {

@@ -540,11 +540,23 @@ uses
   System.Types,
   EF.Localization,
   EF.StrUtils,
+  EF.Types,
   EF.Sys;
+
+const
+  /// <summary>How deep %FILE()% may nest before the expansion is rejected as
+  /// circular. Generous for any legitimate use: a template including a header
+  /// that includes a fragment is three.</summary>
+  MAX_FILE_MACRO_DEPTH = 16;
+
+threadvar
+  // Per-thread: the expansion engine is a singleton shared by every request,
+  // so a counter on the expander or on the engine would mix threads up.
+  _FileMacroDepth: Integer;
 
 procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
 begin
-  Assert(Assigned(AMacroExpansionEngine));
+  Assert(Assigned(AMacroExpansionEngine), 'Assigned(AMacroExpansionEngine)');
 
   AMacroExpansionEngine.AddExpander(TEFPathMacroExpander.Create);
   AMacroExpansionEngine.AddExpander(TEFSysMacroExpander.Create);
@@ -582,12 +594,21 @@ var
   LLocalizableString: string;
   LLocalizableStringLength: Integer;
   LLocalizedString: string;
+  LSearchFrom: Integer;
 begin
   // If parts of the string are enclosed between '_(' and ')', extract and translate them.
   // e.g. <p>_(User: %Auth:UserName%)</p>
   // returns: <p>_(Utente: %Auth:UserName%)</p>
   // Fully-enclosed localizable strings are taken care of elsewhere.
-  LLocalizableStartPos := Pos('_(', AString);
+  //
+  // Every iteration must move LSearchFrom forward. Searching from the start of
+  // the string instead made an unterminated '_(' loop forever: the directive
+  // was left in place, so the next search found it again at the same position.
+  // The string reaches here straight from the login form (the authenticators
+  // expand the supplied user name and password before checking them), so a
+  // request carrying 'a_(b' used to pin a worker thread at 100% CPU for good.
+  LSearchFrom := 1;
+  LLocalizableStartPos := Pos('_(', AString, LSearchFrom);
   while LLocalizableStartPos > 1 do
   begin
     LLocalizableString := Copy(AString, LLocalizableStartPos + 2, MaxInt);
@@ -601,8 +622,14 @@ begin
       Delete(AString, LLocalizableStartPos, LLocalizableStringLength + 3);
       // Replace with localized string.
       Insert(LLocalizedString, AString, LLocalizableStartPos);
-    end;
-    LLocalizableStartPos := Pos('_(', AString);
+      // Resume after the text just written, so a translation that happens to
+      // contain '_(' is not expanded again.
+      LSearchFrom := LLocalizableStartPos + Length(LLocalizedString);
+    end
+    else
+      // No closing ')' for this directive: leave it alone and look for the next one.
+      LSearchFrom := LLocalizableStartPos + 2;
+    LLocalizableStartPos := Pos('_(', AString, LSearchFrom);
   end;
 end;
 
@@ -643,8 +670,8 @@ end;
 
 procedure TEFMacroExpansionEngine.AddExpander(const AExpander: TEFMacroExpander);
 begin
-  Assert(Assigned(AExpander));
-  Assert(AExpander.FOwner = nil);
+  Assert(Assigned(AExpander), 'Assigned(AExpander)');
+  Assert(AExpander.FOwner = nil, 'AExpander.FOwner = nil');
   
   FExpanders.Add(AExpander);
   AExpander.FOwner := Self;
@@ -660,7 +687,7 @@ end;
 
 function TEFMacroExpansionEngine.IndexOfExpander(const AExpander: TEFMacroExpander): Integer;
 begin
-  Assert(Assigned(AExpander));
+  Assert(Assigned(AExpander), 'Assigned(AExpander)');
 
   Result := FExpanders.IndexOf(AExpander);
 end;
@@ -669,7 +696,7 @@ procedure TEFMacroExpansionEngine.RemoveExpanders(const AExpanderClass: TEFMacro
 var
   I: Integer;
 begin
-  Assert(Assigned(AExpanderClass));
+  Assert(Assigned(AExpanderClass), 'Assigned(AExpanderClass)');
 
   for I := FExpanders.Count - 1 downto 0 do
     if FExpanders[I] is AExpanderClass then
@@ -927,7 +954,21 @@ begin
       if FileExists(LFileName) then
       begin
         Result := TextFileToString(LFileName);
-        TEFMacroExpansionEngine.Instance.Expand(Result);
+        // What this macro loads is expanded in turn, and what it loads may
+        // contain another %FILE()%. Two files that include each other, or one
+        // that includes itself, recursed until the stack ran out -- and a stack
+        // overflow on Win64 takes the process down rather than raising
+        // something an application can catch and report.
+        if _FileMacroDepth >= MAX_FILE_MACRO_DEPTH then
+          raise EEFError.CreateFmt(_('The %%FILE()%% macro nested more than %d ' +
+            'levels deep while expanding "%s". Check for files that include ' +
+            'one another.'), [MAX_FILE_MACRO_DEPTH, LFileName]);
+        Inc(_FileMacroDepth);
+        try
+          TEFMacroExpansionEngine.Instance.Expand(Result);
+        finally
+          Dec(_FileMacroDepth);
+        end;
         if Length(AParams) > 1 then
         begin
           SetLength(LOtherParams, Length(AParams) - 1);
@@ -956,7 +997,7 @@ var
   LParamIndex: Integer;
   LParamValue: string;
 begin
-  Assert(Assigned(AParams));
+  Assert(Assigned(AParams), 'Assigned(AParams)');
 
   Result := AString;
   LPosHead := Pos(PARAM_HEAD, Result);
@@ -1003,7 +1044,10 @@ procedure TEFEntityMacroExpander.InternalExpand(var AString: string);
 begin
   inherited InternalExpand(AString);
   ExpandMacros(AString, '%TAB%', #9);
-  ExpandMacros(AString, '%SPACE', ' ');
+  // '%SPACE%', with the closing per cent. Without it the pattern matched the
+  // first six characters of its own macro, so the documented '%SPACE%' expanded
+  // to a space followed by a stray '%', and '%SPACES%' to ' S%'.
+  ExpandMacros(AString, '%SPACE%', ' ');
 end;
 
 { TEFParameterizedMacroExpanderBase }
@@ -1064,7 +1108,7 @@ end;
 
 function TEFFileNameToUrlMacroExpander.ExpandParam(const AFileName: string): string;
 begin
-  Assert(AFileName <> '');
+  Assert(AFileName <> '', 'AFileName <> ''''');
   Result := 'file:///'+ReplaceStr(AFileName, '\', '/');
 end;
 

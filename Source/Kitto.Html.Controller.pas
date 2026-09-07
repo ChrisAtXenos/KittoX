@@ -152,7 +152,7 @@ var
   end;
 
 begin
-  Assert(AView <> nil);
+  Assert(AView <> nil, 'AView <> nil');
 
   LType := GetControllerType;
   LObject := TKXControllerRegistry.Instance.GetClass(LType).Create;

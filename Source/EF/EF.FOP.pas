@@ -157,6 +157,7 @@ implementation
 
 uses
   System.IOUtils,
+  System.StrUtils,
   EF.Sys,
   EF.Localization,
   {$IFDEF POSIX}
@@ -266,8 +267,17 @@ begin
 
   //run batch command
   BatchCommand := '"'+BatchFileName+'" '+StrParams;
+  // CreateProcess cannot run a batch script: it needs the interpreter, and
+  // FOPBatch defaults to FOP.BAT. The whole line is wrapped in one more pair
+  // of quotes because cmd strips the outer pair when the line contains more
+  // than one - which it does, every path being quoted.
+  if MatchText(ExtractFileExt(BatchFileName), ['.bat', '.cmd']) then
+    BatchCommand := 'cmd.exe /c "' + BatchCommand + '"';
 
-  if EFSys.ExecuteCommand(TPath.Combine(FFopPath, BatchCommand)) <> 0 then
+  // No TPath.Combine here: BatchFileName already includes FFopPath, so the
+  // folder was being doubled - and a command line is not a path anyway, so
+  // Combine rejected the leading quote outright with EArgumentException.
+  if EFSys.ExecuteCommand(BatchCommand) <> 0 then
     raise Exception.Create(ERR_FOP);
 
   // verify if the file PDF/PCL/PS/RTF was generated

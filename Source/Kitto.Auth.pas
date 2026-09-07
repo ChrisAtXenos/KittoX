@@ -534,8 +534,19 @@ end;
 procedure TKAuthenticator.AfterConstruction;
 begin
   inherited;
-  DefineAuthData(TKWebSession.Current.AuthData);
-  TKWebSession.Current.IsAuthenticated := False;
+  // Seeding the session's auth data is SESSION work, and the session is
+  // thread-local and established per request by the engine: outside the request
+  // pipeline there is none. Constructing any authenticator there -- a test, a
+  // command-line tool, KIDE -- dereferenced nil and died in the constructor, and
+  // that is why Kitto.MasterDetailTests had to be left out of the test project.
+  // Inside the pipeline nothing changes: the session is always there by the time
+  // an authenticator is built, so this ran unconditionally before and runs
+  // unconditionally now.
+  if Assigned(TKWebSession.Current) then
+  begin
+    DefineAuthData(TKWebSession.Current.AuthData);
+    TKWebSession.Current.IsAuthenticated := False;
+  end;
   // Object state, not session state — see GetIsBCrypted. Explicit even though
   // Delphi zeroes the field, to mirror Kitto1 and to keep the pairing with the
   // line above readable.
@@ -550,7 +561,7 @@ end;
 
 procedure TKAuthenticator.DefineAuthData(const AAuthData: TEFNode);
 begin
-  Assert(Assigned(AAuthData));
+  Assert(Assigned(AAuthData), 'Assigned(AAuthData)');
 
   InternalDefineAuthData(AAuthData);
 
@@ -711,7 +722,7 @@ end;
 
 function TKAuthenticator.Authenticate(const AAuthData: TEFNode): Boolean;
 begin
-  Assert(Assigned(AAuthData));
+  Assert(Assigned(AAuthData), 'Assigned(AAuthData)');
 
   Result := False;
   // Make sure the macros are enabled while authenticating.

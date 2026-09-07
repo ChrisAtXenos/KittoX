@@ -290,7 +290,7 @@ begin
   // node either way.
   LValidatePasswordNode := TKConfig.Instance.Authenticator.EffectiveConfigNode
     .FindNode('ValidatePassword');
-  Assert(Assigned(LValidatePasswordNode));
+  Assert(Assigned(LValidatePasswordNode), 'Assigned(LValidatePasswordNode)');
   LErrorMsg := LValidatePasswordNode.GetExpandedString('Message','Min.8 caratteri con lettere e numeri');
   LRegEx := LValidatePasswordNode.GetExpandedString('RegEx','^[ -~]{8,63}$');
   LRegularExpression.Create(LRegEx);

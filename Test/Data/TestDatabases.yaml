@@ -1,0 +1,67 @@
+# Databases used by the integration tests (EF.DBIntegrationTests).
+#
+# TO SKIP A BACKEND you do not have installed, set Enabled: False on it. Its
+# tests are then reported as ignored, with the reason, instead of failing.
+# A backend that is enabled but unreachable is ignored as well - the suite must
+# stay meaningful on a machine that has only some of these servers - so read the
+# "ignored" lines of a run: that is where a server that should have answered and
+# did not shows up.
+#
+# The tests CREATE AND DROP a table of their own (KX_TEST_TYPES), so the
+# configured user needs permission to create tables. Point these entries at a
+# development database: nothing here is meant to run against production data.
+#
+# The connection blocks have the same shape as the Databases node of an
+# application's Config.yaml, so they can be copied from one to the other.
+
+Databases:
+  MSSQL: FD
+    Enabled: True
+    Connection:
+      DriverID: MSSQL
+      Server: 127.0.0.1, 1433
+      Database: Taskitto
+      OSAuthent: No
+      User_Name: SA
+      Password: 12345
+      Isolation: ReadCommitted
+      ODBCAdvanced: TrustServerCertificate=yes
+
+  Firebird: FD
+    Enabled: True
+    Connection:
+      DriverID: FB
+      # Alias defined in Firebird's Aliases.conf / databases.conf.
+      Database: TASKITTO
+      User_Name: SYSDBA
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      Protocol: TCPIP
+
+  PostgreSQL: FD
+    Enabled: True
+    Connection:
+      DriverID: PG
+      Server: localhost
+      Port: 5432
+      Database: taskitto
+      User_Name: kittox_admin
+      Password: kittox_admin_2026!
+      CharacterSet: UTF8
+      Schema: taskitto
+
+  Oracle: FD
+    # Set to False on a machine without Oracle XE: the tests are then reported
+    # as SKIPPED instead of failing.
+    Enabled: True
+    Connection:
+      DriverID: Ora
+      # EZ Connect: host:port/service_name. Oracle XE 21c PDB = xepdb1.
+      Database: localhost:1521/xepdb1
+      User_Name: TASKITTO
+      Password: 12345
+      CharacterSet: AL32UTF8
+      # Oracle has no native boolean: map booleans to NUMBER(1).
+      BooleanFormat: Integer
+      MetaDefSchema: TASKITTO

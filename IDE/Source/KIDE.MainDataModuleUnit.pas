@@ -56,85 +56,108 @@ uses
   {$ENDIF}
   System.ImageList,
   Vcl.ImgList,
-  Vcl.Controls
+  Vcl.Controls, Vcl.BaseImageCollection,
+  Vcl.ImageCollection
   ;
 
 const
-  FOLDER_PICTURE = 0;
-  CONFIG_PICTURE = 3;
-  VIEW_PICTURE  = 4;
-  MODEL_PICTURE = 5;
-  MODEL_WIZARD_PICTURE = 7;
-  LAYOUT_PICTURE  = 8;
-  LANGUAGES_PICTURE = 10;
-  EDIT_FILE = 11;
-  VALIDATE_PICTURE = 15;
-  NEW_MODEL_PICTURE = 50;
-  DATA_WIZARD_PICTURE = 22;
-  NEW_VIEW_PICTURE = 51;
-  NEW_LAYOUT_PICTURE = 52;
-  FIELD_PICTURE  = 30;
-  FIELD_PK_PICTURE = 87;
-  FIELD_REF_PICTURE = 78;
-  DESIGN_PICTURE = 25;
-  GENERIC_PICTURE  = 26;
-  LABEL_PICTURE  = 34;
-  MEMO_FIELD_PICTURE  = 35;
-  DATA_FIELD_PICTURE  = 36;
-  DATETIME_FIELD = 36;
-  TIME_FIELD_PICTURE  = 37;
-  STRING_FIELD_PICTURE  = 38;
-  INTEGER_FIELD_PICTURE  = 39;
-  BOOLEAN_FIELD_PICTURE  = 40;
-  NUMERIC_FIELD_PICTURE  = 41;
-  DATABASE_PICTURE  = 42;
-  ADD_CHILD = 43;
-  DELETE_NODE = 44;
-  NEW_CONFIG_PICTURE = 49;
-  FASTCGI_PICTURE = 12;
-  EDIT_STYLE = 62;
-  EDIT_SCRIPT = 63;
-  FILE_TXT = 18;
-  FILE_HTML = 64;
-  FILE_IMAGE = 20;
-  FILE_UNKNOWN = 21;
-  FILE_SCRIPT = 65;
-  COLOR_PALETTE = 57;
-  IMAGE_UNDO = 66;
-  KIDE_ICON = 68;
-  HOME_VIEW = 69;
-  FORM_VIEW = 70;
-  LIST_VIEW = 71;
-  TREE_VIEW = 72;
-  LAYOUT_FORM = 73;
-  LAYOUT_GRID = 74;
-  KITTO_ICON = 75;
-  HELP_PICTURE = 76;
-  WIKI_PICTURE = 77;
-  BULB_PICTURE = 79;
-  DELETE_CONFIG_PICTURE = 45;
-  DELETE_MODEL_PICTURE = 46;
-  DELETE_VIEW_PICTURE = 47;
-  DELETE_LAYOUT_PICTURE = 48;
-  IMAGE_BRICK = 80;
-  ARROW_LEFT_PICTURE = 81;
-  ARROW_RIGHT_PICTURE = 82;
-  AUTH_PICTURE  = 83;
-  UAC_PICTURE  = 84;
-  EXT_PICTURE  = 85;
+  FOLDER_PICTURE = 'Folder';
+  CONFIG_PICTURE = 'Config';
+  VIEW_PICTURE = 'View';
+  MODEL_PICTURE = 'Model';
+  MODEL_WIZARD_PICTURE = 'Model-wizard';
+  LAYOUT_PICTURE = 'Layout';
+  LANGUAGES_PICTURE = 'Languages';
+  EDIT_FILE = 'Edit';
+  VALIDATE_PICTURE = 'Validate';
+  NEW_MODEL_PICTURE = 'New-model';
+  DATA_WIZARD_PICTURE = 'Data-wizard';
+  NEW_VIEW_PICTURE = 'New-view';
+  NEW_LAYOUT_PICTURE = 'New-layout';
+  FIELD_PICTURE = 'Field';
+  FIELD_PK_PICTURE = 'Field-pk';
+  FIELD_REF_PICTURE = 'Field-reference';
+  DESIGN_PICTURE = 'Design';
+  GENERIC_PICTURE = 'Generic';
+  LABEL_PICTURE = 'Label';
+  MEMO_FIELD_PICTURE = 'Field-memo';
+  DATA_FIELD_PICTURE = 'Field-datetime';
+  DATETIME_FIELD = 'Field-datetime';
+  TIME_FIELD_PICTURE = 'Field-time';
+  STRING_FIELD_PICTURE = 'Field-string';
+  INTEGER_FIELD_PICTURE = 'Field-integer';
+  BOOLEAN_FIELD_PICTURE = 'Field-boolean';
+  NUMERIC_FIELD_PICTURE = 'Field-numeric';
+  WIDTH_PICTURE = 'Width';
+  EYE_PICTURE = 'Eye';
+  EXPRESSION_PICTURE = 'Expression';
+  HINT_PICTURE = 'Hint';
+  RANGE_FROM_PICTURE = 'Range-from';
+  RANGE_TO_PICTURE = 'Range-to';
+  DATABASE_PICTURE = 'Database';
+  DB_CONNECTION_PICTURE = 'database-connection';
+  DB_ADO_PICTURE = 'database_ADO';
+  DB_DBX_PICTURE = 'database_DbExpress';
+  DB_FD_PICTURE = 'database_FireDAC';
+  ADD_CHILD = 'Add-child';
+  DELETE_NODE = 'Delete-node';
+  NEW_CONFIG_PICTURE = 'New-config';
+  NEW_PROJECT_PICTURE = 'New-project';
+  CLOSE_PROJECT_PICTURE = 'Close-project';
+  FASTCGI_PICTURE = 'Fastcgi';
+  EDIT_STYLE = 'Edit-style';
+  EDIT_SCRIPT = 'Edit-script';
+  FILE_TXT = 'File-txt';
+  FILE_HTML = 'File-html';
+  FILE_IMAGE = 'File-image';
+  FILE_UNKNOWN = 'File-unknown';
+  FILE_CSS = 'File-css';
+  FILE_JS = 'File-js';
+  FILE_SVG = 'File-svg';
+  FILE_JSON = 'File-json';
+  COLOR_PALETTE = 'Color-palette';
+  IMAGE_UNDO = 'Undo';
+  KIDE_ICON = 'Kide';
+  HOME_VIEW = 'Home';
+  MAINMENU_VIEW = 'View-mainmenu';
+  FORM_VIEW = 'View-form';
+  LIST_VIEW = 'View-list';
+  TREE_VIEW = 'View-tree';
+  LAYOUT_FORM = 'Layout-form';
+  LAYOUT_GRID = 'Layout-grid';
+  HELP_PICTURE = 'Help';
+  BULB_PICTURE = 'Bulb';
+  DELETE_CONFIG_PICTURE = 'Delete-config';
+  DELETE_MODEL_PICTURE = 'Delete-model';
+  DELETE_VIEW_PICTURE = 'Delete-view';
+  DELETE_LAYOUT_PICTURE = 'Delete-layout';
+  IMAGE_BRICK = 'Brick';
+  AUTH_PICTURE = 'Auth';
+  UAC_PICTURE = 'Uac';
+  EXT_PICTURE = 'Ext';
+  WEB_PICTURE = 'Web';
+  KEY_PICTURE = 'key';
+  INFO_PICTURE = 'info';
+  ASSISTANT_PICTURE = 'assistant';
+  MAIL_PICTURE = 'Mail';
+  ACCESSCONTROL_PICTURE = 'AccessControl';
+  TEMPLATE_PICTURE = 'template';
+  CALCULATOR_PICTURE = 'calculator';
+  GOOGLEMAPS_PICTURE = 'GoogleMaps';
+  ENGINE_PICTURE = 'Engine';
+  // Bandiere per lingua: il nome dell'item e' il codice lingua gettext usato da
+  // KittoX (vedi TKXLanguageCatalog in Kitto.Html.LanguageSwitcher).
+  LANGUAGE_EN_PICTURE = 'en';
+  LANGUAGE_IT_PICTURE = 'it';
+  LANGUAGE_DE_PICTURE = 'de';
+  LANGUAGE_ES_PICTURE = 'es';
+  LANGUAGE_PT_PICTURE = 'pt';
 
 type
   TIconsStyle = (it16Color, it18Black, it24Black);
 
   TMainDataModule = class(TDataModule)
-    ToolbarImages: TImageList;
-    Images18Black: TImageList;
-    Images24Black: TImageList;
-    Images: TImageList;
-    Images16Color: TImageList;
-    ToolbarImages16Color: TImageList;
-    ToolbarImages24Black: TImageList;
-    ToolbarImages18Black: TImageList;
+    ImageCollection: TImageCollection;
     procedure DataModuleCreate(Sender: TObject);
   private
     FIconsStyle: TIconsStyle;
@@ -152,7 +175,21 @@ type
 var
   MainDataModule: TMainDataModule;
 
-function GetFileImageIndex(const AExt: string): Integer;
+function GetFileImageName(const AExt: string): string;
+/// <summary>Nome dell'icona-bandiera per un id lingua ('it', 'it_IT', 'pt-BR').
+/// Le lingue senza bandiera propria e l'id vuoto ricadono su LANGUAGES_PICTURE.</summary>
+function GetLanguageImageName(const ALanguageId: string): string;
+
+/// <summary>
+///  Restituisce il data module, creandolo se non l'ha fatto nessuno.
+///  KIDEX lo crea dal .dpr; nel package design-time non lo crea nessuno, e i
+///  riferimenti nei DFM della forma
+///  'ImageCollection = MainDataModule.ImageCollection' non hanno allora una
+///  radice su cui risolversi: restano nil in silenzio, la TVirtualImageList
+///  resta vuota e la form si apre senza icone. Va chiamata PRIMA di creare
+///  qualunque form o frame che ne contenga una.
+/// </summary>
+function EnsureMainDataModule: TMainDataModule;
 
 implementation
 
@@ -160,6 +197,7 @@ implementation
 
 uses
   System.StrUtils,
+  Vcl.Forms,
   KIDE.MRUOptions;
 
 {$IFDEF MADEXCEPT}
@@ -242,6 +280,16 @@ begin
 end;
 {$ENDIF}
 
+function EnsureMainDataModule: TMainDataModule;
+begin
+  if not Assigned(MainDataModule) then
+    // Proprieta' di Application in entrambi gli host: nell'applicazione
+    // standalone e' quella di KIDEX, nel package design-time e' quella
+    // dell'IDE, che lo libera alla chiusura.
+    MainDataModule := TMainDataModule.Create(Application);
+  Result := MainDataModule;
+end;
+
 procedure TMainDataModule.DataModuleCreate(Sender: TObject);
 begin
   FIconsStyle := TIconsStyle(TMRUOptions.Instance.GetInteger('IconsStyle', Ord(it18Black)));
@@ -260,35 +308,45 @@ end;
 
 procedure TMainDataModule.UpdateIconsStyle;
 begin
-  case FIconsStyle of
-    it16Color:
-    begin
-      Images.Assign(Images16Color);
-      ToolbarImages.Assign(ToolbarImages16Color);
-    end;
-    it18Black:
-    begin
-      Images.Assign(Images18Black);
-      ToolbarImages.Assign(ToolbarImages18Black);
-    end;
-    it24Black:
-    begin
-      Images.Assign(Images24Black);
-      ToolbarImages.Assign(ToolbarImages24Black);
-    end;
-  end;
+  ;
 end;
 
-function GetFileImageIndex(const AExt: string): Integer;
+function GetLanguageImageName(const ALanguageId: string): string;
+var
+  LCode: string;
+begin
+  // Riduce 'it_IT' / 'pt-BR' al codice base, come TKXLanguageCatalog.NormalizeCode.
+  LCode := Copy(Trim(ALanguageId), 1, 2);
+  if SameText(LCode, 'en') then
+    Result := LANGUAGE_EN_PICTURE
+  else if SameText(LCode, 'it') then
+    Result := LANGUAGE_IT_PICTURE
+  else if SameText(LCode, 'de') then
+    Result := LANGUAGE_DE_PICTURE
+  else if SameText(LCode, 'es') then
+    Result := LANGUAGE_ES_PICTURE
+  else if SameText(LCode, 'pt') then
+    Result := LANGUAGE_PT_PICTURE
+  else
+    Result := LANGUAGES_PICTURE;
+end;
+
+function GetFileImageName(const AExt: string): string;
 begin
   if MatchText(AExt, ['js']) then
-    Result := FILE_SCRIPT
+    Result := FILE_JS
   else if MatchText(AExt, ['htm', 'html']) then
     Result := FILE_HTML
-  else if MatchText(AExt, ['jpg', 'png', 'gif']) then
+  else if MatchText(AExt, ['svg']) then
+    Result := FILE_SVG
+  else if MatchText(AExt, ['jpg', 'png', 'gif', 'bmp']) then
     Result := FILE_IMAGE
   else if MatchText(AExt, ['css']) then
-    Result := COLOR_PALETTE
+    Result := FILE_CSS
+  else if MatchText(AExt, ['json']) then
+    Result := FILE_JSON
+  else if MatchText(AExt, ['txt']) then
+    Result := FILE_TXT
   else
     Result := FILE_UNKNOWN;
 end;

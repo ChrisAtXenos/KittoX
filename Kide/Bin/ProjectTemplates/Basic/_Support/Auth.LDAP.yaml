@@ -2,8 +2,10 @@ Auth: LDAP
   # Simple-bind authentication against an LDAP directory (Active Directory or
   # generic LDAP) via the native wldap32 API. No local user table is needed.
   Host: ldap.example.com
-  Port: 389                      # 389 plain, 636 with UseSSL
-  UseSSL: False                  # True = LDAPS (recommended in production)
+  # 389 plain, 636 with UseSSL.
+  Port: 389
+  # True = LDAPS (recommended in production).
+  UseSSL: False
 
   # --- Active Directory: users log in as DOMAIN\user (or user@domain).
   # Set DefaultDomain so they can type just the user name.

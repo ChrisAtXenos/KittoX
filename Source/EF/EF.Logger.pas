@@ -86,6 +86,19 @@ type
     const LOG_DEBUG = 5;
 
     ///	<summary>
+    ///	  The level for a message that must ALWAYS reach the log: an exception
+    ///	  escaping a handler, a failed save, a misconfiguration that stops the
+    ///	  application. Same value as LOG_LOW, and named apart because these
+    ///	  constants are VERBOSITY THRESHOLDS, not importance: Log emits when
+    ///	  LogLevel >= ALogLevel, so the HIGHER the constant the LESS likely the
+    ///	  message is written, and LOG_HIGH on an error means it disappears from
+    ///	  every configuration that does not raise Level to 'high' -- including
+    ///	  the default one, which is LOG_LOW. Every diagnostic in the framework
+    ///	  had made exactly that mistake.
+    ///	</summary>
+    const LOG_ALWAYS = LOG_LOW;
+
+    ///	<summary>
     ///	  Default log level used when none is specified (LOG_LOW).
     ///	</summary>
     const DEFAULT_LOG_LEVEL = LOG_LOW;

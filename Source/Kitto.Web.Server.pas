@@ -118,7 +118,7 @@ var
   LStream: TStream;
 begin
   inherited;
-  Assert(Assigned(FEngine));
+  Assert(Assigned(FEngine), 'Assigned(FEngine)');
 
   LRequest := TIdHTTPAppRequest.Create(AContext, ARequestInfo, AResponseInfo);
   LResponse := TIdHTTPAppResponse.Create(LRequest, AContext, ARequestInfo, AResponseInfo);

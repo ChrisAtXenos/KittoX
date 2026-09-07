@@ -42,6 +42,7 @@ uses
   Kitto.Metadata.Views,
   Kitto.Config.Server,
   Kitto.Config.Auth,
+  Kitto.Config.Email,
   Kitto.Config.Notifications,
   Kitto.Config.UserFormats,
   Kitto.Config.AccessControl,
@@ -94,6 +95,7 @@ type
     FViews: TKViews;
     FServer: TKServerConfig;
     FAuth: TKAuthConfig;
+    FEmail: TKEmailConfig;
     FNotifications: TKNotificationsConfig;
     FUserFormats: TKUserFormatsConfig;
     FAccessControl: TKAccessControlConfig;
@@ -131,6 +133,7 @@ type
     function GetUseAltLanguage: Boolean;
     function GetServer: TKServerConfig;
     function GetAuth: TKAuthConfig;
+    function GetEmail: TKEmailConfig;
     function GetAccessControl: TKAccessControlConfig;
     function GetUserFormats: TKUserFormatsConfig;
     function GetLogTextFile: TKLogTextFileConfig;
@@ -438,6 +441,9 @@ type
     [YamlSubNode('Auth', TKAuthConfig, 'Authentication settings')]
     property Auth: TKAuthConfig read GetAuth;
 
+    [YamlSubNode('Email', TKEmailConfig, 'E-mail settings: the SMTP servers the application sends through')]
+    property Email: TKEmailConfig read GetEmail;
+
     [YamlSubNode('AccessControl', TKAccessControlConfig, 'Access control settings (SQL commands)')]
     property AccessControl: TKAccessControlConfig read GetAccessControl;
 
@@ -553,6 +559,7 @@ begin
   inherited;
   FreeAndNil(FServer);
   FreeAndNil(FAuth);
+  FreeAndNil(FEmail);
   FreeAndNil(FNotifications);
   FreeAndNil(FUserFormats);
   FreeAndNil(FAccessControl);
@@ -572,6 +579,8 @@ begin
     FServer.Refresh(Config.FindNode('Server'));
   if FAuth <> nil then
     FAuth.Refresh(Config.FindNode('Auth'));
+  if FEmail <> nil then
+    FEmail.Refresh(Config.FindNode('Email'));
   if FNotifications <> nil then
     FNotifications.Refresh(Config.FindNode('Notifications'));
   if FUserFormats <> nil then
@@ -598,7 +607,7 @@ end;
 
 procedure TKConfig.InDBConnection(const ADatabaseName: string; const AProc: TProc<TEFDBConnection>);
 begin
-  Assert(Assigned(AProc));
+  Assert(Assigned(AProc), 'Assigned(AProc)');
 
   // The connection is borrowed from the per-thread cache; not freed here.
   // It will be released by TKConfig.ClearDatabase at end of unit of work.
@@ -642,6 +651,9 @@ begin
     // Per-database opt-in: wrap SQL identifiers in dialect-specific delimiters
     // so that table/column names containing spaces are valid (see KITTOX docs).
     Result.DelimitIdentifiers := Config.GetBoolean('Databases/' + ADatabaseName + '/DelimitedIdent', False);
+    // The name this database is known by: unique among the Databases entries,
+    // and what the connection pool is keyed on (see TEFDBFDConnection).
+    Result.DatabaseName := ADatabaseName;
   except
     FreeAndNil(Result);
     raise;
@@ -1093,6 +1105,13 @@ begin
   Result := FAuth;
 end;
 
+function TKConfig.GetEmail: TKEmailConfig;
+begin
+  if FEmail = nil then
+    FEmail := TKEmailConfig.Create(Config.FindNode('Email'));
+  Result := FEmail;
+end;
+
 function TKConfig.GetAccessControl: TKAccessControlConfig;
 begin
   if FAccessControl = nil then
@@ -1139,7 +1158,7 @@ end;
 
 constructor TKConfigMacroExpander.Create(const AConfig: TKConfig);
 begin
-  Assert(Assigned(AConfig));
+  Assert(Assigned(AConfig), 'Assigned(AConfig)');
 
   FConfig := AConfig;
   inherited Create(AConfig.Config, 'Config');

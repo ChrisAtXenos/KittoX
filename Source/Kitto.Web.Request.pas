@@ -208,7 +208,7 @@ end;
 
 constructor TKWebRequest.Create(const ARequest: TWebRequest; const AOwnsRequest: Boolean);
 begin
-  Assert(Assigned(ARequest));
+  Assert(Assigned(ARequest), 'Assigned(ARequest)');
   inherited Create;
   FRequest := ARequest;
   FOwnsRequest := AOwnsRequest;
@@ -282,8 +282,8 @@ begin
     FJSONContentTree := TEFTree.Create;
     LJSON := TJSONObject.ParseJSONValue(FRequest.Content);
     try
-      Assert(Assigned(LJSON));
-      Assert(LJSON is TJSONObject);
+      Assert(Assigned(LJSON), 'Assigned(LJSON)');
+      Assert(LJSON is TJSONObject, 'LJSON is TJSONObject');
       LoadJSONObjectInTree(TJSONObject(LJSON), FJSONContentTree);
     finally
       FreeAndNil(LJSON);

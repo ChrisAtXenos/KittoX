@@ -183,43 +183,6 @@ type
     property Height: Integer read GetHeight;
   end;
 
-  /// <summary>
-  ///  SMTP email settings from Config.yaml.
-  ///  YAML path: Email/SMTP/Default
-  /// </summary>
-  /// <example>
-  ///  Email:
-  ///    SMTP:
-  ///      Default:
-  ///        UseTLS: False
-  ///        HostName: smtp.example.com
-  ///        Port: 25
-  ///        UserName: user
-  ///        Password: pass
-  /// </example>
-  TKSMTPConfig = class(TEFNode)
-  private
-    function GetUseTLS: Boolean;
-    function GetHostName: string;
-    function GetPort: Integer;
-    function GetUserName: string;
-    function GetPassword: string;
-  public
-    [YamlNode('UseTLS', 'True', 'Use TLS encryption for SMTP')]
-    property UseTLS: Boolean read GetUseTLS;
-
-    [YamlNode('HostName', 'SMTP server host name')]
-    property HostName: string read GetHostName;
-
-    [YamlNode('Port', '25', 'SMTP server port')]
-    property Port: Integer read GetPort;
-
-    [YamlNode('UserName', 'SMTP authentication user name')]
-    property UserName: string read GetUserName;
-
-    [YamlNode('Password', 'SMTP authentication password')]
-    property Password: string read GetPassword;
-  end;
 
   // NB: TKLogTextFileConfig moved to Kitto.Config.Log (typed reader,
   // per-domain config organization).
@@ -346,33 +309,6 @@ end;
 function TKDefaultsWindowConfig.GetHeight: Integer;
 begin
   Result := GetInteger('Height', 600);
-end;
-
-{ TKSMTPConfig }
-
-function TKSMTPConfig.GetUseTLS: Boolean;
-begin
-  Result := GetBoolean('UseTLS', False);
-end;
-
-function TKSMTPConfig.GetHostName: string;
-begin
-  Result := GetString('HostName');
-end;
-
-function TKSMTPConfig.GetPort: Integer;
-begin
-  Result := GetInteger('Port', 25);
-end;
-
-function TKSMTPConfig.GetUserName: string;
-begin
-  Result := GetString('UserName');
-end;
-
-function TKSMTPConfig.GetPassword: string;
-begin
-  Result := GetString('Password');
 end;
 
 { TKLoginFormPanelConfig }

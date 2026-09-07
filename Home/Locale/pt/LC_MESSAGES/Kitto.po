@@ -543,3 +543,401 @@ msgstr "Escuro"
 
 msgid "Auto (follow OS preference)"
 msgstr "Auto (seguir a preferência do sistema)"
+
+# ===== EF.DB.DBX =====
+#: EF.DB.DBX.pas
+msgid "Unspecified Sequence name."
+msgstr "Nome da sequência não especificado."
+
+# ===== EF.DB =====
+#: EF.DB.pas
+msgid "The transaction was rolled back at an inner level and cannot be committed."
+msgstr "A transação foi anulada num nível interno e não pode ser confirmada."
+
+# ===== EF.FOP =====
+#: EF.FOP.pas
+msgid "Batch Files \"%s\" for starting FOP engine not found."
+msgstr "Ficheiro batch \"%s\" para iniciar o motor FOP não encontrado."
+
+#: EF.FOP.pas
+msgid "Error in PDF creator engine execution (FOP engine)"
+msgstr "Erro na execução do motor de criação de PDF (motor FOP)"
+
+#: EF.FOP.pas
+msgid "Error. Cannot create file %s by FOP engine: access denied"
+msgstr "Erro. O motor FOP não consegue criar o ficheiro %s: acesso negado"
+
+#: EF.FOP.pas
+msgid "Error. Cannot generate file by FOP engine: %s"
+msgstr "Erro. O motor FOP não consegue gerar o ficheiro: %s"
+
+#: EF.FOP.pas
+msgid "FO file or XML file not specified"
+msgstr "Ficheiro FO ou ficheiro XML não especificado"
+
+#: EF.FOP.pas
+msgid "FO file or XML file or XSL file not specified"
+msgstr "Ficheiro FO, ficheiro XML ou ficheiro XSL não especificado"
+
+#: EF.FOP.pas
+msgid "FOP engine command not specified."
+msgstr "Comando do motor FOP não especificado."
+
+#: EF.FOP.pas
+msgid "FOP engine folder not specified."
+msgstr "Pasta do motor FOP não especificada."
+
+#: EF.FOP.pas
+msgid "Generating and printing file \"%s\" ..."
+msgstr "A gerar e imprimir o ficheiro \"%s\" ..."
+
+#: EF.FOP.pas
+msgid "PDF direct printing is not allowed"
+msgstr "A impressão direta do PDF não é permitida"
+
+# ===== EF.Sys.Windows =====
+#: EF.Sys.Windows.pas
+msgid "%s: DestinationPath not specified."
+msgstr "%s: DestinationPath não especificado."
+
+#: EF.Sys.Windows.pas
+msgid "%s: SourcePath not set."
+msgstr "%s: SourcePath não definido."
+
+#: EF.Sys.Windows.pas
+msgid "Error \"%s\" while copying from \"%s\" to \"%s\". The destination file might be in use."
+msgstr "Erro \"%s\" ao copiar de \"%s\" para \"%s\". O ficheiro de destino pode estar em uso."
+
+#: EF.Sys.Windows.pas
+msgid "Error \"%s\" while removing file \"%s\". The file might be in use."
+msgstr "Erro \"%s\" ao eliminar o ficheiro \"%s\". O ficheiro pode estar em uso."
+
+#: EF.Sys.Windows.pas
+msgid "Error while removing folder \"%s\". Perhaps the folder is not empty or is in use."
+msgstr "Erro ao eliminar a pasta \"%s\". Talvez a pasta não esteja vazia ou esteja em uso."
+
+#: EF.Sys.Windows.pas
+msgid "SafeGetSystemDirectory: buffer too small."
+msgstr "SafeGetSystemDirectory: buffer demasiado pequeno."
+
+#: EF.Sys.Windows.pas
+msgid "SafeGetWindowsDirectory: buffer too small."
+msgstr "SafeGetWindowsDirectory: buffer demasiado pequeno."
+
+#: EF.Sys.Windows.pas
+msgid "The file \"%s\" might be in use."
+msgstr "O ficheiro \"%s\" pode estar em uso."
+
+# ===== EF.Tree =====
+#: EF.Tree.pas
+msgid "\"%s\" is not a JavaScript date."
+msgstr "\"%s\" não é uma data JavaScript."
+
+# ===== EF.YAML =====
+#: EF.YAML.pas
+msgid "YAML file not found: %s"
+msgstr "Ficheiro YAML não encontrado: %s"
+
+# ===== Kitto.Auth.DB =====
+#: Kitto.Auth.DB.pas
+msgid "Cannot generate the QR code: the user record carries no SECRET_CODE. Add the column to ReadUserCommandText and store a random per-user secret in it."
+msgstr "Não é possível gerar o código QR: o registo do utilizador não contém nenhum SECRET_CODE. Adicione a coluna a ReadUserCommandText e guarde nela um segredo aleatório por utilizador."
+
+# ===== Kitto.Auth.DBServer =====
+#: Kitto.Auth.DBServer.pas
+msgid "PIN/QR authentication is not supported by the DBServer authenticator."
+msgstr "A autenticação PIN/QR não é suportada pelo authenticator DBServer."
+
+#: Kitto.Auth.DBServer.pas
+msgid "Password reset is not supported by the DBServer authenticator: credentials are database accounts, managed on the server."
+msgstr "A reposição da palavra-passe não é suportada pelo authenticator DBServer: as credenciais são contas da base de dados, geridas no servidor."
+
+# ===== Kitto.Auth.TextFile =====
+#: Kitto.Auth.TextFile.pas
+msgid "PIN/QR authentication is not supported by the TextFile authenticator."
+msgstr "A autenticação PIN/QR não é suportada pelo authenticator TextFile."
+
+#: Kitto.Auth.TextFile.pas
+msgid "Password reset is not supported by the TextFile authenticator: edit the user list file instead."
+msgstr "A reposição da palavra-passe não é suportada pelo authenticator TextFile: edite em vez disso o ficheiro com a lista de utilizadores."
+
+# ===== Kitto.Auth =====
+#: Kitto.Auth.pas
+msgid "PIN/QR authentication is not available: this application does not authenticate users."
+msgstr "A autenticação PIN/QR não está disponível: esta aplicação não autentica utilizadores."
+
+#: Kitto.Auth.pas
+msgid "Password reset is not available: this application does not authenticate users."
+msgstr "A reposição da palavra-passe não está disponível: esta aplicação não autentica utilizadores."
+
+# ===== Kitto.Chat.Provider.Claude =====
+#: Kitto.Chat.Provider.Claude.pas
+msgid "Claude API error (HTTP %d %s)."
+msgstr "Erro da API Claude (HTTP %d %s)."
+
+#: Kitto.Chat.Provider.Claude.pas
+msgid "Relevant documentation excerpts:"
+msgstr "Extratos de documentação pertinentes:"
+
+#: Kitto.Chat.Provider.Claude.pas
+msgid "Source"
+msgstr "Fonte"
+
+#: Kitto.Chat.Provider.Claude.pas
+msgid "The AI provider returned an error."
+msgstr "O fornecedor de IA devolveu um erro."
+
+#: Kitto.Chat.Provider.Claude.pas
+msgid "The assistant did not return any content."
+msgstr "O assistente não devolveu nenhum conteúdo."
+
+#: Kitto.Chat.Provider.Claude.pas
+msgid "The user is currently on the \"%s\" screen (controller type: %s)."
+msgstr "O utilizador encontra-se no ecrã \"%s\" (tipo de controller: %s)."
+
+# ===== Kitto.DebenuQuickPDF =====
+#: Kitto.DebenuQuickPDF.pas
+msgid "An invalid combination of barcode and option was sent to the DrawBarcode function"
+msgstr "Foi passada à função DrawBarcode uma combinação inválida de código de barras e opção"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Could not open input file"
+msgstr "Não foi possível abrir o ficheiro de entrada"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Could not open output file"
+msgstr "Não foi possível abrir o ficheiro de saída"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Document is already encrypted"
+msgstr "O documento já está cifrado"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Document is not encrypted"
+msgstr "O documento não está cifrado"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Error on file \"%s\": %s"
+msgstr "Erro no ficheiro \"%s\": %s"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Error unknown of Debenu Quick PDF Library (DebenuPDFLibraryLite1114.dll)"
+msgstr "Erro desconhecido da Debenu Quick PDF Library (DebenuPDFLibraryLite1114.dll)"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Error using DebenuPDFLibraryLite1114.dll library: %s"
+msgstr "Erro ao utilizar a biblioteca DebenuPDFLibraryLite1114.dll: %s"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "File not found"
+msgstr "Ficheiro não encontrado"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Invalid encryption strength"
+msgstr "Nível de cifra inválido"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Invalid file structure, file is damaged"
+msgstr "Estrutura do ficheiro inválida: o ficheiro está danificado"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Invalid page range list"
+msgstr "Lista de intervalos de páginas inválida"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Invalid password"
+msgstr "Palavra-passe inválida"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Invalid permissions"
+msgstr "Permissões inválidas"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Non-numeric characters were sent to DrawBarcode using EAN-13"
+msgstr "Foram passados caracteres não numéricos a DrawBarcode com EAN-13"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "One of the input files is encrypted"
+msgstr "Um dos ficheiros de entrada está cifrado"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "Output file already exists and could not be deleted"
+msgstr "O ficheiro de saída já existe e não foi possível eliminá-lo"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "The EAN-13 barcode has an invalid checksum character"
+msgstr "O código de barras EAN-13 tem um carácter de controlo inválido"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "The Encrypt function failed for an unknown reason"
+msgstr "A função Encrypt falhou por um motivo desconhecido"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "The Encrypt function was used on a document that was already encrypted"
+msgstr "A função Encrypt foi utilizada num documento já cifrado"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "The Key parameter passed to the SetInformation function was out of range"
+msgstr "O parâmetro Key passado à função SetInformation está fora do intervalo"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "The Permissions parameter passed to the Encrypt function was invalid."
+msgstr "O parâmetro Permissions passado à função Encrypt não é válido."
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "The SetInformation function failed because the document is encrypted"
+msgstr "A função SetInformation falhou porque o documento está cifrado"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "The Strength parameter passed to the Encrypt function was invalid"
+msgstr "O parâmetro Strength passado à função Encrypt não é válido"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "The function could not be used because the library is not unlocked"
+msgstr "Não foi possível utilizar a função porque a biblioteca não está desbloqueada"
+
+#: Kitto.DebenuQuickPDF.pas
+msgid "The specified FileHandle was invalid"
+msgstr "O FileHandle indicado não é válido"
+
+# ===== Kitto.Html.ChangePassword =====
+#: Kitto.Html.ChangePassword.pas
+msgid "Changing the password is not supported for this login type. Please contact your administrator."
+msgstr "A alteração da palavra-passe não é suportada para este tipo de acesso. Contacte o administrador."
+
+# ===== Kitto.Html.Files =====
+#: Kitto.Html.Files.pas
+msgid "Error: uploaded file name doesn't match wildcards (%s)"
+msgstr "Erro: o nome do ficheiro carregado não corresponde aos padrões (%s)"
+
+#: Kitto.Html.Files.pas
+msgid "No file uploaded"
+msgstr "Nenhum ficheiro carregado"
+
+# ===== Kitto.Html.TemplateDataPanel =====
+#: Kitto.Html.TemplateDataPanel.pas
+msgid "TemplateFileName or Template not specified."
+msgstr "TemplateFileName ou Template não especificado."
+
+# ===== Kitto.Html.Wizard =====
+#: Kitto.Html.Wizard.pas
+msgid "Finish"
+msgstr "Concluir"
+
+#: Kitto.Html.Wizard.pas
+msgid "Next"
+msgstr "Avançar"
+
+#: Kitto.Html.Wizard.pas
+msgid "Step %d"
+msgstr "Passo %d"
+
+# ===== Kitto.Metadata.DataView =====
+#: Kitto.Metadata.DataView.pas
+msgid "View table %s of view %s declares no Model."
+msgstr "A tabela %s da view %s não declara nenhum Model."
+
+# ===== Kitto.Metadata.ModelImplementation =====
+#: Kitto.Metadata.ModelImplementation.pas
+msgid "%s cannot be deleted: %s still refer to it."
+msgstr "%s não pode ser eliminado: %s ainda lhe fazem referência."
+
+#: Kitto.Metadata.ModelImplementation.pas
+msgid "%s cannot be deleted: %s still refers to it."
+msgstr "%s não pode ser eliminado: %s ainda lhe faz referência."
+
+# ===== Kitto.Tool.Export =====
+#: Kitto.Tool.Export.pas
+msgid "Exporting record %d of %d"
+msgstr "A exportar o registo %d de %d"
+
+# ===== Kitto.Vcl.MainForm =====
+#: Kitto.Vcl.MainForm.pas
+msgid "Inactive"
+msgstr "Inativo"
+
+#: Kitto.Vcl.MainForm.pas
+msgid "Listener started"
+msgstr "Listener iniciado"
+
+#: Kitto.Vcl.MainForm.pas
+msgid "Listener stopped"
+msgstr "Listener parado"
+
+#: Kitto.Vcl.MainForm.pas
+msgid "Stopping listener..."
+msgstr "A parar o listener..."
+
+# ===== Kitto.Web.Application =====
+#: Kitto.Web.Application.pas
+msgid "Warning"
+msgstr "Aviso"
+
+#: Kitto.Web.Application.pas
+msgid "the unit that registers it"
+msgstr "a unit que o registra"
+
+# ===== Kitto.Web.Engine =====
+#: Kitto.Web.Engine.pas
+msgid "Auth: %s is not a registered authenticator. Check the spelling, and make sure the unit that registers it (e.g. Kitto.Auth.%s) is in your project's UseKitto.pas. Registered: %s."
+msgstr "Auth: %s não é um authenticator registado. Verifique a escrita e certifique-se de que a unit que o registra (por exemplo Kitto.Auth.%s) está no UseKitto.pas do projeto. Registados: %s."
+
+# ===== Kitto.Web.Handler.View =====
+#: Kitto.Web.Handler.View.pas
+msgid "Cannot insert a record that is already persisted (operation \"%s\")."
+msgstr "Não é possível inserir um registo já gravado (operação \"%s\")."
+
+#: Kitto.Web.Handler.View.pas
+msgid "No record was selected."
+msgstr "Nenhum registo foi selecionado."
+
+#: Kitto.Web.Handler.View.pas
+msgid "Operation started in the background; you will be notified when the result is ready."
+msgstr "Operação iniciada em segundo plano; será avisado quando o resultado estiver pronto."
+
+#: Kitto.Web.Handler.View.pas
+msgid "The record cannot be identified."
+msgstr "Não é possível identificar o registo."
+
+#: Kitto.Web.Handler.View.pas
+msgid "The record is no longer available."
+msgstr "O registo já não está disponível."
+
+# ===== Kitto.Html.GoogleMap =====
+#: Kitto.Html.GoogleMap.pas
+msgid "Traffic"
+msgstr "Trânsito"
+
+#: Kitto.Html.GoogleMap.pas
+msgid "Bicycling"
+msgstr "Ciclovias"
+
+#: Kitto.Html.GoogleMap.pas
+msgid "Markers"
+msgstr "Marcadores"
+
+#: Kitto.Html.GoogleMap.pas
+msgid "Zoom"
+msgstr "Zoom"
+
+#: Kitto.Html.GoogleMap.pas
+msgid "Map Type"
+msgstr "Tipo de mapa"
+
+#: Kitto.Html.GoogleMap.pas
+msgid "Full Screen"
+msgstr "Ecrã inteiro"
+
+#: Kitto.Html.GoogleMap.pas
+msgid "Street View"
+msgstr "Street View"
+
+# ===== Kitto.Html.List =====
+#: Kitto.Html.List.pas
+msgid "Dup"
+msgstr "Duplicar"
+
+#: Kitto.Html.List.pas
+msgid "View"
+msgstr "Ver"
+

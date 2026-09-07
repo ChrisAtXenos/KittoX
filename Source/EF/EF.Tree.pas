@@ -1478,6 +1478,9 @@ type
     class property Instance: TEFDataTypeRegistry read GetInstance;
     /// <summary>Returns the registered data type class with the given Id.</summary>
     function GetClass(const AId: string): TEFDataTypeClass;
+    /// <summary>The registered classes, so the factory can instantiate them all
+    /// up front and keep its dictionary read-only while requests are served.</summary>
+    property Classes;
   end;
 
   /// <summary>
@@ -1489,6 +1492,15 @@ type
     class var FInstance: TEFDataTypeFactory;
     class function GetInstance: TEFDataTypeFactory; static;
   public
+    /// <summary>
+    ///  Instantiates every registered data type, so that the dictionary is
+    ///  complete before any request is served and GetDataType becomes a plain
+    ///  read. Called once at unit initialization: this is a singleton shared by
+    ///  every thread, on a path taken by each and every value assignment, so
+    ///  filling it lazily meant two concurrent first uses of the same type
+    ///  could both add it (EListError) or read it during a rehash.
+    /// </summary>
+    procedure PreloadRegisteredTypes;
     /// <summary>Frees the singleton instance at unit finalization.</summary>
     class destructor Destroy;
     /// <summary>Creates the internal dictionary of instantiated data types.</summary>
@@ -1516,6 +1528,7 @@ uses
   System.StrUtils,
   System.TypInfo,
   System.Math,
+  System.SyncObjs,
   System.DateUtils,
   EF.JSON,
   EF.XML,
@@ -1524,17 +1537,47 @@ uses
   EF.YAML,
   EF.VariantUtils;
 
+var
+  // Guards the data type dictionary against a type registered after startup
+  // (see TEFDataTypeFactory.GetDataType).
+  _DataTypeLock: TCriticalSection;
+
 {$IF RTLVersion < 23.0}
 const
   varObject = $0049;
 {$IFEND}
 
 function JSDateToDateTime(const AJSDate: string): TDateTime;
+var
+  LYear, LMonth, LDay, LHour, LMinute, LSecond: Integer;
+
+  // -1 when that slice of the string is not a number, which no real part can
+  // be, so it doubles as "missing".
+  function Part(const AStart, ALength: Integer): Integer;
+  begin
+    if not TryStrToInt(Copy(AJSDate, AStart, ALength), Result) then
+      Result := -1;
+  end;
+
 begin
-  Result := EncodeDateTime(StrToInt(Copy(AJSDate, 12, 4)),
-    AnsiIndexStr(Copy(AJSDate, 5, 3), ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']) + 1,
-    StrToInt(Copy(AJSDate, 9, 2)), StrToInt(Copy(AJSDate, 17, 2)), StrToInt(Copy(AJSDate, 20, 2)),
-    StrToInt(Copy(AJSDate, 23, 2)), 0);
+  // This string arrives from the browser, so it is input and gets checked. It
+  // used to go straight into StrToInt and EncodeDateTime, whose messages talk
+  // about integers and date arguments and name neither the value nor where it
+  // came from: a malformed date became a 500 nobody could diagnose.
+  LMonth := AnsiIndexStr(Copy(AJSDate, 5, 3),
+    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct',
+     'Nov', 'Dec']) + 1;
+  LYear := Part(12, 4);
+  LDay := Part(9, 2);
+  LHour := Part(17, 2);
+  LMinute := Part(20, 2);
+  LSecond := Part(23, 2);
+
+  if (LMonth = 0) or (LYear < 0) or (LDay < 0) or (LHour < 0) or (LMinute < 0)
+      or (LSecond < 0)
+      or not TryEncodeDateTime(LYear, LMonth, LDay, LHour, LMinute, LSecond, 0,
+        Result) then
+    raise EEFError.CreateFmt(_('"%s" is not a JavaScript date.'), [AJSDate]);
 end;
 
 { TEFDataTypeRegistry }
@@ -1561,7 +1604,12 @@ end;
 procedure TEFDataTypeFactory.AfterConstruction;
 begin
   inherited;
-  FDataTypes := TDictionary<string, TEFDataType>.Create;
+  // Case-insensitive, like the registry it draws from: with the default
+  // comparer a model spelling a type 'string' instead of 'String' got a second
+  // instance of the same data type, and comparing two fields' DataType by
+  // identity - which the "one instance per type" contract invites - said they
+  // differed.
+  FDataTypes := TDictionary<string, TEFDataType>.Create(TIStringComparer.Ordinal);
 end;
 
 destructor TEFDataTypeFactory.Destroy;
@@ -1579,11 +1627,34 @@ begin
   FreeAndNil(FInstance);
 end;
 
+procedure TEFDataTypeFactory.PreloadRegisteredTypes;
+var
+  LClassName: string;
+begin
+  for LClassName in TEFDataTypeRegistry.Instance.Classes.Keys do
+    if not FDataTypes.ContainsKey(LClassName) then
+      FDataTypes.Add(LClassName, TEFDataType(CreateObject(LClassName)));
+end;
+
 function TEFDataTypeFactory.GetDataType(const AId: string): TEFDataType;
 begin
-  if not FDataTypes.ContainsKey(AId) then
-    FDataTypes.Add(AId, TEFDataType(CreateObject(AId)));
-  Result := FDataTypes[AId];
+  // Every registered type is already in there (see PreloadRegisteredTypes), so
+  // this is a plain read on a dictionary nobody is writing to - which is what
+  // this path needs, being taken by every value assignment on every node.
+  if FDataTypes.TryGetValue(AId, Result) then
+    Exit;
+  // Only a type an application registered after startup gets here. Rare, and
+  // once per type, so the lock costs nothing in practice - but it has to be
+  // there: adding to the dictionary while another thread reads it can rehash
+  // under its feet.
+  _DataTypeLock.Enter;
+  try
+    if not FDataTypes.ContainsKey(AId) then
+      FDataTypes.Add(AId, TEFDataType(CreateObject(AId)));
+    Result := FDataTypes[AId];
+  finally
+    _DataTypeLock.Leave;
+  end;
 end;
 
 function TEFDataTypeFactory.GetDataType(
@@ -1661,21 +1732,21 @@ end;
 
 procedure TEFNode.AssignValueToField(const AField: TField);
 begin
-  Assert(Assigned(AField));
+  Assert(Assigned(AField), 'Assigned(AField)');
 
   DataType.NodeToField(Self, AField);
 end;
 
 procedure TEFNode.AssignValueToParam(const AParam: TParam);
 begin
-  Assert(Assigned(AParam));
+  Assert(Assigned(AParam), 'Assigned(AParam)');
 
   DataType.NodeToParam(Self, AParam);
 end;
 
 procedure TEFNode.AssignFieldValue(const AField: TField);
 begin
-  Assert(Assigned(AField));
+  Assert(Assigned(AField), 'Assigned(AField)');
 
   DataType.FieldValueToNode(AField, Self);
 end;
@@ -1695,7 +1766,7 @@ end;
 
 constructor TEFNode.Clone(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc);
 begin
-  Assert((ASource = nil) or (ASource is TEFNode));
+  Assert((ASource = nil) or (ASource is TEFNode), '(ASource = nil) or (ASource is TEFNode)');
 
   inherited;
   Assign(TEFNode(ASource), AProc);
@@ -1816,7 +1887,7 @@ end;
 
 function TEFNode.GetChildStrings(const AStrings: TStrings): Integer;
 begin
-  Assert(Assigned(AStrings));
+  Assert(Assigned(AStrings), 'Assigned(AStrings)');
 
   AStrings.Text := GetChildStrings;
   Result := AStrings.Count;
@@ -1826,7 +1897,7 @@ function TEFNode.GetChildValues(const AStrings: TStrings): Integer;
 var
   I: Integer;
 begin
-  Assert(Assigned(AStrings));
+  Assert(Assigned(AStrings), 'Assigned(AStrings)');
 
   AStrings.Text := GetChildStrings;
   for I := 0 to AStrings.Count - 1 do
@@ -1838,7 +1909,7 @@ function TEFNode.GetChildNames(const AStrings: TStrings): Integer;
 var
   I: Integer;
 begin
-  Assert(Assigned(AStrings));
+  Assert(Assigned(AStrings), 'Assigned(AStrings)');
   AStrings.Clear;
   for I := 0 to NodeList.Count - 1 do
     AStrings.Add(NodeList[I].Name);
@@ -2129,7 +2200,7 @@ procedure TEFNode.SetChildStrings(const AStrings: TStrings);
 var
   I: Integer;
 begin
-  Assert(Assigned(AStrings));
+  Assert(Assigned(AStrings), 'Assigned(AStrings)');
 
   ClearChildren;
   for I := 0 to AStrings.Count - 1 do
@@ -2245,7 +2316,7 @@ var
   I: Integer;
   LNode: TEFNode;
 begin
-  Assert(Assigned(AFields));
+  Assert(Assigned(AFields), 'Assigned(AFields)');
 
   for I := 0 to AFields.Count - 1 do
   begin
@@ -2256,14 +2327,14 @@ end;
 
 function TEFTree.AddChild(const AName: string; const AValue: Variant): TEFNode;
 begin
-  Assert(AName <> '');
+  Assert(AName <> '', 'AName <> ''''');
 
   Result := AddChild(GetChildClass(AName).Create(AName, AValue));
 end;
 
 function TEFTree.AddChild(const ANode: TEFNode): TEFNode;
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   ANode.FParent := Self;
   FNodes.Add(ANode);
@@ -2277,7 +2348,7 @@ end;
 
 function TEFTree.AddChild(const AName: string): TEFNode;
 begin
-  Assert(AName <> '');
+  Assert(AName <> '', 'AName <> ''''');
 
   Result := AddChild(GetChildClass(AName).Create(AName));
 end;
@@ -2287,6 +2358,12 @@ var
   LNode: TEFNode;
 begin
   Clear;
+  // Clear only clears the children, so the annotations had to go explicitly:
+  // copying them only when the source had some meant that assigning a node
+  // with no comments over one that had them left the old comments attached to
+  // content that was gone -- and the writer then put them back in the file.
+  if AnnotationCount > 0 then
+    GetAnnotations.Clear;
   if Assigned(ASource) then
   begin
     if ASource.AnnotationCount > 0 then
@@ -2451,7 +2528,7 @@ var
   I: Integer;
   LChildNode: TEFNode;
 begin
-  Assert(Assigned(APredicate));
+  Assert(Assigned(APredicate), 'Assigned(APredicate)');
 
   Result := nil;
   for I := 0 to ChildCount - 1 do
@@ -2517,16 +2594,22 @@ end;
 function TEFTree.GetChildIndex<T>(const AChild: T): Integer;
 var
   I: Integer;
+  LIndex: Integer;
 begin
+  // Count in a local and assign Result only on a match: incrementing Result
+  // itself meant that a node which is NOT a child came back as the index of the
+  // last one of its type instead of -1, and the caller then worked on - or
+  // deleted - the wrong child.
   Result := -1;
+  LIndex := 0;
   for I := 0 to ChildCount - 1 do
   begin
     // Don't use "is" here. Either a bug in generics implementation or as designed.
     if Children[I].InheritsFrom(T) then
     begin
-      Inc(Result);
       if T(Children[I]) = AChild then
-        Break;
+        Exit(LIndex);
+      Inc(LIndex);
     end;
   end;
 end;
@@ -2553,21 +2636,30 @@ begin
     Result := nil
   else
   begin
-    MonitorEnter(Self);
-    try
-      LChild := FindChild(LPath[0], ACreateMissingNodes);
-      if Assigned(LChild) then
-      begin
-        if Length(LPath) = 1 then
-          Result := LChild
-        else
-          Result := LChild.FindNodeFrom(LPath, 1, ACreateMissingNodes);
-      end
+    // No lock. There used to be a MonitorEnter(Self) around this, and it was
+    // worse than nothing: it serialised one method against itself while
+    // AddChild, DeleteNode, ClearChildren, Assign and every setter went
+    // unprotected, and FindChild(AName, True) -- which also creates -- was not
+    // covered even here. What it did cover, by accident, was two threads
+    // asking the same object for a node with ACreateMissingNodes, which is how
+    // the metadata objects lazily built their containers.
+    //
+    // TEFTree IS NOT THREAD-SAFE, and now says so rather than half pretending.
+    // A tree shared between threads is the owner's business to synchronise:
+    // TKMetadataCatalog does it with Synchronize for its own index, and the
+    // objects it hands out have their containers built at load time (see
+    // InternalAfterLoad in TKModel and TKDataView) so that request threads
+    // only ever read them.
+    LChild := FindChild(LPath[0], ACreateMissingNodes);
+    if Assigned(LChild) then
+    begin
+      if Length(LPath) = 1 then
+        Result := LChild
       else
-        Result := nil;
-    finally
-      MonitorExit(Self);
-    end;
+        Result := LChild.FindNodeFrom(LPath, 1, ACreateMissingNodes);
+    end
+    else
+      Result := nil;
   end;
 end;
 
@@ -2757,7 +2849,7 @@ end;
 function TEFTree.GetChildrenAsStrings(const APath: string;
   const AStrings: TStrings): Integer;
 begin
-  Assert(Assigned(AStrings));
+  Assert(Assigned(AStrings), 'Assigned(AStrings)');
 
   AStrings.Text := GetChildrenAsStrings(APath);
   Result := AStrings.Count;
@@ -2843,9 +2935,9 @@ var
   LPropertyName: string;
   LProperty: TRttiProperty;
 begin
-  Assert(Assigned(AType));
-  Assert(Assigned(AInstance));
-  Assert(not APath.IsEmpty);
+  Assert(Assigned(AType), 'Assigned(AType)');
+  Assert(Assigned(AInstance), 'Assigned(AInstance)');
+  Assert(not APath.IsEmpty, 'not APath.IsEmpty');
 
   if Assigned(ANode) then
   begin
@@ -2929,7 +3021,7 @@ procedure TEFTree.EnumChildren(const AProc: TNodeProc; const APredicate: TNodePr
 var
   I: Integer;
 begin
-  Assert(Assigned(AProc));
+  Assert(Assigned(AProc), 'Assigned(AProc)');
 
   for I := 0 to ChildCount - 1 do
   begin
@@ -2962,7 +3054,7 @@ begin
   begin
     LChild := Children[I];
     LName := Translate(LChild.Name);
-    Assert(LName <> '');
+    Assert(LName <> '', 'LName <> ''''');
     LStringValue := ASource.ChildByName(LName).AsString;
     if LStringValue <> '' then
     begin
@@ -2994,7 +3086,7 @@ class procedure TEFTreeFactory.ReloadFromFile(const ATree: TEFTree; const AFileN
 var
   LReader: TEFYAMLReader;
 begin
-  Assert(Assigned(ATree));
+  Assert(Assigned(ATree), 'Assigned(ATree)');
 
   LReader := TEFYAMLReader.Create;
   try
@@ -3036,7 +3128,7 @@ var
   LNodeValue: string;
   LNode: TEFNode;
 begin
-  Assert(Assigned(ATree));
+  Assert(Assigned(ATree), 'Assigned(ATree)');
 
   LIndex := 1;
   repeat
@@ -3063,8 +3155,8 @@ end;
 
 procedure TEFDataType.FieldValueToNode(const AField: TField; const ANode: TEFNode);
 begin
-  Assert(Assigned(AField));
-  Assert(Assigned(ANode));
+  Assert(Assigned(AField), 'Assigned(AField)');
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   ANode.LockDataType;
   try
@@ -3143,7 +3235,7 @@ var
   LBoolean: Boolean;
   LCouldBeDateTime: Boolean;
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   LCouldBeDateTime := Length(AYamlValue) >= 5;
 
@@ -3197,7 +3289,7 @@ procedure TEFDataType.JSONValueToNode(const ANode: TEFNode;
   const AValue: string; const AUseJSDateFormat: Boolean;
   const AJSFormatSettings: TFormatSettings);
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   if SupportsEmptyAsNull and ANode.GetEmptyAsNull and (AValue = '') then
     ANode.SetToNull
@@ -3211,7 +3303,7 @@ function TEFDataType.NodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings;
   const AQuote: Boolean; const AEmptyNulls: Boolean): string;
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   if ANode.IsNull then
     Result := IfThen(AEmptyNulls, '', 'null')
@@ -3225,8 +3317,8 @@ end;
 
 procedure TEFDataType.NodeToParam(const ANode: TEFNode; const AParam: TParam);
 begin
-  Assert(Assigned(ANode));
-  Assert(Assigned(AParam));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
+  Assert(Assigned(AParam), 'Assigned(AParam)');
 
   if ANode.IsNull then
   begin
@@ -3247,7 +3339,7 @@ function TEFDataType.NodeToXMLValue(const AForDisplay: Boolean;
 var
   LTagName: string;
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
   LTagName := ANode.Name;
   Result := InternalFormatNodeValue(AForDisplay, ANode, AFormatSettings);
 
@@ -3270,8 +3362,8 @@ end;
 
 procedure TEFDataType.NodeToField(const ANode: TEFNode; const AField: TField);
 begin
-  Assert(Assigned(ANode));
-  Assert(Assigned(AField));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
+  Assert(Assigned(AField), 'Assigned(AField)');
 
   if ANode.IsNull then
     AField.Clear
@@ -3337,7 +3429,7 @@ end;
 procedure TEFDataType.YamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
-  Assert(Assigned(ANode));
+  Assert(Assigned(ANode), 'Assigned(ANode)');
 
   InternalYamlValueToNode(AYamlValue, ANode, AFormatSettings);
 end;
@@ -3454,13 +3546,32 @@ function TEFDataType.ValueToInteger(const AValue: Variant): Integer;
 const
   KB = 1024;
   MB = KB * 1024;
+
+  // Int64 throughout, and a range check before narrowing. The multiplication
+  // used to be done in 32 bits: 'MB' times anything above 2047 overflowed, and
+  // with overflow checking off -- which is how Release is built -- it wrapped
+  // in silence. 'MaxUploadSize: 4096MB' came out as 0, that is, no upload
+  // allowed at all. Nor can 4 GB be represented here: refusing a size the type
+  // cannot express is the only honest answer, and it says so.
+  function ScaledValue(const ASuffix: string; const AFactor: Int64): Integer;
+  var
+    LValue: Int64;
+  begin
+    LValue := AFactor * StrToInt64(StripSuffix(AValue, ASuffix));
+    if (LValue < Low(Integer)) or (LValue > High(Integer)) then
+      raise EEFError.CreateFmt(_('The size %s does not fit an integer: the ' +
+        'largest that can be expressed is %d bytes, about %d MB.'),
+        [string(AValue), High(Integer), High(Integer) div MB]);
+    Result := LValue;
+  end;
+
 begin
   if VarIsNull(AValue) or VarIsEmpty(AValue) then
     Result := 0
   else if EndsStr('MB', AValue) then
-    Result := MB * StrToInt(StripSuffix(AValue, 'MB'))
+    Result := ScaledValue('MB', MB)
   else if EndsStr('KB', AValue) then
-    Result := KB * StrToInt(StripSuffix(AValue, 'KB'))
+    Result := ScaledValue('KB', KB)
   else
     Result := EFVarToInt(AValue);
 end;
@@ -4295,20 +4406,21 @@ end;
 
 function TEFTree.TComparer.Compare(const Left, Right: TEFNode): Integer;
 begin
-  Assert(Assigned(FCompareFunc));
+  Assert(Assigned(FCompareFunc), 'Assigned(FCompareFunc)');
 
   Result := FCompareFunc(Left, Right);
 end;
 
 constructor TEFTree.TComparer.Create(const ACompareFunc: TEFNodeCompareFunc);
 begin
-  Assert(Assigned(ACompareFunc));
+  Assert(Assigned(ACompareFunc), 'Assigned(ACompareFunc)');
 
   inherited Create;
   FCompareFunc := ACompareFunc;
 end;
 
 initialization
+  _DataTypeLock := TCriticalSection.Create;
   TEFDataTypeRegistry.Instance.RegisterClass(TEFStringDataType.GetTypeName, TEFStringDataType);
   TEFDataTypeRegistry.Instance.RegisterClass(TEFMemoDataType.GetTypeName, TEFMemoDataType);
   TEFDataTypeRegistry.Instance.RegisterClass(TEFBlobDataType.GetTypeName, TEFBlobDataType);
@@ -4321,6 +4433,10 @@ initialization
   TEFDataTypeRegistry.Instance.RegisterClass(TEFCurrencyDataType.GetTypeName, TEFCurrencyDataType);
   TEFDataTypeRegistry.Instance.RegisterClass(TEFDecimalDataType.GetTypeName, TEFDecimalDataType);
   TEFDataTypeRegistry.Instance.RegisterClass(TEFObjectDataType.GetTypeName, TEFObjectDataType);
+  // The singleton is built here rather than on first use: creating it lazily
+  // let two threads build two factories, one of which stayed orphaned while
+  // nodes already pointed at data types belonging to it.
+  TEFDataTypeFactory.Instance.PreloadRegisteredTypes;
 
 finalization
   TEFDataTypeRegistry.Instance.UnregisterClass(TEFStringDataType.GetTypeName);
@@ -4335,5 +4451,6 @@ finalization
   TEFDataTypeRegistry.Instance.UnregisterClass(TEFCurrencyDataType.GetTypeName);
   TEFDataTypeRegistry.Instance.UnregisterClass(TEFDecimalDataType.GetTypeName);
   TEFDataTypeRegistry.Instance.UnregisterClass(TEFObjectDataType.GetTypeName);
+  FreeAndNil(_DataTypeLock);
 
 end.

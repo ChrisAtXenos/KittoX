@@ -125,10 +125,20 @@ begin
     Result := AValue;
 end;
 
+type
+  // Cracker to reach the protected DisableAlign/EnableAlign of TWinControl.
+  TWinControlAccess = class(TWinControl);
+
 var
   _LockCount: Integer = 0;
   _LockHandle: HWND = 0;
+  _AlignControl: TWinControl = nil;
 
+// Suppresses painting on the whole top-level window and the layout churn on the
+// container receiving new controls, then (on End) does ONE coordinated repaint.
+// Uses WM_SETREDRAW + DisableAlign instead of LockWindowUpdate (which Microsoft
+// discourages for this purpose: it locks a single window, paints a "ghost" and
+// typically increases flicker). Re-entrant: only the outermost pair acts.
 procedure BeginControlUpdate(const AControl: TWinControl);
 var
   LForm: TCustomForm;
@@ -136,18 +146,30 @@ begin
   Inc(_LockCount);
   if _LockCount = 1 then
   begin
-    // LockWindowUpdate works on one window at a time — use the top-level form
-    LForm := GetParentForm(AControl);
-    if Assigned(LForm) and LForm.HandleAllocated then
-      _LockHandle := LForm.Handle
-    else if AControl.HandleAllocated then
+    // Scope suppression+repaint to the container being rebuilt (not the whole
+    // form): avoids repainting the entire MainForm on every embed.
+    if Assigned(AControl) and AControl.HandleAllocated then
       _LockHandle := AControl.Handle
     else
     begin
-      _LockHandle := 0;
-      Exit;
+      LForm := GetParentForm(AControl);
+      if Assigned(LForm) and LForm.HandleAllocated then
+        _LockHandle := LForm.Handle
+      else
+      begin
+        _LockHandle := 0;
+        _AlignControl := nil;
+        Exit;
+      end;
     end;
-    LockWindowUpdate(_LockHandle);
+    // Stop the top-level window from repainting while we build the subtree.
+    SendMessage(_LockHandle, WM_SETREDRAW, WPARAM(False), 0);
+    // Stop the O(n^2) realign churn on the container that receives the frames.
+    if Assigned(AControl) then
+    begin
+      _AlignControl := AControl;
+      TWinControlAccess(AControl).DisableAlign;
+    end;
   end;
 end;
 
@@ -157,7 +179,16 @@ begin
     Dec(_LockCount);
   if (_LockCount = 0) and (_LockHandle <> 0) then
   begin
-    LockWindowUpdate(0);
+    // Single realign now that every child is in place.
+    if Assigned(_AlignControl) then
+    begin
+      TWinControlAccess(_AlignControl).EnableAlign;
+      _AlignControl := nil;
+    end;
+    // Resume painting and issue ONE full repaint of the whole subtree.
+    SendMessage(_LockHandle, WM_SETREDRAW, WPARAM(True), 0);
+    RedrawWindow(_LockHandle, nil, 0,
+      RDW_INVALIDATE or RDW_ERASE or RDW_ALLCHILDREN or RDW_UPDATENOW);
     _LockHandle := 0;
   end;
 end;

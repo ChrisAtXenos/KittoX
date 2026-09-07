@@ -186,7 +186,9 @@ type
 implementation
 
 uses
-  System.Generics.Defaults;
+  System.Generics.Defaults,
+  EF.Localization,
+  EF.Types;
 
 { TYamlAttributeReader }
 
@@ -303,6 +305,7 @@ var
   LList: TList<TYamlEnumValueInfo>;
   LInfo: TYamlEnumValueInfo;
   LOrdinal: Integer;
+  LEnumValueCount: Integer;
 begin
   if (ATypeInfo = nil) or (ATypeInfo.Kind <> tkEnumeration) then
     Exit(nil);
@@ -311,8 +314,20 @@ begin
   if not Assigned(LType) then
     Exit(nil);
 
+  LEnumValueCount := (LType as TRttiEnumerationType).MaxValue
+    - (LType as TRttiEnumerationType).MinValue + 1;
+
   LList := TList<TYamlEnumValueInfo>.Create;
   try
+    // The mapping is POSITIONAL: the Nth YamlEnumValue attribute describes the
+    // Nth value of the enumeration, because the attribute carries only the YAML
+    // string and not the value it belongs to. Declaration order is therefore
+    // part of the contract, and adding a value to the enumeration without
+    // adding its attribute in the matching place shifts every mapping after it.
+    // The count check below catches that; it cannot catch attributes that are
+    // merely out of order. Naming the value in the attribute would, and is the
+    // proper fix -- it changes the attribute's signature and every declaration
+    // that uses it, so it is recorded as its own piece of work.
     LOrdinal := 0;
     for LAttr in LType.GetAttributes do
     begin
@@ -327,6 +342,12 @@ begin
         Inc(LOrdinal);
       end;
     end;
+
+    if (LList.Count > 0) and (LList.Count <> LEnumValueCount) then
+      raise EEFError.CreateFmt(_('%s declares %d YamlEnumValue attributes for ' +
+        '%d enumerated values. The attributes are matched to the values by ' +
+        'position, so there has to be exactly one for each, in order.'),
+        [LType.Name, LList.Count, LEnumValueCount]);
 
     Result := LList.ToArray;
   finally

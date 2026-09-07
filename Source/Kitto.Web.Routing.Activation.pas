@@ -309,8 +309,8 @@ end;
 
 procedure TKXActivation.Invoke;
 begin
-  Assert(Assigned(FMatchedResource));
-  Assert(Assigned(FMatchedMethod));
+  Assert(Assigned(FMatchedResource), 'Assigned(FMatchedResource)');
+  Assert(Assigned(FMatchedMethod), 'Assigned(FMatchedMethod)');
 
   FResourceInstance := FMatchedResource.ResourceClass.Create;
   try

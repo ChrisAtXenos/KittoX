@@ -100,7 +100,10 @@ type
   ///	</summary>
   TEFBufferedReadFilter = class(TEFReadFilter)
   private
-    FBuffer: PChar;
+    // PByte, not PChar: FBufferLength and FBufferPosition below are counts of
+    // bytes, and indexing a PChar steps two bytes at a time on a Unicode
+    // compiler. See the comment in Read.
+    FBuffer: PByte;
     FBufferLength: Longint;
     FBufferPosition: Longint;
   protected
@@ -126,6 +129,14 @@ type
   ///	  decorated stream. Use it with a buffered read filter to efficiently
   ///	  read text lines from a file.
   ///	</summary>
+  ///	<remarks>
+  ///	  The stream is <b>UTF-8</b>, in both directions: WriteLn encodes to UTF-8
+  ///	  and ReadLn decodes from it. It has to be one encoding for both, or a file
+  ///	  this class writes is not a file it can read back — which is what used to
+  ///	  happen, ReadLn reading two bytes per character as if it were UTF-16.
+  ///	  No byte-order mark is written; one found at the start of the stream is
+  ///	  skipped on reading.
+  ///	</remarks>
   TEFTextStream = class(TEFStreamDecorator)
   private
     FLineBreak: string;
@@ -157,6 +168,12 @@ type
     ///	    both LF (Linux) and CR+LF (Windows) line breaking styles. It
     ///	    doesn't currently support the CR-only line breaking style. Returns
     ///	    EOT when there's no more text.
+    ///	  </para>
+    ///	  <para>
+    ///	    The bytes are read one at a time and decoded as <b>UTF-8</b> once the
+    ///	    line is complete, which is the encoding WriteLn produces. A
+    ///	    byte-order mark at the start of the stream is not part of the first
+    ///	    line and is skipped.
     ///	  </para>
     ///	  <para>
     ///	    Note: the value of the LineBreak property is ignored.
@@ -257,7 +274,7 @@ const
 constructor TEFStreamDecorator.Create(const AStream: TStream;
   const AOwnsStream: Boolean = True);
 begin
-  Assert(Assigned(AStream));
+  Assert(Assigned(AStream), 'Assigned(AStream)');
 
   inherited Create;
   FStream := AStream;
@@ -304,7 +321,7 @@ end;
 
 function TEFReadFilter.Read(var Buffer; Count: Longint): Longint;
 begin
-  Assert(not FGettingSize);
+  Assert(not FGettingSize, 'not FGettingSize');
 
   Result := inherited Read(Buffer, Count);
 end;
@@ -365,9 +382,28 @@ begin
   Result := FBufferLength <> 0;
 end;
 
+// Every counter in here -- FBufferLength, FBufferPosition, LBytesToCopy and
+// Count -- is a number of BYTES, so the two pointers walking over them are
+// PByte. They used to be PChar, which on a Unicode compiler is a pointer to a
+// two-byte element, and pointer arithmetic on it steps by elements:
+//
+//   FBuffer[FBufferPosition] sat at byte offset 2 * FBufferPosition, so every
+//   read after the first one in a buffer took its bytes from twice as far in.
+//   A caller consuming two bytes at a time -- TEFTextStream.ReadLn reads one
+//   Char -- got every other byte, and once the position passed half the buffer
+//   it was reading off the end of the allocation, up to 16 KB into whatever
+//   followed it on the heap;
+//
+//   Inc(LPCharBuffer, LBytesToCopy) advanced the CALLER's buffer by twice the
+//   bytes just written. A Read larger than the internal buffer wrote its
+//   remainder past the end of the buffer the caller supplied.
+//
+// The code was written for a single-byte Char and never adjusted. It kept
+// working for a read that fits in one bufferful from position zero, which is
+// the only shape anything in the tree ever asked of it.
 function TEFBufferedReadFilter.Read(var Buffer; Count: Longint): Longint;
 var
-  LPCharBuffer: PChar;
+  LDestination: PByte;
   LBytesToRead: Longint;
   LBytesToCopy: Longint;
 
@@ -381,17 +417,23 @@ var
   end;
 
 begin
-  LPCharBuffer := @Buffer;
+  LDestination := @Buffer;
   Result := 0;
   // Fill the internal buffer if required.
   if FBufferPosition = FBufferLength then
     if not ReadNextBuffer then
+    begin
+      // Fewer bytes than asked for -- none at all, in fact -- and the class
+      // promises OnEndOfStream in that case. This path used to leave silently.
+      if Count > 0 then
+        DoEndOfStream;
       Exit;
+    end;
   LBytesToRead := Count;
   // How many bytes should we copy from the internal buffer?
-  LBytesToCopy := Min(FBufferLength - FBufferPosition, LBytesToRead);
+  LBytesToCopy := HowManyBytesToCopy(LBytesToRead);
   // Copy 'em.
-  Move(FBuffer[FBufferPosition], LPCharBuffer^, LBytesToCopy);
+  Move(FBuffer[FBufferPosition], LDestination^, LBytesToCopy);
   Inc(Result, LBytesToCopy);
   // Once the bytes are copied, adjust the counters.
   Inc(FBufferPosition, LBytesToCopy);
@@ -400,7 +442,7 @@ begin
   while LBytesToRead <> 0 do
   begin
     // Go right after the data we just copied.
-    Inc(LPCharBuffer, LBytesToCopy);
+    Inc(LDestination, LBytesToCopy);
     // The internal buffer was copied entirely, so read another one.
     if not ReadNextBuffer then
     begin
@@ -409,9 +451,10 @@ begin
       Exit;
     end;
     // How many bytes should we copy from the internal buffer?
-    LBytesToCopy := Min(FBufferLength - FBufferPosition, LBytesToRead);
-    // Copy 'em.
-    Move(FBuffer^, LPCharBuffer^, LBytesToCopy);
+    LBytesToCopy := HowManyBytesToCopy(LBytesToRead);
+    // Copy 'em. ReadNextBuffer has just reset the position to zero, so the
+    // source is the start of the buffer.
+    Move(FBuffer^, LDestination^, LBytesToCopy);
     Inc(Result, LBytesToCopy);
     // Once the bytes are copied, adjust the counters.
     Inc(FBufferPosition, LBytesToCopy);
@@ -440,25 +483,54 @@ end;
 
 function TEFTextStream.ReadLn: string;
 const
-  CR = #13;
-  LF = #10;
+  CR = 13;
+  LF = 10;
+  BOM = #$FEFF;
+  INITIAL_CAPACITY = 256;
 var
-  LCurrentChar: Char;
+  LByte: Byte;
+  LBytes: TBytes;
+  LCount: Integer;
   LBytesRead: Longint;
+  LAtStart: Boolean;
 begin
-  Result := '';
-  LBytesRead := Read(LCurrentChar, SizeOf(LCurrentChar));
+  // A BYTE at a time, and the decoding at the end, because the stream is UTF-8:
+  // this used to read SizeOf(Char) — two bytes — and compare the pair against
+  // LF, which is UTF-16. On text that WriteLn had produced it therefore
+  // returned garbage, and found a line break only where two bytes happened to
+  // be exactly $000A: for plain ASCII, never. Reader and writer could not
+  // agree on the same file, whatever it contained.
+  //
+  // Byte-wise reading costs nothing here, and this class is documented to be
+  // used behind a TEFBufferedReadFilter, which serves those reads from its own
+  // buffer.
+  LAtStart := Seek(Int64(0), soCurrent) = 0;
+  SetLength(LBytes, INITIAL_CAPACITY);
+  LCount := 0;
+  LBytesRead := Read(LByte, SizeOf(LByte));
   if LBytesRead = 0 then
+    Exit(EOT);
+  while (LBytesRead <> 0) and (LByte <> LF) do
   begin
-    Result := EOT;
-    Exit;
+    // CR skipped, so both LF and CR+LF work, as before. A CR-only stream still
+    // reads as a single line: that limitation is unchanged and documented.
+    if LByte <> CR then
+    begin
+      if LCount = Length(LBytes) then
+        SetLength(LBytes, Length(LBytes) * 2);
+      LBytes[LCount] := LByte;
+      Inc(LCount);
+    end;
+    LBytesRead := Read(LByte, SizeOf(LByte));
   end;
-  while (LBytesRead <> 0) and (LCurrentChar <> LF) do
-  begin
-    if LCurrentChar <> CR then
-      Result := Result + LCurrentChar;
-    LBytesRead := Read(LCurrentChar, SizeOf(LCurrentChar));
-  end;
+  SetLength(LBytes, LCount);
+  Result := TEncoding.UTF8.GetString(LBytes);
+  // A byte-order mark belongs to the file, not to its first line. WriteLn never
+  // emits one, but a file written by something else may carry it, and decoded
+  // it would arrive as a leading U+FEFF inside the text. Dropped here rather
+  // than by peeking ahead, which a read filter cannot undo.
+  if LAtStart and Result.StartsWith(BOM) then
+    Result := Result.Substring(1);
 end;
 
 procedure TEFTextStream.WriteLn(const AString: string);
@@ -519,7 +591,7 @@ function TEFXMLOutputStream.EncodeAttributes(const AAttributeNames: array of str
 var
   LAttributeIndex: Integer;
 begin
-  Assert(Length(AAttributeNames) = Length(AAttributeValues));
+  Assert(Length(AAttributeNames) = Length(AAttributeValues), 'Length(AAttributeNames) = Length(AAttributeValues)');
   if Length(AAttributeNames) = 0 then
     Result := ''
   else

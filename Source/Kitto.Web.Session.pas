@@ -394,8 +394,8 @@ end;
 
 constructor TKWebSession.Create(const AClientAddress, ASessionId: string; const ATimeout: Double);
 begin
-  Assert(ASessionId <> '');
-  Assert(AClientAddress <> '');
+  Assert(ASessionId <> '', 'ASessionId <> ''''');
+  Assert(AClientAddress <> '', 'AClientAddress <> ''''');
 
   inherited Create;
   FSessionId := ASessionId;
@@ -731,7 +731,7 @@ function TKWebSessions.NewSession(const AClientAddress: string; const ASessionId
 var
   LSessionId: string;
 begin
-  Assert(AClientAddress <> '');
+  Assert(AClientAddress <> '', 'AClientAddress <> ''''');
 
   if ASessionId <> '' then
     LSessionId := ASessionId

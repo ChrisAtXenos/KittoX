@@ -70,6 +70,7 @@ type
     FActive: Boolean;
     FSessionCleanupInterval: Double;
     FAuthCarriesSessionId: Boolean;
+    FJWTCookieName: string;
     FOnSessionStart: TKWebEngineSessionProc;
     FOnSessionEnd: TKWebEngineSessionProc;
     procedure EnsureSession(const AURL: TKWebURL);
@@ -146,6 +147,7 @@ uses
   Kitto.Auth,
   Kitto.Types,
   Kitto.Config,
+  Kitto.Config.Auth,
   Kitto.Web.Routing.Registry,
   Kitto.Html.Response,
   Kitto.Web.Types;
@@ -197,7 +199,7 @@ begin
       TEFLogger.Instance.LogFmt('Auth: %s is not a registered authenticator. '+
         'Add the unit that registers it to UseKitto.pas. Registered: %s.',
         [LAuthType, String.Join(', ', TKAuthenticatorRegistry.Instance.GetClassIds)],
-        TEFLogger.LOG_HIGH);
+        TEFLogger.LOG_ALWAYS);
       raise EKError.CreateFmt(
         _('Auth: %s is not a registered authenticator. Check the spelling, and make sure the unit that registers it (e.g. Kitto.Auth.%s) is in your project''s UseKitto.pas. Registered: %s.'),
         [LAuthType, LAuthType,
@@ -207,6 +209,10 @@ begin
     // carries the 'sid' claim exactly when the auth config declares a JWT
     // sub-block (Auth/JWT), so no separate session-id cookie is emitted.
     FAuthCarriesSessionId := Assigned(LConfig.Config.FindNode('Auth/JWT'));
+    // Same node, and the same default, the JWT engine itself reads when it
+    // writes the cookie (TKJWTConfig): an application that renames it must
+    // still find its session id here.
+    FJWTCookieName := LConfig.Config.GetString('Auth/JWT/Cookie/Name', DEFAULT_JWT_COOKIE_NAME);
     // Expand the '{apibase}' placeholder in the REST routes with the configured
     // base path (Server/RestBasePath, default '/api/v4') now that the config is
     // loaded, before any request is served. No-op for non-REST routes / apps.
@@ -283,12 +289,13 @@ begin
   if Result <> '' then
     Exit;
   // JWT path: the token carries a signed 'sid' claim used as the session
-  // correlator. The browser SPA sends it in the kx_token cookie; a stateless
+  // correlator. The browser SPA sends it in the token cookie (kx_token unless
+  // Auth/JWT/Cookie/Name says otherwise); a stateless
   // REST client sends it in the Authorization: Bearer header. Reading the sid
   // from the header too means repeated calls with the same token reuse ONE
   // server-side session (1 per token) instead of creating a fresh one per
   // request (which would leak sessions until timeout).
-  LToken := TKWebRequest.Current.GetCookie('kx_token');
+  LToken := TKWebRequest.Current.GetCookie(FJWTCookieName);
   if LToken = '' then
   begin
     LAuth := TKWebRequest.Current.GetHeaderField('Authorization');
@@ -321,21 +328,36 @@ end;
 
 procedure TKWebEngine.SetSessionIdIntoResponse(const ASession: TKWebSession; const ARemove: Boolean);
 begin
-  Assert(Assigned(ASession));
+  Assert(Assigned(ASession), 'Assigned(ASession)');
 
-  // When the configured authenticator's credential already carries the session
-  // id (e.g. JWT 'sid' claim) the legacy session id cookie named after
-  // AppName would just shadow kx_token in DevTools. Skip writing it on normal
-  // requests so the response stays minimal. We still emit an expired cookie
-  // on session end to clear any stale legacy cookie left over from older
-  // framework builds.
-  if FAuthCarriesSessionId and (not ARemove) then
-    Exit;
-
+  // The session id cookie is written for EVERY authenticator, JWT included.
+  // It used to be skipped when the credential carried the id itself (Auth/JWT),
+  // on the grounds that a second cookie only shadowed kx_token in DevTools. But
+  // it is the ONLY correlator a request can present in the two cases where the
+  // token cookie is absent: before there is a token at all (the login page and
+  // everything it loads) and outside the token cookie's path (the static
+  // resources under /res, since the JWT cookie is scoped to the application
+  // path). A request that presents no id gets a NEW session, so one login page
+  // produced one anonymous session per file it loaded - dozens of them in the
+  // log, all userless, until the real one appeared at login.
+  //
+  // This is not a relaxation of the r373 session rule: a request is still
+  // matched to a session ONLY by an identifier it presents, never by its client
+  // address. It just gives the client an identifier to present.
+  //
+  // HttpOnly and SameSite=Lax because for the authenticators that do NOT carry
+  // the id in the credential this cookie IS the credential: script must not be
+  // able to read it, and it must not travel on cross-site requests. Secure is
+  // deliberately False - applications are routinely deployed over plain HTTP on
+  // an intranet, and a Secure cookie would never come back from there. Path is
+  // '/' so that the static resource routes, which live outside the application
+  // path, are served inside the session that asked for them.
   if ARemove then
-    TKWebResponse.Current.SetCookie(FSessionIDCookieName, ASession.SessionId, Now - 7)
+    TKWebResponse.Current.SetSecureCookie(FSessionIDCookieName, ASession.SessionId,
+      Now - 7, '/', True, False, 'Lax')
   else
-    TKWebResponse.Current.SetCookie(FSessionIDCookieName, ASession.SessionId, Now + ASession.Timeout);
+    TKWebResponse.Current.SetSecureCookie(FSessionIDCookieName, ASession.SessionId,
+      Now + ASession.Timeout, '/', True, False, 'Lax');
 end;
 
 function TKWebEngine.SimpleHandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse;
@@ -397,7 +419,7 @@ begin
   LSessionId := GetSessionIdFromRequest;
   LClientAddress := TKWebRequest.Current.RemoteAddr;
 
-  Assert(LClientAddress <> '');
+  Assert(LClientAddress <> '', 'LClientAddress <> ''''');
 
   // Atomically find or create è prevents duplicate sessions when multiple
   // requests arrive concurrently (e.g. page + resources after F5/restart).
