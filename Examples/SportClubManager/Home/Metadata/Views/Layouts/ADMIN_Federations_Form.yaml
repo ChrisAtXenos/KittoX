@@ -1,0 +1,16 @@
+﻿FieldSet:
+  Title: _(Federation Data)
+  Row:
+    Field: Id
+    Field: SportType
+    Field: Description
+  Row:
+    Field: Address
+    Field: PostalCode
+    Field: Municipality
+    Field: Province
+  Row:
+    Field: Email
+  Row:
+    Field: FederationLogo
+LabelAlign: Right

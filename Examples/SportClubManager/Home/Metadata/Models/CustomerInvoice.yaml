@@ -1,0 +1,58 @@
+﻿ModelName: CustomerInvoice
+PhysicalName: FATTURECLIENTI
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  InvoiceNumber: String(10) not null
+    DisplayLabel: _(Invoice number)
+    PhysicalName: NUMFATT
+  InvoiceDate: Date not null
+    PhysicalName: DATAFATT
+    DisplayWidth: 12
+    DisplayLabel: _(Invoice date)
+  TaxableAmount: Currency not null
+    DisplayLabel: _(Taxable amount)
+    PhysicalName: IMPONIBILE
+    DisplayWidth: 10
+  TotalVat: Currency not null
+    DisplayLabel: _(Total VAT)
+    PhysicalName: TOTIVA
+    DisplayWidth: 10
+  InvoiceTotal: Currency not null
+    DisplayLabel: _(Invoice total)
+    PhysicalName: TOTALEFATT
+    DisplayWidth: 10
+  Notes: Memo
+    DisplayLabel: _(Notes)
+    PhysicalName: NOTE
+  AccountingReason: Reference(AccountingReason) not null
+    DisplayLabel: _(Accounting Reason)
+    PhysicalName: FK_FATTURECLIENTI_CAUSALE
+    Fields:
+      AccountingReasonId:
+        PhysicalName: CAUSALEID
+  BankAccount: Reference(BankAccount)
+    DisplayLabel: _(Bank Account)
+    PhysicalName: FK_FATTURECLIENTI_CONTOCORRENTE
+    Fields:
+      BankAccountId:
+        PhysicalName: CONTOCORRENTEID
+  FinancialYear: Reference(FinancialYear) not null
+    DisplayLabel: _(Financial Year)
+    PhysicalName: FK_FATTURECLIENTI_ESERCIZIO
+    Fields:
+      FinancialYearId:
+        PhysicalName: ESERCIZIOID
+  PaymentMethod: Reference(PaymentMethod) not null
+    DisplayLabel: _(Payment Method)
+    PhysicalName: FK_FATTURECLIENTI_MODPAGCLI
+    Fields:
+      PaymentMethodId:
+        PhysicalName: MODPAGCLIID
+PluralDisplayLabel: _(Customer Invoices)
+DisplayLabel: _(Customer Invoice)
+PluralModelName: CustomerInvoices

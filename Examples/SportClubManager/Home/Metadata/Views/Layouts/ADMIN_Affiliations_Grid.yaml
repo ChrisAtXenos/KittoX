@@ -1,0 +1,8 @@
+﻿Field: Description
+Field: AffiliationDate
+  DisplayWidth: 20
+Field: AffiliationYear
+  DisplayWidth: 20
+Field: AffiliationNumber
+Field: Federation
+Field: SportType

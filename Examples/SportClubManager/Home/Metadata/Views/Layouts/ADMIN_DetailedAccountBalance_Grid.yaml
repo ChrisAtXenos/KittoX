@@ -1,0 +1,16 @@
+Field: Description
+Field: FinancialYear
+Field: Section
+Field: MasterAccountCode
+  DisplayWidth: 20
+Field: AccountCode
+  DisplayWidth: 20
+Field: AccountDescription
+Field: AccountReference
+Field: DebitAmount
+  DisplayWidth: 20
+Field: CreditAmount
+  DisplayWidth: 20
+Field: Sign
+Field: AbsoluteBalance
+

@@ -25,13 +25,20 @@ uses
 
 type
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
-  TKXCalendarPanelController = class(TKXDataPanelController)
+  /// <summary>
+  ///  Calendar presenter (EventCalendar): renders its own toolbar (the CRUD
+  ///  actions act on the calendar's selection) and the calendar container that
+  ///  loads its events from the calendar-data endpoint. Hosted in a List it
+  ///  takes the actions and the filter panel's values from the host.
+  /// </summary>
+  TKXCalendarPanelController = class(TKXDataPanelLeafController)
   strict private
     FViewName: string;
     function GetCalendarFieldName(const AMapping, ADefault: string): string;
     function GetDefaultView: string;
     function GetSlotMinTime: string;
     function GetSlotMaxTime: string;
+    function GetDefaultEventMinutes: Integer;
     function GetEventTemplate: string;
     function BuildEventTypesJson: string;
     function BuildCalendarToolbar: string;
@@ -52,11 +59,20 @@ type
     class function JSONStr(const AValue: string): string;
 
     [YamlNode('DefaultView', 'timeGridWeek', 'Initial calendar view: dayGridMonth, timeGridWeek, timeGridDay')]
+    [YamlEnumValue('dayGridMonth', 'Month grid')]
+    [YamlEnumValue('timeGridWeek', 'Week time grid')]
+    [YamlEnumValue('timeGridDay', 'Day time grid')]
     property DefaultView: string read GetDefaultView;
     [YamlNode('SlotMinTime', '00:00', 'Earliest time displayed in week/day views')]
     property SlotMinTime: string read GetSlotMinTime;
     [YamlNode('SlotMaxTime', '24:00', 'Latest time displayed in week/day views')]
     property SlotMaxTime: string read GetSlotMaxTime;
+    /// <summary>Duration, in minutes, given by the calendar-data endpoint to an
+    /// event that has no end or whose end equals its start (a point-in-time
+    /// record, e.g. a party with a single date/time), so the week/day views draw
+    /// a block tall enough for title and notes instead of a zero-height strip.</summary>
+    [YamlNode('DefaultEventMinutes', '60', 'Duration (minutes) of events with no end or end = start')]
+    property DefaultEventMinutes: Integer read GetDefaultEventMinutes;
     [YamlNode('EventTemplate', '', 'HTML template file for custom event rendering')]
     property EventTemplate: string read GetEventTemplate;
   end;
@@ -144,6 +160,15 @@ end;
 function TKXCalendarPanelController.GetSlotMaxTime: string;
 begin
   Result := GetConfigString('SlotMaxTime', '24:00');
+end;
+
+function TKXCalendarPanelController.GetDefaultEventMinutes: Integer;
+begin
+  // Read by Kitto.Web.Handler.Calendar from the same node; exposed here for
+  // the KIDEX validator/designer (RTTI) and for symmetry with the other options.
+  Result := StrToIntDef(GetConfigString('DefaultEventMinutes', '60'), 60);
+  if Result <= 0 then
+    Result := 60;
 end;
 
 function TKXCalendarPanelController.GetEventTemplate: string;
@@ -315,7 +340,8 @@ begin
   if not Assigned(ViewTable) then
     Exit;
 
-  // Read calendar options from Config (CenterController node)
+  // Calendar options: from this presenter's node (the CenterController of the
+  // hosting List), with the host's list-level options as a fallback.
   LDefaultView := GetConfigString('DefaultView', 'timeGridWeek');
   LSlotMinTime := GetConfigString('SlotMinTime', '00:00');
   LSlotMaxTime := GetConfigString('SlotMaxTime', '24:00');

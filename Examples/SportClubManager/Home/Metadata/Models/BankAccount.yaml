@@ -1,0 +1,24 @@
+﻿ModelName: BankAccount
+PhysicalName: CONTICORRENTI
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  Iban: String(27) not null
+    DisplayLabel: _(IBAN)
+    PhysicalName: IBAN
+    Rules:
+      ForceUpperCase:
+      CheckIBAN:
+  Bank: Reference(Bank) not null
+    DisplayLabel: _(Bank)
+    PhysicalName: FK_CONTICORRENTI_BANCA
+    Fields:
+      BankId:
+        PhysicalName: BANCAID
+PluralDisplayLabel: _(Bank Accounts)
+DisplayLabel: _(Bank Account)
+PluralModelName: BankAccounts

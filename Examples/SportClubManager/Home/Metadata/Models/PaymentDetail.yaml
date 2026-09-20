@@ -1,0 +1,68 @@
+﻿ModelName: PaymentDetail
+PhysicalName: DETTAGLI_PAGAMENTO
+DefaultSorting: {Q}IMPORTO_PAGATO
+PluralDisplayLabel: _(Payment details)
+DisplayLabel: _(Payment detail)
+PluralModelName: PaymentDetails
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Payment detail)
+    IsReadOnly: True
+    IsVisible: False
+    DisplayWidth: 40
+  Payment: Reference(Payment) not null
+    PhysicalName: FK_DETTAGLIO_PAGAMENTO_PAGAMENTO
+    Fields:
+      PaymentId:
+        PhysicalName: MEZZO_PAGAMENTOID
+    IsVisible: False
+    DisplayWidth: 40
+  SubscriptionInstalment: Reference(SubscriptionInstalment) not null
+    DisplayLabel: _(Subscription Instalment)
+    PhysicalName: FK_RATA_ISCRIZIONE_PAGAMENTO
+    Fields:
+      SubscriptionInstalmentId:
+        PhysicalName: RATA_ISCRIZIONEID
+    DisplayWidth: 50
+    Rules:
+      PaymentDetailSetInstalment:
+    LookupFilter: |
+      (RATE_ISCRIZIONI.ISCRIZIONEID in (select i.ID FROM ISCRIZIONI i join NOMINATIVI n on i.NOMINATIVOID = n.id join MEMBRI_FAMIGLIE mf on mf.NOMINATIVOID = n.id join famiglie f on mf.FAMIGLIAID = f.id join (select famiglia_id from V_NUCLEO_FAMIGLIARE n where n.NOMINATIVO_ID = '{MasterRecord.PayerId}'  ) x on f.ID = x.famiglia_id WHERE QUOTA_ISCRIZIONEID IN  (select ID from QUOTE_ISCRIZIONI where (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where INIZIO <= CURRENT_TIMESTAMP and FINE >= CURRENT_TIMESTAMP)))))
+      and (RATE_ISCRIZIONI.ID not in  (SELECT V.ID FROM V_RATE_ISCRIZIONI V WHERE V.STATUS = 'pagata'))
+    AutoAddFields:
+      SubscriptionId: SubscriptionInstalment_SubscriptionId
+      DueDate: SubscriptionInstalment_DueDate
+  InstalmentAmount: Currency
+    PhysicalName: RATA_ISCRIZIONE_IMPORTO
+    DisplayLabel: _(Instalment amount)
+    DisplayWidth: 10
+    IsReadOnly: True
+    DefaultValue: 0
+  InstalmentPaidAmount: Currency
+    PhysicalName: RATA_ISCRIZIONE_IMPORTO_PAGATO
+    DisplayLabel: _(Amount already paid)
+    DisplayWidth: 10
+    IsReadOnly: True
+    DefaultValue: 0
+  InstalmentOutstandingAmount: Currency
+    PhysicalName: RATA_ISCRIZIONE_IMPORTO_RESIDU
+    DisplayLabel: _(Outstanding amount)
+    DisplayWidth: 10
+    IsReadOnly: True
+    DefaultValue: 0
+  PaidAmount: Currency not null
+    DisplayLabel: _(Amount Paid)
+    PhysicalName: IMPORTO_PAGATO
+    DisplayWidth: 10
+    Rules:
+      CalcDescription: {PaidAmount}
+    DefaultValue: 0
+CaptionField: Description
+Rules:
+  PaymentDetailCheck:
+ImageName: monetization_on

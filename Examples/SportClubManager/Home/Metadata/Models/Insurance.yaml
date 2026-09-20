@@ -1,0 +1,37 @@
+﻿ModelName: Insurance
+PhysicalName: ASSICURAZIONI
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Insurance policies)
+DisplayLabel: _(Insurance policy)
+PluralModelName: Insurances
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+    IsVisible: False
+  Person: Reference(Person) not null
+    DisplayLabel: _(Person)
+    PhysicalName: DT_ASSICURAZIONI_NOMINATIVO
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+  Policy: Reference(Policy) not null
+    DisplayLabel: _(Policy)
+    PhysicalName: FK_ASSICURAZIONI_POLIZZA
+    Fields:
+      PolicyId:
+        PhysicalName: POLIZZAID
+  Description: String(200)
+    PhysicalName: DX
+    DisplayWidth: 100
+    IsReadOnly: True
+    IsVisible: False
+    DefaultValue: '-'
+  Notes: Memo
+    DisplayLabel: _(Notes)
+    PhysicalName: NOTE
+    DisplayWidth: 80
+Rules:
+  CalcDescription:

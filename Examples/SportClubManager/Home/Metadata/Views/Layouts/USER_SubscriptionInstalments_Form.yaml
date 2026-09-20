@@ -1,0 +1,10 @@
+﻿Field: Subscription
+  CharWidth: 60
+Field: DueDate
+Field: Amount
+Field: DiscountAllowance
+Field: TotalAmount
+Field: PaidAmount
+Field: UnapprovedAmount
+Field: OutstandingAmount
+Field: Status

@@ -141,7 +141,7 @@ begin
             else
             begin
               SB.Append('<a class="kx-menubar-item" ');
-              SB.Append('hx-get="kx/view/').Append(LViewName).Append('" ');
+              SB.Append(GetMenuActionVerb(LView.ControllerType, LViewName)).Append(' ');
               SB.Append('hx-target="body" hx-swap="beforeend">');
               SB.Append(GetIconHTML(LImageName));
               SB.Append(' <span>').Append(LDisplayLabel).Append('</span></a>');

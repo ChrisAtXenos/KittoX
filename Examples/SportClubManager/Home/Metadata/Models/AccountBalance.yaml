@@ -1,0 +1,59 @@
+﻿ModelName: AccountBalance
+PhysicalName: V_SALDOCONTI
+PluralDisplayLabel: _(Account Enquiry)
+DisplayLabel: _(Account balance)
+PluralModelName: AccountBalances
+IsReadOnly: True
+DefaultSorting: LedgerAccountOrder, {Q}CODCONTO
+ImageName: monetization_on
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    IsVisible: False
+  FinancialYear: String(5)
+    PhysicalName: ESERCID
+    DisplayLabel: _(Financial Year)
+    DisplayWidth: 20
+  Section: String(3) not null
+    PhysicalName: SEZIONE
+    DisplayLabel: _(Section)
+    DisplayWidth: 20
+    AllowedValues:
+      A: _(Active)
+      P: _(Liabilities)
+      C: _(Costs)
+      R: _(Revenues)
+  Level: String(1) not null
+    PhysicalName: LIVELLO
+    DisplayLabel: _(Level)
+    DisplayWidth: 20
+    AllowedValues:
+      M: _(Master account)
+      C: _(Account)
+      S: _(Sub-account)
+  ParentAccountCode: String(10)
+    PhysicalName: CODPADRE
+    DisplayLabel: _(Parent code)
+    DisplayWidth: 15
+  AccountCode: String(10) not null
+    PhysicalName: CODCONTO
+    DisplayLabel: _(Account Code)
+    DisplayWidth: 15
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 50
+  Balance: Currency
+    PhysicalName: SALDO
+    DisplayLabel: _(Balance)
+    DisplayWidth: 10
+  LedgerAccountOrder: Integer
+    Expression: |
+      CASE
+        WHEN SEZIONE = 'A' THEN 1
+        WHEN SEZIONE = 'P' THEN 2
+        WHEN SEZIONE = 'R' THEN 3
+        WHEN SEZIONE = 'C' THEN 4
+      ELSE 0 END
+    IsVisible: False

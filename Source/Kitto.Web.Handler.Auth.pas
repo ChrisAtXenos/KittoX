@@ -77,9 +77,10 @@ type
     /// the login page.</summary>
     [TKXPath('/changepassword')] [TKXPOST] [TKXAnonymous]
     procedure HandleChangePassword; virtual;
-    /// Ends the current session. Canonical endpoint; menus still emit
-    /// GET kx/view/Logout via TKXLogoutController for now.
-    [TKXPath('/logout')] [TKXANY] [TKXAnonymous]
+    /// Ends the current session. Canonical endpoint the menu renderers post to
+    /// (see GetMenuActionVerb). POST only: a cross-site GET (a link or an <img>)
+    /// must not be able to log the user out (logout-CSRF).
+    [TKXPath('/logout')] [TKXPOST] [TKXAnonymous]
     procedure HandleLogout; virtual;
     /// <summary>Announces a page reload issued by the application, so that the
     /// root does not end the session when it serves the reloaded page.
@@ -110,7 +111,11 @@ implementation
 uses
   System.SysUtils,
   System.NetEncoding,
+  System.DateUtils,
+  System.SyncObjs,
+  System.Generics.Collections,
   EF.Localization,
+  EF.Logger,
   EF.StrUtils,
   Kitto.Auth,
   Kitto.Web.Application,
@@ -118,6 +123,48 @@ uses
   Kitto.Web.Request,
   Kitto.Web.Response,
   Kitto.Web.Routing.Registry;
+
+const
+  // Minimum interval between two accepted password-reset requests for the same
+  // (user, e-mail) pair. A reset overwrites the password and raises
+  // MUST_CHANGE_PASSWORD, so without this an anonymous caller who knows a valid
+  // pair could keep a user locked out, and flood them with e-mail, by asking
+  // again and again.
+  RESET_COOLDOWN_SECONDS = 60;
+
+var
+  // Single-instance throttle for the reset endpoint. Guarded by its own lock;
+  // pruned opportunistically so it cannot grow without bound.
+  FResetCooldown: TDictionary<string, TDateTime>;
+  FResetCooldownLock: TCriticalSection;
+
+// True if a reset for AKey was accepted less than RESET_COOLDOWN_SECONDS ago;
+// otherwise records now as the last accepted time and returns False.
+function ResetIsThrottled(const AKey: string): Boolean;
+var
+  LNow, LLast: TDateTime;
+  LPair: TPair<string, TDateTime>;
+  LStale: TArray<string>;
+  LK: string;
+begin
+  LNow := Now;
+  FResetCooldownLock.Enter;
+  try
+    LStale := [];
+    for LPair in FResetCooldown do
+      if SecondsBetween(LNow, LPair.Value) >= RESET_COOLDOWN_SECONDS then
+        LStale := LStale + [LPair.Key];
+    for LK in LStale do
+      FResetCooldown.Remove(LK);
+
+    Result := FResetCooldown.TryGetValue(AKey, LLast)
+      and (SecondsBetween(LNow, LLast) < RESET_COOLDOWN_SECONDS);
+    if not Result then
+      FResetCooldown.AddOrSetValue(AKey, LNow);
+  finally
+    FResetCooldownLock.Leave;
+  end;
+end;
 
 const
   COOKIE_DB_LIFETIME_DAYS = 30;
@@ -128,8 +175,12 @@ procedure TKXAuthHandlerBase.BuildAuthData(const AAuthData: TEFNode);
 var
   LUserName, LPassword: string;
 begin
-  LUserName := TKWebRequest.Current.GetField('UserName');
-  LPassword := TKWebRequest.Current.GetField('Password');
+  // Credentials are read from the POST body only (GetFormField), never from the
+  // query string. GetField would fall back to the query, so
+  // POST /kx/login?UserName=..&Password=.. with an empty body used to
+  // authenticate, spilling the password into proxy/IIS/Apache access logs.
+  LUserName := TKWebRequest.Current.GetFormField('UserName');
+  LPassword := TKWebRequest.Current.GetFormField('Password');
   if LUserName <> '' then
     AAuthData.SetString('UserName', LUserName);
   if LPassword <> '' then
@@ -258,67 +309,64 @@ end;
 procedure TKXAuthHandlerBase.HandleResetPassword;
 var
   LParams: TEFNode;
-  LUserName, LEmailAddress: string;
+  LUserName, LEmailAddress, LKey: string;
 begin
   LUserName := TKWebRequest.Current.GetField('UserName');
   LEmailAddress := TKWebRequest.Current.GetField('EmailAddress');
+
+  // The response is deliberately the SAME whether the (user, e-mail) pair
+  // matched, did not match, was throttled, or the send failed. Telling them
+  // apart let an anonymous caller enumerate which pairs exist, and — since a
+  // match overwrites the password and raises MUST_CHANGE_PASSWORD — keep a known
+  // user locked out (and flood them with mail) by asking over and over. The
+  // real outcome goes only to the log.
+  LKey := LowerCase(Trim(LUserName) + '|' + Trim(LEmailAddress));
 
   LParams := TEFNode.Create;
   try
     LParams.SetString('UserName', LUserName);
     LParams.SetString('EmailAddress', LEmailAddress);
-    try
-      ResetPasswordEmail(LParams);
-      // Info dialog; OK also closes the ResetPassword overlay behind it.
-      TKWebResponse.Current.Items.Clear;
-      TKWebResponse.Current.SetCustomHeader('HX-Retarget', 'body');
-      TKWebResponse.Current.SetCustomHeader('HX-Reswap', 'beforeend');
-      TKWebResponse.Current.Items.AddHTML(
-        '<div class="kx-msgbox-overlay" onclick="this.remove()">' +
-          '<div class="kx-msgbox-dialog" onclick="event.stopPropagation()">' +
-            '<div class="kx-msgbox-header kx-msgbox-info">' +
-              '<div class="kx-msgbox-icon kx-msgbox-icon-info"></div>' +
-              '<span>' + _('Reset Password') + '</span>' +
-            '</div>' +
-            '<div class="kx-msgbox-body">' +
-              TNetEncoding.HTML.Encode(
-                _('A new temporary password was generated and sent to the specified e-mail address.')) +
-            '</div>' +
-            '<div class="kx-msgbox-footer">' +
-              '<button onclick="' +
-                'var dlg=document.querySelector(''.kx-dialog-overlay'');' +
-                'if(dlg)dlg.remove();' +
-                'this.closest(''.kx-msgbox-overlay'').remove();">OK</button>' +
-            '</div>' +
-          '</div>' +
-        '</div>');
-    except
-      on E: Exception do
-      begin
-        // Error dialog (same pattern as the global error handler).
-        TKWebResponse.Current.Items.Clear;
-        TKWebResponse.Current.SetCustomHeader('HX-Retarget', 'body');
-        TKWebResponse.Current.SetCustomHeader('HX-Reswap', 'beforeend');
-        TKWebResponse.Current.Items.AddHTML(
-          '<div class="kx-msgbox-overlay" onclick="this.remove()">' +
-            '<div class="kx-msgbox-dialog" onclick="event.stopPropagation()">' +
-              '<div class="kx-msgbox-header kx-msgbox-error">' +
-                '<div class="kx-msgbox-icon kx-msgbox-icon-error"></div>' +
-                '<span>' + _('Error') + '</span>' +
-              '</div>' +
-              '<div class="kx-msgbox-body">' +
-                TNetEncoding.HTML.Encode(E.Message) +
-              '</div>' +
-              '<div class="kx-msgbox-footer">' +
-                '<button onclick="this.closest(''.kx-msgbox-overlay'').remove();">OK</button>' +
-              '</div>' +
-            '</div>' +
-          '</div>');
+    if ResetIsThrottled(LKey) then
+      TEFLogger.Instance.LogFmt('Reset password throttled for user %s.',
+        [LUserName], TEFLogger.LOG_MEDIUM)
+    else
+      try
+        ResetPasswordEmail(LParams);
+      except
+        on E: Exception do
+          // Includes the "user name and e-mail not found" case: logged, never
+          // shown, so it cannot be used to probe for existing accounts.
+          TEFLogger.Instance.LogFmt('Reset password for user %s did not complete: %s',
+            [LUserName, E.Message], TEFLogger.LOG_MEDIUM);
       end;
-    end;
   finally
     LParams.Free;
   end;
+
+  // The single, neutral confirmation. OK also closes the ResetPassword overlay
+  // behind it.
+  TKWebResponse.Current.Items.Clear;
+  TKWebResponse.Current.SetCustomHeader('HX-Retarget', 'body');
+  TKWebResponse.Current.SetCustomHeader('HX-Reswap', 'beforeend');
+  TKWebResponse.Current.Items.AddHTML(
+    '<div class="kx-msgbox-overlay" onclick="this.remove()">' +
+      '<div class="kx-msgbox-dialog" onclick="event.stopPropagation()">' +
+        '<div class="kx-msgbox-header kx-msgbox-info">' +
+          '<div class="kx-msgbox-icon kx-msgbox-icon-info"></div>' +
+          '<span>' + _('Reset Password') + '</span>' +
+        '</div>' +
+        '<div class="kx-msgbox-body">' +
+          TNetEncoding.HTML.Encode(
+            _('If the account exists, a new temporary password was generated and sent to the e-mail address on file.')) +
+        '</div>' +
+        '<div class="kx-msgbox-footer">' +
+          '<button onclick="' +
+            'var dlg=document.querySelector(''.kx-dialog-overlay'');' +
+            'if(dlg)dlg.remove();' +
+            'this.closest(''.kx-msgbox-overlay'').remove();">OK</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>');
 end;
 
 procedure TKXAuthHandlerBase.HandleChangePassword;
@@ -357,6 +405,18 @@ var
 begin
   LApp := TKWebApplication.Current;
   LAuthenticator := LApp.Authenticator;
+
+  // The endpoint is [TKXAnonymous] so the imposed-change dialog (shown right
+  // after a login that raised MUST_CHANGE_PASSWORD) can post to it — and that
+  // session IS authenticated. A change still requires a logged-in user: with no
+  // user name the default SetPasswordCommandText updates no row, but a custom one
+  // without a USER_NAME filter would let an anonymous caller rewrite a password.
+  // Require authentication explicitly.
+  if not TKWebSession.Current.IsAuthenticated then
+  begin
+    RespondError(_('You must be logged in to change your password.'));
+    Exit;
+  end;
 
   // Refuse before touching anything when the authenticator cannot write a
   // password at all (Auth: LDAP keeps them in the directory). SetPassword's base
@@ -441,6 +501,14 @@ end;
 procedure TKXAuthHandlerBase.HandleLogout;
 begin
   TKWebApplication.Current.Logout;
+  // Reply with the reload marker the global htmx:afterSettle listener in
+  // _Page.html detects, so the client does a full page reload back to the
+  // login. Same contract as TKXLogoutController.Render; the menu posts here
+  // with hx-target="body" hx-swap="beforeend", so the marker lands in the body.
+  TKWebResponse.Current.Items.Clear;
+  TKWebResponse.Current.ContentType := 'text/html; charset=utf-8';
+  TKWebResponse.Current.Items.AddHTML(
+    '<div class="kx-reload-trigger" data-action="reload" style="display:none"></div>');
 end;
 
 procedure TKXAuthHandlerBase.HandleReloadHome;
@@ -456,9 +524,13 @@ begin
 end;
 
 initialization
+  FResetCooldownLock := TCriticalSection.Create;
+  FResetCooldown := TDictionary<string, TDateTime>.Create;
   TKXResourceRegistry.Instance.RegisterResource(TKXAuthHandlerBase);
 
 finalization
   TKXResourceRegistry.Instance.UnregisterResource(TKXAuthHandlerBase);
+  FreeAndNil(FResetCooldown);
+  FreeAndNil(FResetCooldownLock);
 
 end.

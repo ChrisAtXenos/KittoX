@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,7 +46,7 @@ type
   protected
     procedure ReadConfig; override;
   public
-    [YamlNode('Enabled', 'True', 'Enable the Notification Center (bell, top-right)')]
+    [YamlNode('Enabled', 'False', 'Enable the Notification Center (bell, top-right)')]
     property Enabled: Boolean read FEnabled;
   end;
 

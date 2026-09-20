@@ -1,0 +1,46 @@
+DisplayLabel: %Config:AppTitle%
+Controller: BorderPanel
+
+  NorthView:
+    Controller: HtmlPanel
+      Html: <img src="%IMAGE(%Config:SportsClubLogo%)%" style="width: 100%; height: auto; display: block">
+
+  CenterView:
+    Controller: TilePanel
+      ColorSet: Blue
+      Border: False
+      TileHeight: 80
+      TileWidth: 120
+      ShowImage: True
+      TreeView: %Auth:PROFILEID%_TreeMenu
+
+  # Bottom of the phone (Tiles) home: the theme switcher (Light / Auto / Dark)
+  # gets its own bar right above the status bar. Nested BorderPanel with only
+  # North (switcher) + South (status bar) and no Center, sized to content by
+  # the `.kx-region-south > .kx-border-panel { height: auto }` rule in
+  # application.css (the framework default is 100vh, which would cover the whole
+  # menu). Same technique as USER_HomeTiles. The switcher renders only when
+  # Theme: Auto / UserSelection: True.
+  SouthView:
+    Controller: BorderPanel
+      NorthView:
+        Height: 44
+        Controller: BorderPanel
+          Border: False
+          Header: False
+          Split: False
+          WestView:
+            Width: 112
+            Controller: ThemeSwitcher
+          CenterView:
+            Controller: LanguageSwitcher
+      SouthView:
+        Controller: StatusBar
+          Text: %Auth:User_FullName% | <a target="_blank" href="https://sportclubmanager.it/docs/scm/contents" style="color:orange; font-size: medium">_(Need help?)</a>
+        ImageName: user
+
+#The values that set the "size" of the elements for an ADMIN on a phone in portrait
+MobileSettings:
+  Content:
+    Width: 520
+    User-scalable: 0

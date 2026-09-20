@@ -1,0 +1,21 @@
+﻿ModelName: Relationship
+PhysicalName: PARENTELE
+PluralDisplayLabel: _(Relationships)
+DisplayLabel: _(Relationship)
+PluralModelName: Relationships
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+    DisplayWidth: 20
+  IsParent: Boolean
+    PhysicalName: FLAGGENITORE
+    DisplayLabel: _(Parent)
+  IsChild: Boolean
+    PhysicalName: FLAGFIGLIO
+    DisplayLabel: _(Child)
+DefaultSorting: PARENTELA.ID

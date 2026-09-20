@@ -1,0 +1,42 @@
+﻿ModelName: ChampionshipStage
+PhysicalName: FASICAMP
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  Number: Integer not null
+    DisplayLabel: _(Number)
+    PhysicalName: NUMERO
+  SeasonDescription: String(40)
+    DisplayLabel: _(Season description)
+    PhysicalName: DXSTAGIONE
+  CategoryDescription: String(20)
+    DisplayLabel: _(Category description)
+    PhysicalName: DXCATEGORIA
+  UpdateStandings: Date
+    DisplayLabel: _(Update standings)
+    PhysicalName: AGGCLASSIFICA
+  UpdateScorerStandings: Date
+    DisplayLabel: _(Update scorer standings)
+    PhysicalName: AGGCLMARCATORI
+  StandaloneStanding: Boolean not null
+    DisplayLabel: _(Standalone standing)
+    PhysicalName: CLASSAVULSA
+  Championship: Reference(Championship)
+    DisplayLabel: _(Championship)
+    PhysicalName: DT_FASICAMP_OWNERCAMP
+    Fields:
+      ChampionshipId:
+        PhysicalName: OWNERCAMPID
+  StageType: Reference(StageType) not null
+    DisplayLabel: _(Stage Type)
+    PhysicalName: FK_FASICAMP_TIPOFASE
+    Fields:
+      StageTypeId:
+        PhysicalName: TIPOFASEID
+PluralDisplayLabel: _(Championship Stages)
+DisplayLabel: _(Championship Stage)
+PluralModelName: ChampionshipStages

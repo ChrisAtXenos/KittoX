@@ -1,0 +1,18 @@
+﻿DisplayLabel: _(Profile data)
+Type: Data
+Controller: Form
+  Operation: Edit
+  FilterExpression: {Q}CODFISC = '%Auth:FISCAL_ID%'
+  #HideLabels: True
+  #CloneButton:
+  #  Hidden: True
+  KeepOpenAfterOperation: False
+MainTable:
+  Model: Person
+  ImageName: account_circle
+  Controller:
+    AllowDuplicating: False
+    AllowInsert: False
+    AllowDelete: False
+    Form:
+      Layout: ADMIN_UserProfile_Form

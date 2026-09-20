@@ -1,0 +1,18 @@
+﻿LabelAlign: Right
+LabelWidth: 170
+Field: Id
+Field: TaxCode
+Field: Description
+Field: LastName
+Field: FirstName
+Field: Email
+Field: Mobile
+Field: Profile
+Field: Language
+Field: Administrator
+Pagebreak: _(Account settings)
+Field: IsSystem
+Field: AccessBlocked
+Field: PasswordMustBeChanged
+Field: PrivacyConsent
+Field: CreationDateTime

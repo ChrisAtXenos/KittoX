@@ -1,0 +1,25 @@
+﻿LabelAlign: Right
+Row:
+  Field: Id
+  Field: Active
+Row:
+  Field: FromAddress
+Row:
+  Field: Description
+Row:
+  Field: Subject
+  Field: HtmlBody
+    Lines: 20
+Row:
+  Field: Attachment
+Row:
+  Field: Notes
+Pagebreak: Riceventi
+Row:
+  Field: CcAddresses
+Spacer:
+Row:
+  Field: BccAddresses
+Spacer:
+Row:
+  Field: AddressesToExclude

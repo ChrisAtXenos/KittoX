@@ -44,6 +44,8 @@ type
     function GetExcelRangeName: string;
     function GetTemplateFileName: string;
     function GetUseDisplayLabels: boolean;
+    function GetOutputFileName: string;
+    function GetUseTemplate: string;
   strict protected
     function GetDefaultFileName: string; override;
     function GetDefaultFileExtension: string; override;
@@ -64,6 +66,10 @@ type
     property TemplateFileName: string read GetTemplateFileName;
     [YamlNode('UseDisplayLabels', 'True', 'Use display labels instead of field names for column headers')]
     property UseDisplayLabels: boolean read GetUseDisplayLabels;
+    [YamlNode('OutputFileName', 'Legacy name of the output file (the HTMX runtime uses ClientFileName)')]
+    property OutputFileName: string read GetOutputFileName;
+    [YamlNode('UseTemplate', 'Legacy Excel template file name (the HTMX runtime uses TemplateFileName)')]
+    property UseTemplate: string read GetUseTemplate;
   end;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
@@ -143,6 +149,16 @@ end;
 function TExportExcelToolController.GetTemplateFileName: string;
 begin
   Result := Config.GetExpandedString('TemplateFileName');
+end;
+
+function TExportExcelToolController.GetOutputFileName: string;
+begin
+  Result := Config.GetString('OutputFileName');
+end;
+
+function TExportExcelToolController.GetUseTemplate: string;
+begin
+  Result := Config.GetString('UseTemplate');
 end;
 
 function TExportExcelToolController.GetUseDisplayLabels: Boolean;

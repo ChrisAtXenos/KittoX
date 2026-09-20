@@ -38,8 +38,23 @@ type
     yakScalar,     // YamlNodeAttribute — optional scalar value
     yakRequired,   // YamlRequiredNodeAttribute — required scalar value
     yakContainer,  // YamlContainerAttribute — N homogeneous children
-    yakSubNode     // YamlSubNodeAttribute — single config block
+    yakSubNode,    // YamlSubNodeAttribute — single config block
+    yakViewRef     // YamlViewNodeAttribute — a view: name reference or inline definition
   );
+
+  /// <summary>
+  ///  Describes a single enum value mapping (YAML string to ordinal).
+  /// </summary>
+  TYamlEnumValueInfo = record
+    /// <summary>Ordinal value in the Delphi enum.</summary>
+    OrdinalValue: Integer;
+    /// <summary>Delphi enum name (e.g. 'laTop').</summary>
+    EnumName: string;
+    /// <summary>YAML string representation (e.g. 'Top').</summary>
+    YamlValue: string;
+    /// <summary>English description for KIDE combo box items.</summary>
+    Description: string;
+  end;
 
   /// <summary>
   ///  Describes a single YAML-mapped property discovered via RTTI.
@@ -67,20 +82,20 @@ type
     ///  Nil for scalar properties.
     /// </summary>
     ChildOrSubNodeClass: TClass;
-  end;
-
-  /// <summary>
-  ///  Describes a single enum value mapping (YAML string to ordinal).
-  /// </summary>
-  TYamlEnumValueInfo = record
-    /// <summary>Ordinal value in the Delphi enum.</summary>
-    OrdinalValue: Integer;
-    /// <summary>Delphi enum name (e.g. 'laTop').</summary>
-    EnumName: string;
-    /// <summary>YAML string representation (e.g. 'Top').</summary>
-    YamlValue: string;
-    /// <summary>English description for KIDE combo box items.</summary>
-    Description: string;
+    /// <summary>
+    ///  Allowed/suggested values declared with [YamlEnumValue] DIRECTLY on this
+    ///  property (a string node with a fixed value set, without a Delphi enum
+    ///  type). Empty when none are declared. Independent of the enum-TYPE path
+    ///  (a property typed as an enum carries its values on the type, read via
+    ///  GetYamlEnumValues).
+    /// </summary>
+    EnumValues: TArray<TYamlEnumValueInfo>;
+    /// <summary>
+    ///  True when the property carries [YamlEnumOpen]: the EnumValues are only
+    ///  suggestions (free values allowed, validator warns, combo box editable).
+    ///  When False the property-level set is closed (only listed values valid).
+    /// </summary>
+    EnumIsOpen: Boolean;
   end;
 
   /// <summary>
@@ -145,6 +160,29 @@ type
     class function GetYamlEnumValues(ATypeInfo: PTypeInfo): TArray<TYamlEnumValueInfo>; static;
 
     /// <summary>
+    ///  Reads [YamlEnumValue] attributes declared DIRECTLY on a property (the
+    ///  string-node-with-fixed-values form, no Delphi enum type). Each attribute
+    ///  contributes one allowed/suggested value, in declaration order — there is
+    ///  no positional-to-ordinal constraint here. Returns an empty array when the
+    ///  property carries none.
+    /// </summary>
+    class function GetYamlEnumValuesFromProperty(
+      AProp: TRttiProperty): TArray<TYamlEnumValueInfo>; static;
+
+    /// <summary>
+    ///  True if the property carries [YamlEnumOpen] (its property-level
+    ///  [YamlEnumValue] set is an open list: suggestions, free values allowed).
+    /// </summary>
+    class function IsYamlEnumOpen(AProp: TRttiProperty): Boolean; static;
+
+    /// <summary>
+    ///  Returns the enum type info bound to a property via [YamlEnumType], or nil
+    ///  if the property carries none. GetYamlEnumValues on the result yields the
+    ///  allowed values (reusing the enum type's [YamlEnumValue] attributes).
+    /// </summary>
+    class function GetYamlEnumTypeFromProperty(AProp: TRttiProperty): PTypeInfo; static;
+
+    /// <summary>
     ///  Converts a YAML string value to the corresponding enum ordinal,
     ///  using YamlEnumValue attributes on the enum type.
     ///  Raises an exception if the value is not found.
@@ -197,6 +235,8 @@ class function TYamlAttributeReader.GetAttributeKind(
 begin
   if AAttr is YamlRequiredNodeAttribute then
     Result := yakRequired
+  else if AAttr is YamlViewNodeAttribute then
+    Result := yakViewRef
   else if AAttr is YamlContainerAttribute then
     Result := yakContainer
   else if AAttr is YamlSubNodeAttribute then
@@ -260,6 +300,13 @@ begin
         LInfo.Description := YamlNodeAttribute(LAttr).Description;
         LInfo.IsLocalizable := YamlNodeAttribute(LAttr).IsLocalizable;
         LInfo.ChildOrSubNodeClass := nil;
+        // A string node may declare its allowed/suggested values inline via
+        // property-level [YamlEnumValue], or borrow them from an existing enum
+        // type via [YamlEnumType]. Inline values win if both are present.
+        LInfo.EnumValues := GetYamlEnumValuesFromProperty(LProp);
+        if Length(LInfo.EnumValues) = 0 then
+          LInfo.EnumValues := GetYamlEnumValues(GetYamlEnumTypeFromProperty(LProp));
+        LInfo.EnumIsOpen := IsYamlEnumOpen(LProp);
       end
       else if LAttr is YamlContainerAttribute then
       begin
@@ -353,6 +400,65 @@ begin
   finally
     LList.Free;
   end;
+end;
+
+class function TYamlAttributeReader.GetYamlEnumValuesFromProperty(
+  AProp: TRttiProperty): TArray<TYamlEnumValueInfo>;
+var
+  LAttr: TCustomAttribute;
+  LList: TList<TYamlEnumValueInfo>;
+  LInfo: TYamlEnumValueInfo;
+  LIndex: Integer;
+begin
+  if not Assigned(AProp) then
+    Exit(nil);
+
+  LList := TList<TYamlEnumValueInfo>.Create;
+  try
+    // Unlike the enum-TYPE form, here each attribute simply declares one allowed
+    // value: there is no Delphi ordinal to match, so OrdinalValue is just the
+    // declaration index and EnumName is empty.
+    LIndex := 0;
+    for LAttr in AProp.GetAttributes do
+      if LAttr is YamlEnumValueAttribute then
+      begin
+        LInfo := Default(TYamlEnumValueInfo);
+        LInfo.OrdinalValue := LIndex;
+        LInfo.EnumName := '';
+        LInfo.YamlValue := YamlEnumValueAttribute(LAttr).YamlValue;
+        LInfo.Description := YamlEnumValueAttribute(LAttr).Description;
+        LList.Add(LInfo);
+        Inc(LIndex);
+      end;
+    Result := LList.ToArray;
+  finally
+    LList.Free;
+  end;
+end;
+
+class function TYamlAttributeReader.IsYamlEnumOpen(AProp: TRttiProperty): Boolean;
+var
+  LAttr: TCustomAttribute;
+begin
+  Result := False;
+  if not Assigned(AProp) then
+    Exit;
+  for LAttr in AProp.GetAttributes do
+    if LAttr is YamlEnumOpenAttribute then
+      Exit(True);
+end;
+
+class function TYamlAttributeReader.GetYamlEnumTypeFromProperty(
+  AProp: TRttiProperty): PTypeInfo;
+var
+  LAttr: TCustomAttribute;
+begin
+  Result := nil;
+  if not Assigned(AProp) then
+    Exit;
+  for LAttr in AProp.GetAttributes do
+    if LAttr is YamlEnumTypeAttribute then
+      Exit(YamlEnumTypeAttribute(LAttr).EnumTypeInfo);
 end;
 
 class function TYamlAttributeReader.YamlValueToOrdinal(ATypeInfo: PTypeInfo;

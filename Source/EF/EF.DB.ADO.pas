@@ -273,8 +273,16 @@ begin
     adDBDate: Result := 'Date';
     adDBTime: Result := 'Time';
     adDate, adDBTimeStamp, adFileTime, adDBFileTime: Result := 'DateTime';
-    adChar, adVarChar, adWChar, adBSTR, adVarWChar, adLongVarChar,
-      adLongVarWChar: Result := 'String';
+    adChar, adVarChar, adWChar, adBSTR, adVarWChar: Result := 'String';
+    // A LOB was read as a sized String: adLongVarChar/adLongVarWChar (a text
+    // LOB) came back String and adLongVarBinary (a binary LOB) fell through to
+    // the String default, both carrying the capacity the engine reports -- the
+    // same String(2147483647) the FireDAC reader used to produce before r516.
+    // Map them to Memo/Blob, whose types admit no size, so the size the setter
+    // now drops does not reach the field spec. Sized char/binary types stay
+    // String, as they do under FireDAC.
+    adLongVarChar, adLongVarWChar: Result := 'Memo';
+    adLongVarBinary: Result := 'Blob';
     adDecimal, adNumeric, adVarNumeric: Result := 'Decimal';
   else
     Result := 'String';

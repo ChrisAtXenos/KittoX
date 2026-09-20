@@ -1,0 +1,32 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Staff)
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: {Q}DX like '%{value}%'
+      ColumnBreak:
+      DynaList: _(Duty)
+        CommandText: |
+          select DISTINCT r.ID, r.DX
+          from RUOLI_STAFF r
+          order by r.DX
+        ExpressionTemplate: {Q}MANSIONEID = '{value}'
+        Width: 20
+      ColumnBreak:
+      DynaList: _(Team)
+        CommandText: |
+          select DISTINCT s.ID, s.DX
+          from SQUADRE s
+          order by s.DX
+        ExpressionTemplate: {Q}SQUADRAID = '{value}'
+        Width: 20
+MainTable:
+  Model: StaffMember
+  Controller:
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Staff.xlsx
+          RequireSelection: False

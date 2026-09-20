@@ -1,0 +1,11 @@
+DisplayLabel: _(Subscribers by discipline)
+PluralDisplayLabel: _(Subscribers by discipline)
+Fields:
+  Discipline: String(200) primary key
+    PhysicalName: DISCIPLINA
+    DisplayLabel: _(Discipline)
+  SubscriberCount: Integer
+    PhysicalName: NUM_ISCRITTI
+    DisplayLabel: _(Subscribers)
+PhysicalName: VW_ISCRITTI_PER_DISCIPLINA
+ImageName: bar_chart

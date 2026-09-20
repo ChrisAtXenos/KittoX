@@ -1,0 +1,60 @@
+﻿ModelName: Federation
+PhysicalName: FEDERAZIONI
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  Address: String(50)
+    DisplayLabel: _(Address)
+    PhysicalName: INDIRIZZO
+  Municipality: Reference(Municipality)
+    PhysicalName: FK_FEDERAZIONI_COMUNE
+    Fields:
+      MunicipalityId:
+        PhysicalName: COMUNEID
+    DisplayLabel: _(Municipality)
+    DisplayWidth: 40
+    Rules:
+      CalcProvince:
+  PostalCode: String(5)
+    DisplayLabel: _(Postal Code)
+    PhysicalName: CAP
+  Email: String(50)
+    DisplayLabel: _(E-mail)
+    PhysicalName: EMAIL
+  Province: Reference(Province)
+    DisplayLabel: _(Province)
+    PhysicalName: FK_FEDERAZIONI_PROVINCIA
+    Fields:
+      ProvinceId:
+        PhysicalName: PROVINCIAID
+  SportType: Reference(SportType)
+    DisplayLabel: _(Sport Type)
+    PhysicalName: FK_FEDERAZIONI_SPORT
+    Fields:
+      SportTypeId:
+        PhysicalName: SPORTID
+  FederationLogo: FileReference(255)
+    DisplayLabel: _(Federation Logo)
+    DisplayWidth: 42
+    PhysicalName: LOGO_FEDERAZIONE
+    PreviewWindow: True
+      Width: 800
+      Height: 600
+    IsPicture: True
+      Thumbnail:
+        Width: 300
+        Height: 100
+      GridCell:
+        Width: 150
+        Height: 50
+    MaxUploadSize: 500KB
+    Path: %Config:UploadPath%Loghi
+    URL: %Config:UploadURL%Loghi
+PluralDisplayLabel: _(Federations)
+DisplayLabel: _(Federation)
+PluralModelName: Federations
+ImageName: business

@@ -1,0 +1,27 @@
+﻿ModelName: SportType
+PhysicalName: TIPOSPORT
+PluralDisplayLabel: _(Sport types)
+PluralModelName: SportTypes
+DisplayLabel: _(Sport type)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Sport type)
+    DisplayWidth: 20
+  AllowsDraws: Boolean
+    PhysicalName: GESTPAREGGIO
+    DisplayLabel: _(Sport that allows draws)
+    DisplayWidth: 25
+  ScoredInSets: Boolean
+    PhysicalName: GESTSETS
+    DisplayLabel: _(Sport scored in sets)
+    DisplayWidth: 25
+  EnglishStyleAverage: Boolean
+    PhysicalName: GESTMEDIAING
+    DisplayLabel: _(English-style average)
+    DisplayWidth: 25
+ImageName: security

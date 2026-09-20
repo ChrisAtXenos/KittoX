@@ -1,0 +1,8 @@
+﻿Field: DocumentType
+Field: IssuedBy
+Field: IssueDate
+Field: ExpiryDate
+  DisplayWidth: 14
+Field: Number
+Field: Notes
+Field: DocumentFile

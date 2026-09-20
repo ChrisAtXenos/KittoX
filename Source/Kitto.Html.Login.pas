@@ -59,6 +59,16 @@ type
     function GetExtraWidth: Integer;
     function GetExtraHeight: Integer;
     function GetLabelWidth: Integer;
+    function GetEditWidth: Integer;
+    function GetLocalStorage: string;
+    function GetTitle: string;
+    function GetStyle: string;
+    function GetSendQR: Boolean;
+    function GetResetPassword: Boolean;
+    function GetRegisterNewUser: Boolean;
+    function GetPrivacyPolicy: Boolean;
+    function GetFormPanel: string;
+    function GetBorderPanel: string;
   public
     /// <summary>Renders the login form (fields, links, database choice, script).</summary>
     function Render: string; override;
@@ -66,8 +76,32 @@ type
     property ExtraWidth: Integer read GetExtraWidth;
     [YamlNode('ExtraHeight', '0', 'Extra height in pixels for the login dialog')]
     property ExtraHeight: Integer read GetExtraHeight;
-    [YamlNode('FormPanel/LabelWidth', '100', 'Label width in pixels for form fields')]
+    [YamlNode('LabelWidth', '100', 'Label width in pixels for the login form fields')]
     property LabelWidth: Integer read GetLabelWidth;
+    [YamlNode('EditWidth', 'Width in pixels of the login input fields')]
+    property EditWidth: Integer read GetEditWidth;
+    /// <summary>RTTI carrier for the LocalStorage node (Mode/AskUser/AutoLogin):
+    /// remembers the last user name/password in the browser. Read via
+    /// FindNode('LocalStorage') at render time.</summary>
+    [YamlNode('LocalStorage', 'Remember credentials in the browser (Mode: UserName/Password, AskUser, AutoLogin)')]
+    property LocalStorage: string read GetLocalStorage;
+
+    [YamlNode('Title', 'Login dialog title (defaults to the application title)')]
+    property Title: string read GetTitle;
+    [YamlNode('Style', 'Extra inline CSS applied to the login dialog')]
+    property Style: string read GetStyle;
+    [YamlNode('SendQR', 'False', 'Show the "send QR" action for two-factor enrolment')]
+    property SendQR: Boolean read GetSendQR;
+    [YamlNode('ResetPassword', 'False', 'Show the "password forgotten?" link (sub-node HrefStyle styles it)')]
+    property ResetPassword: Boolean read GetResetPassword;
+    [YamlNode('RegisterNewUser', 'False', 'Show the "register new user" link (sub-node HrefStyle styles it)')]
+    property RegisterNewUser: Boolean read GetRegisterNewUser;
+    [YamlNode('PrivacyPolicy', 'False', 'Show the "privacy policy" link (sub-node HrefStyle styles it)')]
+    property PrivacyPolicy: Boolean read GetPrivacyPolicy;
+    [YamlNode('FormPanel', 'Login form panel options (UserName label, LabelWidth)')]
+    property FormPanel: string read GetFormPanel;
+    [YamlNode('BorderPanel', 'Optional regions around the login form (WestView/SouthView/NorthView/EastView, each hosting a controller)')]
+    property BorderPanel: string read GetBorderPanel;
   end;
 
   /// <summary>
@@ -99,6 +133,7 @@ uses
   EF.Macros,
   Kitto.Config,
   Kitto.Web.Application,
+  Kitto.Web.Request,
   Kitto.Web.Session,
   Kitto.Html.LanguageSwitcher,
   Kitto.Html.TemplateEngine,
@@ -124,6 +159,57 @@ end;
 function TKXLoginPanelController.GetAppName: string;
 begin
   Result := TKWebApplication.Current.Config.AppName;
+end;
+
+function TKXLoginPanelController.GetEditWidth: Integer;
+begin
+  Result := Config.GetInteger('EditWidth', 0);
+end;
+
+function TKXLoginPanelController.GetLocalStorage: string;
+begin
+  // RTTI carrier only: the LocalStorage options are read via FindNode at render time.
+  Result := '';
+end;
+
+function TKXLoginPanelController.GetTitle: string;
+begin
+  Result := Config.GetString('Title');
+end;
+
+function TKXLoginPanelController.GetStyle: string;
+begin
+  Result := Config.GetString('Style');
+end;
+
+function TKXLoginPanelController.GetSendQR: Boolean;
+begin
+  Result := Config.GetBoolean('SendQR');
+end;
+
+function TKXLoginPanelController.GetResetPassword: Boolean;
+begin
+  Result := Config.GetBoolean('ResetPassword');
+end;
+
+function TKXLoginPanelController.GetRegisterNewUser: Boolean;
+begin
+  Result := Config.GetBoolean('RegisterNewUser');
+end;
+
+function TKXLoginPanelController.GetPrivacyPolicy: Boolean;
+begin
+  Result := Config.GetBoolean('PrivacyPolicy');
+end;
+
+function TKXLoginPanelController.GetFormPanel: string;
+begin
+  Result := Config.GetString('FormPanel');
+end;
+
+function TKXLoginPanelController.GetBorderPanel: string;
+begin
+  Result := Config.GetString('BorderPanel');
 end;
 
 function TKXLoginPanelController.GetDialogStyle: string;
@@ -618,7 +704,12 @@ end;
 procedure TKXLogoutController.ExecuteTool;
 begin
   inherited;
-  TKWebApplication.Current.Logout;
+  // Defence in depth: the menu now posts to kx/logout, but this controller is
+  // still reachable via the bare kx/view/Logout route, which is [TKXANY] and
+  // therefore answers GET too. Log out only on a POST, so a cross-site GET here
+  // cannot end the session (logout-CSRF).
+  if SameText(TKWebRequest.Current.Method, 'POST') then
+    TKWebApplication.Current.Logout;
 end;
 
 function TKXLogoutController.Render: string;

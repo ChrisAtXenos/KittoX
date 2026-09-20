@@ -1,0 +1,81 @@
+﻿ModelName: FederationRegistration
+PhysicalName: TESSERAMENTI
+PluralDisplayLabel: _(Federation registrations)
+DisplayLabel: _(Federation registration)
+PluralModelName: FederationRegistrations
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+    IsVisible: False
+  Person: Reference(Person) not null
+    DisplayLabel: _(Person)
+    PhysicalName: DT_TESSERAMENTI_NOMINATIVO
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+    DisplayWidth: 50
+  Affiliation: Reference(Affiliation)
+    PhysicalName: FK_TESSERAMENTI_SOC_TITOLARE
+    DisplayLabel: _(Affiliation)
+    Fields:
+      OwningClubId:
+        PhysicalName: SOC_TITOLAREID
+  Season: Reference(Season) not null
+    DisplayLabel: _(Season)
+    PhysicalName: FK_TESSERAMENTI_STAGIONE
+    Fields:
+      SeasonId:
+        PhysicalName: STAGIONEID
+  Championship: Reference(Championship) not null
+    DisplayLabel: _(Championship)
+    PhysicalName: FK_TESSERAMENTI_CAMPIONATO
+    Fields:
+      ChampionshipId:
+        PhysicalName: CAMPIONATOID
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Federation registration)
+    DisplayWidth: 100
+    IsVisible: False
+    DefaultValue: '-'
+  Rebate: Currency
+    PhysicalName: ABBUONO
+    DisplayLabel: _(Rebate)
+    DisplayWidth: 10
+  TotalFee: Currency
+    PhysicalName: QUOTA_TOT
+    DisplayLabel: _(Total fee)
+    DisplayWidth: 10
+  ContractCode: String(20)
+    PhysicalName: COD_CONTRATTO
+    DisplayLabel: _(Contract no.)
+  ContractFiledDate: Date
+    PhysicalName: DATA_DEP_CONTRATTO
+    DisplayLabel: _(Filed on)
+    DisplayWidth: 12
+  StartDate: Date
+    PhysicalName: DATA_INIZIO
+    DisplayLabel: _(Start)
+    DisplayWidth: 12
+  ExpiryDate: Date
+    PhysicalName: DATA_SCADENZA
+    DisplayLabel: _(Expiry)
+    DisplayWidth: 12
+  CardNumber: String(20)
+    PhysicalName: TESSERA
+    DisplayLabel: _(Card Number)
+  Loan: Boolean
+    PhysicalName: PRESTITO
+    DisplayLabel: _(Loan)
+DetailReferences:
+  Deposits: Deposit
+    DisplayLabel: _(Fees Paid)
+    PhysicalName: DT_VERSAMENTI_TESSERAMENTO
+    ReferenceField: FederationRegistration
+Rules:
+  GenerateNewCardNumber:
+DefaultSorting: {Q}DATA_INIZIO
+ImageName: web

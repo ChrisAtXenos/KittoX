@@ -1,0 +1,10 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Provinces)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (PROVINCE.CLASS like '%{value}%') or (PROVINCE.ID like '%{value}%') or (PROVINCE.DX like '%{value}%')
+MainTable:
+  Model: Province
+  Controller:

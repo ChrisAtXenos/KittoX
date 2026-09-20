@@ -54,6 +54,13 @@ type
   strict private
     function GetControllerType: string;
     function GetCatalog: TKViews;
+    function GetViewType: string;
+    function GetACName: string;
+    function GetMobileSettings: string;
+    function GetMailFrom: string;
+    function GetMailSubject: string;
+    function GetMailBody: string;
+    function GetMailHTMLBody: string;
   strict protected
     const DEFAULT_IMAGE_NAME = 'default_view';
     function GetDisplayLabel: string; virtual;
@@ -73,6 +80,27 @@ type
 
     [YamlNode('Controller', 'Controller type name')]
     property ControllerType: string read GetControllerType;
+
+    [YamlNode('Type', 'View type discriminator (e.g. Data, Tree); selects the view class at load time')]
+    property ViewType: string read GetViewType;
+
+    [YamlNode('ACName', 'Resource name used for access control (defaults to the view name)')]
+    property ACName: string read GetACName;
+
+    /// <summary>RTTI carrier for the MobileSettings node (e.g.
+    /// MobileSettings/Android/Manifest for the home view). Read by path at run time.</summary>
+    [YamlNode('MobileSettings', 'Mobile/PWA settings for this view (e.g. Android/Manifest)')]
+    property MobileSettings: string read GetMobileSettings;
+
+    // Mail-message views (a view whose body is an e-mail template: From/Subject/Body).
+    [YamlNode('From', 'Sender address (mail-message view)')]
+    property MailFrom: string read GetMailFrom;
+    [YamlNode('Subject', 'Message subject (mail-message view; may contain macros)', True)]
+    property MailSubject: string read GetMailSubject;
+    [YamlNode('Body', 'Plain-text body (mail-message view)', True)]
+    property MailBody: string read GetMailBody;
+    [YamlNode('HTMLBody', 'HTML body (mail-message view)', True)]
+    property MailHTMLBody: string read GetMailHTMLBody;
   end;
 
   /// <summary>Metaclass reference for TKView and its descendants.</summary>
@@ -99,7 +127,16 @@ type
     function GetAlignment: string;
     function GetIsReadOnly: Boolean;
     function GetDisplayFormat: string;
+    function GetDisplayLabel: string;
+    function GetAlign: string;
   public
+    [YamlNode('DisplayLabel', '', 'Field label override in this layout', True)]
+    property DisplayLabel: string read GetDisplayLabel;
+
+    [YamlNode('Align', 'Field alignment within the layout (left/center/right)')]
+    [YamlEnumType(TypeInfo(TKColumnAlignment))]
+    property Align: string read GetAlign;
+
     [YamlNode('CharWidth', 'Field width in characters')]
     property CharWidth: Integer read GetCharWidth;
 
@@ -107,9 +144,10 @@ type
     property DisplayWidth: Integer read GetDisplayWidth;
 
     [YamlNode('Alignment', 'Text alignment: left, center, right')]
+    [YamlEnumType(TypeInfo(TKColumnAlignment))]
     property Alignment: string read GetAlignment;
 
-    [YamlNode('IsReadOnly', 'True', 'Force field to read-only in this layout')]
+    [YamlNode('IsReadOnly', 'False', 'Force field to read-only in this layout')]
     property IsReadOnly: Boolean read GetIsReadOnly;
 
     [YamlNode('DisplayFormat', 'Format string for display rendering')]
@@ -120,16 +158,28 @@ type
   ///  FieldSet grouping in a layout.
   ///  YAML path: Layout/FieldSet
   /// </summary>
+  [YamlChildType('Field', TKLayoutFieldConfig, '', 'A field placed directly in this fieldset')]
   TKLayoutFieldSetConfig = class(TEFNode)
   private
     function GetTitle: string;
     function GetCollapsible: Boolean;
+    function GetCollapsed: Boolean;
+    function GetRow: string;
   public
     [YamlNode('Title', 'FieldSet title')]
     property Title: string read GetTitle;
 
-    [YamlNode('Collapsible', 'True', 'Allow the fieldset to be collapsed')]
+    [YamlNode('Collapsible', 'False', 'Allow the fieldset to be collapsed')]
     property Collapsible: Boolean read GetCollapsible;
+
+    [YamlNode('Collapsed', 'False', 'Fieldset starts collapsed')]
+    property Collapsed: Boolean read GetCollapsed;
+
+    /// <summary>RTTI carrier for a Row node: a horizontal group of fields laid
+    /// out side by side inside this fieldset (each child is a Field). The getter
+    /// is unused; the row is walked node by node at render time.</summary>
+    [YamlNode('Row', 'A horizontal row of fields laid out side by side in this fieldset')]
+    property Row: string read GetRow;
   end;
 
   /// <summary>
@@ -141,6 +191,7 @@ type
   [YamlChildType('FieldSet', TKLayoutFieldSetConfig, '', 'Grouped fieldset')]
   [YamlChildType('Row', '', 'Horizontal row of fields')]
   [YamlChildType('Pagebreak', '', 'Page break in layout')]
+  [YamlChildType('Spacer', '', 'Vertical/horizontal spacer between elements')]
   TKLayout = class(TKMetadata)
   private
     FLayouts: TKLayouts;
@@ -160,10 +211,12 @@ type
     function IsFormLayout: Boolean;
 
     [YamlNode('LabelAlign', 'Top', 'Label position relative to form fields (Top/Left/Right)')]
+    [YamlEnumType(TypeInfo(TKLabelAlign))]
     property LabelAlign: string read GetLabelAlign;
     [YamlNode('LabelWidth', '120', 'Width in pixels for field labels')]
     property LabelWidth: Integer read GetLabelWidth;
     [YamlNode('MsgTarget', 'Title', 'Where validation messages are displayed (Title/Under)')]
+    [YamlEnumType(TypeInfo(TKMsgTarget))]
     property MsgTarget: string read GetMsgTarget;
     [YamlNode('LabelPad', '0', 'Padding in pixels between label and field')]
     property LabelPad: Integer read GetLabelPad;
@@ -309,9 +362,48 @@ type
   private
     function GetTreeViewNodeCount: Integer;
     function GetTreeViewNode(I: Integer): TKTreeViewNode;
+    function GetDisplayLabel: string;
+    function GetImageName: string;
+    function GetViewType: string;
+    function GetMainTable: string;
+    function GetBackgroundColor: string;
+    function GetTileWidth: Integer;
+    function GetImagePosition: string;
+    function GetStyle: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
+    /// <summary>Label shown for this node in the tree/menu (overrides the label
+    /// of the view it points to).</summary>
+    [YamlNode('DisplayLabel', '', 'Label for this node in the tree/menu (overrides the pointed view''s label)', True)]
+    property DisplayLabel: string read GetDisplayLabel;
+
+    /// <summary>Icon shown for this node in the tree/menu (overrides the view''s icon).</summary>
+    [YamlNode('ImageName', 'Icon for this node in the tree/menu (overrides the pointed view''s icon)')]
+    property ImageName: string read GetImageName;
+
+    /// <summary>Type of the optional inline view defined directly under this node
+    /// (instead of naming an existing view by value).</summary>
+    [YamlNode('Type', 'Type of the inline view defined under this node (e.g. Data)')]
+    property ViewType: string read GetViewType;
+
+    /// <summary>RTTI carrier for the MainTable of an inline view defined under
+    /// this node. Kept as an anchor (not a typed sub-node) because Kitto.Metadata.Views
+    /// must not reference the DataView unit (which uses it); the inline table is
+    /// walked node by node.</summary>
+    [YamlNode('MainTable', 'Main table of the inline view defined under this node')]
+    property MainTable: string read GetMainTable;
+
+    // Tile/menu styling knobs (honored when the tree is rendered as tiles).
+    [YamlNode('BackgroundColor', 'Background colour of this node''s tile (hex or CSS colour)')]
+    property BackgroundColor: string read GetBackgroundColor;
+    [YamlNode('Width', 'Tile width in pixels for this node')]
+    property TileWidth: Integer read GetTileWidth;
+    [YamlNode('ImagePosition', 'Position of the icon within the tile (e.g. top/left)')]
+    property ImagePosition: string read GetImagePosition;
+    [YamlNode('Style', 'Extra inline CSS applied to this node''s tile')]
+    property Style: string read GetStyle;
+
     /// <summary>Number of child tree nodes.</summary>
     property TreeViewNodeCount: Integer read GetTreeViewNodeCount;
     /// <summary>The child tree nodes, by index.</summary>
@@ -334,9 +426,15 @@ type
   TKTreeViewFolder = class(TKTreeViewNode)
   private
     function GetIsInitiallyCollapsed: Boolean;
+    function GetBack: string;
   public
-    [YamlNode('IsInitiallyCollapsed', 'True', 'Folder starts collapsed in tree view')]
+    [YamlNode('IsInitiallyCollapsed', 'False', 'Folder starts collapsed in tree view')]
     property IsInitiallyCollapsed: Boolean read GetIsInitiallyCollapsed;
+
+    /// <summary>RTTI carrier for the Back node: a "go back" entry shown inside the
+    /// folder (its ImageName/DisplayLabel). Read node by node at render time.</summary>
+    [YamlNode('Back', 'A "go back" navigation entry in this folder (ImageName, DisplayLabel)')]
+    property Back: string read GetBack;
     /// <summary>A folder has no own view; returns nil.</summary>
     function FindView(const AViews: TKViews): TKView; override;
   end;
@@ -718,6 +816,42 @@ begin
   Result := GetExpandedString('Controller');
 end;
 
+function TKView.GetViewType: string;
+begin
+  Result := GetString('Type');
+end;
+
+function TKView.GetACName: string;
+begin
+  Result := GetString('ACName');
+end;
+
+function TKView.GetMobileSettings: string;
+begin
+  // RTTI carrier only: read by full path (e.g. MobileSettings/Android/Manifest).
+  Result := '';
+end;
+
+function TKView.GetMailFrom: string;
+begin
+  Result := GetString('From');
+end;
+
+function TKView.GetMailSubject: string;
+begin
+  Result := GetString('Subject');
+end;
+
+function TKView.GetMailBody: string;
+begin
+  Result := GetString('Body');
+end;
+
+function TKView.GetMailHTMLBody: string;
+begin
+  Result := GetString('HTMLBody');
+end;
+
 function TKView.GetDefaultImageName: string;
 begin
   Result := DEFAULT_IMAGE_NAME;
@@ -780,6 +914,47 @@ end;
 function TKTreeViewNode.GetTreeViewNodeCount: Integer;
 begin
   Result := GetChildCount<TKTreeViewNode>;
+end;
+
+function TKTreeViewNode.GetDisplayLabel: string;
+begin
+  Result := GetString('DisplayLabel');
+end;
+
+function TKTreeViewNode.GetImageName: string;
+begin
+  Result := GetString('ImageName');
+end;
+
+function TKTreeViewNode.GetViewType: string;
+begin
+  Result := GetString('Type');
+end;
+
+function TKTreeViewNode.GetMainTable: string;
+begin
+  // RTTI carrier only: the inline view's main table is walked node by node.
+  Result := '';
+end;
+
+function TKTreeViewNode.GetBackgroundColor: string;
+begin
+  Result := GetString('BackgroundColor');
+end;
+
+function TKTreeViewNode.GetTileWidth: Integer;
+begin
+  Result := GetInteger('Width', 0);
+end;
+
+function TKTreeViewNode.GetImagePosition: string;
+begin
+  Result := GetString('ImagePosition');
+end;
+
+function TKTreeViewNode.GetStyle: string;
+begin
+  Result := GetString('Style');
 end;
 
 { TKTreeView }
@@ -882,6 +1057,12 @@ end;
 function TKTreeViewFolder.GetIsInitiallyCollapsed: Boolean;
 begin
   Result := GetBoolean('IsInitiallyCollapsed', False);
+end;
+
+function TKTreeViewFolder.GetBack: string;
+begin
+  // RTTI carrier only: the Back entry (ImageName/DisplayLabel) is read by path.
+  Result := '';
 end;
 
 { TKViewRegistry }
@@ -1017,6 +1198,16 @@ begin
   Result := GetString('Alignment');
 end;
 
+function TKLayoutFieldConfig.GetDisplayLabel: string;
+begin
+  Result := GetString('DisplayLabel');
+end;
+
+function TKLayoutFieldConfig.GetAlign: string;
+begin
+  Result := GetString('Align');
+end;
+
 function TKLayoutFieldConfig.GetIsReadOnly: Boolean;
 begin
   Result := GetBoolean('IsReadOnly', False);
@@ -1037,6 +1228,17 @@ end;
 function TKLayoutFieldSetConfig.GetCollapsible: Boolean;
 begin
   Result := GetBoolean('Collapsible', False);
+end;
+
+function TKLayoutFieldSetConfig.GetCollapsed: Boolean;
+begin
+  Result := GetBoolean('Collapsed', False);
+end;
+
+function TKLayoutFieldSetConfig.GetRow: string;
+begin
+  // RTTI carrier only: the row's fields are walked node by node at render time.
+  Result := '';
 end;
 
 initialization

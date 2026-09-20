@@ -1,0 +1,14 @@
+LabelAlign: Right
+LabelWidth: 120
+FieldSet:
+  Row:
+    Field: Id
+    Field: Description
+  Row:
+    Field: VatRegisterType
+  Row:
+    Field: LastProtocolDate
+    Field: LastProtocolNumber
+  Row:
+    Field: LastProtocolDatePrevYear
+    Field: LastProtocolNumberPrevYear

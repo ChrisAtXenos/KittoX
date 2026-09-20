@@ -1,0 +1,31 @@
+LabelAlign: Right
+LabelWidth: 220
+FieldSet:
+  Row:
+    Field: TaxLevyCode
+    Field: WithholdingType
+  Row:
+    Field: Supplier
+      CharWidth: 100
+  Row:
+    Field: Description
+      CharWidth: 100
+  Row:
+    Field: PostingDate
+    Field: FeePaymentDate
+  Row:
+    Field: FeeAmount
+    Field: TaxableAmount
+  Row:
+    Field: AmountNotSubjectToWithholding
+    Field: AmountSubjectToWithholding
+  Row:
+    Field: DueDate
+    Field: DepositDate
+  Row:
+    Field: PaymentMethod
+    Field: Bank
+  Row:
+    Field: SocialSecurityActivityCode
+  Row:
+    Field: Status

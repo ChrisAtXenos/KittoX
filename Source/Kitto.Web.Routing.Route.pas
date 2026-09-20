@@ -100,7 +100,15 @@ begin
       var LAnon: Boolean := LActivationObj.MatchedIsAnonymous;
       var LContext: IKXRequestContext := TKXRequestContext.Create(
         AURL.Path, ARequest.Method,
-        {AllowUnauthenticated} LAnon or TKWebApplication(FApplication).IsPublicView(LViewName),
+        // A published view (empty ACName) waives authentication for its
+        // endpoints — a self-registration form must render and submit without a
+        // login — but never for an endpoint marked [TKXNotPublic] (delete, tool):
+        // publishing a view must not hand an anonymous client the power to
+        // delete its records or run its tools. An explicit [TKXAnonymous] still
+        // wins, so the login/reset/change endpoints are unaffected.
+        {AllowUnauthenticated} LAnon or
+          (TKWebApplication(FApplication).IsPublicView(LViewName)
+            and not LActivationObj.MatchedIsNotPublic),
         {AllowSessionLost} LAnon,
         // A fragment endpoint is not directly navigable; anonymous (login/logout/
         // reset/change) and [TKXNavigable] (blob downloads) endpoints are.

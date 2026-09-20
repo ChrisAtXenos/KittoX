@@ -1,0 +1,42 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Subscription Fees)
+    Collapsible: False
+    Connector: and
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: ({Q}DX like '%{value}%') or (FK_ISCRIZIONI_CAMPAGNA.DX LIKE '%{value}%') or ({Q}QUOTA1 like '%{value}%') or ({Q}QUOTA2 like '%{value}%') or ({Q}QUOTA3 like '%{value}%') or ({Q}QUOTA4 like '%{value}%') or ({Q}QUOTA5 like '%{value}%')
+      ColumnBreak:
+      List: _(Show fees)
+        Items:
+          #Open subscription fees: the preset value
+          Active: _(Active)
+            Expression: FK_ISCRIZIONI_CAMPAGNA.INIZIO <= CURRENT_TIMESTAMP AND FK_ISCRIZIONI_CAMPAGNA.FINE >= CURRENT_TIMESTAMP
+            IsDefault: True
+          #Subscription fees not active yet
+          Future: _(Future)
+            Expression: FK_ISCRIZIONI_CAMPAGNA.INIZIO > CURRENT_TIMESTAMP
+          #Past subscription fees
+          History: _(History)
+            Expression: FK_ISCRIZIONI_CAMPAGNA.FINE < CURRENT_TIMESTAMP
+      ColumnBreak:
+      NumericSearch: _(Birth year)
+        ExpressionTemplate: ({Q}ANNO_DAL <= {value}) and ({Q}ANNO_AL >= {value})
+MainTable:
+  Model: SubscriptionFee
+  Controller:
+    PopUpWindow:
+      Width: 1000
+      Height: 700
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_SubscriptionFees_Form
+    Grid:
+      Layout: ADMIN_SubscriptionFees_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: SubscriptionFees.xlsx
+          RequireSelection: False

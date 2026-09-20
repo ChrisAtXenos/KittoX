@@ -1,0 +1,84 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Accounting Entries)
+    Items:
+      DynaList: _(Financial Year)
+        Width: 20
+        CommandText: |
+          select ID, DX
+          from ESERCIZICONTABILI
+          order by DX
+        ExpressionTemplate: {Q}ESERCID = '{value}'
+        AutoCompleteMinChars: 3
+      NumericSearch: _(Entry No.)
+        ExpressionTemplate: ({Q}NR_MOV = {value})
+      ColumnBreak:
+        LabelWidth: 75
+      DynaList: _(Reason)
+        Width: 25
+        CommandText: |
+          select ID, DX
+          from CAUSALICONTABILI
+          order by DX
+        ExpressionTemplate: {Q}CAUSALEID = '{value}'
+        AutoCompleteMinChars: 3
+      ColumnBreak:
+        LabelWidth: 90
+      DateSearch: _(From date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_REG >= '{value}'
+      ColumnBreak:
+        LabelWidth: 80
+      DateSearch: _(To date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_REG <= '{value}'
+MainTable:
+  Model: AccountingEntry
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_AccountingEntries_Form
+    Grid:
+      Layout: ADMIN_AccountingEntries_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: AccountingEntries.xlsx
+          RequireSelection: False
+      PrintPaymentReceipts:
+        DisplayLabel: _(Print invoice)
+        Controller: PrintInvoice
+          BaseFileName: %APP_PATH%ReportTemplates\SportClubManager_Invoice.pdf
+          LayoutFileName: %APP_PATH%ReportTemplates\SportClubManager_Invoice.yaml
+          ConfirmationMessage: _(Print the invoice?)
+          RequireSelection: True
+  DetailTables:
+    Table:
+      Model: AccountingLine
+      Controller:
+        Form:
+          Layout: ADMIN_AccountingLines_Detail_Form
+        Grid:
+          Layout: ADMIN_AccountingLines_Detail_Grid
+        ToolViews:
+          ExportExcel:
+            Hint: _(Download to Excel)
+            Controller: SCMExcelExport
+              ClientFileName: AccountingLines.xlsx
+              RequireSelection: False
+    Table:
+      Model: VatDetail
+      Controller:
+        Form:
+          Layout: ADMIN_VatDetails_Detail_Form
+        Grid:
+          Layout: ADMIN_VatDetails_Detail_Grid
+    Table:
+      Model: WithholdingDetail
+      Controller:
+        Form:
+          Layout: ADMIN_WithholdingDetails_Detail_Form
+        Grid:
+          Layout: ADMIN_WithholdingDetails_Detail_Grid

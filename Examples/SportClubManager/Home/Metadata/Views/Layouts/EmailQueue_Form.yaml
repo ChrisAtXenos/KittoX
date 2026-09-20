@@ -1,0 +1,9 @@
+﻿Field: Description
+Field: EmailTemplate
+Field: FromAddress
+Field: Recipient
+Field: Subject
+Field: HtmlBody
+Field: EntryDateTime
+Field: EnteredBy
+Field: TransmissionDateTime

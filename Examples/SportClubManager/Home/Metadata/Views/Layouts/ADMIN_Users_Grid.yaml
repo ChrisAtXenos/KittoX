@@ -1,0 +1,25 @@
+﻿Field: Id
+  DisplayWidth: 20
+Field: TaxCode
+Field: LastName
+  DisplayWidth: 25
+Field: FirstName
+  DisplayWidth: 25
+Field: Profile
+  DisplayWidth: 20
+Field: Email
+  DisplayWidth: 30
+Field: Mobile
+Field: Language
+Field: Administrator
+  DisplayWidth: 15
+Field: IsSystem
+  DisplayWidth: 15
+Field: AccessBlocked
+  DisplayWidth: 15
+Field: PasswordMustBeChanged
+  DisplayWidth: 20
+Field: PrivacyConsent
+  DisplayLabel: _(Privacy Consent)
+  DisplayWidth: 15
+Field: CreationDateTime

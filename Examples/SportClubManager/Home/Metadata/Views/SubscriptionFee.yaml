@@ -1,0 +1,16 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Subscription Fees)
+    Items:
+      List: _(Show fees)
+        Items:
+          #Open subscription fees: the preset value
+          Today: _(Active)
+            Expression: FK_ISCRIZIONI_CAMPAGNA.INIZIO <= CURRENT_TIMESTAMP AND FK_ISCRIZIONI_CAMPAGNA.FINE >= CURRENT_TIMESTAMP
+            IsDefault: True
+          #Past subscription fees
+          LastWeek: _(Inactive)
+            Expression: FK_ISCRIZIONI_CAMPAGNA.FINE < CURRENT_TIMESTAMP
+MainTable:
+  Model: SubscriptionFee

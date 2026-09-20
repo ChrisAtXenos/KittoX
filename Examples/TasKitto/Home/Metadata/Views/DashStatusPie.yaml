@@ -4,13 +4,11 @@ Controller: List
   CenterController: ChartPanel
     Chart:
       Type: Cartesian
-      Theme: Muted
       Axes:
         Axis:
           Position: Left
           Title: _(Count)
         Axis:
-          Type: Category
           Position: Bottom
       Series:
         Series:
@@ -18,12 +16,8 @@ Controller: List
           XField: STATUS
           YField: ACTIVITY_COUNT
           DisplayName: _(Activities)
-          Highlight:
-            StrokeStyle: black
-            FillStyle: gold
           Label:
             Field: ACTIVITY_COUNT
-            Display: insideEnd
 MainTable:
   IsReadOnly: True
   Model: ACTIVITY_BY_STATUS

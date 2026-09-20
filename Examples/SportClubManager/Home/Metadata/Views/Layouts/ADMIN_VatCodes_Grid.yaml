@@ -1,0 +1,12 @@
+Field: Id
+Field: Description
+Field: RatePercent
+Field: NonDeductiblePercent
+Field: DeductibleCode
+Field: NonDeductibleCode
+Field: StampDutyAmount
+Field: BracketLimit
+Field: Nature
+Field: Title
+Field: ExcludeFromVatSettlement
+Field: Disabled

@@ -1,0 +1,42 @@
+﻿ModelName: MembershipFee
+PhysicalName: LIBRO_SOCI_QUOTE
+PluralDisplayLabel: _(Membership fees)
+DisplayLabel: _(Membership fee)
+PluralModelName: MembershipFees
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Code)
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 30
+    IsReadOnly: True
+  Year: Integer
+    DisplayLabel: _(Year)
+    PhysicalName: ANNO
+    DisplayWidth: 10
+    Rules:
+      CalcDescription: {MembersRegister_LastName} {MembersRegister_FirstName} {Year}
+    DisplayFormat: 0
+    EditFormat: 0
+  Fee: Currency
+    PhysicalName: QUOTA
+    DisplayLabel: _(Membership fee)
+    DisplayWidth: 10
+    DefaultValue: 0
+  CardNumber: String(20)
+    PhysicalName: NUMERO_TESSERA
+    DisplayLabel: _(Card no.)
+  MembersRegister: Reference(MembersRegister)
+    DisplayLabel: _(Members Register)
+    PhysicalName: DT_LIBRO_SOCI_QUOTE_SOCIO
+    Fields:
+      MemberId:
+        PhysicalName: SOCIOID
+    AutoAddFields:
+      LastName: MembersRegister_LastName
+      FirstName: MembersRegister_FirstName

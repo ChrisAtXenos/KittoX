@@ -1,0 +1,16 @@
+﻿ModelName: SanctionType
+PhysicalName: TPSANZIONE
+PluralDisplayLabel: _(Sports sanction types)
+DisplayLabel: _(Sports sanction type)
+PluralModelName: SanctionTypes
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 3
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Code)
+  SuspensionMatchDays: Integer
+    PhysicalName: GIORNATE
+    DisplayLabel: _(Suspension match days)

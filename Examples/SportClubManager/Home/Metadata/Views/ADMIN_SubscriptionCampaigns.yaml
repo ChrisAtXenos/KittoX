@@ -1,0 +1,36 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Subscription Campaigns)
+    LabelWidth: 140
+    Items:
+      List: _(Show campaigns)
+        Items:
+          #Active campaigns: the preset value
+          Active: _(Active)
+            Expression: {Q}INIZIO <= CURRENT_TIMESTAMP AND {Q}FINE >= CURRENT_TIMESTAMP
+            IsDefault: True
+          #Past campaigns
+          Future: _(Future)
+            Expression: {Q}INIZIO > CURRENT_TIMESTAMP
+          #Past campaigns
+          History: _(History)
+            Expression: {Q}FINE < CURRENT_TIMESTAMP
+MainTable:
+  Model: SubscriptionCampaign
+  Controller:
+    AllowViewing: True
+    AllowDuplicating: True
+    PopupWindow:
+      Width: 1000
+      Height: 700
+    Form:
+      Layout: ADMIN_SubscriptionCampaigns_Form
+    Grid:
+      Layout: ADMIN_SubscriptionCampaigns_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: SubscriptionCampaigns.xlsx
+          RequireSelection: False

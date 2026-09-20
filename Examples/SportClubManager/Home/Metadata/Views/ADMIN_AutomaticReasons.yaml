@@ -1,0 +1,30 @@
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Automatic Reasons)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (CAUSALI_AUTO.ID like '%{value}%') or (CAUSALI_AUTO.DX like '%{value}%')
+MainTable:
+  Model: AutomaticReason
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Width: 800
+      Height: 500
+    Form:
+      Layout: ADMIN_AutomaticReasons_Form
+    Grid:
+      Layout: ADMIN_AutomaticReasons_Grid
+  DetailTables:
+    Table:
+      Model: AutomaticAccount
+      Controller:
+        AllowViewing: True
+        PopupWindow:
+          Width: 600
+          Height: 320
+        Form:
+          Layout: ADMIN_AutomaticAccounts_Detail_Form
+        Grid:
+          Layout: ADMIN_AutomaticAccounts_Detail_Grid

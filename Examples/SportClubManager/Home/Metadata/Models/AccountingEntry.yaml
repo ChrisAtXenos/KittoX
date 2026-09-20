@@ -1,0 +1,228 @@
+﻿ModelName: AccountingEntry
+PhysicalName: MOVIMENTI_CONTABILI
+DefaultSorting: FK_MOVIMENTI_CONTABILI_ESERC.DX desc, {Q}NR_MOV desc
+PluralDisplayLabel: _(Accounting entries)
+DisplayLabel: _(Accounting entry)
+PluralModelName: AccountingEntries
+Rules:
+  AccountingEntryCheck:
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Entry description)
+    DisplayWidth: 40
+  EntryNumber: Integer not null
+    DisplayLabel: _(Entry Number)
+    PhysicalName: NR_MOV
+    IsReadOnly: True
+    Rules:
+      CalcId: {FinancialYearId}_{EntryNumber}
+  PostingDate: Date not null
+    DisplayLabel: _(Posting Date)
+    PhysicalName: DATA_REG
+    DisplayWidth: 12
+    #DefaultValue: {date}
+    Rules:
+      AccountingEntrySetPostingDates:
+  EntryType: String(2) not null
+    DisplayLabel: _(Entry Type)
+    PhysicalName: TIPO_MOV
+    DisplayWidth: 40
+    NotifyChange: True
+    AllowedValues:
+      AS: _(Simple entry)
+      AC: _(Complex entry)
+      FC: _(Customer Invoice)
+      FF: _(Supplier Invoice)
+      NC: _(Customer Credit Note)
+      NF: _(Supplier Credit Note)
+      MA: _(Opening entries)
+      MC: _(Closing entries)
+    Rules:
+      AccountingEntryCheck:
+  DocumentDate: Date
+    PhysicalName: DATA_DOC
+    DisplayLabel: _(Document date)
+    DisplayWidth: 12
+  DocumentNumber: String(50)
+    PhysicalName: NR_DOC
+    DisplayLabel: _(Document number)
+    DisplayWidth: 20
+  VatProtocolNumber: Integer
+    PhysicalName: NR_IVA
+    DisplayLabel: _(VAT protocol number)
+    IsReadOnly: True
+  Amount: Currency not null
+    PhysicalName: IMPORTO
+    DisplayLabel: _(Amount)
+    DisplayWidth: 10
+  Notes: memo
+    PhysicalName: NOTE
+    DisplayLabel: _(Notes)
+  EnteredByUser: Reference(User)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_UTENTE_INSERIMENTO
+    Fields:
+      EnteredByUserId:
+        PhysicalName: UTENTE_INSERIMENTOID
+        DefaultValue: %Auth:USER_NAME%
+    IsReadOnly: True
+    IsVisible: False
+  AccountingReason: Reference(AccountingReason) not null
+    PhysicalName: FK_MOVIMENTI_CONTABILI_CAUSALE
+    DisplayLabel: _(Reason)
+    DisplayWidth: 30
+    Fields:
+      ReasonId:
+        PhysicalName: CAUSALEID
+    LookupFilter: TIPOREG = '{EntryType}'
+    AutoAddFields:
+      PostingType: Reason_PostingType
+      ReasonType: Reason_ReasonType
+      DocumentDateRef: Reason_DocumentDateRef
+      DocumentNumberRef: Reason_DocumentNumberRef
+      DueDateRef: Reason_DueDateRef
+    Rules:
+      AccountingEntryCheck:
+  FinancialYear: Reference(FinancialYear) not null
+    PhysicalName: FK_MOVIMENTI_CONTABILI_ESERC
+    DisplayLabel: _(Financial Year)
+    IsReadOnly: True
+    Fields:
+      FinancialYearId:
+        PhysicalName: ESERCID
+    LookupFilter: STATO = 'A'
+    AutoAddFields:
+      StartDate: FinancialYear_StartDate
+      EndDate: FinancialYear_EndDate
+    Rules:
+      AccountingEntrySetFinancialYear:
+      CalcId: {FinancialYearId}_{EntryNumber}
+  PaymentMethod: Reference(PaymentMethod)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_MOD_PAGAMENTO
+    DisplayLabel: _(Payment method)
+    DisplayWidth: 40
+    Fields:
+      PaymentMethodId:
+        PhysicalName: MOD_PAGAMENTOID
+    AutoAddFields:
+      RequiresBankDetails: PaymentMethod_RequiresBankDetails
+    Rules:
+      AccountingEntryCheck:
+  VatRegister: Reference(VatRegisterType)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_REG_IVA
+    DisplayLabel: _(VAT Register)
+    DisplayWidth: 30
+    Fields:
+      VatRegisterId:
+        PhysicalName: REG_IVAID
+  Supplier: Reference(Supplier)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_FORNITORE
+    DisplayLabel: _(Supplier)
+    DisplayWidth: 40
+    Fields:
+      SupplierId:
+        PhysicalName: FORNITOREID
+  Customer: Reference(Customer)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_CLIENTE
+    DisplayLabel: _(Customer)
+    DisplayWidth: 40
+    Fields:
+      CustomerId:
+        PhysicalName: CLIENTEID
+    AutoAddFields:
+      Description: Customer_Description
+      LastName: Customer_LastName
+      FirstName: Customer_FirstName
+      TaxCode: Customer_TaxCode
+      VatNumber: Customer_VatNumber
+      Iban: Customer_Iban
+      EInvoiceCode: Customer_EInvoiceCode
+      Email: Customer_Email
+      CertifiedEmail: Customer_CertifiedEmail
+      Address: Customer_Address
+      PostalCode: Customer_PostalCode
+      MunicipalityId: Customer_MunicipalityId
+      ProvinceId: Customer_ProvinceId
+  CustomerMunicipality: String(200)
+    DisplayLabel: _(Customer Municipality)
+    Expression: |
+      (SELECT DX FROM COMUNI WHERE ID = FK_MOVIMENTI_CONTABILI_CLIENTE.COMUNEID)
+  Bank: Reference(Bank)
+    PhysicalName: FK_CLIENTI_BANCA
+    DisplayLabel: _(Bank)
+    Fields:
+      BankId:
+        PhysicalName: BANCAID
+  TotalDebitLines: Currency
+    Expression: (SELECT SUM(RIGHE_CONTABILI.IMPORTO) FROM RIGHE_CONTABILI WHERE RIGHE_CONTABILI.MOVIMENTOID = {Q}ID AND RIGHE_CONTABILI.SEGNO = 'D')
+    IsReadOnly: True
+    DisplayLabel: _(Total debit lines)
+    DisplayWidth: 10
+    DefaultValue: 0
+  TotalCreditLines: Currency
+    Expression: (SELECT SUM(RIGHE_CONTABILI.IMPORTO) FROM RIGHE_CONTABILI WHERE RIGHE_CONTABILI.MOVIMENTOID = {Q}ID AND RIGHE_CONTABILI.SEGNO = 'A')
+    IsReadOnly: True
+    DisplayLabel: _(Total credit lines)
+    DefaultValue: 0
+  TotalTaxableAmount: Currency
+    Expression: (SELECT SUM(DETTAGLI_IVA.IMPONIBILE) FROM DETTAGLI_IVA WHERE DETTAGLI_IVA.MOVIMENTOID = {Q}ID)
+    IsReadOnly: True
+    DisplayLabel: _(Total taxable amount)
+    DisplayWidth: 10
+    DefaultValue: 0
+  TotalTax: Currency
+    Expression: (SELECT SUM(DETTAGLI_IVA.IMPOSTA) FROM DETTAGLI_IVA WHERE DETTAGLI_IVA.MOVIMENTOID = {Q}ID)
+    IsReadOnly: True
+    DisplayLabel: _(Total tax)
+    DisplayWidth: 10
+    DefaultValue: 0
+  TotalVatLines: Currency
+    Expression: (SELECT SUM(RIGHE_CONTABILI.IMPORTO) FROM RIGHE_CONTABILI WHERE RIGHE_CONTABILI.MOVIMENTOID = {Q}ID AND RIGHE_CONTABILI.CONTOID IN (SELECT ID FROM CONTICONTABILI WHERE ERARIO_IVA = 1) )
+    IsReadOnly: True
+    DisplayLabel: _(Total credit lines)
+    DisplayWidth: 10
+    DefaultValue: 0
+  PdfInvoice: FileReference(50)
+    PhysicalName: FATTURA_PDF
+    FileNameField: PdfInvoiceFileName
+    DisplayLabel: _(PDF Invoice)
+    MaxUploadSize: 500KB
+    ContentType: application/pdf
+    DisplayWidth: 40
+    AcceptedWildCards: .pdf
+    PreviewWindow: True
+      Width: 900
+      Height: 800
+    Path: %Config:UploadPath%Fatture
+  PdfInvoiceFileName: String(200)
+    PhysicalName: NOME_FATTURA_PDF
+    DisplayWidth: 40
+    DisplayLabel: _(PDF Invoice File Name)
+    IsReadOnly: True
+    IsVisible: False
+  XmlInvoice: FileReference(50)
+    PhysicalName: FATTURA_XML
+    FileNameField: XmlInvoiceFileName
+    DisplayLabel: _(XML Invoice)
+    ContentType: application/xml
+    DisplayWidth: 40
+    AcceptedWildCards: *.xml
+    PreviewWindow: True
+      Width: 900
+      Height: 800
+    Path: %Config:UploadPath%Fatture
+  XmlInvoiceFileName: String(200)
+    PhysicalName: NOME_FATTURA_XML
+    DisplayWidth: 40
+    DisplayLabel: _(XML Invoice File Name)
+    IsReadOnly: True
+    IsVisible: False
+DetailReferences:
+  Lines: AccountingLine
+  Vat: VatDetail
+  Withholdings: WithholdingDetail
+ImageName: account_balance

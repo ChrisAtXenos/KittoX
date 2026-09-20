@@ -549,10 +549,19 @@ const
   /// that includes a fragment is three.</summary>
   MAX_FILE_MACRO_DEPTH = 16;
 
+  /// <summary>Maximum re-entrant depth of Expand before it is judged circular.
+  /// A macro whose VALUE expands to another macro re-enters Expand through
+  /// TEFNode.AsExpandedString; a value that refers back to itself would recurse
+  /// until the stack gives out. Generous for any legitimate indirection: a node
+  /// whose value is another node's value is depth two.</summary>
+  MAX_MACRO_EXPANSION_DEPTH = 16;
+
 threadvar
   // Per-thread: the expansion engine is a singleton shared by every request,
   // so a counter on the expander or on the engine would mix threads up.
   _FileMacroDepth: Integer;
+  // Per-thread re-entrancy counter for TEFMacroExpansionEngine.Expand.
+  _MacroExpansionDepth: Integer;
 
 procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
 begin
@@ -726,14 +735,29 @@ begin
   if FDisableCount > 0 then
     Exit;
 
-  // Keep iterating until all macros in all included files are expanded.
-  // This also allows to support macros in macros, at a performance cost.
-  LPreviousString := AString;
-  CallExpanders(AString);
-  while LPreviousString <> AString do
-  begin
+  // Re-entrancy guard. A macro whose VALUE contains another macro re-enters
+  // Expand through TEFNode.AsExpandedString: a node value that refers back to
+  // itself — a login supplying UserName '%Auth:UserName%', which lands in the
+  // session AuthData that the %Auth:% expander reads — recursed until the stack
+  // gave out, and a stack overflow on Win64 takes the process down rather than
+  // raising something an application can catch. Bound it, as the %FILE()% macro
+  // already bounds its own recursion.
+  if _MacroExpansionDepth >= MAX_MACRO_EXPANSION_DEPTH then
+    raise EEFError.CreateFmt(_('Macro expansion nested more than %d levels deep. ' +
+      'A macro value probably refers back to itself.'), [MAX_MACRO_EXPANSION_DEPTH]);
+  Inc(_MacroExpansionDepth);
+  try
+    // Keep iterating until all macros in all included files are expanded.
+    // This also allows to support macros in macros, at a performance cost.
     LPreviousString := AString;
     CallExpanders(AString);
+    while LPreviousString <> AString do
+    begin
+      LPreviousString := AString;
+      CallExpanders(AString);
+    end;
+  finally
+    Dec(_MacroExpansionDepth);
   end;
 end;
 

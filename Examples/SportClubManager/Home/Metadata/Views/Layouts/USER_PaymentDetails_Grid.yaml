@@ -1,0 +1,4 @@
+﻿Field: SubscriptionInstalment
+  DisplayWidth: 48
+Field: PaidAmount
+  DisplayWidth: 16

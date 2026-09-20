@@ -1,0 +1,7 @@
+﻿Controller: Input_PIN
+  DisplayLabel: _(Enter the PIN)
+  AllowClose: False
+  FormPanel:
+    Width: 600
+    Height: 400
+    EditWidth: 380

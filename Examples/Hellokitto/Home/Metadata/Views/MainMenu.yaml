@@ -10,7 +10,11 @@ Folder: _(Dolls)
     DisplayLabel: _(Dolls List)
   View: DollsCard
     DisplayLabel: _(Dolls Card)
-View: Parties
+Folder: _(Parties)
+  View: Parties
+    DisplayLabel: _(Party list)
+  View: PartiesCalendar
+    DisplayLabel: _(Party calendar)
 Folder: _(Lookup tables)
   View: Hairs
 Folder: _(User)

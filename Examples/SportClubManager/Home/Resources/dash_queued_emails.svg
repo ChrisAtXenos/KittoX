@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <path fill="#FBC02D" d="M40 10H8c-2.2 0-4 1.8-4 4v20c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4V14c0-2.2-1.8-4-4-4z"/>
+  <path fill="#F57F17" d="M40 10H8c-2.2 0-4 1.8-4 4l20 12 20-12c0-2.2-1.8-4-4-4z"/>
+  <path fill="#FFEB3B" d="M24 26L4 14v3l20 12 20-12v-3z" opacity="0.6"/>
+  <circle cx="38" cy="38" r="7" fill="#1976D2"/>
+  <text x="38" y="42" font-family="Arial,sans-serif" font-size="9" font-weight="bold" text-anchor="middle" fill="#fff">N</text>
+</svg>

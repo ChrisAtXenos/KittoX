@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ unit Kitto.Html.FormController;
 interface
 
 uses
+  EF.YAML.Attributes,
   Kitto.Html.Panel;
 
 type
@@ -37,7 +38,12 @@ type
   ///  GetFormAction, GetFormTarget, and RenderFormScript.
   ///  AllowClose defaults to True so these forms render as modal dialogs.
   /// </summary>
+  {$RTTI EXPLICIT PROPERTIES([vcPublic])}
   TKXFormController = class abstract(TKXPanelControllerBase)
+  strict private
+    function GetFormPanel: string;
+    function GetBorderPanel: string;
+    function GetPopupWindow: string;
   strict protected
     function GetDefaultIsModal: Boolean; override;
 
@@ -84,6 +90,15 @@ type
     ///  Assembles toolbar + body + buttons, optionally wrapped in a form tag.
     /// </summary>
     function RenderContent: string; override;
+  public
+    // Optional layout blocks around these dialog-style forms (login, reset,
+    // change password). RTTI carriers: read node by node at render time.
+    [YamlNode('FormPanel', 'Form panel options (label width, field labels)')]
+    property FormPanel: string read GetFormPanel;
+    [YamlNode('BorderPanel', 'Optional border regions around the form')]
+    property BorderPanel: string read GetBorderPanel;
+    [YamlNode('PopupWindow', 'Modal window size for the form (Width/Height)')]
+    property PopupWindow: string read GetPopupWindow;
   end;
 
 implementation
@@ -96,6 +111,21 @@ uses
 function TKXFormController.GetDefaultIsModal: Boolean;
 begin
   Result := True;
+end;
+
+function TKXFormController.GetFormPanel: string;
+begin
+  Result := '';
+end;
+
+function TKXFormController.GetBorderPanel: string;
+begin
+  Result := '';
+end;
+
+function TKXFormController.GetPopupWindow: string;
+begin
+  Result := '';
 end;
 
 function TKXFormController.RenderFormButtons: string;

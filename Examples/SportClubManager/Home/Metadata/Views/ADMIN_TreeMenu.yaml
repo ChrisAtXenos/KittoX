@@ -1,0 +1,135 @@
+﻿Type: Tree
+Folder: _(Statistics)
+  IsInitiallyCollapsed: False
+  View: ADMIN_Dashboard
+Folder: _(Subscription Management)
+  View: ADMIN_SubscriptionCampaigns
+  View: ADMIN_SubscriptionFees
+  View: ADMIN_Subscriptions
+  View: ADMIN_NewSubscription
+  View: ADMIN_Payments
+  View: ADMIN_SubscriptionInstalments
+  View: ADMIN_SubscriberPaymentSummary
+Folder: _(Registry Management)
+  View: ADMIN_Families
+  View: ADMIN_FamilyMembers
+  View: ADMIN_People
+  View: ADMIN_PeopleMap
+  View: ADMIN_TaxDeductions
+  View: ADMIN_MedicalVisits
+  View: ADMIN_Documents
+  View: Build AutoList
+    Model: Clinic
+.Folder: _(Message Management)
+  View: ADMIN_Conversations
+  View: ADMIN_ParticipantGroups
+Folder: _(Activities)
+  View: ADMIN_Affiliations
+  View: ADMIN_Federations
+  View: ADMIN_Teams
+  View: ADMIN_Staff
+  View: ADMIN_Squad
+  View: ADMIN_Sponsors
+  View: ADMIN_FederationRegistrations
+Folder: _(Administration)
+  View: ADMIN_Configuration
+  View: ADMIN_Board
+  View: ADMIN_MembersRegister
+  View: ADMIN_Users
+Folder: _(Accounting Management)
+  View: ADMIN_Customers
+  View: ADMIN_Suppliers
+  View: ADMIN_AccountingEntries
+  View: ADMIN_Withholdings
+Folder: _(Accounting Reports)
+  View: ADMIN_AccountingLines
+  View: ADMIN_DetailedAccountBalance
+  View: ADMIN_FinancialStatement
+  View: ADMIN_DetailedFinancialStatement
+  View: ADMIN_VatRegisters
+Folder: _(E-mail Management)
+  View: EmailTemplates
+  View: EmailQueue
+Folder: _(Parameters)
+  Folder: _(Geographic parameters)
+    ImageName: settings
+    Back:
+      ImageName: undo
+      AddBreak: False
+    View: Build AutoList
+      Model: Country
+    View: Region
+    View: Provinces
+    View: Municipality
+    IsInitiallyCollapsed: True
+  Folder: _(Operational parameters)
+    ImageName: settings
+    Back:
+      ImageName: undo
+      AddBreak: False
+    IsInitiallyCollapsed: True
+    View: ADMIN_Seasons
+    View: Build AutoList
+      Model: Category
+    View: Build AutoList
+      Model: Championship
+    View: Build AutoList
+      Model: Match
+    View: Build AutoList
+      Model: SportsFacility
+    View: Build AutoList
+      Model: MedicalVisitType
+    View: Build AutoList
+      Model: PlayerRole
+    View: Build AutoList
+      Model: DocumentType
+    View: Build AutoList
+      Model: StaffRole
+    View: Build AutoList
+      Model: FacilityType
+    View: Build AutoList
+      Model: Size
+  Folder: _(System parameters)
+    ImageName: settings
+    Back:
+      ImageName: undo
+      AddBreak: False
+    IsInitiallyCollapsed: True
+    View: Build AutoList
+      Model: Profile
+    View: Build AutoList
+      Model: SportType
+  Folder: _(Administrative parameters)
+    ImageName: settings
+    Back:
+      ImageName: undo
+      AddBreak: False
+    IsInitiallyCollapsed: True
+    View: Build AutoList
+      Model: Bank
+    View: Build AutoList
+      Model: PaymentMethod
+  #dropping the policy for now: insurances are not managed
+  # View: Build AutoList
+  #    Model: Policy
+  Folder: _(Accounting Parameters)
+    ImageName: settings
+    Back:
+      ImageName: undo
+      AddBreak: False
+    IsInitiallyCollapsed: True
+    View: ADMIN_LegalForms
+    View: ADMIN_FinancialYears
+    View: ADMIN_AccountingReasons
+    View: Build AutoList
+      Model: CostCentre
+    View: ADMIN_LedgerAccounts
+    View: ADMIN_VatCodes
+    View: ADMIN_VatRegisterTypes
+    View: ADMIN_AutomaticReasons
+Folder: _(User)
+  View: ADMIN_UserProfile
+  View: ChangePassword
+  View: ApplicationInfo
+  View:
+    Controller: Logout

@@ -1,0 +1,88 @@
+Type: Data
+DisplayLabel: _(Dashboard)
+ImageName: dashboard
+Controller: Dashboard
+  Gap: 12
+  MaxColumns: 4
+  RefreshInterval: 60
+  Items:
+    View: ADMIN_DashKpiSeason
+      Flex: 1
+      MinWidth: 220
+      Height: 180
+      Footer: _(Currently active season)
+    View: ADMIN_DashKpiSubscriberCount
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Subscriptions approved in the active season)
+    View: ADMIN_DashKpiPendingSubscriptions
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Requests with status Entered awaiting approval)
+    View: ADMIN_DashKpiActiveTeams
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Own teams entered in the active season)
+    View: ADMIN_DashKpiInstalmentsPaid
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Fully settled subscription instalments)
+    View: ADMIN_DashKpiInstalmentsDue
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Instalments entered or only partly paid)
+    View: ADMIN_DashKpiPaymentsToVerify
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Payments with status Entered)
+    View: ADMIN_DashKpiReceiptsToPrint
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Deduction receipts with no print date)
+    View: ADMIN_DashKpiExpiredCertificates
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Expired certificates for the active and previous season)
+    View: ADMIN_DashKpiWithoutCertificate
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Subscribers with no medical visit on record)
+    View: ADMIN_DashKpiBookedVisits
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Future visits not yet carried out)
+    View: ADMIN_DashKpiExpiringRegistrations
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Federation registrations expiring in the next 30 days)
+    View: ADMIN_DashKpiQueuedEmails
+      Flex: 1
+      MinWidth: 200
+      Height: 180
+      Footer: _(Queued e-mails not yet sent)
+    View: ADMIN_DashSubscribersByDiscipline
+      Flex: 2
+      MinWidth: 400
+      Height: 360
+      Footer: _(Subscribers by discipline - the team's sport type)
+    View: ADMIN_DashIncomeExpense
+      Flex: 2
+      MinWidth: 400
+      Height: 360
+      Footer: _(Active season balance - income (subscription collections + customer invoices) vs expenses (supplier invoices))
+    View: ADMIN_DashSubscriptionTrend
+      Flex: 4
+      MinWidth: 700
+      Height: 320
+      Footer: _(Monthly subscription trend for the active season)

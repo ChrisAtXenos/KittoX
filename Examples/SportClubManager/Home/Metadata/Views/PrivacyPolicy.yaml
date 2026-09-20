@@ -1,0 +1,10 @@
+﻿DisplayLabel: _(Privacy Policy)
+# Empty ACName allows the view to be opened when no user is logged in.
+ACName:
+Controller: HtmlPanel
+  IsModal: True
+  Autoscroll: True
+  FileName: Privacy.htm
+  Width: 600
+  Height: 500
+  AllowClose: True

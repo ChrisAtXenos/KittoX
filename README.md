@@ -1,58 +1,73 @@
-# Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX
-[![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
-
-**Latest Version 4.0.19 - 07 Sep 2026**
-
-![KittoX_logo.png](./images/kittoX_logo_200.png)
-
-**Kitto<sup>x</sup>** allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **HTMX** (through webbroker technology) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
-
-**Kitto<sup>x</sup>** is aimed at **Delphi** developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.
-
-**Kitto<sup>x</sup>** includes a **database-agnostic** data-access layer, allowing to create applications that work on any database engine and port applications between database engines.
-
-A **Kitto<sup>x</sup>** application is described as a set of easily maintained **YAML** files, keeping definitions abstract and declarative and allowing for future extensions. Business rules are enforced either declaratively or through small javascript fragments on the client, or in Delphi code on the server.
-
----
-
-## Full documentation
-
-- [Documentation site](https://ethea.it/docs/kittox/) with 150+ pages
-- Pages for all controllers, filters, data concepts, how-to guides, FAQ
-- Three example applications: HelloKitto, TasKitto, KEmployee
-
----
-
-## Enterprise Edition ##
-
-Beyond the Apache 2.0 Core, **Kitto<sup>x</sup>** ships with Enterprise modules and developer tools under commercial license:
-
-- **Enterprise components** &mdash; interactive Charts (Chart.js), Calendars (EventCalendar), Google Maps with geocoding and markers, Dashboards and FlexPanels &mdash; all driven by YAML metadata, no client-side coding required.
-
-- **KIDE<sup>x</sup>** &mdash; the visual IDE for designing **Kitto<sup>x</sup>** applications. Tree-based YAML editor with **RTTI-based property discovery**, database reverse engineering (FireDAC / DBExpress / ADO), a New Project Wizard that scaffolds complete apps for up to 4 deployment modes (Standalone .exe / Desktop .exe / ISAPI .dll / Apache .dll), and an integrated HTTP server for live preview. Ships with a RAD Studio design-time package (`KittoXIDE.bpl`) that integrates the same wizard under **File &gt; New &gt; Other &gt; KittoX Projects** and adds a YAML syntax highlighter to the IDE editor.
-
-- **MCP-KittoX** &mdash; standalone Model Context Protocol server (`MCPKittoX.exe`) that exposes KIDE<sup>x</sup> functionality to AI agents (Claude Desktop / Code, Codex, LM Studio, any MCP-compatible client). Agents can scaffold complete **Kitto<sup>x</sup>** apps and reverse-engineer Models from a live database conversationally; metadata validation, locale refresh and view scaffolding tools are on the next-phases roadmap. Bundled with KIDE<sup>x</sup>: a single OnGuard registration unlocks both.
-
----
-
-## Licensing ##
-
-**Kitto<sup>x</sup>** uses an **Open Core** licensing model:
-
-- **Core** (List, Form, Wizard, FlexPanel, routing, database, auth): [Apache 2.0](https://opensource.org/licenses/Apache-2.0) &mdash; free for any use, commercial or non-commercial.
-
-- **Enterprise Modules** (Chart, Calendar, GoogleMap, Dashboard): [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) for open-source applications, or Ethea Commercial License for closed-source applications. [Please contact Ethea](https://ethea.it/supporto/) for detailed informations about commercial license.
-
-- **KIDEX** (Visual IDE): commercial license only.
-
-See the [Licensing](https://ethea.it/docs/kittox/KittoLicensing.html) page and [Enterprise Edition](KittoEnt) for full details.
-
-Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
-
----
-
+# Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX
+[![Core License](https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Enterprise License](https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg)](KittoLicensing)
+
+**Actual Version 4.1.0 - 20 Sep 2026**
+
+![KittoX_logo.png](./images/kittoX_logo_200.png)
+
+**Kitto<sup>x</sup>** allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **HTMX** (through webbroker technology) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
+
+**Kitto<sup>x</sup>** is aimed at **Delphi** developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.
+
+**Kitto<sup>x</sup>** includes a **database-agnostic** data-access layer, allowing to create applications that work on any database engine and port applications between database engines.
+
+A **Kitto<sup>x</sup>** application is described as a set of easily maintained **YAML** files, keeping definitions abstract and declarative and allowing for future extensions. Business rules are enforced either declaratively or through small javascript fragments on the client, or in Delphi code on the server.
+
+---
+
+## Full documentation
+
+- [Documentation site](https://ethea.it/docs/kittox/) with 150+ pages
+- Pages for all controllers, filters, data concepts, how-to guides, FAQ
+- Three example applications: HelloKitto, TasKitto, KEmployee
+
+---
+
+## Enterprise Edition ##
+
+Beyond the Apache 2.0 Core, **Kitto<sup>x</sup>** ships with Enterprise modules and developer tools under commercial license:
+
+- **Enterprise components** &mdash; interactive Charts (Chart.js), Calendars (EventCalendar), Google Maps with geocoding and markers, Dashboards and FlexPanels &mdash; all driven by YAML metadata, no client-side coding required.
+
+- **KIDE<sup>x</sup>** &mdash; the visual IDE for designing **Kitto<sup>x</sup>** applications. Tree-based YAML editor with **RTTI-based property discovery**, database reverse engineering (FireDAC / DBExpress / ADO), a New Project Wizard that scaffolds complete apps for up to 4 deployment modes (Standalone .exe / Desktop .exe / ISAPI .dll / Apache .dll), and an integrated HTTP server for live preview. Ships with a RAD Studio design-time package (`KittoXIDE.bpl`) that integrates the same wizard under **File &gt; New &gt; Other &gt; KittoX Projects** and adds a YAML syntax highlighter to the IDE editor.
+
+- **MCP-KittoX** &mdash; standalone Model Context Protocol server (`MCPKittoX.exe`) that exposes KIDE<sup>x</sup> functionality to AI agents (Claude Desktop / Code, Codex, LM Studio, any MCP-compatible client). Agents can scaffold complete **Kitto<sup>x</sup>** apps and reverse-engineer Models from a live database conversationally; metadata validation, locale refresh and view scaffolding tools are on the next-phases roadmap. Bundled with KIDE<sup>x</sup>: a single OnGuard registration unlocks both.
+
+---
+
+## Licensing ##
+
+**Kitto<sup>x</sup>** uses an **Open Core** licensing model:
+
+- **Core** (List, Form, Wizard, FlexPanel, routing, database, auth): [Apache 2.0](https://opensource.org/licenses/Apache-2.0) &mdash; free for any use, commercial or non-commercial.
+
+- **Enterprise Modules** (Chart, Calendar, GoogleMap, Dashboard): [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.html) for open-source applications, or Ethea Commercial License for closed-source applications. [Please contact Ethea](https://ethea.it/supporto/) for detailed informations about commercial license.
+
+- **KIDEX** (Visual IDE): commercial license only.
+
+See the [Licensing](https://ethea.it/docs/kittox/KittoLicensing.html) page and [Enterprise Edition](KittoEnt) for full details.
+
+Visit [this site](https://ethea.it/Kitto-Demo/) for online demos.
+
+---
+
 # Release Notes
+
+## 20 Sep 2026: ver. 4.1.0
+
+- **First stable release.** Kitto<sup>x</sup> leaves beta: the HTMX client port, the REST server and the KIDE<sup>x</sup> / MCP-KittoX toolchain are feature-complete, and the framework has been through a full security and correctness review.
+- **KIDE<sup>x</sup> / MCP-KittoX — YAML validation completed**: the RTTI-driven validator now covers every Config, Model, View and Layout node the three examples use; `MCPKittoX --validate` reports **zero errors** on HelloKitto, KEmployee and TasKitto (only intentionally-disabled nodes remain). This closes the last major KIDE<sup>x</sup>/MCP feature.
+- **Security & correctness review — Core (`Source/Kitto`)**: exposed-perimeter hardening — JWT algorithm pinning (RS256→HS256 confusion closed), immediate token revocation on logout / password change plus an absolute session cap, path-traversal containment on static and BLOB file serving, thread-safe per-user ACL cache with case-insensitive matching, credentials read only from the POST body (never the URL), logout via POST, and LDAP identity taken from the directory.
+- **Security & correctness review — EF layer**: faithful database schema introspection (the Size/Scale contract and LOB detection verified on MSSQL, Oracle, Firebird and PostgreSQL), thread-safe regex and access-control, and a number of DoS and injection fixes.
+- **Automated test suite** now at **271 tests**, green on Win64 Debug; the integration tests run against real MSSQL, Oracle, Firebird and PostgreSQL servers, and the whole metadata catalogue of the three examples is loaded and walked.
+- **KIDE<sup>x</sup> configuration editor**: the remaining JWT / Defaults nodes (e.g. `MaxSessionLifetime`, Grid and Window defaults) are now discoverable.
+- **KIDE<sup>x</sup> — Live Preview of Views and Layouts**: render a view — or the first view that uses a layout — with the **real** engine in an embedded browser, without compiling or launching the application. It reloads automatically when you save a metadata or resource file, and includes mobile/tablet **device emulation** (viewport, device pixel ratio and user-agent). The login form is skipped in preview.
+- **List as the data-list host**: `Controller: List` composes *presenters* in its regions — the default GridPanel, a ChartPanel or CalendarPanel in the Center, a real grid beside a chart (`WestController: GridPanel`), and the **form of the current record** beside the grid (`EastController: Form`: view mode, Edit/Save in place). Filters and Refresh apply to every presenter. Replaces Kitto1's `AutoFormPlacement`.
+- **CalendarPanel**: `DefaultEventMinutes` gives a duration to point-in-time events, event content differs per view (month: time and title; week/day: title and notes), and calendar and chart data honor the List filters. HelloKitto gains a *Party calendar*.
+- **KIDE<sup>x</sup> Live Preview — automatic login**: `PreviewMode/Auth/Defaults` in the `.kproj` (File → Settings) logs the preview in as a chosen user or profile, also with custom authenticators; fixed the first render of JWT applications, which came up with an empty menu.
+- **Build**: `build_Examples.cmd` finds Delphi through the registry (13, 12, 11, 10.4).
+- **Third-party libraries aligned to their latest releases**: Delphi — Delphi-Neon 4.1.0, MarkdownProcessor 1.4.1 (with their LICENSE files in `Source/ThirdParty`, shipped by the setup but not added to the library path); client — HTMX 2.0.10, Alpine.js 3.17.3, Chart.js 4.5.1, EventCalendar 5.13.1, SunEditor 2.47.12 (XSS sanitizer fixes), Swagger UI 5.33.0; the never-referenced jQuery 2.1.3 and jSignature bundles were removed.
 
 ## 07 Sep 2026: ver. 4.0.19 Beta
 

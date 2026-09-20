@@ -1,0 +1,40 @@
+﻿FieldSet:
+  Row:
+    Field: LastName
+      CharWidth: 53
+  Row:
+    Field: FirstName
+      CharWidth: 53
+  Row:
+    Field: TaxCode
+      CharWidth: 30
+    Field: Gender
+      CharWidth: 20
+  Row:
+    Field: Address
+      CharWidth: 53
+  Row:
+    Field: PostalCode
+      CharWidth: 10
+    Field: Municipality
+      CharWidth: 40
+  Row:
+    Field: Phone
+      CharWidth: 25
+    Field: Mobile
+      CharWidth: 25
+  Row:
+    Field: Email
+      CharWidth: 53
+  Row:
+    Field: BirthDate
+  Row:
+    Field: BirthPlace
+      CharWidth: 53
+  Row:
+    Field: BirthCountry
+      CharWidth: 53
+  Row:
+    Field: VisitExpiry
+  Row:
+    Field: ProfilePhoto

@@ -1,0 +1,35 @@
+﻿Type: Data
+Controller: GroupingList
+  Filters:
+    DisplayLabel: _(Search Family Members)
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: ({Q}DX like '%{value}%')
+MainTable:
+  Model: FamilyMember
+  Controller:
+    PreventAdding: True
+    PreventDeleting: True
+    PreventEditing: True
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_FamilyMembers_Form
+    Grid:
+      Layout: ADMIN_FamilyMembers_Grid
+    Grouping:
+      FieldName: Family
+      SortFieldNames: Family Person Relationship DeductionPercent
+      EnableMenu: False
+      StartCollapsed: False
+      # The group header is composed as '<DisplayLabel>: <value>'.
+      # The descriptive text comes from the DisplayLabel of the Family field on
+      # the model. ShowCount off: in Kitto1 the count did not appear, because
+      # the configured Template did not include it.
+      ShowName: True
+      ShowCount: False
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: FamilyMembers.xlsx
+          RequireSelection: False

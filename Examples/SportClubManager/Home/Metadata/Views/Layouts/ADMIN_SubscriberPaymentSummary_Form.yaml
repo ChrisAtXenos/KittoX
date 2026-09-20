@@ -1,0 +1,27 @@
+﻿LabelAlign: Right
+LabelWidth: 160
+FieldSet:
+  Title: _(Athlete)
+  Row:
+    Field: TaxCode
+  Row:
+    Field: LastName
+    Field: FirstName
+FieldSet:
+  Title: _(Course/Fee)
+  Row:
+    Field: SubscriptionFee
+    Field: SubscriptionFee_BirthYearFrom
+    Field: SubscriptionFee_BirthYearTo
+  Row:
+    Field: SubscriptionTotal
+  Row:
+    Field: PaidAmount
+  Row:
+    Field: OutstandingAmount
+Fieldset:
+  Title: _(Parent (optional))
+  Row:
+    Field: ParentTaxCode
+    Field: ParentLastName
+    Field: ParentFirstName

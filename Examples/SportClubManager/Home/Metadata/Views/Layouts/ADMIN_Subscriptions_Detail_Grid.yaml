@@ -1,0 +1,18 @@
+﻿Field: Season
+  DisplayWidth: 20
+Field: SubscriptionFee
+  DisplayWidth: 20
+Field: Status
+  DisplayWidth: 10
+Field: CourseFeeAmount
+  DisplayWidth: 15
+Field: SiblingDiscount
+  DisplayWidth: 15
+Field: SubscriptionTotal
+Field: SubscriptionDate
+  DisplayLabel: _(Subscription)
+Field: AcceptanceDate
+  DisplayWidth: 15
+  DisplayLabel: _(Acceptance)
+Field: RejectionDate
+  DisplayLabel: _(Rejection)

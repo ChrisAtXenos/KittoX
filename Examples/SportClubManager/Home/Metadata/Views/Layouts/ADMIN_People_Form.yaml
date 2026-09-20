@@ -1,0 +1,49 @@
+﻿FieldSet:
+  Row:
+    Field: Athlete
+    Field: Manager
+    Field: Coach
+    Field: Loan
+FieldSet:
+  Row:
+    Field: LastName
+  Row:
+    Field: FirstName
+  Row:
+    Field: TaxCode
+    Field: Gender
+  Row:
+    Field: Address
+  Row:
+    Field: PostalCode
+    Field: Municipality
+    Field: Province
+  Row:
+    Field: Phone
+    Field: Mobile
+  Row:
+    Field: Email
+  Row:
+    Field: BirthDate
+  Row:
+    Field: BirthPlace
+  Row:
+    Field: BirthCountry
+  Row:
+    Field: ProfilePhoto
+FieldSet:
+  Title: _(Measurements)
+  Row:
+    Field: Age
+    Field: Height
+    Field: Weight
+  Row:
+    Field: Size
+FieldSet:
+  Title: _(Bank)
+  Row:
+    Field: Bank
+  Row:
+    Field: BankAccount
+    Field: Iban
+LabelAlign: Right

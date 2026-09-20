@@ -1,0 +1,39 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Teams)
+    Items:
+      FreeSearch: _(First Name)
+        ExpressionTemplate: (SQUADRE.DX like '%{value}%')
+MainTable:
+  Model: Team
+  Controller:
+    PopUpWindow:
+      Width: 1200
+      Height: 700
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_Teams_Form
+    Grid:
+      Layout: ADMIN_Teams_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Teams.xlsx
+          RequireSelection: False
+  DetailTables:
+    Table:
+      Model: StaffMember
+      Controller:
+        Grid:
+          Layout: ADMIN_Staff_Detail_Grid
+        Form:
+          Layout: ADMIN_Staff_Detail_Form
+    Table:
+      Model: Squad
+      Controller:
+        Grid:
+          Layout: ADMIN_Squads_Detail_Grid
+        Form:
+          Layout: ADMIN_Squads_Detail_Form

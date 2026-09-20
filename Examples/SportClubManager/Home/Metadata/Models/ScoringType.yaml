@@ -1,0 +1,23 @@
+﻿ModelName: ScoringType
+PhysicalName: TIPOMARCATURA
+PluralDisplayLabel: _(Scoring types by sport type)
+PluralModelName: ScoringTypes
+DisplayLabel: _(Scoring type by sport type)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 2
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Scoring type)
+    DisplayWidth: 25
+  Score: Integer not null
+    DisplayLabel: _(Score)
+    PhysicalName: PUNTEGGIO
+  SportType: Reference(SportType) not null
+    PhysicalName: FK_TIPOMARCATURA_TIPOSPORT
+    DisplayLabel: _(Sport type)
+    Fields:
+      SportTypeId:
+        PhysicalName: TipoSportId

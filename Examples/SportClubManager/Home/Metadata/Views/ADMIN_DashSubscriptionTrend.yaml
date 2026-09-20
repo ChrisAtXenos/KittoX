@@ -1,0 +1,23 @@
+Type: Data
+DisplayLabel: _(Subscription trend)
+ImageName: show_chart
+Controller: List
+  CenterController: ChartPanel
+    Chart:
+      Type: Cartesian
+      Axes:
+        Axis:
+          Position: Left
+          Title: _(Subscriptions)
+        Axis:
+          Position: Bottom
+      Series:
+        Series:
+          Type: Line
+          XField: Period
+          YField: SubscriptionCount
+          DisplayName: _(Subscriptions)
+MainTable:
+  IsReadOnly: True
+  Model: VSubscriptionTrend
+  DefaultSorting: PERIODO

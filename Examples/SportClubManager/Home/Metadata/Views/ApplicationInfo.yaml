@@ -1,0 +1,19 @@
+DisplayLabel: _(About)
+ImageName: info
+Controller: HtmlPanel
+  IsModal: True
+  Width: 400
+  AllowClose: True
+  Html: |
+    <div style="text-align:center; padding:10px 0">
+    <img src="%IMAGE(SCMLogo)%" height="100">
+    </div>
+    <div style="text-align:center; padding:10px">
+    <h1>_(The management software for amateur sports clubs)</h1>
+    <h1>_(Version:) %APP_VERSION_FULL%</h1>
+    <p>Copyright &copy; 2019-2023 - Ethea S.r.l.</p>
+    <img src="%IMAGE(EtheaLogo)%" height="100">
+    </div>
+    <div style="text-align:center; color:white; font-size:medium; padding:8px 0">
+    _(Technical support:) <a href="mailto:%Config:SupportEmail%" style="color:orange; font-size:medium">%Config:SupportEmail%</a>
+    </div>

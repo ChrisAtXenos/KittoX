@@ -30,6 +30,9 @@ unit EF.YAML.Attributes;
 
 interface
 
+uses
+  System.TypInfo;
+
 type
   /// <summary>
   ///  Marks a read-only property as mapped to an optional YAML node.
@@ -114,6 +117,21 @@ type
   ///  property ModelName: string read GetModelName;
   /// </example>
   YamlRequiredNodeAttribute = class(YamlNodeAttribute)
+  end;
+
+  /// <summary>
+  ///  Marks a node that is a VIEW: either a reference to an external view (the
+  ///  node's scalar value names an existing view) OR an inline view definition
+  ///  (the node carries children). Used for Config nodes such as HomeView and
+  ///  Login, which TKWebApplication resolves through FindViewByNode. KIDE, when
+  ///  the node is a name reference, checks that the referenced view exists.
+  ///  Inherits the scalar-node shape (NodePath, Description, optional default).
+  /// </summary>
+  /// <example>
+  ///  [YamlViewNode('HomeView', 'The application home view: a view name or an inline view definition')]
+  ///  property HomeViewName: string read GetHomeViewName;
+  /// </example>
+  YamlViewNodeAttribute = class(YamlNodeAttribute)
   end;
 
   /// <summary>
@@ -215,16 +233,34 @@ type
   end;
 
   /// <summary>
-  ///  Maps an enumerated type's ordinal value to its YAML string representation.
-  ///  Applied to the enum type itself, not to individual properties.
-  ///  KIDE reads these to populate combo box drop-downs.
+  ///  Declares one allowed/suggested YAML string value for an enumerated node.
+  ///  Two ways to use it:
+  ///   1. On an ENUM TYPE (the classic form): the Nth attribute maps POSITIONALLY
+  ///      to the Nth ordinal of the enum, and a property typed as that enum is
+  ///      validated and edited against the set.
+  ///   2. On a STRING PROPERTY directly (no dedicated Delphi enum type needed):
+  ///      each attribute simply declares one allowed value. Use this for a string
+  ///      node that accepts only a fixed set of values (e.g. Log/Level's
+  ///      low/medium/high/detailed/debug). There is no positional constraint in
+  ///      this form. Pair it with [YamlEnumOpen] to make the set a suggestion
+  ///      (free values allowed, validator warns) rather than a closed set.
+  ///  KIDE reads these to populate combo box drop-downs, and the validator checks
+  ///  the node value against them.
   /// </summary>
   /// <example>
+  ///  // 1. On an enum type (positional):
   ///  type
   ///    [YamlEnumValue('Top', 'Label above the field')]
   ///    [YamlEnumValue('Left', 'Label to the left, left-aligned')]
   ///    [YamlEnumValue('Right', 'Label to the left, right-aligned')]
   ///    TKLabelAlign = (laTop, laLeft, laRight);
+  ///
+  ///  // 2. On a string property (closed set):
+  ///  [YamlNode('Level', 'Log verbosity')]
+  ///  [YamlEnumValue('low', 'Only always-logged messages')]
+  ///  [YamlEnumValue('medium', 'Normal verbosity')]
+  ///  [YamlEnumValue('high', 'High verbosity')]
+  ///  property Level: string read FLevel;
   /// </example>
   YamlEnumValueAttribute = class(TCustomAttribute)
   private
@@ -243,6 +279,53 @@ type
     ///  English description shown in KIDE combo box and tooltips.
     /// </summary>
     property Description: string read FDescription;
+  end;
+
+  /// <summary>
+  ///  Property-level marker: the [YamlEnumValue] set on this string property is
+  ///  an OPEN list. The declared values are suggestions offered in the KIDE combo
+  ///  box, but any other value is allowed — the combo box is editable and the
+  ///  validator reports a non-listed value as a WARNING, not an error. This is
+  ///  the "fixed values, but a custom one is allowed" case (e.g. the Auth type:
+  ///  the standard authenticators plus an application-specific one).
+  ///  Without this marker a property-level [YamlEnumValue] set is CLOSED: only the
+  ///  listed values are valid (error otherwise) and the combo box is not editable.
+  ///  Has no effect on enum-typed properties (those are always closed).
+  /// </summary>
+  /// <example>
+  ///  [YamlNode('Level', 'Log verbosity')]
+  ///  [YamlEnumValue('low', '...')]
+  ///  [YamlEnumValue('medium', '...')]
+  ///  [YamlEnumOpen]           // low/medium/... are suggestions; an integer is also accepted
+  ///  property Level: string read FLevel;
+  /// </example>
+  YamlEnumOpenAttribute = class(TCustomAttribute)
+  end;
+
+  /// <summary>
+  ///  Property-level: the allowed values of this string node come from an
+  ///  existing Delphi enum TYPE that already carries [YamlEnumValue] attributes
+  ///  (e.g. TKLabelAlign, TKFilterConnector). Use it when a node is stored/read
+  ///  as a plain string at run time but its value set is exactly that of an
+  ///  existing enum: the values are read from the enum — no duplication, a single
+  ///  source of truth. Validator and KIDE combo box behave as for an enum-typed
+  ///  property (closed set); add [YamlEnumOpen] as well only if free values must
+  ///  also be accepted.
+  /// </summary>
+  /// <example>
+  ///  [YamlNode('LabelAlign', 'Field label alignment')]
+  ///  [YamlEnumType(TypeInfo(TKLabelAlign))]   // reuses Top/Left/Right from the enum
+  ///  property LabelAlign: string read GetLabelAlign;
+  /// </example>
+  YamlEnumTypeAttribute = class(TCustomAttribute)
+  private
+    FEnumTypeInfo: PTypeInfo;
+  public
+    /// <summary>Binds the property to the enum type whose [YamlEnumValue]
+    /// attributes define the allowed values. Pass TypeInfo(TYourEnum).</summary>
+    constructor Create(AEnumTypeInfo: PTypeInfo);
+    /// <summary>RTTI type info of the enum whose values are the allowed set.</summary>
+    property EnumTypeInfo: PTypeInfo read FEnumTypeInfo;
   end;
 
   /// <summary>
@@ -392,6 +475,14 @@ begin
   inherited Create;
   FYamlValue := AYamlValue;
   FDescription := ADescription;
+end;
+
+{ YamlEnumTypeAttribute }
+
+constructor YamlEnumTypeAttribute.Create(AEnumTypeInfo: PTypeInfo);
+begin
+  inherited Create;
+  FEnumTypeInfo := AEnumTypeInfo;
 end;
 
 { YamlChildTypeAttribute }

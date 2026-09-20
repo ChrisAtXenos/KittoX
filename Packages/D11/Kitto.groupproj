@@ -9,7 +9,7 @@
         <Projects Include="KittoXEnterprise.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\..\IDE\Projects\D11\KittoXIDE.dproj">
+        <Projects Include="KittoXIDE.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -39,13 +39,13 @@
         <MSBuild Projects="KittoXEnterprise.dproj" Targets="Make"/>
     </Target>
     <Target Name="KittoXIDE">
-        <MSBuild Projects="..\..\IDE\Projects\D11\KittoXIDE.dproj"/>
+        <MSBuild Projects="KittoXIDE.dproj"/>
     </Target>
     <Target Name="KittoXIDE:Clean">
-        <MSBuild Projects="..\..\IDE\Projects\D11\KittoXIDE.dproj" Targets="Clean"/>
+        <MSBuild Projects="KittoXIDE.dproj" Targets="Clean"/>
     </Target>
     <Target Name="KittoXIDE:Make">
-        <MSBuild Projects="..\..\IDE\Projects\D11\KittoXIDE.dproj" Targets="Make"/>
+        <MSBuild Projects="KittoXIDE.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="KittoXCore;KittoXEnterprise;KittoXIDE"/>
@@ -57,44 +57,44 @@
         <CallTarget Targets="KittoXCore:Make;KittoXEnterprise:Make;KittoXIDE:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
-    <ItemGroup Condition="'$(BuildGroup)'=='ALL_Win64'">
+    <ItemGroup Condition="'$(BuildGroup)'=='Win32_ALL'">
         <BuildGroupProject Include="KittoXCore.dproj">
             <ProjectGuid>{44E44607-5754-4B0C-BEEB-4EEC44A09CE7}</ProjectGuid>
             <Configurations>Release</Configurations>
-            <Platforms>Win64</Platforms>
+            <Platforms>Win32</Platforms>
             <Enabled>True</Enabled>
         </BuildGroupProject>
         <BuildGroupProject Include="KittoXEnterprise.dproj">
             <ProjectGuid>{F6269E11-83AD-4E30-BF3F-453AB1DF354C}</ProjectGuid>
             <Configurations>Release</Configurations>
-            <Platforms>Win64</Platforms>
+            <Platforms>Win32</Platforms>
             <Enabled>True</Enabled>
         </BuildGroupProject>
-        <BuildGroupProject Include="..\..\IDE\Projects\D13\KittoXIDE.dproj">
+        <BuildGroupProject Include="KittoXIDE.dproj">
             <ProjectGuid>{245397D4-4D37-4125-9399-681D24762800}</ProjectGuid>
             <Configurations>Release</Configurations>
-            <Platforms>Win64</Platforms>
+            <Platforms>Win32</Platforms>
             <Enabled>True</Enabled>
         </BuildGroupProject>
     </ItemGroup>
-    <ItemGroup Condition="'$(BuildGroup)'=='ALL_Win32'">
+    <ItemGroup Condition="'$(BuildGroup)'=='Win64_ALL'">
         <BuildGroupProject Include="KittoXCore.dproj">
             <ProjectGuid>{44E44607-5754-4B0C-BEEB-4EEC44A09CE7}</ProjectGuid>
             <Configurations>Release</Configurations>
-            <Platforms>Win32</Platforms>
+            <Platforms>Win64</Platforms>
             <Enabled>True</Enabled>
         </BuildGroupProject>
         <BuildGroupProject Include="KittoXEnterprise.dproj">
             <ProjectGuid>{F6269E11-83AD-4E30-BF3F-453AB1DF354C}</ProjectGuid>
             <Configurations>Release</Configurations>
-            <Platforms>Win32</Platforms>
+            <Platforms>Win64</Platforms>
             <Enabled>True</Enabled>
         </BuildGroupProject>
-        <BuildGroupProject Include="..\..\IDE\Projects\D13\KittoXIDE.dproj">
+        <BuildGroupProject Include="KittoXIDE.dproj">
             <ProjectGuid>{245397D4-4D37-4125-9399-681D24762800}</ProjectGuid>
             <Configurations>Release</Configurations>
-            <Platforms>Win32</Platforms>
-            <Enabled>True</Enabled>
+            <Platforms>Win64</Platforms>
+            <Enabled>False</Enabled>
         </BuildGroupProject>
     </ItemGroup>
 </Project>

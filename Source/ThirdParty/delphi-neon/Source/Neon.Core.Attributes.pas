@@ -1,22 +1,10 @@
 {******************************************************************************}
 {                                                                              }
-{  Neon: Serialization Library for Delphi                                      }
+{  Neon: JSON Serialization Library for Delphi                                 }
 {  Copyright (c) 2018 Paolo Rossi                                              }
 {  https://github.com/paolo-rossi/neon-library                                 }
 {                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
+{  Licensed under the MIT license                                              }
 {                                                                              }
 {******************************************************************************}
 unit Neon.Core.Attributes;
@@ -29,10 +17,18 @@ interface
 
 uses
   System.Classes, System.SysUtils, System.Rtti,
-  Neon.Core.Types;
+  Neon.Core.Types, Neon.Core.Tags;
 
 type
   NeonAttribute = class(TCustomAttribute)
+  protected
+    FTagStr: string;
+    FTags: TAttributeTags;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    property Tags: TAttributeTags read FTags write FTags;
   end;
 
   NeonNamedAttribute = class(NeonAttribute)
@@ -230,6 +226,15 @@ type
   ///     The factory class must be registerd in the config with
   ///     Config.RegisterFactory()
   ///   </para>
+  ///   <para>
+  ///     On an <b>interface</b> member this is what makes deserialization
+  ///     possible at all: the engine cannot guess which class implements an
+  ///     interface, so the factory builds the implementing object (Build
+  ///     returns it as a TObject) and the engine reads the JSON into it, the
+  ///     same object the serializer writes. The interface must have a GUID,
+  ///     and the attribute can be placed on the member or on the interface
+  ///     type itself, where it covers every member declared with it
+  ///   </para>
   /// </remarks>
   NeonFactoryAttribute = class(NeonAttribute)
   private
@@ -271,6 +276,24 @@ type
   ///   normally have enclosed the value in quotation marks, but if annotated with the
   ///   NeonRawValue property Neon won't do that.
   /// </summary>
+  /// <remarks>
+  ///   The member therefore holds JSON *text*, not a value: it has to parse, or
+  ///   serialization raises SNeonErrorRawValueF1. '{"a":1}' is written as the
+  ///   object it spells, and 'abc' is an error - the text a plain string member
+  ///   would have produced is '"abc"', quotes included.
+  /// </remarks>
+  /// <remarks>
+  ///   Deserialization is the exact inverse and hands back JSON text as well, so
+  ///   whatever is read can be written again unchanged: an object or an array
+  ///   comes back as its JSON, and a scalar comes back JSON-encoded - the member
+  ///   reading "abc" gets '"abc"', with the quotes, and reading 12 gets '12'.
+  ///   Assigning a plain, unquoted string to such a member is what breaks the
+  ///   round trip, not reading one.
+  /// </remarks>
+  /// <remarks>
+  ///   Only string members are affected: the attribute is read by the string
+  ///   writer and reader, and does nothing on a member of any other type.
+  /// </remarks>
   NeonRawValueAttribute = class(NeonAttribute);
 
   /// <summary>
@@ -279,14 +302,66 @@ type
   /// </summary>
   NeonAutoCreateAttribute = class(NeonAttribute);
 
+  /// <summary>
+  ///   The NeonGetter uses another member to read the value The member can be a
+  ///   field, a property or a method.
+  /// </summary>
+  /// <remarks>
+  ///   <para>
+  ///     The member must be of the same type as the annotated one; a getter
+  ///     method must take no parameter and return that type.
+  ///   </para>
+  ///   <para>
+  ///     A method must be public or published, and must belong to a class:
+  ///     Delphi emits no RTTI for a private or protected method (it does for a
+  ///     field of any visibility, which is why FInitialDate above works), and a
+  ///     record is handed to the engine as a pointer that TRttiMethod cannot be
+  ///     given an instance from.
+  ///   </para>
+  /// </remarks>
+  /// <example>
+  ///   <para>
+  ///     NeonGetter('FInitialDate')
+  ///   </para>
+  ///   <para>
+  ///     NeonGetter('GetSomeValue')
+  ///   </para>
+  /// </example>
+  NeonGetterAttribute = class(NeonNamedAttribute);
+
+  /// <summary>
+  ///   The NeonSetter uses another member to write the value.
+  ///   The member can be a field, a property or a method.
+  /// </summary>
+  /// <remarks>
+  ///   <para>
+  ///     The member must be of the same type as the annotated one; a getter
+  ///     method must take no parameter and return that type.
+  ///   </para>
+  ///   <para>
+  ///     A method must be public or published, and must belong to a class:
+  ///     Delphi emits no RTTI for a private or protected method (it does for a
+  ///     field of any visibility, which is why FInitialDate above works), and a
+  ///     record is handed to the engine as a pointer that TRttiMethod cannot be
+  ///     given an instance from.
+  ///   </para>
+  /// </remarks>
+  /// <example>
+  ///   <para>
+  ///     NeonSetter('FInitialDate')
+  ///   </para>
+  ///   <para>
+  ///     NeonSetter('SetSomeValue')
+  ///   </para>
+  /// </example>
+  NeonSetterAttribute = class(NeonGetterAttribute);
+
   {
   //Read Annotations
-  NeonSetterAttribute = class(NeonAttribute);
   NeonAnySetterAttribute = class(NeonAttribute);
   NeonCreatorAttribute = class(NeonAttribute);
   NeonInjectAttribute = class(NeonAttribute);
   //Write Annotations
-  NeonGetterAttribute = class(NeonAttribute);
   NeonAnyGetterAttribute = class(NeonAttribute);
   }
 
@@ -299,6 +374,7 @@ uses
 
 constructor NeonNamedAttribute.Create(const AValue: string);
 begin
+  inherited Create;
   FValue := AValue;
 end;
 
@@ -306,6 +382,7 @@ end;
 
 constructor NeonMembersSetAttribute.Create(const AValue: TNeonMembersSet);
 begin
+  inherited Create;
   FValue := AValue;
 end;
 
@@ -313,16 +390,19 @@ end;
 
 constructor NeonVisibilityAttribute.Create(const AValue: TNeonVisibility);
 begin
+  inherited Create;
   FValue := AValue;
 end;
 
 constructor NeonSerializeAttribute.Create(const AClass: TClass);
 begin
+  inherited Create;
   FClazz := AClass;
 end;
 
 constructor NeonSerializeAttribute.Create(const AName: string);
 begin
+  inherited Create;
   FName := AName;
 end;
 
@@ -346,12 +426,14 @@ end;
 
 constructor NeonFormatAttribute.Create(AOutputValue: NeonFormat);
 begin
+  inherited Create('');
   FFormatValue := AOutputValue;
   FValue := LowerCase(GetEnumName(TypeInfo(NeonFormat), Integer(AOutputValue)));
 end;
 
 constructor NeonFormatAttribute.Create(AOutputValue: string);
 begin
+  inherited Create('');
   FValue := AOutputValue;
 end;
 
@@ -364,6 +446,7 @@ end;
 
 constructor NeonItemFactoryAttribute.Create(const AItemFactory: TClass);
 begin
+  inherited Create;
   FFactoryClass := AItemFactory;
 end;
 
@@ -371,7 +454,21 @@ end;
 
 constructor NeonFactoryAttribute.Create(const AFactory: TClass);
 begin
+  inherited Create;
   FFactoryClass := AFactory;
+end;
+
+{ NeonAttribute }
+
+constructor NeonAttribute.Create;
+begin
+  FTags := TAttributeTags.Create;
+end;
+
+destructor NeonAttribute.Destroy;
+begin
+  FTags.Free;
+  inherited;
 end;
 
 end.

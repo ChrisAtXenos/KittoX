@@ -96,6 +96,16 @@ type
     /// </summary>
     class function IsStandardMode(const AMode: string): Boolean;
 
+    /// <summary>
+    ///  Returns True if AMode is one of the modes in AModeList, a
+    ///  comma-separated list as stored in a permission row (ACCESS_MODES).
+    ///  Each entry is trimmed and compared case-insensitively: the old
+    ///  substring test (Pos('VIEW,', ...)) matched a mode that is only the
+    ///  suffix of another ('VIEW' inside 'PREVIEW,...') and missed entries
+    ///  written with a space after the comma ('VIEW, RUN').
+    /// </summary>
+    class function ModeMatches(const AMode, AModeList: string): Boolean;
+
     /// <summary>Called by the system after setting all config
     /// values.</summary>
     procedure Init;
@@ -247,6 +257,16 @@ class function TKAccessController.IsStandardMode(const AMode: string): Boolean;
 begin
   Result := MatchStr(AMode, [ACM_VIEW, ACM_RUN, ACM_READ, ACM_ADD, ACM_MODIFY,
     ACM_DELETE]);
+end;
+
+class function TKAccessController.ModeMatches(const AMode, AModeList: string): Boolean;
+var
+  LMode: string;
+begin
+  Result := False;
+  for LMode in AModeList.Split([',']) do
+    if SameText(Trim(LMode), AMode) then
+      Exit(True);
 end;
 
 class procedure TKAccessController.SetCurrent(const AValue: TKAccessController);

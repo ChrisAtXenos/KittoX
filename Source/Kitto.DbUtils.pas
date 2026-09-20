@@ -1,4 +1,20 @@
-﻿unit Kitto.DbUtils;
+﻿{-------------------------------------------------------------------------------
+   Copyright 2012-2026 Ethea S.r.l.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-------------------------------------------------------------------------------}
+
+unit Kitto.DbUtils;
 
 interface
 
@@ -25,7 +41,7 @@ function GetSQLFieldValue(const ATableName, AFieldName, AKeyFieldName, AKeyField
 /// <summary>Returns the database table name of the model that owns the given store field.</summary>
 function GetTableName(const AField: TKField): string;
 /// <summary>Returns the physical (database) column name for the given store field.</summary>
-function GetPhisicalName(const AField: TKField): string;
+function GetPhysicalName(const AField: TKField): string;
 /// <summary>Returns the model that owns the given store field.</summary>
 function ModelByField(const AField: TKField): TKModel;
 /// <summary>Returns the model that owns the given store record.</summary>
@@ -41,13 +57,7 @@ procedure DeleteRecord(const ATableName, AKeyFieldName, AFieldValue: string);
 /// <summary>Sets the value of the named parameter in AParams, handling Null/Variant conversion.</summary>
 procedure UpdateParamValue(AParams: TParams; const AParamName: string; AValue: Variant);
 /// <summary>Validates password strength; raises an exception if the password is too weak.</summary>
-procedure CheckPasswordStrenght(const APassword: string);
-
-//funzioni di recupero dati da Codice Fiscale
-/// <summary>Extracts the birth-nation code encoded in an Italian fiscal code (Codice Fiscale).</summary>
-function RecuperaNazioneNascDaCF(const ACodiceFiscale : string) : string;
-/// <summary>Extracts the birth-province code encoded in an Italian fiscal code (Codice Fiscale).</summary>
-function RecuperaProvinciaNascDaCF(const ACodiceFiscale : string) : string;
+procedure CheckPasswordStrength(const APassword: string);
 
 implementation
 
@@ -55,64 +65,33 @@ uses
   System.RegularExpressions,
   System.SysUtils,
   System.Variants,
-  FireDAC.Comp.Client,
-  UAppUtils,
   EF.Localization,
   Kitto.Metadata.DataView,
   EF.DB,
   Kitto.Config,
   Kitto.Auth.DB,
   Kitto.Rules,
-  EF.StrUtils,
-  EF.VariantUtils,
-  EF.DB.FD,
-  InstantClasses;
-
-function EsisteNominativoByCodiceFiscale(const ACodiceFiscale, AIdDaEscludere: string): boolean;
-begin
-  Result := EFVarToInt(TKConfig.Database.GetSingletonValue(
-    'SELECT COUNT(*) FROM NOMINATIVI WHERE ID <> ''' + AIdDaEscludere + ''' AND CODFISC  = ''' + ACodiceFiscale + '''')) > 0;
-end;
-
-function EsisteUtenteAttivo(const ACodiceFiscale: string): boolean;
-begin
-  Result := EFVarToInt(TKConfig.Database.GetSingletonValue(
-    'SELECT COUNT(*) FROM APPUSER WHERE ID = ''' + ACodiceFiscale + ''' AND NOT (MUST_CHANGE_PASSWORD = 1 AND ACCESS_DENIED = 1)')) > 0;
-end;
-
-function EsisteLuogoNascita(const AComuneId: string): boolean;
-begin
-  Result := EFVarToInt(TKConfig.Database.GetSingletonValue(
-    'SELECT COUNT(*) FROM COMUNI WHERE ID = ''' + AComuneId+'''')) > 0;
-end;
-
-function EsisteUtenteDaAttivare(const ACodiceFiscale: string): boolean;
-begin
-  Result := EFVarToInt(TKConfig.Database.GetSingletonValue(
-    'SELECT COUNT(*) FROM APPUSER WHERE ID = ''' + ACodiceFiscale + ''' AND MUST_CHANGE_PASSWORD = 1 AND ACCESS_DENIED = 1')) > 0;
-end;
-
-function CalcNazioneIdByCodiceIstat(const aCodiceIstat: string): string;
-begin
-  Result := EFVarToStr(TKConfig.Database.GetSingletonValue(
-    'SELECT ID FROM NAZIONI WHERE CODICEISTAT  = ''' + aCodiceIstat + ''''));
-end;
+  EF.StrUtils;
 
 procedure UpdateParamValue(AParams: TParams; const AParamName: string; AValue: Variant);
 var
   LParam: TParam;
 begin
   LParam := AParams.FindParam(AParamName);
-  if Assigned(LParam) then
+  if not Assigned(LParam) then
+    Exit;
+
+  // Fallback DataType for untyped values (Null/Unassigned/empty): the MS ODBC
+  // Driver 17/18 no longer infers it through SQLDescribeParam the way Native
+  // Client 11 did, so an untyped Null/empty param would otherwise fail.
+  if VarIsNull(AValue) or VarIsEmpty(AValue) or
+     (VarIsStr(AValue) and (AValue = '')) then
   begin
-    if VarIsStr(AValue) and (AValue = '') then
-    begin
-      LParam.DataType := ftWideString;
-      LParam.Value := Null;
-    end
-    else
-      LParam.Value := AValue;
-  end;
+    LParam.DataType := ftWideString;
+    LParam.Value := Null;
+  end
+  else
+    LParam.Value := AValue;
 end;
 
 function ModelByField(const AField: TKField): TKModel;
@@ -140,7 +119,7 @@ begin
   Result := ModelByField(AField).PhysicalName;
 end;
 
-function GetPhisicalName(const AField: TKField): string;
+function GetPhysicalName(const AField: TKField): string;
 var
   LModelField: TKModelField;
 begin
@@ -151,27 +130,39 @@ begin
     Result := '';
 end;
 
+// The values these helpers embed in a SQL string literal come from record
+// fields, i.e. from the user. They were concatenated raw, so a value carrying a
+// single quote broke out of the literal (SQL injection). These functions return
+// a SQL string the caller then executes, so the value cannot be a parameter
+// here; the standard escape -- doubling the single quote -- is applied instead.
+// The table/field identifiers are the caller's own constants and are left as
+// they are (they must be trusted, not client input).
+function SQLQuote(const AValue: string): string;
+begin
+  Result := StringReplace(AValue, '''', '''''', [rfReplaceAll]);
+end;
+
 function GetSQLCountValue(const ATableName, AFieldName, AFieldValue: string;
   const AIdToExclude: string = ''): string;
 begin
   if AIdToExclude <> '' then
     Result := Format('SELECT COUNT(*) TOT FROM %s WHERE Id <> ''%s'' and %s = ''%s''',
-      [ATableName, AIdToExclude, AFieldName, AFieldValue])
+      [ATableName, SQLQuote(AIdToExclude), AFieldName, SQLQuote(AFieldValue)])
   else
     Result := Format('SELECT COUNT(*) TOT FROM %s WHERE %s = ''%s''',
-      [ATableName, AFieldName, AFieldValue]);
+      [ATableName, AFieldName, SQLQuote(AFieldValue)]);
 end;
 
 function GetSQLDeleteStatement(const ATableName, AKeyFieldName, AFieldValue: string): string;
 begin
   Result := Format('DELETE FROM %s WHERE %s = ''%s''',
-    [ATableName, AKeyFieldName, AFieldValue]);
+    [ATableName, AKeyFieldName, SQLQuote(AFieldValue)]);
 end;
 
 function GetSQLFieldValue(const ATableName, AFieldName, AKeyFieldName, AKeyFieldValue: string): string;
 begin
     Result := Format('SELECT %s TOT FROM %s WHERE %s = ''%s''',
-      [AFieldName, ATableName, AKeyFieldName, AKeyFieldValue]);
+      [AFieldName, ATableName, AKeyFieldName, SQLQuote(AKeyFieldValue)]);
 end;
 
 function CalcNewProgress(const IdProgress: string;
@@ -260,23 +251,35 @@ end;
 procedure DeleteRecord(const ATableName, AKeyFieldName, AFieldValue: string);
 var
   LCommand: TEFDbCommand;
+  LWasInTransaction: Boolean;
 begin
   LCommand := TKConfig.Database.CreateDBCommand;
   try
-    LCommand.Connection.StartTransaction;
+    // Do not open a transaction if one is already running (rules run inside the
+    // master save): otherwise the inner rollback below would tear down the
+    // enclosing unit of work. Same guard as CalcNewProgress.
+    LWasInTransaction := LCommand.Connection.IsInTransaction;
     try
+      if not LWasInTransaction then
+        LCommand.Connection.StartTransaction;
       LCommand.CommandText := GetSQLDeleteStatement(ATableName, AKeyFieldName, AFieldValue);
       LCommand.Execute;
-      LCommand.Connection.CommitTransaction;
+      if not LWasInTransaction then
+        LCommand.Connection.CommitTransaction;
     except
-      LCommand.Connection.RollbackTransaction;
+      // RE-RAISE: swallowing the error made a failed DELETE (FK constraint,
+      // deadlock, offline DB) look like success, so a cascade-delete rule went
+      // on believing the child rows were gone.
+      if not LWasInTransaction then
+        LCommand.Connection.RollbackTransaction;
+      raise;
     end;
   finally
     FreeAndNil(LCommand);
   end;
 end;
 
-procedure CheckPasswordStrenght(const APassword: string);
+procedure CheckPasswordStrength(const APassword: string);
 var
   LValidatePasswordNode: TEFNode;
   LErrorMsg, LRegEx: string;
@@ -291,68 +294,13 @@ begin
   LValidatePasswordNode := TKConfig.Instance.Authenticator.EffectiveConfigNode
     .FindNode('ValidatePassword');
   Assert(Assigned(LValidatePasswordNode), 'Assigned(LValidatePasswordNode)');
-  LErrorMsg := LValidatePasswordNode.GetExpandedString('Message','Min.8 caratteri con lettere e numeri');
+  LErrorMsg := LValidatePasswordNode.GetExpandedString('Message',
+    _('Min. 8 characters with letters and digits'));
   LRegEx := LValidatePasswordNode.GetExpandedString('RegEx','^[ -~]{8,63}$');
   LRegularExpression.Create(LRegEx);
   LMatch := LRegularExpression.Match(APassword);
   if not LMatch.Success then
-    raise EKValidationError.CreateWithAdditionalInfo(LErrorMsg, 'Validazione password');
+    raise EKValidationError.CreateWithAdditionalInfo(LErrorMsg, _('Password validation'));
 end;
-
-//TODO: da rivedere
-function RecuperaNazioneNascDaCF(const ACodiceFiscale : string) : string;
-var
-  LQueryText: string;
-  LQuery: TEFDBQuery;
-  LIdNazione : string;
-begin
-  Result := '';
-  if Length(ACodiceFiscale) = 16 then
-    LIdNazione := EncodeLuogoNascitaId(ACodiceFiscale)
-  else
-    exit;
-
-  LQueryText := 'SELECT ID FROM NAZIONI WHERE CODICEAT = :Id';
-  LQuery := TKConfig.Database.CreateDBQuery;
-  Try
-    LQuery.CommandText := LQueryText;
-    LQuery.Params.ParamByName('Id').AsString := UpperCase(LIdNazione);
-    LQuery.Open;
-    if LQuery.DataSet.IsEmpty then //se non lo trovo la nazione è italia
-      Result := 'IT'
-    else
-      Result := LQuery.DataSet.Fields[0].AsString;
-    LQuery.Close;
-  Finally
-    FreeAndNil(LQuery);
-  End;
-End;
-
-//TODO: da rivedere
-function RecuperaProvinciaNascDaCF(const ACodiceFiscale : string) : string;
-var
-  LQueryText: string;
-  LQuery: TEFDBQuery;
-  LIdComune : string;
-begin
-  Result := '';
-  if Length(ACodiceFiscale) = 16 then
-    LIdComune := EncodeLuogoNascitaId(ACodiceFiscale)
-  else
-    exit;
-
-  LQueryText := 'SELECT PROVID FROM COMUNI WHERE ID = :Id';
-  LQuery := TKConfig.Database.CreateDBQuery;
-  Try
-    LQuery.CommandText := LQueryText;
-    LQuery.Params.ParamByName('Id').AsString := UpperCase(LIdComune);
-    LQuery.Open;
-    if not LQuery.DataSet.IsEmpty then
-      Result := LQuery.DataSet.Fields[0].AsString;
-    LQuery.Close;
-  Finally
-    FreeAndNil(LQuery);
-  End;
-End;
 
 end.

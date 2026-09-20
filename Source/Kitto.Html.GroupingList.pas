@@ -18,7 +18,8 @@
 ///  KittoX GroupingList controller — renders a data grid with all records
 ///  grouped by a specified field, with collapsible group headers.
 ///  No paging (all records loaded). Inherits toolbar and filter support
-///  from TKXListPanelController.
+///  from the data panel base and the column/row builders from
+///  TKXGridPanelController.
 ///  Replaces ExtJS TKExtGridPanel with Grouping feature.
 /// </summary>
 unit Kitto.Html.GroupingList;
@@ -30,7 +31,7 @@ interface
 uses
   System.Types,
   EF.Tree,
-  Kitto.Html.List,
+  Kitto.Html.GridPanel,
   Kitto.Html.Controller,
   Kitto.Metadata.Views,
   Kitto.Metadata.DataView,
@@ -40,22 +41,25 @@ type
   /// <summary>
   ///  Grouped data grid controller. Loads all records (no paging) and renders
   ///  them under collapsible group headers keyed by a grouping field, reusing
-  ///  the toolbar, filter and column support of TKXListPanelController.
+  ///  the toolbar, filter and column support of TKXGridPanelController.
   /// </summary>
-  TKXGroupingListController = class(TKXListPanelController)
+  TKXGroupingListController = class(TKXGridPanelController)
   strict private
     function GetGroupingFieldName: string;
     function GetGroupSortExpr(AViewTable: TKViewTable): string;
   strict protected
     function GetPanelCssClass: string; override;
-    function RenderContent: string; override;
   public
+    /// <summary>Renders the grouped grid content. Public like the GridPanel
+    /// base it overrides: a data-list host renders its presenter's content
+    /// directly, inside its own panel chrome.</summary>
+    function RenderContent: string; override;
     /// <summary>
     ///  Builds grouped data rows: group header rows with expand/collapse
     ///  toggle followed by data rows for each group.
     ///  Class function so it can be called from HandleKXDataRequest.
     ///  ALayout selects and orders the columns exactly as in
-    ///  TKXListPanelController.BuildDataRows; when nil, all visible view table
+    ///  TKXGridPanelController.BuildDataRows; when nil, all visible view table
     ///  fields are rendered in model order.
     /// </summary>
     class function BuildGroupedRows(AStore: TKViewTableStore;
@@ -258,7 +262,7 @@ begin
   LGridLayout := LViewTable.FindLayout('Grid');
 
   // Build filter panel (if Filters/Items defined)
-  LFilterPanelHtml := BuildFilterPanel(LViewName, LViewTable,
+  LFilterPanelHtml := ResolveFilterPanel(LViewName, LViewTable,
     LDefaultFilterExpr);
 
   // IsLarge drives the default: AutoOpen = not IsLarge.
@@ -413,7 +417,7 @@ var
   end;
 
   // Resolves the field to render in column AIndex, mirroring
-  // TKXListPanelController.BuildDataRows.GetCellField: with a layout the
+  // TKXGridPanelController.BuildDataRows.GetCellField: with a layout the
   // columns are the layout's Field nodes, in layout order; without one they
   // are the visible view table fields, in model order. Both paths must use
   // the same rule as BuildColumnHeaders, or headers and cells misalign — which
@@ -793,7 +797,7 @@ begin
                 LValue := '';
               SB.Append('<td style="text-align:').Append(LAlign).Append('"');
               // Same treatment a plain List gives these fields
-              // (Kitto.Html.List.pas, BuildDataRows): an HTMLMemo carries
+              // (Kitto.Html.GridPanel.pas, BuildDataRows): an HTMLMemo carries
               // trusted markup, so it is emitted as is and gets no tooltip -
               // the tooltip would show the raw tags.
               if (LValue <> '') and not (LField.DataType is TKHTMLMemoDataType) then

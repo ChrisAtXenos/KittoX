@@ -1,0 +1,143 @@
+﻿ModelName: Payment
+PhysicalName: MEZZI_PAGAMENTO
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Payment methods)
+DisplayLabel: _(Payment method)
+PluralModelName: Payments
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Payment method)
+    IsReadOnly: True
+    IsVisible: False
+  Payer: Reference(Person) not null
+    PhysicalName: FK_MEZZI_PAGAMENTO_PAGANTE
+    DisplayLabel: _(Payer)
+    Fields:
+      PayerId:
+        PhysicalName: PAGANTEID
+    LookupFilter: CAST(DATEDIFF(dy, {Q}DATANASC, GETDATE()+1)/365.25 AS INT) >= 18
+    DisplayWidth: 40
+    NotifyChange: True
+    AutoAddFields:
+      LastName: Payer_LastName
+      FirstName: Payer_FirstName
+      Email: Payer_Email
+  SubscribedPeople:
+    Expression: |
+      (SELECT
+      STRING_AGG(I.COGNOME+' '+I.NOME, ', ')
+      FROM DETTAGLI_PAGAMENTO D
+      RIGHT JOIN MEZZI_PAGAMENTO M ON D.MEZZO_PAGAMENTOCLASS = M.CLASS AND D.MEZZO_PAGAMENTOID = M.ID
+      LEFT JOIN RATE_ISCRIZIONI R ON D.RATA_ISCRIZIONECLASS = R.CLASS AND D.RATA_ISCRIZIONEID = R.ID
+      LEFT JOIN ISCRIZIONI I ON R.ISCRIZIONECLASS = I.CLASS AND R.ISCRIZIONEID = I.ID
+      WHERE M.ID = {Q}ID)
+    IsReadOnly: True
+    DisplayLabel: _(Subscribed people)
+    DisplayWidth: 40
+  PaymentMethod: Reference(PaymentMethod) not null
+    PhysicalName: FK_MODPAGAM_MOD_PAGAMENTO
+    DisplayLabel: _(Method)
+    Fields:
+      PaymentMethodId:
+        PhysicalName: MOD_PAGAMENTOID
+    LookupFilter: (MODPAGAMENTO.ID = 'BON') OR '%Auth:PROFILEID%' = 'ADMIN'
+    AutoAddFields:
+      RequiresBankDetails: PaymentMethod_RequiresBankDetails
+  PaymentDate: Date not null
+    DisplayLabel: _(Payment Date)
+    PhysicalName: DATA_PAGAMENTO
+    Rules:
+      CalcDescription: {PaymentDate} {Amount}
+      PaymentSetDate:
+    DisplayWidth: 12
+  DepositBank: Reference(Bank)
+    PhysicalName: FK_RIFERIMENTO_BANCAID_BANCA
+    DisplayLabel: _(Deposit Bank)
+    DisplayWidth: 40
+    Fields:
+      DepositBankId:
+        PhysicalName: RIFERIMENTO_BANCAID
+  ChequeBank: String(100)
+    PhysicalName: ASSEGNO_BANCA
+    DisplayLabel: _(Issuing Bank)
+    DisplayWidth: 60
+  ChequeNumber: String(30)
+    PhysicalName: ASSEGNO_NUMERO
+    DisplayLabel: _(Number)
+  TransferReference: String(30)
+    PhysicalName: CRO_BONIFICO
+    DisplayLabel: _(Transfer reference)
+  Amount: Currency not null
+    DisplayLabel: _(Amount)
+    PhysicalName: IMPORTO
+    DisplayWidth: 10
+    Rules:
+      CalcDescription: {PaymentDate} {Amount}
+    DefaultValue: 0
+  PostingDate: DateTime
+    DisplayLabel: _(Posting Date)
+    PhysicalName: DATA_REGISTRAZIONE
+    DefaultValue: {NOW}
+    DisplayWidth: 20
+    IsReadOnly: True
+  ValueDate: Date
+    DisplayLabel: _(Value Date)
+    PhysicalName: DATA_VALUTA
+    DisplayWidth: 12
+  LinesTotalAmount: Currency
+    Expression: (SELECT SUM(DETTAGLI_PAGAMENTO.IMPORTO_PAGATO) FROM DETTAGLI_PAGAMENTO WHERE DETTAGLI_PAGAMENTO.MEZZO_PAGAMENTOID = {Q}ID)
+    IsReadOnly: True
+    DisplayLabel: _(Total amount)
+    DisplayWidth: 10
+    DefaultValue: 0
+  Status: String(3)
+    DisplayLabel: _(Status)
+    PhysicalName: STATUS
+    DisplayWidth: 20
+    AllowedValues:
+      INS: _(Entered)
+      ATT: _(Approved)
+      ANN: _(Cancelled)
+      RIF: _(Rejected)
+    IsReadOnly: True
+    DefaultValue: INS
+  ApprovalDate: Date
+    DisplayLabel: _(Approval Date)
+    PhysicalName: DATA_APPROVAZIONE
+    DisplayWidth: 12
+    IsReadOnly: True
+  RejectionDate: Date
+    DisplayLabel: _(Rejection Date)
+    PhysicalName: DATA_RIFIUTO
+    DisplayWidth: 12
+    IsReadOnly: True
+  PaymentCalc: HTMLMemo
+    DisplayLabel: _(Payments)
+    Expression: |
+      '<img style="float: left; margin: 0px 15px 15px 0px;" src="'+
+      CASE
+      WHEN {Q}STATUS = 'INS' THEN '%IMAGE(sentiment_neutral_large.svg)%'
+      WHEN {Q}STATUS = 'ATT' THEN '%IMAGE(sentiment_satisfied_large.svg)%'
+      WHEN {Q}STATUS = 'RIF' THEN '%IMAGE(sentiment_dissatisfied_large.svg)%'
+      END+'" width="40" />'+
+      '_(Payer):<b> '+FK_MEZZI_PAGAMENTO_PAGANTE.COGNOME+' '+FK_MEZZI_PAGAMENTO_PAGANTE.NOME+'</b><br />'+
+      '_(Payment method):<b> '+FK_MODPAGAM_MOD_PAGAMENTO.DX+'</b><br />' +
+      '_(Payment date):<b> '+COALESCE(CONVERT(VARCHAR, {Q}DATA_PAGAMENTO, 103),'')+'</b><br />' +
+      '_(Amount paid):<b> '+CAST({Q}IMPORTO AS VARCHAR)+'</b><br />' +
+      CASE
+      WHEN {Q}STATUS = 'INS' THEN '<font color="#B5761A"> <b> _(Entered) </b> <br /> '
+      WHEN {Q}STATUS = 'ATT' THEN '<font color="#388E3C"> <b> _(Approved) </b> <br /> '
+      WHEN {Q}STATUS = 'RIF' THEN '<font color="#E04B4B"> <b> _(Rejected) </b> <br /> '
+      END+'</font></div>'
+DetailReferences:
+  PaymentDetails: PaymentDetail
+    DisplayLabel: _(Payment details)
+CaptionField: Description
+Rules:
+  PaymentCheck:
+ImageName: creditcard

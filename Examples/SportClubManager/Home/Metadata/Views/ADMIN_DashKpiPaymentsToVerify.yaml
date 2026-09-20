@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Payments to check)
+ImageName: dash_payments_to_verify.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiPaymentsToVerify.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

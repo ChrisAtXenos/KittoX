@@ -1,0 +1,51 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Subscription Instalments)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (RATE_ISCRIZIONI.DX like '%{value}%')
+      ButtonList: _(Seasons)
+        Items:
+          ATT: _(Current)
+            Expression: DT_RATE_ISCRIZIONI_ISCRIZIONE.QUOTA_ISCRIZIONEID IN  (select ID from QUOTE_ISCRIZIONI where (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where INIZIO <= CURRENT_TIMESTAMP and FINE >= CURRENT_TIMESTAMP)))
+            IsDefault: True
+          PRE: _(Previous)
+            Expression: DT_RATE_ISCRIZIONI_ISCRIZIONE.QUOTA_ISCRIZIONEID IN  (select ID from QUOTE_ISCRIZIONI where (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where FINE < CURRENT_TIMESTAMP)))
+      ColumnBreak:
+        LabelWidth: 70
+      ButtonList: _(Status)
+        Items:
+          INS: _(Entered)
+            Expression: {Q}ID IN (SELECT ID FROM V_RATE_ISCRIZIONI WHERE STATUS = 'inserita')
+            IsDefault: True
+          PAG: _(Paid)
+            Expression: {Q}ID IN (SELECT ID FROM V_RATE_ISCRIZIONI WHERE STATUS = 'pagata')
+          PAP: _(Partly paid)
+            Expression: {Q}ID IN (SELECT ID FROM V_RATE_ISCRIZIONI WHERE STATUS = 'parziale')
+      ColumnBreak:
+        LabelWidth: 90
+      DateSearch: _(From date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_SCADENZA >= '{value}'
+      ColumnBreak:
+        LabelWidth: 80
+      DateSearch: _(To date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_SCADENZA <= '{value}'
+MainTable:
+  Model: SubscriptionInstalment
+  IsReadOnly: True
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+    Form:
+      Layout: ADMIN_SubscriptionInstalments_Form
+    Grid:
+      Layout: ADMIN_SubscriptionInstalments_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: SubscriptionInstalments.xlsx
+          RequireSelection: False

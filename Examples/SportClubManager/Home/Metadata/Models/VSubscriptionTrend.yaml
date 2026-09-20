@@ -1,0 +1,11 @@
+DisplayLabel: _(Subscription trend)
+PluralDisplayLabel: _(Subscription trend)
+Fields:
+  Period: String(7) primary key
+    PhysicalName: PERIODO
+    DisplayLabel: _(Month)
+  SubscriptionCount: Integer
+    PhysicalName: NUM_ISCRIZIONI
+    DisplayLabel: _(Subscriptions)
+PhysicalName: VW_ANDAMENTO_ISCRIZIONI
+ImageName: show_chart

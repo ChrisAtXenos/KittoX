@@ -2,11 +2,11 @@
     <PropertyGroup>
         <ProjectGuid>{44E44607-5754-4B0C-BEEB-4EEC44A09CE7}</ProjectGuid>
         <MainSource>KittoXCore.dpk</MainSource>
-        <ProjectVersion>20.4</ProjectVersion>
+        <ProjectVersion>20.5</ProjectVersion>
         <FrameworkType>VCL</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Release</Config>
-        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Package</AppType>
         <ProjectName Condition="'$(ProjectName)'==''">KittoXCore</ProjectName>
@@ -55,7 +55,7 @@
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=KittoX Core Packages;FileVersion=4.0.19.0;InternalName=KittoXCore;LegalCopyright=Copyright (c) Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=KittoCore;ProductVersion=4.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=KittoX Core Packages;FileVersion=4.1.0.0;InternalName=KittoXCore;LegalCopyright=Copyright (c) Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=KittoCore;ProductVersion=4.0;Comments=</VerInfo_Keys>
         <DCC_Description>KittoX Core Run-Time Package</DCC_Description>
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
@@ -64,7 +64,8 @@
         <DllSuffix>$(Auto)</DllSuffix>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_MajorVer>4</VerInfo_MajorVer>
-        <VerInfo_Release>19</VerInfo_Release>
+        <VerInfo_Release>0</VerInfo_Release>
+        <VerInfo_MinorVer>1</VerInfo_MinorVer>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <BT_BuildType>Debug</BT_BuildType>
@@ -78,7 +79,7 @@
     <PropertyGroup Condition="'$(Base_WinARM64EC)'!=''">
         <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <BT_BuildType>Debug</BT_BuildType>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.19.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.1.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
@@ -167,6 +168,7 @@
         <DCCReference Include="..\..\Source\Kitto.Config.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Config.Defaults.pas"/>
         <DCCReference Include="..\..\Source\Kitto.DatabaseRouter.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.DbUtils.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Excel.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Html.All.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Html.Base.pas"/>
@@ -182,6 +184,7 @@
         <DCCReference Include="..\..\Source\Kitto.Html.GroupingList.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Html.HtmlPanel.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Html.List.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.Html.GridPanel.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Html.Login.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Html.Panel.pas"/>
         <DCCReference Include="..\..\Source\Kitto.Html.ResetPassword.pas"/>

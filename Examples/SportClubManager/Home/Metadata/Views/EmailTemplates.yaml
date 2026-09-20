@@ -1,0 +1,19 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search in E-mail Templates)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (TESTO_EMAIL.ID like '%{value}%') or (TESTO_EMAIL.DESCRIZIONE like '%{value}%') or (TESTO_EMAIL.DESCRIZIONE_ENG like '%{value}%') or (TESTO_EMAIL.EMAIL_FROM like '%{value}%') or (TESTO_EMAIL.EMAIL_TO like '%{value}%') or (TESTO_EMAIL.EMAIL_CC like '%{value}%') or (TESTO_EMAIL.EMAIL_BCC like '%{value}%') or (TESTO_EMAIL.EMAIL_SUBJECT like '%{value}%') or (TESTO_EMAIL.EMAIL_SUBJECT_ENG like '%{value}%') or (TESTO_EMAIL.EMAIL_BODY like '%{value}%') or (TESTO_EMAIL.EMAIL_BODY_ENG like '%{value}%') or (TESTO_EMAIL.EMAIL_ATTACH like '%{value}%')
+MainTable:
+  Model: EmailTemplate
+  Controller:
+    PopupWindow:
+      Width: 800
+      Height: 650
+    Form:
+      Layout: EmailTemplate_Form
+    Grid:
+      Layout: EmailTemplate_Grid
+    PreventAdding: True
+    PreventDeleting: True

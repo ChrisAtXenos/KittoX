@@ -1,0 +1,32 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Families)
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: (FK_FAMIGLIE_NOMINATIVO_CREATORE.COGNOME like '%{value}%') or (FK_FAMIGLIE_NOMINATIVO_CREATORE.NOME like '%{value}%')
+MainTable:
+  Model: Family
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_Families_Form
+    Grid:
+      Layout: ADMIN_Families_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Families.xlsx
+          RequireSelection: False
+  DetailTables:
+    Controller:
+      Style: Bottom
+        Height: 400
+    Table:
+      Model: FamilyMember
+      Controller:
+        Form:
+          Layout: ADMIN_FamilyMembers_Form
+        Grid:
+          Layout: ADMIN_FamilyMembers_Grid

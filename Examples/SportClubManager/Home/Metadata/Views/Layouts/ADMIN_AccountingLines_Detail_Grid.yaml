@@ -1,0 +1,18 @@
+﻿Field: LineNumber
+  DisplayWidth: 10
+  DisplayLabel: _(Line No.)
+Field: Sign
+  DisplayWidth: 10
+Field: LedgerAccount
+Field: Description
+  DisplayWidth: 60
+Field: Amount
+Field: DueDate
+  DisplayWidth: 20
+Field: Match
+Field: VatCode
+Field: CostCentre
+Field: Bank
+Field: Supplier
+Field: Customer
+Field: Person

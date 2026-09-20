@@ -1,0 +1,9 @@
+Field: EntryNumber
+  DisplayWidth: 10
+  DisplayLabel: _(Entry No.)
+Field: EntryDescription
+Field: PostingDate
+  DisplayWidth: 18
+Field: Sign
+Field: Amount
+Field: LineDescription

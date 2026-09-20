@@ -1,0 +1,28 @@
+﻿LabelAlign: Right
+LabelWidth: 150
+FieldSet:
+  Row:
+    Field: PaymentMethod
+      CharWidth: 35
+    Field: PaymentDate
+    Field: PostingDate
+      CharWidth: 35
+  Row:
+    Field: Amount
+      CharWidth: 20
+  Row:
+    Field: DepositBank
+      CharWidth: 35
+FieldSet:
+  Collapsible: True
+  Collapsed: True
+  Title: _(Bank transfer details)
+  Row:
+    Field: TransferReference
+      CharWidth: 35
+    Field: ValueDate
+FieldSet:
+  Title: _(Total amount summary)
+  Row:
+    Field: LinesTotalAmount
+      CharWidth: 20

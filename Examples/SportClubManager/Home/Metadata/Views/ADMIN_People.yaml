@@ -1,0 +1,67 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search People)
+    Connector: and
+    Items:
+      ButtonList: _(Type)
+        Items:
+          Athlete: _(Athlete)
+            Expression: ATLETA = 1
+          Manager: _(Manager)
+            Expression: DIRIGENTE = 1
+          Coach: _(Coach)
+            Expression: ALLENATORE = 1
+      ButtonList: _(Visit Status)
+        Items:
+          Active: _(Active)
+            Expression: EXISTS(SELECT ID FROM VISITEMEDICHE V1 WHERE NOMINATIVOID = {Q}ID AND UPDTIMESTAMP = (SELECT MAX(UPDTIMESTAMP) FROM VISITEMEDICHE V2 WHERE V2.NOMINATIVOID = V1.NOMINATIVOID) AND V1.SCADENZA >= GETDATE() AND COALESCE(V1.IDEONEITA,0) = 1)
+          Booked: _(Booked)
+            Expression: EXISTS(SELECT ID FROM VISITEMEDICHE V1 WHERE NOMINATIVOID = {Q}ID AND UPDTIMESTAMP = (SELECT MAX(UPDTIMESTAMP) FROM VISITEMEDICHE V2 WHERE V2.NOMINATIVOID = V1.NOMINATIVOID) AND (V1.SCADENZA IS NULL OR COALESCE(V1.IDEONEITA,0) = 0))
+          Expired: _(Expired)
+            Expression: EXISTS(SELECT ID FROM VISITEMEDICHE V1 WHERE NOMINATIVOID = {Q}ID AND UPDTIMESTAMP = (SELECT MAX(UPDTIMESTAMP) FROM VISITEMEDICHE V2 WHERE V2.NOMINATIVOID = V1.NOMINATIVOID) AND V1.SCADENZA < GETDATE())
+          NotPresent: _(Not Present)
+            Expression: NOT EXISTS(SELECT ID FROM VISITEMEDICHE V1 WHERE NOMINATIVOID = {Q}ID)
+      ColumnBreak:
+        LabelWidth: 150
+      FreeSearch: _(Full Name)
+        ExpressionTemplate: (NOMINATIVI.COGNOME like '%{value}%') or (NOMINATIVI.NOME like '%{value}%')
+      ColumnBreak:
+        LabelWidth: 120
+      FreeSearch: _(Tax code)
+        ExpressionTemplate: (NOMINATIVI.CODFISC like '%{value}%')
+MainTable:
+  Model: Person
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_People_Form
+    Grid:
+      Layout: ADMIN_People_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: People.xlsx
+          TemplateFileName: %APP_PATH%ReportTemplates\PeopleList.xlsx
+          RequireSelection: False
+  DetailTables:
+    Controller:
+    #Table:
+    #Model: Insurance
+    Table:
+      Model: Document
+      Controller:
+        Form:
+          Layout: ADMIN_Documents_Form
+        Grid:
+          Layout: ADMIN_Documents_Grid
+    Table:
+      Model: Subscription
+      IsReadOnly: True
+    Table:
+      Model: FederationRegistration
+    Table:
+      Model: Duty
+    Table:
+      Model: MedicalVisit

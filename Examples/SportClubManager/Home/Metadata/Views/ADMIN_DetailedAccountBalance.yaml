@@ -1,0 +1,87 @@
+﻿Type: Data
+Controller: GroupingList
+  Filters:
+    DisplayLabel: _(Search Account Balances)
+    Connector: and
+    Items:
+      DynaList: _(Financial Year)
+        Width: 20
+        CommandText: |
+          select ID, DX
+          from ESERCIZICONTABILI
+          order by DX
+        ExpressionTemplate: {Q}ESERCID = '{value}'
+        AutoCompleteMinChars: 3
+        DefaultValueExpression: SELECT MAX(ID) FROM ESERCIZICONTABILI
+      List: _(Section)
+        Items:
+          ATT: _(Active)
+            Expression: {Q}SEZIONE = 'A'
+          PAS: _(Liabilities)
+            Expression: {Q}SEZIONE = 'P'
+          COS: _(Costs)
+            Expression: {Q}SEZIONE = 'C'
+          RIC: _(Revenues)
+            Expression: {Q}SEZIONE = 'R'
+      ColumnBreak:
+      FreeSearch: _(Master account)
+        ExpressionTemplate: ({Q}CODPADRE LIKE '%{value}%')
+      FreeSearch: _(Account)
+        ExpressionTemplate: ({Q}DX LIKE '%{value}%')
+      ColumnBreak:
+      ButtonList: _(Reference)
+        Items:
+          CLI: _(Customer)
+            Expression: {Q}ID IN (select ID from CONTICONTABILI where RIF_CLIENTE = 1)
+          FOR: _(Supplier)
+            Expression: {Q}ID IN (select ID from CONTICONTABILI where RIF_FORNITORE = 1)
+          SOC: _(Member)
+            Expression: {Q}ID IN (select ID from CONTICONTABILI where RIF_SOCIO = 1)
+          BNK: _(Bank)
+            Expression: {Q}ID IN (select ID from CONTICONTABILI where RIF_CONTO_CORRENTE = 1)
+      FreeSearch: _(Reference)
+        ExpressionTemplate: ({Q}DETTAGLIO LIKE '%{value}%')
+        Width: 40
+MainTable:
+  Model: DetailedAccountBalance
+  Controller:
+    Form:
+      Layout: ADMIN_DetailedAccountBalance_Form
+    Grid:
+      ForceFit: True
+      Layout: ADMIN_DetailedAccountBalance_Grid
+    AllowDuplicating: False
+    PreventAdding: True
+    PreventDeleting: True
+    PreventEditing: True
+    AllowViewing: True
+    Grouping:
+      FieldName: Description
+      SortFieldNames: LedgerAccountOrder AccountCode
+      StartCollapsed: True
+      ShowName: False
+      ShowCount: False
+      Aggregates:
+        DebitAmount:
+          Operation: Sum
+          Label: _(Total Debit)
+        CreditAmount:
+          Operation: Sum
+          Label: _(Total Credit)
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: DetailedAccountBalance.xlsx
+          RequireSelection: False
+  DetailTables:
+    Controller:
+      Style: Bottom
+        Height: 350
+    Table:
+      Model: DetailedAccountBalanceLine
+      Controller:
+        Form:
+          Layout: ADMIN_DetailedAccountBalanceLines_Detail_Form
+        Grid:
+          Layout: ADMIN_DetailedAccountBalanceLines_Detail_Grid

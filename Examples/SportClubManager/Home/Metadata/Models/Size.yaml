@@ -1,0 +1,15 @@
+﻿ModelName: Size
+PhysicalName: TAGLIA
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 50
+PluralDisplayLabel: _(Sizes)
+DisplayLabel: _(Size)
+PluralModelName: Sizes
+ImageName: accessibility

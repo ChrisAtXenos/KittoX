@@ -1,0 +1,62 @@
+﻿DisplayLabel: _(Privacy Confirmation)
+# Empty ACName allows the view to be opened when no user is logged in.
+ACName:
+Type: Data
+Controller: Form
+  Operation: Edit
+  FilterExpression: {Q}ID = '%Auth:USER_NAME%'
+  ExtraHeight: 320
+  Frame: True
+  PopupWindow:
+    Width: 700
+    Height: 700
+  BorderPanel:
+    NorthView:
+      Controller: HtmlPanel
+        Height: 100
+        Html: <center><img src="%IMAGE(%Config:SportsClubLogo%)%" height=100></img></center>
+    SouthView:
+      Controller: HtmlPanel
+        Title: _(Privacy)
+        Height: 360
+        Border: True
+        Frame: True
+        Collapsible: True
+        Collapsed: False
+        Autoscroll: True
+        #Style: opacity:0.5
+        FileName: Privacy.htm
+
+  # Note: there used to be a second 'Operation: Add' here and a second
+  # 'FilterExpression: {Q}CODFISC = ...', leftovers copied from RegisterNewUser.yaml.
+  # They duplicated the keys declared above and, besides being wrong for this
+  # model (on APPUSER the tax code is FISCAL_ID, not CODFISC), they made the
+  # form open in insert instead of edit mode: empty fields and a save
+  # refused with "Record key missing".
+  KeepOpenAfterOperation: False
+  LabelWidth: 200
+MainTable:
+  Model: User
+  Fields:
+    Id:
+      IsVisible: False
+    TaxCode:
+      DisplayLabel: _(User Id)
+      IsReadOnly: True
+    Description:
+      IsVisible: False
+    LastName:
+      IsReadOnly: True
+    FirstName:
+      IsReadOnly: True
+    Mobile:
+      IsVisible: False
+    Email:
+      IsVisible: False
+    PrivacyConsent:
+      CanUpdate: True
+    CreationDateTime:
+      IsVisible: False
+  Controller:
+    Form:
+      Layout: USER_ConfirmAccess_Form

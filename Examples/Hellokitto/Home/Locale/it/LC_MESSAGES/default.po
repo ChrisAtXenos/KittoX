@@ -312,3 +312,19 @@ msgstr "Elenco bambole"
 #: Config.yaml
 msgid "Peoria Girls and their Dolls"
 msgstr "Le bambine di Peoria e le loro bambole"
+
+#: MainMenu.yaml
+msgid "Party list"
+msgstr "Elenco feste"
+
+#: MainMenu.yaml
+msgid "Party calendar"
+msgstr "Calendario feste"
+
+#: PartiesCalendar.yaml
+msgid "Parties Calendar"
+msgstr "Calendario delle feste"
+
+#: Party.yaml
+msgid "Party Date and Time"
+msgstr "Data e ora festa"

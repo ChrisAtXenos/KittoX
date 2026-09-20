@@ -388,8 +388,23 @@ begin
 end;
 
 function TKWebSession.HasExpired: Boolean;
+var
+  LLastActivity: TDateTime;
 begin
-  Result := Now > FLastRequestInfo.DateTime + FTimeout;
+  // Until the first request refreshes it (LastRequestInfo.SetData in the
+  // engine's BeforeHandleRequest), FLastRequestInfo.DateTime is 0 — so a
+  // brand-new session read as expired the instant it was created, before the
+  // request that created it had even been served. The cleanup thread, which
+  // runs concurrently and frees whatever HasExpired reports, could therefore
+  // free the session while the request thread that just got it back from
+  // FindOrCreateSession was still using it: a use-after-free, easy to hit under
+  // the churn of cookie-less requests behind a reverse proxy. Count from the
+  // creation time (set in AfterConstruction, before the session is ever added
+  // to the list) until the first request records a later activity time.
+  LLastActivity := FLastRequestInfo.DateTime;
+  if FCreationDateTime > LLastActivity then
+    LLastActivity := FCreationDateTime;
+  Result := Now > LLastActivity + FTimeout;
 end;
 
 constructor TKWebSession.Create(const AClientAddress, ASessionId: string; const ATimeout: Double);

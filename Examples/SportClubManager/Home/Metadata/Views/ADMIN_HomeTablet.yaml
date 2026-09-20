@@ -1,0 +1,55 @@
+DisplayLabel: %Config:AppTitle%
+Controller: BorderPanel
+  .NorthView:
+    Controller: ToolBar
+      TreeView: %Auth:PROFILEID%_TopMenu
+
+  WestView:
+    DisplayLabel: _(Menu - Version %APP_VERSION_FULL%)
+    Controller: BorderPanel
+      Width: 230
+      Collapsible: True
+      Border: True
+      Split: True
+      Header: True
+      Height: 60
+      NorthView:
+        Controller: HtmlPanel
+          Split: False
+          Html: <img src="%IMAGE(%Config:SportsClubLogo%)%" style="width: 100%; height: auto; display: block">
+      CenterView:
+        Controller: TreePanel
+          #Tree Menu
+          TreeView: %Auth:PROFILEID%_TreeMenu
+      # Theme switcher docked at the bottom of the menu (Light / Auto / Dark).
+      # Renders only when Theme: Auto / UserSelection: True.
+      SouthView:
+        Height: 44
+        Controller: BorderPanel
+          Border: False
+          Header: False
+          Split: False
+          WestView:
+            Width: 112
+            Controller: ThemeSwitcher
+          CenterView:
+            Controller: LanguageSwitcher
+
+  CenterView:
+    #Panel with tabs hosting the views
+    Controller: TabPanel
+      Border: True
+      # List of views to be auto-opened in tabs: remove dot and
+      .SubViews:
+        View: ADMIN_People
+
+  SouthView:
+    Controller: StatusBar
+      Text: <span>_(Signed in as:)</span> %Auth:User_FullName% | <a target="_blank" href="https://sportclubmanager.it/docs/scm/contents" style="color:orange; font-size: medium">_(Guide index...)</a>
+    ImageName: user
+
+#The values that set the "size" of the elements for an ADMIN on a tablet or phone in landscape
+MobileSettings:
+  ContentLandscape:
+    Width: 1200
+    User-scalable: 0

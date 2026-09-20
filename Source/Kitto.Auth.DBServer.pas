@@ -97,6 +97,18 @@ uses
   Kitto.Config,
   Kitto.DatabaseRouter;
 
+{ Helpers }
+
+function ContainsConnStringMetachars(const AValue: string): Boolean;
+begin
+  // Characters that would let a value break out of its "name=value" pair in a
+  // connection string, or bring in a macro expanded into it.
+  Result := (Pos(';', AValue) > 0)
+    or (Pos('%', AValue) > 0)
+    or (Pos(#13, AValue) > 0)
+    or (Pos(#10, AValue) > 0);
+end;
+
 { TKDBServerAuthenticator }
 
 function TKDBServerAuthenticator.GetDatabaseName: string;
@@ -162,6 +174,24 @@ begin
   if AAuthData.GetString('Password') = '' then
   begin
     TEFLogger.Instance.LogFmt('Authentication refused for user %s: empty password.',
+      [AAuthData.GetString('UserName')], TEFLogger.LOG_DETAILED);
+    Exit(False);
+  end;
+
+  // The typed user name and password are substituted into the DB connection
+  // string through the %Auth:UserName% / %Auth:Password% macros of the Connection
+  // block (EF.DB.ADO builds it by joining "name=value" pairs with ';'). A user
+  // name like  x;Data Source=attacker;Initial Catalog=x  would inject extra
+  // connection parameters and point the login check at a server the attacker
+  // controls; a value carrying a macro (%Config:...%, %FILE(...)%) would be
+  // expanded into the connection string as well. A real database account name or
+  // password contains none of ';' '%' CR LF, so refuse them rather than build a
+  // connection string out of attacker-chosen fragments.
+  if ContainsConnStringMetachars(AAuthData.GetString('UserName')) or
+     ContainsConnStringMetachars(AAuthData.GetString('Password')) then
+  begin
+    TEFLogger.Instance.LogFmt('Authentication refused for user %s: the credentials '
+      + 'contain characters not allowed in a database server login (; %% CR LF).',
       [AAuthData.GetString('UserName')], TEFLogger.LOG_DETAILED);
     Exit(False);
   end;

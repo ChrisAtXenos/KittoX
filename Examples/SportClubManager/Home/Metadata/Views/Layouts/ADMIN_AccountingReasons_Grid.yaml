@@ -1,0 +1,7 @@
+Field: Id
+Field: Description
+Field: PostingType
+Field: ReasonType
+Field: DocumentDateRef
+Field: DocumentNumberRef
+Field: DueDateRef

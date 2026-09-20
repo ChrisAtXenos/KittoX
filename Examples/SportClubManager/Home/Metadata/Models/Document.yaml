@@ -1,0 +1,74 @@
+﻿ModelName: Document
+PhysicalName: DOCUMENTI
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Documents)
+DisplayLabel: _(Document)
+PluralModelName: Documents
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Document description)
+    DisplayWidth: 60
+  Person: Reference(Person) not null
+    DisplayLabel: _(Person)
+    PhysicalName: DT_DOCUMENTI_NOMINATIVO
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+    LookupFilter: (NOMINATIVI.ID in (SELECT NOMINATIVO_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%' and (PARENTELA_ID = 'F' OR CREATORE_CODFISC = CODFISC))) OR '%Auth:PROFILEID%' = 'ADMIN'
+  DocumentType: Reference(DocumentType) not null
+    PhysicalName: FK_DOCUMENTI_TIPODOC
+    DisplayLabel: _(Document type)
+    Fields:
+      DocumentTypeId:
+        PhysicalName: TIPODOCID
+    LookupFilter: TPDOC.ID NOT IN ('DF','VM')
+  IssueDate: Date not null
+    DisplayLabel: _(Issue Date)
+    PhysicalName: DATARIL
+    DisplayWidth: 12
+  IssuedBy: String(100) not null
+    PhysicalName: ENTE
+    DisplayLabel: _(Issued by)
+    DisplayWidth: 40
+  ExpiryDate: Date
+    DisplayLabel: _(Expiry Date)
+    PhysicalName: DATASCAD
+    DisplayWidth: 12
+  Number: String(40) not null
+    DisplayLabel: _(Number)
+    PhysicalName: NUMERO
+  Notes: Memo
+    DisplayLabel: _(Notes)
+    PhysicalName: NOTE
+    DisplayWidth: 60
+  DocumentFile: FileReference(50)
+    PhysicalName: FILE_DOCUMENTO
+    FileNameField: OriginalFileName
+    DisplayLabel: _(Scan)
+    MaxUploadSize: 1MB
+    PreviewWindow: True
+      Width: 226
+      Height: 320
+    Path: %UPLOAD_PATH%Documenti
+    DisplayWidth: 35
+  OriginalFileName: String(200)
+    PhysicalName: NOME_FILE_ORIGINALE
+    DisplayWidth: 40
+    DisplayLabel: _(Original File Name)
+    IsReadOnly: True
+    IsVisible: False
+  DocumentCalc: HTMLMemo
+    DisplayLabel: _(Documents)
+    Expression: |
+      '<b> '+DT_DOCUMENTI_NOMINATIVO.COGNOME+' '+DT_DOCUMENTI_NOMINATIVO.NOME+'</b> <br /> '+
+      '_(Description):<b> '+COALESCE({Q}DX,'')+'</b> <br /> '+
+      '_(Document type):<b> '+COALESCE(FK_DOCUMENTI_TIPODOC.DX,'')+'</b> <br /> '+
+      '_(Original file name):<b> '+COALESCE({Q}NOME_FILE_ORIGINALE, '')+'</b> <br /> '
+ImageName: collections_bookmark

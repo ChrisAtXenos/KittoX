@@ -22,7 +22,8 @@ uses
   Kitto.Html.Controller,
   Kitto.Metadata.DataView,
   EF.Tree,
-  EF.YAML.Attributes;
+  EF.YAML.Attributes,
+  Kitto.Metadata.Types;
 
 type
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
@@ -49,6 +50,31 @@ type
   end;
 
   /// <summary>
+  ///  Label shown on each point/slice of a series. Only Field is honoured by
+  ///  the Chart.js renderer (read as Series/Label/Field).
+  ///  YAML path: Chart/Series/SeriesItem/Label
+  /// </summary>
+  TKChartSeriesLabelConfig = class(TEFNode)
+  private
+    function GetField: string;
+  public
+    [YamlNode('Field', 'Data field shown as the point/slice label')]
+    property Field: string read GetField;
+  end;
+
+  /// <summary>
+  ///  A text sprite. The renderer uses the first sprite's Text as chart title.
+  ///  YAML path: Chart/Sprites/Sprite
+  /// </summary>
+  TKChartSpriteConfig = class(TEFNode)
+  private
+    function GetText: string;
+  public
+    [YamlNode('Text', 'Sprite text; the first Text sprite becomes the chart title')]
+    property Text: string read GetText;
+  end;
+
+  /// <summary>
   ///  Chart series item configuration.
   ///  YAML path: Chart/Series/SeriesItem
   /// </summary>
@@ -59,8 +85,13 @@ type
     function GetYField: string;
     function GetDisplayName: string;
     function GetStyle: TKChartSeriesStyleConfig;
+    function GetAngleField: string;
+    function GetTitle: string;
+    function GetDonut: Integer;
+    function GetLabel: TKChartSeriesLabelConfig;
   public
-    [YamlNode('Type', 'Series type: bar, line, pie, area')]
+    [YamlNode('Type', 'Series type: Bar, Line, Pie, Pie3D')]
+    [YamlEnumType(TypeInfo(TKSeriesType))]
     property &Type: string read GetType;
 
     [YamlNode('XField', 'X axis data field')]
@@ -74,6 +105,18 @@ type
 
     [YamlSubNode('Style', TKChartSeriesStyleConfig, 'Series visual style')]
     property Style: TKChartSeriesStyleConfig read GetStyle;
+
+    [YamlNode('AngleField', 'Value field of a Pie/Pie3D series (slice size)')]
+    property AngleField: string read GetAngleField;
+
+    [YamlNode('Title', 'Series title, shown in the legend/tooltip')]
+    property Title: string read GetTitle;
+
+    [YamlNode('Donut', '0', 'Donut hole percentage for Pie/Pie3D (0 = full pie)')]
+    property Donut: Integer read GetDonut;
+
+    [YamlSubNode('Label', TKChartSeriesLabelConfig, 'Per-point/slice label')]
+    property &Label: TKChartSeriesLabelConfig read GetLabel;
   end;
 
   /// <summary>
@@ -89,6 +132,7 @@ type
     function GetMinorUnit: string;
     function GetMax: string;
     function GetMin: string;
+    function GetPosition: string;
   public
     [YamlNode('Field', 'Data field bound to this axis')]
     property Field: string read GetField;
@@ -110,6 +154,13 @@ type
 
     [YamlNode('Min', 'Axis minimum value')]
     property Min: string read GetMin;
+
+    [YamlNode('Position', 'Axis position: Left, Right, Top, Bottom (Left = Y axis title)')]
+    [YamlEnumValue('Left', 'Left (Y axis)')]
+    [YamlEnumValue('Right', 'Right')]
+    [YamlEnumValue('Top', 'Top')]
+    [YamlEnumValue('Bottom', 'Bottom (X axis)')]
+    property Position: string read GetPosition;
   end;
 
   /// <summary>
@@ -126,6 +177,10 @@ type
     function GetDocked: string;
   public
     [YamlNode('Docked', 'top', 'Legend position: top, bottom, left, right')]
+    [YamlEnumValue('top', 'Legend at the top')]
+    [YamlEnumValue('bottom', 'Legend at the bottom')]
+    [YamlEnumValue('left', 'Legend on the left')]
+    [YamlEnumValue('right', 'Legend on the right')]
     property Docked: string read GetDocked;
   end;
 
@@ -143,8 +198,10 @@ type
     function GetLegend: TKChartLegendConfig;
     function GetSeries: TEFNode;
     function GetAxes: TEFNode;
+    function GetSprites: TEFNode;
   public
     [YamlNode('Type', 'Chart type: cartesian, polar')]
+    [YamlEnumType(TypeInfo(TKChartType))]
     property &Type: string read GetType;
 
     [YamlNode('ChartStyle', 'CSS style applied to the chart container')]
@@ -167,13 +224,21 @@ type
 
     [YamlContainer('Axes', TKChartAxisConfig, 'Chart axes')]
     property Axes: TEFNode read GetAxes;
+
+    [YamlContainer('Sprites', TKChartSpriteConfig, 'Text sprites (the first one is the chart title)')]
+    property Sprites: TEFNode read GetSprites;
   end;
 
-  TKXChartPanelController = class(TKXDataPanelController)
+  /// <summary>
+  ///  Chart presenter (Chart.js): renders the canvas and the chart configuration
+  ///  built from all the records of its ViewTable. Hosted in a List it shows the
+  ///  same filtered data as the other presenters; a grid beside it is a real
+  ///  GridPanel in a West/East region of the List, not a sidebar of its own.
+  /// </summary>
+  TKXChartPanelController = class(TKXDataPanelLeafController)
   strict private
     FViewName: string;
     function BuildChartConfig(AStore: TKViewTableStore): string;
-    function BuildChartToolbar: string;
     function GetChartJsType: string;
     function GetLabelFieldName: string;
     function GetDataFieldName: string;
@@ -192,13 +257,6 @@ type
     ///  Escapes a string value for JSON output (adds surrounding double quotes).
     /// </summary>
     class function JSONStr(const AValue: string): string;
-
-    /// <summary>
-    ///  Builds grid table rows (tbody content) for the sidebar.
-    ///  Public class function so it can be reused by the chart-data endpoint.
-    /// </summary>
-    class function BuildGridRows(AStore: TKViewTableStore;
-      AViewTable: TKViewTable): string;
   end;
 
 implementation
@@ -207,11 +265,9 @@ uses
   System.SysUtils,
   System.Classes,
   System.StrUtils,
-  System.NetEncoding,
   EF.Localization,
   Kitto.Config,
   Kitto.Html.Base,
-  Kitto.Html.Utils,
   Kitto.Web.Routing.Scripts;
 
 const
@@ -504,84 +560,14 @@ begin
   end;
 end;
 
-class function TKXChartPanelController.BuildGridRows(
-  AStore: TKViewTableStore; AViewTable: TKViewTable): string;
-var
-  I, J: Integer;
-  LField: TKViewField;
-  LRecord: TKViewTableRecord;
-  LRecordField: TKViewTableField;
-  LValue, LAlign: string;
-  SB: TStringBuilder;
-begin
-  if AStore.RecordCount = 0 then
-  begin
-    J := 0;
-    for I := 0 to AViewTable.FieldCount - 1 do
-      if AViewTable.Fields[I].IsVisible and not AViewTable.Fields[I].IsBlob then
-        Inc(J);
-    Result := '<tr class="kx-list-empty"><td colspan="' + IntToStr(J) + '">' +
-      TNetEncoding.HTML.Encode(_('No records found.')) + '</td></tr>';
-    Exit;
-  end;
-
-  SB := TStringBuilder.Create;
-  try
-    for I := 0 to AStore.RecordCount - 1 do
-    begin
-      LRecord := AStore.Records[I];
-      SB.Append('<tr>');
-      for J := 0 to AViewTable.FieldCount - 1 do
-      begin
-        LField := AViewTable.Fields[J];
-        if not LField.IsVisible or LField.IsBlob then
-          Continue;
-        LAlign := LField.DataType.GetDefaultColumnAlignment;
-        LRecordField := LRecord.FindField(LField.AliasedName);
-        if Assigned(LRecordField) and not LRecordField.IsNull then
-        begin
-          LValue := LRecordField.GetAsJSONValue(True, False);
-          if SameText(LValue, 'null') then
-            LValue := '';
-        end
-        else
-          LValue := '';
-        SB.Append('<td style="text-align:').Append(LAlign).Append('">');
-        SB.Append(TNetEncoding.HTML.Encode(LValue)).Append('</td>');
-      end;
-      SB.Append('</tr>');
-    end;
-    Result := SB.ToString;
-  finally
-    SB.Free;
-  end;
-end;
-
-function TKXChartPanelController.BuildChartToolbar: string;
-begin
-  Result :=
-    '<div class="kx-list-toolbar">' +
-      '<button type="button" class="kx-toolbar-btn"' +
-      ' onclick="kxChart.refresh(''' + FViewName + ''')">' +
-      GetIconHTML('refresh') +
-      ' <span class="kx-btn-label">' +
-      TNetEncoding.HTML.Encode(_('Refresh')) + '</span>' +
-      '</button>' +
-    '</div>';
-end;
-
 function TKXChartPanelController.RenderContent: string;
 var
   LDataView: TKDataView;
   LViewTable: TKViewTable;
   LStore: TKViewTableStore;
-  LControllerNode: TEFNode;
-  LWestNode, LEastNode: TEFNode;
-  LSidebarWidth: Integer;
+  LFilterExpr: string;
   LChartConfig: string;
-  I: Integer;
-  LField: TKViewField;
-  SB, SBSidebar: TStringBuilder;
+  SB: TStringBuilder;
 begin
   Result := '';
   if not Assigned(View) or not (View is TKDataView) then
@@ -592,66 +578,26 @@ begin
   if not Assigned(LViewTable) then
     Exit;
 
-  // Check sidebar position from the View's Controller node
-  LControllerNode := View.FindNode('Controller');
-  LWestNode := nil;
-  LEastNode := nil;
-  if Assigned(LControllerNode) then
-  begin
-    LWestNode := LControllerNode.FindNode('WestController');
-    LEastNode := LControllerNode.FindNode('EastController');
-  end;
+  // Hosted in a List, the chart shows the same data as the other presenters:
+  // the host's filter panel selects its initial rows too. All records, no
+  // paging (a chart has no page).
+  if IsHosted then
+    LFilterExpr := HostPanel.FilterExpression
+  else
+    LFilterExpr := '';
 
-  // Load all records (no paging)
   LStore := LViewTable.CreateStore;
   try
-    LStore.Load('', '', 0, 0);
+    LStore.Load(LFilterExpr, '', 0, 0);
 
     // Build chart JSON config
     LChartConfig := BuildChartConfig(LStore);
 
-    // Build sidebar grid HTML (toolbar + table)
-    SBSidebar := TStringBuilder.Create;
     SB := TStringBuilder.Create;
     try
-      SBSidebar.Append(BuildChartToolbar);
-      SBSidebar.Append('<div class="kx-chart-grid"><table class="kx-grid-table"><thead><tr>');
-      for I := 0 to LViewTable.FieldCount - 1 do
-      begin
-        LField := LViewTable.Fields[I];
-        if not LField.IsVisible or LField.IsBlob then
-          Continue;
-        SBSidebar.Append('<th>').Append(TNetEncoding.HTML.Encode(_(LField.DisplayLabel))).Append('</th>');
-      end;
-      SBSidebar.Append('</tr></thead><tbody id="kx-chart-grid-').Append(FViewName).Append('">');
-      SBSidebar.Append(BuildGridRows(LStore, LViewTable));
-      SBSidebar.Append('</tbody></table></div>');
-
-      // Assemble layout: west sidebar + chart area + east sidebar
-
-      // West sidebar + splitter
-      if Assigned(LWestNode) then
-      begin
-        LSidebarWidth := LWestNode.GetInteger('Width', 400);
-        SB.Append('<div class="kx-chart-sidebar kx-chart-sidebar-west" style="width:').Append(IntToStr(LSidebarWidth)).Append('px">');
-        SB.Append(SBSidebar.ToString);
-        SB.Append('<div class="kx-splitter kx-splitter-h" data-direction="horizontal" data-side="end"></div>');
-        SB.Append('</div>');
-      end;
-
       // Chart area (canvas). Wrapper interno per rispettare il padding di
       // .kx-chart-area (un canvas absolute figlio diretto lo ignorerebbe).
       SB.Append('<div class="kx-chart-area"><div class="kx-chart-canvas-wrap"><canvas id="kx-chart-canvas-').Append(FViewName).Append('"></canvas></div></div>');
-
-      // East sidebar + splitter
-      if Assigned(LEastNode) then
-      begin
-        LSidebarWidth := LEastNode.GetInteger('Width', 400);
-        SB.Append('<div class="kx-chart-sidebar kx-chart-sidebar-east" style="width:').Append(IntToStr(LSidebarWidth)).Append('px">');
-        SB.Append('<div class="kx-splitter kx-splitter-h" data-direction="horizontal" data-side="start"></div>');
-        SB.Append(SBSidebar.ToString);
-        SB.Append('</div>');
-      end;
 
       // Chart.js initialization script
       SB.Append('<script>kxChart.init(').Append(JSONStr(FViewName)).Append(', ').Append(LChartConfig).Append(');</script>');
@@ -659,7 +605,6 @@ begin
       Result := SB.ToString;
     finally
       SB.Free;
-      SBSidebar.Free;
     end;
   finally
     FreeAndNil(LStore);
@@ -690,6 +635,22 @@ end;
 
 { TKChartSeriesConfig }
 
+{ TKChartSeriesLabelConfig }
+
+function TKChartSeriesLabelConfig.GetField: string;
+begin
+  Result := GetString('Field');
+end;
+
+{ TKChartSpriteConfig }
+
+function TKChartSpriteConfig.GetText: string;
+begin
+  Result := GetString('Text');
+end;
+
+{ TKChartSeriesConfig }
+
 function TKChartSeriesConfig.GetType: string;
 begin
   Result := GetString('Type');
@@ -711,6 +672,26 @@ begin
 end;
 
 function TKChartSeriesConfig.GetStyle: TKChartSeriesStyleConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKChartSeriesConfig.GetAngleField: string;
+begin
+  Result := GetString('AngleField');
+end;
+
+function TKChartSeriesConfig.GetTitle: string;
+begin
+  Result := GetString('Title');
+end;
+
+function TKChartSeriesConfig.GetDonut: Integer;
+begin
+  Result := GetInteger('Donut', 0);
+end;
+
+function TKChartSeriesConfig.GetLabel: TKChartSeriesLabelConfig;
 begin
   Result := nil; // RTTI discovery only
 end;
@@ -752,6 +733,11 @@ begin
   Result := GetString('Min');
 end;
 
+function TKChartAxisConfig.GetPosition: string;
+begin
+  Result := GetString('Position');
+end;
+
 { TKChartConfig }
 
 function TKChartConfig.GetType: string;
@@ -790,6 +776,11 @@ begin
 end;
 
 function TKChartConfig.GetAxes: TEFNode;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKChartConfig.GetSprites: TEFNode;
 begin
   Result := nil; // RTTI discovery only
 end;

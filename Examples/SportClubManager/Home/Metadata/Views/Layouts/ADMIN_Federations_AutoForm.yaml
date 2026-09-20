@@ -1,0 +1,10 @@
+﻿FieldSet:
+  Title: _(Federation Preview)
+  Row:
+    Field: Id
+    Field: SportType
+    Field: Description
+      CharWidth: 40
+  Row:
+    Field: FederationLogo
+LabelAlign: Right

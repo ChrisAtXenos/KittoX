@@ -157,21 +157,34 @@ type
     FDescription, FFullDescription: string;
     function GetIsKey: Boolean;
     function GetIsForeignKey: Boolean;
+    procedure SetDataType(const AValue: TEFDataType);
+    procedure SetSize(const AValue: Integer);
+    procedure SetScale(const AValue: Integer);
+    /// <summary>
+    ///  Enforces the Size/Scale contract stated below: a type that admits
+    ///  no size (or scale) carries none. Called from all three setters, so
+    ///  it holds whatever order a driver fills them in. Without it the
+    ///  engine's own numbers get through -- an image column's 2147483647,
+    ///  an ntext's 1073741823, a float's precision of 16 -- and the model
+    ///  generators write them into the field spec, which the validator
+    ///  then rejects.
+    /// </summary>
+    procedure ApplyDataTypeConstraints;
   public
     /// <summary>The column's EF data type.</summary>
-    property DataType: TEFDataType read FDataType write FDataType;
+    property DataType: TEFDataType read FDataType write SetDataType;
 
     ///	<summary>
     ///	 For string fields, this is the length in characters; for other data
     ///	 types, it's 0.
     ///	</summary>
-    property Size: Integer read FSize write FSize;
+    property Size: Integer read FSize write SetSize;
 
     ///	<summary>
     ///	 For decimal fields, this is the number of supported decimal digits;
     ///  for other data types, it's 0.
     ///	</summary>
-    property Scale: Integer read FScale write FScale;
+    property Scale: Integer read FScale write SetScale;
 
     ///	<summary>True if the field is required (not null) at the database
     ///	level, False otherwise.</summary>
@@ -1724,6 +1737,34 @@ begin
 end;
 
 { TEFDBColumnInfo }
+
+procedure TEFDBColumnInfo.ApplyDataTypeConstraints;
+begin
+  if not Assigned(FDataType) then
+    Exit;
+  if not FDataType.HasSize then
+    FSize := 0;
+  if not FDataType.HasScale then
+    FScale := 0;
+end;
+
+procedure TEFDBColumnInfo.SetDataType(const AValue: TEFDataType);
+begin
+  FDataType := AValue;
+  ApplyDataTypeConstraints;
+end;
+
+procedure TEFDBColumnInfo.SetSize(const AValue: Integer);
+begin
+  FSize := AValue;
+  ApplyDataTypeConstraints;
+end;
+
+procedure TEFDBColumnInfo.SetScale(const AValue: Integer);
+begin
+  FScale := AValue;
+  ApplyDataTypeConstraints;
+end;
 
 function TEFDBColumnInfo.GetIsForeignKey: Boolean;
 var

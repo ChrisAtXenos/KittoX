@@ -1,0 +1,93 @@
+﻿ModelName: VVatRegister
+PhysicalName: V_REGISTRO_IVA
+DefaultSorting: {Q}DATA_DOC
+PluralDisplayLabel: _(VAT Register)
+DisplayLabel: _(VAT Register)
+PluralModelName: VVatRegisters
+IsReadOnly: True
+Fields:
+  FinancialYear: Reference(FinancialYear) primary key
+    PhysicalName: FK_REGISTRO_IVA_ESERC
+    DisplayLabel: _(Financial Year)
+    IsReadOnly: True
+    Fields:
+      FinancialYearId:
+        PhysicalName: ESERCID
+  DocumentDate: DateTime primary key
+    PhysicalName: DATA_DOC
+    DisplayLabel: _(Document date)
+    DisplayWidth: 15
+  PostingDate: DateTime not null
+    PhysicalName: DATA_REG
+    DisplayLabel: _(Posting date)
+    DisplayWidth: 15
+  EntryType: String(2) not null
+    DisplayLabel: _(Entry Type)
+    PhysicalName: TIPO_MOV
+    DisplayWidth: 40
+    NotifyChange: True
+    AllowedValues:
+      AS: _(Simple entry)
+      AC: _(Complex entry)
+      FC: _(Customer Invoice)
+      FF: _(Supplier Invoice)
+      NC: _(Customer Credit Note)
+      NF: _(Supplier Credit Note)
+      MA: _(Opening entries)
+      MC: _(Closing entries)
+  VatRegister: Reference(VatRegisterType)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_REG_IVA
+    DisplayLabel: _(VAT Register)
+    DisplayWidth: 30
+    Fields:
+      VatRegisterId:
+        PhysicalName: REG_IVAID
+  Supplier: Reference(Supplier)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_FORNITORE
+    DisplayLabel: _(Supplier)
+    DisplayWidth: 40
+    Fields:
+      SupplierId:
+        PhysicalName: FORNITOREID
+  Customer: Reference(Customer)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_CLIENTE
+    DisplayLabel: _(Customer)
+    DisplayWidth: 40
+    Fields:
+      CustomerId:
+        PhysicalName: CLIENTEID
+  TaxableAmount: Currency
+    PhysicalName: IMPONIBILE
+    DisplayLabel: _(Taxable amount)
+    DisplayWidth: 10
+  VatCode: Reference(VatCode)
+    PhysicalName: FK_DETTAGLI_IVA_CODICE_IVA
+    DisplayLabel: _(VAT)
+    DisplayWidth: 40
+    NotifyChange: True
+    Fields:
+      VatCodeId:
+        PhysicalName: CODICE_IVAID
+  Tax: Currency
+    PhysicalName: IMPOSTA
+    DisplayLabel: _(Tax)
+    DisplayWidth: 10
+  DeductibleAmount: Currency
+    PhysicalName: IMP_DETR
+    DisplayLabel: _(Deductible amount)
+    DisplayWidth: 10
+  NonDeductibleAmount: Currency
+    PhysicalName: IMP_INDETR
+    DisplayLabel: _(Non-deductible amount)
+    DisplayWidth: 10
+  Period: String(13) not null
+    PhysicalName: TRIMESTRE
+    DisplayLabel: _(Period)
+    DisplayWidth: 15
+  Year: Integer
+    DisplayLabel: _(Year)
+    PhysicalName: ANNO
+    DisplayWidth: 15
+    DisplayFormat: 0
+    EditFormat: 0
+ImageName: strikethrough_s

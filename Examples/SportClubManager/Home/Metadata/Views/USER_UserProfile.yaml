@@ -1,0 +1,19 @@
+﻿DisplayLabel: _(Profile data)
+Type: Data
+Controller: Form
+  Operation: Edit
+  FilterExpression: {Q}CODFISC = '%Auth:USER_NAME%'
+  #HideLabels: True
+  #CloneButton:
+  #  Hidden: True
+  KeepOpenAfterOperation: False
+MainTable:
+  Model: Person
+  IsLarge: False
+  ImageName: user
+  Controller:
+    AllowDuplicating: False
+    AllowInsert: False
+    AllowDelete: False
+    Form:
+      Layout: USER_UserProfile_Form

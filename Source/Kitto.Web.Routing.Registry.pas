@@ -55,6 +55,7 @@ type
     FLiteralCount: Integer;    // number of non-{param} tokens (for specificity sort)
     FIsAnonymous: Boolean;     // [TKXAnonymous] — skip the auth gate for this method
     FIsNavigable: Boolean;     // [TKXNavigable] — reachable by top-level navigation
+    FIsNotPublic: Boolean;     // [TKXNotPublic] — a public view never exempts this endpoint from auth
   public
     /// <summary>The RTTI method this descriptor was built from (used to invoke it).</summary>
     property RttiMethod: TRttiMethod read FRttiMethod;
@@ -75,6 +76,8 @@ type
     property IsAnonymous: Boolean read FIsAnonymous;
     /// <summary>True if decorated with [TKXNavigable] (reachable by direct navigation).</summary>
     property IsNavigable: Boolean read FIsNavigable;
+    /// <summary>True if decorated with [TKXNotPublic] (a public view never exempts it from auth).</summary>
+    property IsNotPublic: Boolean read FIsNotPublic;
   end;
 
   /// <summary>Cached descriptor for a resource class.</summary>
@@ -299,7 +302,7 @@ procedure TKXResourceRegistry.ScanMethod(AMethod: TRttiMethod;
 var
   LAttr: TCustomAttribute;
   LSubPath, LHttpMethod, LFullPath: string;
-  LHasPath, LHasHttpMethod, LIsAnonymous, LIsNavigable: Boolean;
+  LHasPath, LHasHttpMethod, LIsAnonymous, LIsNavigable, LIsNotPublic: Boolean;
   LMethodInfo: TKXMethodInfo;
   LParams: TArray<TRttiParameter>;
   I: Integer;
@@ -312,6 +315,7 @@ begin
   LHasHttpMethod := False;
   LIsAnonymous := False;
   LIsNavigable := False;
+  LIsNotPublic := False;
 
   for LAttr in AMethod.GetAttributes do
   begin
@@ -358,7 +362,9 @@ begin
     else if LAttr is TKXAnonymousAttribute then
       LIsAnonymous := True
     else if LAttr is TKXNavigableAttribute then
-      LIsNavigable := True;
+      LIsNavigable := True
+    else if LAttr is TKXNotPublicAttribute then
+      LIsNotPublic := True;
   end;
 
   // A method must have at least a path or HTTP method attribute to be a handler
@@ -371,6 +377,7 @@ begin
   LMethodInfo.FHttpMethod := LHttpMethod;
   LMethodInfo.FIsAnonymous := LIsAnonymous;
   LMethodInfo.FIsNavigable := LIsNavigable;
+  LMethodInfo.FIsNotPublic := LIsNotPublic;
 
   // Build full path tokens
   LFullPath := ABasePath;

@@ -1,0 +1,26 @@
+Type: Data
+IsLookup: True
+Controller: List
+  Width: 900
+  Height: 600
+  Filters:
+    DisplayLabel: _(Search Person)
+    Items:
+      FreeSearch: _(Last Name / First Name / Tax code)
+        ExpressionTemplate: >
+          upper(NOMINATIVI.COGNOME) like upper('%{value}%')
+          or upper(NOMINATIVI.NOME) like upper('%{value}%')
+          or upper(NOMINATIVI.CODFISC) like upper('%{value}%')
+MainTable:
+  Model: Person
+  Fields:
+    Id:
+    Description:
+      IsVisible: False
+    LastName:
+    FirstName:
+    TaxCode:
+    BirthDate:
+    BirthPlace:
+  Controller:
+    AutoOpen: True

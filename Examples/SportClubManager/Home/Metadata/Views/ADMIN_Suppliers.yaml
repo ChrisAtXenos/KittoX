@@ -1,0 +1,24 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Suppliers)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (FORNITORI.DX like '%{value}%') or (FORNITORI.COGNOME like '%{value}%') or (FORNITORI.NOME like '%{value}%') or (FORNITORI.PARTIVA like '%{value}%') or (FORNITORI.CODFISCALE like '%{value}%')
+MainTable:
+  Model: Supplier
+  Controller:
+    PopUpWindow:
+      Width: 1300
+      Height: 700
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_Suppliers_Form
+    Grid:
+      Layout: ADMIN_Suppliers_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Suppliers.xlsx
+          RequireSelection: False

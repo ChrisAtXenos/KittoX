@@ -73,6 +73,17 @@ type
     function RenderChildren: string;
   end;
 
+  /// <summary>
+  ///  Lets a host take part in rendering one of its region controllers (see
+  ///  RenderNamedRegion in Kitto.Html.BorderPanel). Called once the controller
+  ///  has been created and its region-level properties consumed, before it is
+  ///  displayed. Returning True means the host has rendered it into AContent
+  ///  (typically bare, inside its own layout and data context); False leaves
+  ///  Display + Render to the region renderer.
+  /// </summary>
+  TKXRegionRenderHook = reference to function(const AController: IKXController;
+    const ARegionName: string; out AContent: string): Boolean;
+
   TKXComponentClass = class of TKXComponent;
 
   /// <summary>

@@ -1,0 +1,5052 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: KittoXSCM\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Ethea S.r.l.\n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: KittoXSCM Localization/build_catalogs.py\n"
+
+#: Home/Metadata/Views/Layouts/ADMIN_FamilyMembers_Grid.yaml:5
+msgid "% Ded."
+msgstr "% Ded."
+
+#: Home/Metadata/Models/TaxDeduction.yaml:47
+msgid "% deduction"
+msgstr "% deducción"
+
+#: Home/Metadata/Models/VatCode.yaml:23
+msgid "% Non-deductible"
+msgstr "% No deducible"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:39
+msgid "% Sibling Discount"
+msgstr "% Descuento hermanos"
+
+#: Home/Resources/privacy.htm:7
+msgid "- They give their consent to"
+msgstr "- Da su consentimiento a"
+
+#: Home/Resources/privacy.htm:5
+msgid "- They give their consent to the processing of personal data by the Association, pursuant to art. 13 of Italian Legislative Decree no. 196/2003 and to GDPR 679/2016, for the pursuit of the Association's institutional purposes and to the extent necessary to fulfil the tax, legal and insurance obligations laid down by law."
+msgstr "- Da su consentimiento para el tratamiento de los datos personales por parte de la Asociación, conforme al art. 13 del D.lgs. n.º 196/2003 y al RGPD 679/2016, para el cumplimiento de los fines institucionales de la Asociación y en la medida necesaria para atender las obligaciones fiscales, legales y de seguro previstas por la normativa."
+
+#: Home/Resources/privacy.htm:6
+msgid "- They give their consent to the use of personal data by the Association, pursuant to art. 13 of Italian Legislative Decree no. 196/2003 and to GDPR 679/2016, for profiling and direct communication initiatives - by e-mail, text message or ordinary mail - for the pursuit of the Association's institutional purposes."
+msgstr "- Da su consentimiento para el uso de los datos personales por parte de la Asociación, conforme al art. 13 del D.lgs. n.º 196/2003 y al RGPD 679/2016, para iniciativas de perfilado y de comunicación directa -por correo electrónico, mensajería telefónica o correo ordinario- para el cumplimiento de los fines institucionales de la Asociación."
+
+#: Source/SCM.Tools.pas:166
+msgid "<br> WARNING! There is no valid medical visit for this athlete."
+msgstr "<br> ATENCIÓN: no hay una revisión médica válida para este deportista."
+
+#: Source/SCM.Rules.AccountingEntry.pas:306
+msgid "A bank reference is not allowed"
+msgstr "No se admite referencia bancaria"
+
+#: Source/SCM.Rules.AccountingEntry.pas:298
+msgid "A customer reference is not allowed"
+msgstr "No se admite referencia a cliente"
+
+#: Source/SCM.Rules.AccountingEntry.pas:310
+msgid "A member reference is not allowed"
+msgstr "No se admite referencia a socio"
+
+#: Source/SCM.Tools.pas:1227
+msgid "A payment confirmation e-mail has been sent to the user"
+msgstr "Se ha enviado al usuario un correo de confirmación del pago"
+
+#: Source/SCM.Tools.pas:1295
+msgid "A payment rejection e-mail has been sent to the user"
+msgstr "Se ha enviado al usuario un correo de rechazo del pago"
+
+#: Source/SCM.Tools.pas:280
+msgid "A subscription confirmation e-mail has been sent to the user"
+msgstr "Se ha enviado al usuario un correo de confirmación de la inscripción"
+
+#: Source/SCM.Tools.pas:328
+msgid "A subscription rejection e-mail has been sent to the user"
+msgstr "Se ha enviado al usuario un correo de rechazo de la inscripción"
+
+#: Source/SCM.Rules.AccountingEntry.pas:302
+msgid "A supplier reference is not allowed"
+msgstr "No se admite referencia a proveedor"
+
+#: Source/SCM.Rules.User.pas:120
+msgid "A user who is a minor cannot be registered."
+msgstr "No se puede registrar a un usuario menor de edad."
+
+#: Home/Metadata/Models/StaffRole.yaml:20
+msgid "Abbreviation for printouts"
+msgstr "Siglas para impresión"
+
+#: Home/Metadata/Models/Municipality.yaml:19
+msgid "Abolished"
+msgstr "Extinguido"
+
+#: Home/Metadata/Views/ApplicationInfo.yaml:1
+msgid "About"
+msgstr "Información"
+
+#: Home/Metadata/Models/Region.yaml:24
+msgid "Abroad"
+msgstr "Extranjero"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Subscriptions_Detail_Grid.yaml:16 Home/Metadata/Views/Layouts/ADMIN_Subscriptions_Grid.yaml:29
+msgid "Acceptance"
+msgstr "Aceptación"
+
+#: Home/Metadata/Models/MembersRegister.yaml:25
+msgid "Acceptance date"
+msgstr "Fecha de aceptación"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:18
+msgid "Accepted"
+msgstr "Aceptados"
+
+#: Home/Metadata/Models/User.yaml:87
+msgid "Access blocked"
+msgstr "Acceso bloqueado"
+
+#: Home/Metadata/Views/RegisterMailMessage.yaml:2
+msgid "Access request for %Config:AppTitle%"
+msgstr "Solicitud de acceso a %Config:AppTitle%"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:44 Home/Metadata/Models/DetailedFinancialStatement.yaml:39 Home/Metadata/Models/LedgerAccount.yaml:46
+msgid "Account"
+msgstr "Cuenta"
+
+#: Home/Metadata/Models/AccountBalance.yaml:5 Home/Metadata/Models/DetailedAccountBalance.yaml:6
+msgid "Account balance"
+msgstr "Saldo de cuenta"
+
+#: Home/Metadata/Models/DetailedAccountBalance.yaml:4
+msgid "Account Balances"
+msgstr "Saldos de cuentas"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:31 Home/Metadata/Models/DetailedFinancialStatement.yaml:31 Home/Metadata/Models/LedgerAccount.yaml:25
+msgid "Account code"
+msgstr "Cód. de cuenta"
+
+#: Home/Metadata/Models/AccountBalance.yaml:42 Home/Metadata/Models/DetailedAccountBalance.yaml:34 Home/Metadata/Models/DetailedAccountBalanceLine.yaml:47
+msgid "Account Code"
+msgstr "Código de cuenta"
+
+#: Home/Metadata/Models/AccountBalance.yaml:4
+msgid "Account Enquiry"
+msgstr "Consulta de cuentas"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:35
+msgid "Account Id"
+msgstr "Id de cuenta"
+
+#: Home/Metadata/Models/DetailedAccountBalance.yaml:46 Home/Metadata/Models/DetailedAccountBalanceLine.yaml:51
+msgid "Account reference"
+msgstr "Referencia de cuenta"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:5
+msgid "Accounting entries"
+msgstr "Asientos contables"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:6
+msgid "Accounting entry"
+msgstr "Asiento contable"
+
+#: Home/Metadata/Views/Layouts/ADMIN_AccountingLines_Form.yaml:35 Home/Metadata/Views/Layouts/ADMIN_DetailedAccountBalanceLines_Detail_Form.yaml:4
+msgid "Accounting entry data"
+msgstr "Datos del asiento contable"
+
+#: Home/Metadata/Models/AccountingLine.yaml:6 Home/Metadata/Models/VAccountingLine.yaml:7
+msgid "Accounting line"
+msgstr "Línea contable"
+
+#: Home/Metadata/Views/Layouts/ADMIN_AccountingLines_Form.yaml:4 Home/Metadata/Views/Layouts/ADMIN_DetailedAccountBalanceLines_Detail_Form.yaml:12
+msgid "Accounting line data"
+msgstr "Datos de la línea contable"
+
+#: Home/Metadata/Models/AccountingLine.yaml:18 Home/Metadata/Models/DetailedAccountBalanceLine.yaml:66 Home/Metadata/Models/VAccountingLine.yaml:164
+msgid "Accounting line description"
+msgstr "Descripción de la línea contable"
+
+#: Home/Metadata/Models/AccountingLine.yaml:5 Home/Metadata/Models/VAccountingLine.yaml:5
+msgid "Accounting lines"
+msgstr "Líneas contables"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:39
+msgid "Accounting Management"
+msgstr "Gestión contable"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:115
+msgid "Accounting Parameters"
+msgstr "Parámetros contables"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:30 Home/Metadata/Models/AccountingReason.yaml:4 Home/Metadata/Models/CustomerInvoice.yaml:34
+msgid "Accounting Reason"
+msgstr "Concepto contable"
+
+#: Home/Metadata/Models/AccountingReason.yaml:3
+msgid "Accounting Reasons"
+msgstr "Conceptos contables"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:44
+msgid "Accounting Reports"
+msgstr "Consulta de contabilidad"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:69
+msgid "Accrual"
+msgstr "Provisión"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:18
+msgid "Accrual date"
+msgstr "Fecha de devengo"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:21 Home/Metadata/Models/DetailedFinancialStatement.yaml:21 Home/Metadata/Models/LedgerAccount.yaml:34
+msgid "Active"
+msgstr "Activo"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:33 Home/Metadata/Views/ADMIN_SubscriberPaymentSummary.yaml:16 Home/Metadata/Views/ADMIN_MedicalVisits.yaml:32
+msgid "Active Courses"
+msgstr "Cursos activos"
+
+#: Home/Metadata/Views/ADMIN_DashKpiSeason.yaml:2 Home/Resources/DashKpiSeason.html:5
+msgid "Active season"
+msgstr "Temporada activa"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:83
+msgid "Active season balance - income (subscription collections + customer invoices) vs expenses (supplier invoices)"
+msgstr "Balance de la temporada activa - ingresos (cobros de inscripciones + facturas de cliente) frente a gastos (facturas de proveedor)"
+
+#: Home/Metadata/Models/Kpi.yaml:19 Home/Metadata/Views/ADMIN_DashKpiActiveTeams.yaml:2 Home/Resources/DashKpiActiveTeams.html:5
+msgid "Active teams"
+msgstr "Equipos activos"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:26
+msgid "Activities"
+msgstr "Actividades"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:71
+msgid "Add a new attachment"
+msgstr "Añadir un nuevo adjunto"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:55
+msgid "Add a new message"
+msgstr "Añadir un nuevo mensaje"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:84
+msgid "Add a new participant"
+msgstr "Añadir un nuevo participante"
+
+#: Home/Metadata/Views/ADMIN_ParticipantGroups.yaml:34
+msgid "Add a new person"
+msgstr "Añadir una nueva persona"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:70
+msgid "Add attachment"
+msgstr "Añadir adjunto"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:54
+msgid "Add message"
+msgstr "Añadir mensaje"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:83
+msgid "Add participant"
+msgstr "Añadir participante"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:104 Home/Metadata/Views/USER_Payments.yaml:27
+msgid "Add payment"
+msgstr "Añadir pago"
+
+#: Home/Metadata/Views/ADMIN_ParticipantGroups.yaml:33
+msgid "Add person"
+msgstr "Añadir persona"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:14 Home/Metadata/Models/Profile.yaml:16
+msgid "Additional description"
+msgstr "Descripción adicional"
+
+#: Home/Metadata/Models/Clinic.yaml:13 Home/Metadata/Models/Bank.yaml:22 Home/Metadata/Models/Customer.yaml:53
+msgid "Address"
+msgstr "Dirección"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:60
+msgid "Addresses to exclude"
+msgstr "Direcciones a excluir"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:34
+msgid "Administration"
+msgstr "Administración"
+
+#: Home/Metadata/Models/Customer.yaml:86 Home/Metadata/Models/Supplier.yaml:101
+msgid "administrative address = registered address"
+msgstr "domicilio administrativo = social"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Customers_Form.yaml:25 Home/Metadata/Views/Layouts/ADMIN_Suppliers_Form.yaml:26
+msgid "Administrative address/domicile"
+msgstr "Domicilio administrativo"
+
+#: Home/Metadata/Views/ADMIN_TopMenu.yaml:42 Home/Metadata/Views/ADMIN_TreeMenu.yaml:102
+msgid "Administrative parameters"
+msgstr "Parámetros administrativos"
+
+#: Home/Metadata/Models/User.yaml:77
+msgid "Administrator"
+msgstr "Administrador"
+
+#: Home/Metadata/Models/Championship.yaml:52 Home/Metadata/Models/MedicalVisitBooking.yaml:31 Home/Metadata/Models/Affiliation.yaml:4
+msgid "Affiliation"
+msgstr "Afiliación"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Affiliations_Form.yaml:4
+msgid "Affiliation Data"
+msgstr "Datos de afiliación"
+
+#: Home/Metadata/Models/Affiliation.yaml:17
+msgid "Affiliation date"
+msgstr "Fecha de afiliación"
+
+#: Home/Metadata/Models/Affiliation.yaml:13
+msgid "Affiliation Description"
+msgstr "Descripción de la afiliación"
+
+#: Home/Metadata/Models/Affiliation.yaml:21
+msgid "Affiliation number"
+msgstr "Número de afiliación"
+
+#: Home/Metadata/Models/Affiliation.yaml:32
+msgid "Affiliation year"
+msgstr "Año de afiliación"
+
+#: Home/Metadata/Models/Affiliation.yaml:2
+msgid "Affiliations"
+msgstr "Afiliaciones"
+
+#: Home/Metadata/Models/Person.yaml:188
+msgid "Age"
+msgstr "Edad"
+
+#: Home/Metadata/Models/Configuration.yaml:82
+msgid "Agriculture, related activities and fishing scheme - art. 34 and 34-bis, D.P.R. 633/72"
+msgstr "Régimen de agricultura, actividades conexas y pesca - art. 34 y 34-bis, D.P.R. 633/72"
+
+#: Home/Metadata/Views/ADMIN_Seasons.yaml:20
+msgid "All"
+msgstr "Todas"
+
+#: Home/Metadata/Models/Subscription.yaml:317 Home/Metadata/Models/AccountingEntry.yaml:62 Home/Metadata/Models/Payment.yaml:76
+msgid "Amount"
+msgstr "Importe"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:80 Home/Metadata/Models/TaxDeduction.yaml:83
+msgid "Amount %"
+msgstr "Importe %"
+
+#: Home/Metadata/Views/ADMIN_DashIncomeExpense.yaml:12
+msgid "Amount (€)"
+msgstr "Importe (€)"
+
+#: Home/Metadata/Models/PaymentDetail.yaml:49
+msgid "Amount already paid"
+msgstr "Importe ya pagado"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:37
+msgid "Amount not subject to withholding"
+msgstr "Importe no sujeto a retención"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:76 Home/Metadata/Models/TaxDeduction.yaml:79 Home/Metadata/Models/Payment.yaml:131
+msgid "Amount paid"
+msgstr "Importe pagado"
+
+#: Home/Metadata/Models/PaymentDetail.yaml:60 Home/Metadata/Models/SubscriptionInstalment.yaml:72
+msgid "Amount Paid"
+msgstr "Importe pagado"
+
+#: Home/Metadata/Views/Layouts/ADMIN_DetailedAccountBalance_Form.yaml:17
+msgid "Amounts"
+msgstr "Importes"
+
+#: Source/SCM.Tools.pas:376
+msgid "An appointment notification e-mail has been sent"
+msgstr "Se ha enviado un correo de notificación de la cita"
+
+#: Source/SCM.Rules.User.pas:53
+msgid "An e-mail with the instructions to activate the user has been sent"
+msgstr "Se ha enviado un correo con las instrucciones para activar el usuario"
+
+#: Source/SCM.Rules.Conversation.pas:93
+msgid "An empty message cannot be sent."
+msgstr "No se puede enviar un mensaje vacío."
+
+#: Source/SCM.Utils.pas:780
+msgid "An Italian IBAN must be 27 characters long."
+msgstr "El IBAN italiano debe tener 27 caracteres."
+
+#: Home/Metadata/Models/Subscription.yaml:230
+msgid "Apply Sibling Discount"
+msgstr "Aplicar descuento por hermanos"
+
+#: Home/Metadata/Models/Subscription.yaml:243
+msgid "Apply Single Instalment Discount"
+msgstr "Aplicar descuento por pago único"
+
+#: Home/Metadata/Views/USER_MedicalVisits.yaml:13
+msgid "Appointment"
+msgstr "Cita"
+
+#: Home/Metadata/Views/ADMIN_MedicalVisits.yaml:69
+msgid "Appointment notification"
+msgstr "Notificación de la cita"
+
+#: Home/Metadata/Models/Subscription.yaml:212
+msgid "Approval date"
+msgstr "Fecha de aprobación"
+
+#: Home/Metadata/Models/Payment.yaml:110
+msgid "Approval Date"
+msgstr "Fecha de aprobación"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:56
+msgid "Approve members"
+msgstr "Aprobar socios"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:78
+msgid "Approve payment"
+msgstr "Aprobar pago"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:88
+msgid "Approve subscription"
+msgstr "Aprobar inscripción"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:60
+msgid "Approve the members?"
+msgstr "¿Aprobar los socios?"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:82
+msgid "Approve the payment from {Payer} for an amount of {Amount}?"
+msgstr "¿Aprobar el pago de {Payer} por un importe de {Amount}?"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:92
+msgid "Approve the subscription of {LastName} {FirstName} for an amount of {SubscriptionTotal}?"
+msgstr "¿Aprobar la inscripción de {LastName} {FirstName} por un importe de {SubscriptionTotal}?"
+
+#: Home/Metadata/Models/Subscription.yaml:293 Home/Metadata/Models/Subscription.yaml:322 Home/Metadata/Models/Payment.yaml:104
+msgid "Approved"
+msgstr "Aprobado"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:23 Home/Metadata/Views/ADMIN_VatRegisters.yaml:47
+msgid "April"
+msgstr "Abril"
+
+#: Home/Metadata/Models/Country.yaml:44
+msgid "Area Code"
+msgstr "Código de área"
+
+#: Home/Metadata/Views/NotificaVisitaMedicaMailMessage.yaml:7
+msgid "at"
+msgstr "a las"
+
+#: Home/Metadata/Models/Country.yaml:36
+msgid "AT Code"
+msgstr "Código AT"
+
+#: Home/Metadata/Views/NotificaVisitaMedicaMailMessage.yaml:8
+msgid "at the clinic"
+msgstr "en la clínica"
+
+#: Home/Metadata/Models/Person.yaml:171 Home/Metadata/Views/ADMIN_People.yaml:9 Home/Metadata/Views/Layouts/ADMIN_NewSubscription_Form.yaml:14
+msgid "Athlete"
+msgstr "Deportista"
+
+#: Home/Metadata/Models/Attachment.yaml:6 Home/Metadata/Models/EmailQueue.yaml:61 Home/Metadata/Models/EmailTemplate.yaml:77
+msgid "Attachment"
+msgstr "Adjunto"
+
+#: Home/Metadata/Models/Attachment.yaml:4
+msgid "Attachments"
+msgstr "Adjuntos"
+
+#: Home/Metadata/Models/Configuration.yaml:93
+msgid "Auction houses for art, antiques and collectibles scheme - art. 40-bis, D.L. 41/95"
+msgstr "Régimen de casas de subastas de arte, antigüedades y objetos de colección - art. 40-bis, D.L. 41/95"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:31 Home/Metadata/Views/ADMIN_VatRegisters.yaml:55
+msgid "August"
+msgstr "Agosto"
+
+#: Source/SCM.Auth.pas:106
+msgid "Authentication failed!"
+msgstr "Error de autenticación."
+
+#: Home/Metadata/Models/AutomaticAccount.yaml:5
+msgid "Automatic account"
+msgstr "Cuenta automática"
+
+#: Home/Metadata/Models/AutomaticAccount.yaml:4
+msgid "Automatic accounts"
+msgstr "Cuentas automáticas"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:5
+msgid "Automatic reason"
+msgstr "Concepto automático"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:4
+msgid "Automatic reasons"
+msgstr "Conceptos automáticos"
+
+#: Home/Metadata/Models/MatchPairing.yaml:18
+msgid "Away Points"
+msgstr "Puntos del visitante"
+
+#: Home/Metadata/Models/MatchPairing.yaml:21
+msgid "Away Sets"
+msgstr "Sets del visitante"
+
+#: Home/Metadata/Models/MatchPairing.yaml:84
+msgid "Away team"
+msgstr "Visitante"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:69 Home/Metadata/Models/DetailedFinancialStatement.yaml:68 Home/Metadata/Models/AccountBalance.yaml:50
+msgid "Balance"
+msgstr "Saldo"
+
+#: Home/Metadata/Models/Team.yaml:40
+msgid "Ball brand"
+msgstr "Marca del balón"
+
+#: Home/Metadata/Models/Bank.yaml:4 Home/Metadata/Models/Bank.yaml:13 Home/Metadata/Models/Customer.yaml:100
+msgid "Bank"
+msgstr "Banco"
+
+#: Home/Metadata/Models/BankAccount.yaml:23 Home/Metadata/Models/CustomerInvoice.yaml:40
+msgid "Bank Account"
+msgstr "Cuenta bancaria"
+
+#: Home/Metadata/Models/Person.yaml:129
+msgid "Bank account"
+msgstr "Cuenta bancaria"
+
+#: Home/Metadata/Models/BankAccount.yaml:22
+msgid "Bank Accounts"
+msgstr "Cuentas bancarias"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Customers_Form.yaml:49 Home/Metadata/Views/Layouts/ADMIN_Suppliers_Form.yaml:50
+msgid "Bank details"
+msgstr "Datos bancarios"
+
+#: Source/SCM.Rules.AccountingEntry.pas:290
+msgid "Bank is required"
+msgstr "El banco es obligatorio"
+
+#: Home/Metadata/Models/LedgerAccount.yaml:94
+msgid "Bank reference"
+msgstr "Referencia bancaria"
+
+#: Source/SCM.Rules.AccountingEntry.pas:183
+msgid "Bank reference is required"
+msgstr "La referencia bancaria es obligatoria"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Payments_Form.yaml:29 Home/Metadata/Views/Layouts/USER_PaymentSummary_Form.yaml:19
+msgid "Bank transfer details"
+msgstr "Datos de la transferencia"
+
+#: Home/Metadata/Models/Bank.yaml:3
+msgid "Banks"
+msgstr "Bancos"
+
+#: Home/Metadata/Models/EmailQueue.yaml:44
+msgid "Bcc"
+msgstr "Cco"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:39
+msgid "Bcc addresses"
+msgstr "Direcciones Cco"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:51
+msgid "Bcc Operators"
+msgstr "Operadores Cco"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Customers_Form.yaml:43 Home/Metadata/Views/Layouts/ADMIN_Suppliers_Form.yaml:44
+msgid "Billing details"
+msgstr "Datos de facturación"
+
+#: Home/Metadata/Models/Subscription.yaml:113 Home/Metadata/Models/Person.yaml:49
+msgid "Birth Date"
+msgstr "Fecha de nacimiento"
+
+#: Home/Metadata/Models/VSubscriberPaymentSummary.yaml:77
+msgid "Birth date"
+msgstr "Fecha de nacimiento"
+
+#: Home/Metadata/Views/ADMIN_SubscriptionFees.yaml:24
+msgid "Birth year"
+msgstr "Año de nacimiento"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:27
+msgid "Birth year (from)"
+msgstr "Año de nacimiento (desde)"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:37
+msgid "Birth year (to)"
+msgstr "Año de nacimiento (hasta)"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:58 Home/Metadata/Views/ADMIN_SubscriberPaymentSummary.yaml:34
+msgid "Birth year from"
+msgstr "Año de nacimiento desde"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:65 Home/Metadata/Views/ADMIN_SubscriberPaymentSummary.yaml:42
+msgid "Birth year to"
+msgstr "Año de nacimiento hasta"
+
+#: Home/Metadata/Models/BoardMember.yaml:3 Home/Metadata/Models/BoardMember.yaml:4
+msgid "Board of Directors"
+msgstr "Junta directiva"
+
+#: Home/Metadata/Models/Subscription.yaml:301 Home/Metadata/Models/Person.yaml:212 Home/Metadata/Views/ADMIN_Subscriptions.yaml:47
+msgid "Booked"
+msgstr "Reservadas"
+
+#: Home/Resources/DashKpiBookedVisits.html:5
+msgid "Booked medical visits"
+msgstr "Revisiones médicas reservadas"
+
+#: Home/Metadata/Models/Kpi.yaml:31 Home/Metadata/Views/ADMIN_DashKpiBookedVisits.yaml:2
+msgid "Booked visits"
+msgstr "Revisiones reservadas"
+
+#: Home/Metadata/Views/Layouts/ADMIN_MedicalVisits_Form.yaml:2
+msgid "Booking Data"
+msgstr "Datos de la reserva"
+
+#: Home/Metadata/Models/Person.yaml:206
+msgid "born in"
+msgstr "en"
+
+#: Home/Metadata/Models/Person.yaml:205
+msgid "Born on"
+msgstr "Nacido el"
+
+#: Home/Metadata/Models/VatCode.yaml:39
+msgid "Bracket limit"
+msgstr "Límite del tramo"
+
+#: Home/Resources/privacy.htm:4
+msgid "By using the software"
+msgstr "Al utilizar el software"
+
+#: Home/Metadata/Models/Team.yaml:46
+msgid "Call-up meeting point"
+msgstr "Punto de encuentro de la convocatoria"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:17 Home/Metadata/Models/Subscription.yaml:34 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:26
+msgid "Campaign"
+msgstr "Campaña"
+
+#: Home/Metadata/Models/Subscription.yaml:294 Home/Metadata/Models/Subscription.yaml:323 Home/Metadata/Models/Payment.yaml:105
+msgid "Cancelled"
+msgstr "Anuladas"
+
+#: Source/SCM.Rules.Subscription.pas:412
+msgid "Cannot subscribe - the date of birth must be between %s and %s"
+msgstr "No es posible inscribirse: la fecha de nacimiento debe estar comprendida entre %s y %s"
+
+#: Home/Metadata/Models/MembershipFee.yaml:34
+msgid "Card no."
+msgstr "N.º de carné"
+
+#: Home/Metadata/Models/Person.yaml:117 Home/Metadata/Models/FederationRegistration.yaml:70
+msgid "Card Number"
+msgstr "Número de carné"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:62 Home/Metadata/Models/MedicalVisit.yaml:84
+msgid "Carried out"
+msgstr "Realizada"
+
+#: Home/Metadata/Models/Configuration.yaml:95
+msgid "Cash accounting VAT scheme - art. 32-bis, D.L. 83/2012"
+msgstr "Régimen de IVA de caja - art. 32-bis, D.L. 83/2012"
+
+#: Home/Metadata/Models/Configuration.yaml:94
+msgid "Cash accounting VAT scheme for public bodies - art. 6, c.5, D.P.R. 633/1972"
+msgstr "Régimen de IVA de caja para entidades públicas - art. 6, c.5, D.P.R. 633/1972"
+
+#: Home/Metadata/Models/Category.yaml:3
+msgid "Categories"
+msgstr "Categorías"
+
+#: Home/Metadata/Models/Championship.yaml:45 Home/Metadata/Models/Category.yaml:4 Home/Metadata/Models/Category.yaml:13
+msgid "Category"
+msgstr "Categoría"
+
+#: Home/Metadata/Models/ChampionshipStage.yaml:17
+msgid "Category description"
+msgstr "Descripción de la categoría"
+
+#: Home/Metadata/Models/EmailQueue.yaml:40
+msgid "Cc"
+msgstr "Cc"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:35
+msgid "Cc addresses"
+msgstr "Direcciones Cc"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:47
+msgid "Cc Operators"
+msgstr "Operadores Cc"
+
+#: Home/Metadata/Models/Region.yaml:22
+msgid "Central"
+msgstr "Centro"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:132 Home/Metadata/Views/USER_MedicalCertificate.yaml:24 Home/Metadata/Views/Layouts/ADMIN_MedicalVisits_Form.yaml:24
+msgid "Certificate"
+msgstr "Certificado"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:137
+msgid "Certificate expired"
+msgstr "Certificado caducado"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:50
+msgid "Certificate expiry"
+msgstr "Vencimiento del certificado"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:139
+msgid "Certificate not valid"
+msgstr "Certificado no válido"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:136
+msgid "Certificate to be uploaded"
+msgstr "Certificado por cargar"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:138
+msgid "Certificate valid"
+msgstr "Certificado válido"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:120
+msgid "Certificates"
+msgstr "Certificados"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:68
+msgid "Certified"
+msgstr "Certificada"
+
+#: Home/Metadata/Models/Customer.yaml:76 Home/Metadata/Models/Supplier.yaml:91
+msgid "Certified e-mail"
+msgstr "Correo certificado"
+
+#: Home/Metadata/Views/Layouts/ADMIN_TaxDeductions_Form.yaml:45
+msgid "Chairperson"
+msgstr "Presidente"
+
+#: Home/Metadata/Models/Championship.yaml:5 Home/Metadata/Models/Championship.yaml:15 Home/Metadata/Models/ChampionshipStage.yaml:29
+msgid "Championship"
+msgstr "Campeonato"
+
+#: Home/Metadata/Models/Championship.yaml:19
+msgid "Championship group"
+msgstr "Grupo del campeonato"
+
+#: Home/Metadata/Models/ChampionshipStage.yaml:41 Home/Metadata/Models/MatchDay.yaml:28
+msgid "Championship Stage"
+msgstr "Fase del campeonato"
+
+#: Home/Metadata/Models/StageType.yaml:4
+msgid "Championship stage type"
+msgstr "Tipo de fase de campeonato"
+
+#: Home/Metadata/Models/StageType.yaml:2
+msgid "Championship stage types"
+msgstr "Tipos de fase de campeonato"
+
+#: Home/Metadata/Models/ChampionshipStage.yaml:40
+msgid "Championship Stages"
+msgstr "Fases del campeonato"
+
+#: Home/Metadata/Models/Championship.yaml:4
+msgid "Championships"
+msgstr "Campeonatos"
+
+#: Home/Metadata/Views/ChangePassword.yaml:1
+msgid "Change password"
+msgstr "Cambiar contraseña"
+
+#: Home/Metadata/Views/ChangePassword.yaml:6
+msgid "Change your password"
+msgstr "Cambie su contraseña"
+
+#: Home/Metadata/Models/LedgerAccount.yaml:4
+msgid "Chart of accounts"
+msgstr "Plan contable"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Payments_Form.yaml:24
+msgid "Cheque details"
+msgstr "Datos del cheque"
+
+#: Source/SCM.Rules.Payment.pas:158
+msgid "Cheque details are not allowed for the selected payment method"
+msgstr "No se admiten datos de cheque para la forma de pago seleccionada"
+
+#: Home/Metadata/Models/Relationship.yaml:20
+msgid "Child"
+msgstr "Hijo"
+
+#: Home/Metadata/Models/Municipality.yaml:4
+msgid "Cities/Municipalities"
+msgstr "Ciudades/municipios"
+
+#: Home/Metadata/Models/Municipality.yaml:5
+msgid "City/Municipality"
+msgstr "Ciudad/Municipio"
+
+#: Home/Metadata/Views/ResetMailMessage.yaml:12
+msgid "Click here to sign in again to"
+msgstr "Haga clic aquí para volver a acceder a"
+
+#: Home/Metadata/Views/RegisterMailMessage.yaml:12
+msgid "Click here to sign in to"
+msgstr "Haga clic aquí para acceder a"
+
+#: Home/Metadata/Models/Clinic.yaml:47 Home/Metadata/Models/MedicalVisitBooking.yaml:24 Home/Metadata/Models/VSubscriptionVisit.yaml:53
+msgid "Clinic"
+msgstr "Clínica"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:77
+msgid "Clinic Municipality"
+msgstr "Municipio de la clínica"
+
+#: Home/Metadata/Models/Clinic.yaml:46
+msgid "Clinics"
+msgstr "Clínicas"
+
+#: Home/Metadata/Views/ADMIN_FinancialStatement.yaml:45
+msgid "Close and open the financial statement?"
+msgstr "¿Cerrar y abrir el balance?"
+
+#: Source/SCM.Accounting.pas:847 Source/SCM.Accounting.pas:868
+msgid "Close/open financial year"
+msgstr "Cierre/apertura del ejercicio contable"
+
+#: Home/Metadata/Models/FinancialYear.yaml:34 Home/Metadata/Views/ADMIN_Conversations.yaml:19 Home/Metadata/Views/ADMIN_FinancialYears.yaml:13
+msgid "Closed"
+msgstr "Cerrado"
+
+#: Home/Metadata/Models/AccountingReason.yaml:28 Home/Metadata/Models/AccountingEntry.yaml:45 Home/Metadata/Models/VVatRegister.yaml:38
+msgid "Closing entries"
+msgstr "Asientos de cierre"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:19
+msgid "Closing of financial statement"
+msgstr "Cierre del balance"
+
+#: Home/Metadata/Views/AffiliationUnused.yaml:4
+msgid "Club"
+msgstr "Club"
+
+#: Home/Metadata/Models/Configuration.yaml:74
+msgid "Club colours"
+msgstr "Colores del club"
+
+#: Home/Metadata/Models/Configuration.yaml:4 Home/Metadata/Models/Configuration.yaml:5
+msgid "Club data"
+msgstr "Datos del club"
+
+#: Home/Metadata/Models/Configuration.yaml:71
+msgid "Club fax"
+msgstr "Fax del club"
+
+#: Home/Metadata/Models/Configuration.yaml:60
+msgid "Club Logo"
+msgstr "Logotipo del club"
+
+#: Home/Metadata/Models/Configuration.yaml:20
+msgid "Club Name"
+msgstr "Nombre del club"
+
+#: Home/Metadata/Models/Subscription.yaml:221
+msgid "Club Notes"
+msgstr "Notas del club"
+
+#: Home/Metadata/Models/Person.yaml:177 Home/Metadata/Models/Team.yaml:48 Home/Metadata/Views/ADMIN_People.yaml:13
+msgid "Coach"
+msgstr "Entrenador"
+
+#: Home/Metadata/Models/Attachment.yaml:10 Home/Metadata/Models/Bank.yaml:9 Home/Metadata/Models/Category.yaml:9
+msgid "Code"
+msgstr "Código"
+
+#: Home/Metadata/Models/AccountingReason.yaml:37 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:37 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:36
+msgid "Collection"
+msgstr "Cobro"
+
+#: Home/Metadata/Models/Policy.yaml:15
+msgid "Company"
+msgstr "Compañía"
+
+#: Home/Metadata/Models/Customer.yaml:17 Home/Metadata/Models/Supplier.yaml:17
+msgid "Company name"
+msgstr "Razón social"
+
+#: Home/Metadata/Models/Sponsor.yaml:15
+msgid "Company Name"
+msgstr "Razón social"
+
+#: Home/Metadata/Models/Championship.yaml:36
+msgid "Competitive"
+msgstr "Competitivo"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:165
+msgid "Complete"
+msgstr "Completo"
+
+#: Source/SCM.Tools.pas:534 Source/SCM.Tools.pas:880 Source/SCM.Tools.pas:953
+msgid "Completed successfully"
+msgstr "Finalizado correctamente"
+
+#: Home/Metadata/Models/AccountingReason.yaml:22 Home/Metadata/Models/AccountingEntry.yaml:39 Home/Metadata/Models/VVatRegister.yaml:32
+msgid "Complex entry"
+msgstr "Asiento complejo"
+
+#: Home/Metadata/Models/Customer.yaml:97 Home/Metadata/Models/Supplier.yaml:112
+msgid "Contact person"
+msgstr "Persona de contacto"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Customers_Form.yaml:34 Home/Metadata/Views/Layouts/ADMIN_Suppliers_Form.yaml:35
+msgid "Contacts"
+msgstr "Contactos"
+
+#: Home/Metadata/Models/Country.yaml:40
+msgid "Continent"
+msgstr "Continente"
+
+#: Home/Metadata/Models/FederationRegistration.yaml:55
+msgid "Contract no."
+msgstr "N.º de contrato"
+
+#: Home/Metadata/Models/Supplier.yaml:80
+msgid "Contribution payable by the payee"
+msgstr "Aportación a cargo del perceptor"
+
+#: Home/Metadata/Models/Conversation.yaml:6 Home/Metadata/Models/Message.yaml:31 Home/Metadata/Models/Participant.yaml:19
+msgid "Conversation"
+msgstr "Conversación"
+
+#: Home/Metadata/Models/ConversationStatus.yaml:3 Home/Metadata/Models/ConversationStatus.yaml:5
+msgid "Conversation status"
+msgstr "Estado de las conversaciones"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:11
+msgid "Conversation Status"
+msgstr "Estado de las conversaciones"
+
+#: Home/Metadata/Models/Conversation.yaml:4
+msgid "Conversations"
+msgstr "Conversaciones"
+
+#: Home/Metadata/Models/Policy.yaml:26 Home/Metadata/Models/MedicalVisitType.yaml:17
+msgid "Cost"
+msgstr "Coste"
+
+#: Home/Metadata/Models/CostCentre.yaml:4 Home/Metadata/Models/CustomerInvoiceLine.yaml:21
+msgid "Cost Centre"
+msgstr "Centro de coste"
+
+#: Home/Metadata/Models/AccountingLine.yaml:53 Home/Metadata/Models/VAccountingLine.yaml:207
+msgid "Cost centre"
+msgstr "Centro de coste"
+
+#: Home/Metadata/Models/CostCentre.yaml:3
+msgid "Cost Centres"
+msgstr "Centros de coste"
+
+#: Home/Metadata/Models/Country.yaml:4
+msgid "Countries"
+msgstr "Países"
+
+#: Home/Metadata/Models/Country.yaml:5
+msgid "Country"
+msgstr "País"
+
+#: Home/Metadata/Models/Subscription.yaml:135 Home/Metadata/Models/Person.yaml:71
+msgid "Country of Birth"
+msgstr "País de nacimiento"
+
+#: Home/Metadata/Models/Subscription.yaml:316 Home/Metadata/Views/Layouts/ADMIN_SubscriptionFees_Form.yaml:35
+msgid "Course"
+msgstr "Curso"
+
+#: Home/Metadata/Models/Subscription.yaml:224
+msgid "Course Fee"
+msgstr "Cuota del curso"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Subscriptions_Form.yaml:40 Home/Metadata/Views/Layouts/ADMIN_NewSubscription_Form.yaml:44 Home/Metadata/Views/Layouts/ADMIN_SubscriberPaymentSummary_Form.yaml:11
+msgid "Course/Fee"
+msgstr "Curso/Cuota"
+
+#: Home/Metadata/Models/SportsFacility.yaml:43
+msgid "Court surface"
+msgstr "Superficie de la pista"
+
+#: Home/Metadata/Models/Message.yaml:40
+msgid "Created By"
+msgstr "Usuario creador"
+
+#: Home/Metadata/Models/User.yaml:101
+msgid "Creation date/time"
+msgstr "Fecha y hora de creación"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:65 Home/Metadata/Models/DetailedFinancialStatement.yaml:64 Home/Metadata/Models/AutomaticAccount.yaml:22
+msgid "Credit"
+msgstr "Haber"
+
+#: Source/SCM.Accounting.pas:1122
+msgid "Credit account not found."
+msgstr "Cuenta de abono no encontrada."
+
+#: Home/Metadata/Models/VAccountingLine.yaml:187
+msgid "Credit Amount"
+msgstr "Importe del haber"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:13 Home/Metadata/Views/ADMIN_SubscriptionInstalments.yaml:10 Home/Metadata/Views/ADMIN_SubscriberPaymentSummary.yaml:9
+msgid "Current"
+msgstr "Actual"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:24
+msgid "Current year"
+msgstr "Año actual"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:13
+msgid "Currently active season"
+msgstr "Temporada actualmente activa"
+
+#: Home/Metadata/Models/Customer.yaml:6 Home/Metadata/Models/AccountingEntry.yaml:132 Home/Metadata/Models/AccountingLine.yaml:102
+msgid "Customer"
+msgstr "Cliente"
+
+#: Home/Metadata/Models/AccountingReason.yaml:26 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:22 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:21
+msgid "Customer credit note"
+msgstr "Nota de crédito de cliente"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:42 Home/Metadata/Models/VVatRegister.yaml:35 Home/Metadata/Models/VAccountingLine.yaml:41
+msgid "Customer Credit Note"
+msgstr "Nota de crédito de cliente"
+
+#: Home/Metadata/Models/AccountingReason.yaml:24 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:18 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:17
+msgid "Customer invoice"
+msgstr "Factura de cliente"
+
+#: Home/Metadata/Models/CustomerInvoice.yaml:58 Home/Metadata/Models/AccountingEntry.yaml:40 Home/Metadata/Models/CustomerInvoiceLine.yaml:39
+msgid "Customer Invoice"
+msgstr "Factura de cliente"
+
+#: Home/Metadata/Models/CustomerInvoiceLine.yaml:45
+msgid "Customer invoice line"
+msgstr "Línea de factura de cliente"
+
+#: Home/Metadata/Models/CustomerInvoiceLine.yaml:44
+msgid "Customer invoice lines"
+msgstr "Líneas de facturas de clientes"
+
+#: Home/Metadata/Models/CustomerInvoice.yaml:57
+msgid "Customer Invoices"
+msgstr "Facturas de clientes"
+
+#: Source/SCM.Rules.AccountingEntry.pas:282
+msgid "Customer is required"
+msgstr "El cliente es obligatorio"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:152
+msgid "Customer Municipality"
+msgstr "Municipio del cliente"
+
+#: Home/Metadata/Models/LedgerAccount.yaml:86
+msgid "Customer reference"
+msgstr "Referencia de cliente"
+
+#: Home/Metadata/Models/Customer.yaml:5
+msgid "Customers"
+msgstr "Clientes"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:2
+msgid "Dashboard"
+msgstr "Panel de control"
+
+#: Home/Metadata/Views/Layouts/ADMIN_FamilyDeductions_Form.yaml:29 Home/Metadata/Views/Layouts/ADMIN_TaxDeductions_Form.yaml:31
+msgid "Data"
+msgstr "Datos"
+
+#: Home/Metadata/Models/MatchDay.yaml:16
+msgid "Date"
+msgstr "Fecha"
+
+#: Home/Metadata/Models/MembersRegister.yaml:45
+msgid "Date of birth"
+msgstr "Fecha de nacimiento"
+
+#: Home/Metadata/Models/Day.yaml:2
+msgid "Day"
+msgstr "Día"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:106
+msgid "Day 1"
+msgstr "Día 1"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:124
+msgid "Day 2"
+msgstr "Día 2"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:142
+msgid "Day 3"
+msgstr "Día 3"
+
+#: Home/Metadata/Models/MatchDay.yaml:22
+msgid "Day description"
+msgstr "Descripción del día"
+
+#: Home/Metadata/Models/Day.yaml:3
+msgid "Days"
+msgstr "Días"
+
+#: Home/Metadata/Views/ApprovaIscrizioneMailMessage.yaml:6 Home/Metadata/Views/ConfermaPagamentoMailMessage.yaml:6 Home/Metadata/Views/NotificaVisitaMedicaMailMessage.yaml:6
+msgid "Dear"
+msgstr "Estimado/a"
+
+#: Home/Metadata/Views/ResetMailMessage.yaml:6
+msgid "Dear user, we see that you have requested a new password."
+msgstr "Estimado usuario, nos consta que ha solicitado una nueva contraseña."
+
+#: Home/Metadata/Models/FinancialStatement.yaml:64 Home/Metadata/Models/DetailedFinancialStatement.yaml:63 Home/Metadata/Models/AutomaticAccount.yaml:21
+msgid "Debit"
+msgstr "Debe"
+
+#: Source/SCM.Accounting.pas:439
+msgid "Debit account for the automatic collection reason not found!"
+msgstr "No se ha encontrado la cuenta de cargo del concepto automático de cobro."
+
+#: Source/SCM.Accounting.pas:1145
+msgid "Debit account not found."
+msgstr "Cuenta de cargo no encontrada."
+
+#: Home/Metadata/Models/VAccountingLine.yaml:183
+msgid "Debit Amount"
+msgstr "Importe del debe"
+
+#: Source/SCM.Rules.AccountingEntry.pas:172
+msgid "Debit line total %s differs from credit line total %s"
+msgstr "El total de las líneas del debe %s difiere del total del haber %s"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:39 Home/Metadata/Views/ADMIN_VatRegisters.yaml:63
+msgid "December"
+msgstr "Diciembre"
+
+#: Home/Metadata/Models/VVatRegister.yaml:78
+msgid "Deductible amount"
+msgstr "Importe deducible"
+
+#: Home/Metadata/Models/VatCode.yaml:27
+msgid "Deductible code"
+msgstr "Código deducible"
+
+#: Home/Metadata/Models/VatDetail.yaml:32
+msgid "Deductible tax"
+msgstr "Impuesto deducible"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:6
+msgid "Deduction"
+msgstr "Deducción"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:45 Home/Metadata/Models/FamilyMember.yaml:54
+msgid "Deduction percentage"
+msgstr "Porcentaje de deducción"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:48
+msgid "Deduction receipts with no print date"
+msgstr "Recibos de deducción sin fecha de impresión"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:5
+msgid "Deductions"
+msgstr "Deducciones"
+
+#: Home/Metadata/Models/Kpi.yaml:25 Home/Metadata/Views/ADMIN_DashKpiReceiptsToPrint.yaml:2 Home/Resources/DashKpiReceiptsToPrint.html:5
+msgid "Deductions to be printed"
+msgstr "Deducciones por imprimir"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:21
+msgid "Deleted"
+msgstr "Eliminadas"
+
+#: Home/Metadata/Models/Equipment.yaml:30
+msgid "Delivery date"
+msgstr "Fecha de entrega"
+
+#: Home/Metadata/Models/Deposit.yaml:5 Home/Metadata/Models/Deposit.yaml:14
+msgid "Deposit"
+msgstr "Ingreso"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:72
+msgid "Deposit bank"
+msgstr "Banco de ingreso"
+
+#: Home/Metadata/Models/Payment.yaml:60
+msgid "Deposit Bank"
+msgstr "Banco de ingreso"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:49 Home/Metadata/Models/Deposit.yaml:24
+msgid "Deposit date"
+msgstr "Fecha de ingreso"
+
+#: Home/Metadata/Models/Deposit.yaml:4
+msgid "Deposits"
+msgstr "Ingresos"
+
+#: Home/Metadata/Models/MatchPairing.yaml:9 Home/Metadata/Models/Attachment.yaml:15 Home/Metadata/Models/FinancialStatement.yaml:49
+msgid "Description"
+msgstr "Descripción"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Payments_Form.yaml:34
+msgid "Detail data"
+msgstr "Datos de detalle"
+
+#: Home/Metadata/Models/DetailedAccountBalanceLine.yaml:70
+msgid "Detailed account balance"
+msgstr "Saldo detallado de cuenta"
+
+#: Home/Metadata/Models/DetailedFinancialStatement.yaml:5 Home/Metadata/Models/DetailedFinancialStatement.yaml:6
+msgid "Detailed financial statement"
+msgstr "Balance detallado"
+
+#: Home/Metadata/Models/VatCode.yaml:55 Home/Metadata/Models/LedgerAccount.yaml:110
+msgid "Disabled"
+msgstr "Desactivado"
+
+#: Home/Metadata/Models/VSubscribersByDiscipline.yaml:5
+msgid "Discipline"
+msgstr "Disciplina"
+
+#: Home/Metadata/Views/Layouts/ADMIN_SubscriptionInstalments_Form.yaml:12
+msgid "Discount"
+msgstr "Descuento"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:46
+msgid "Discount deadline"
+msgstr "Fecha límite del descuento"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:50
+msgid "Discount Notes"
+msgstr "Notas del descuento"
+
+#: Home/Metadata/Models/Subscription.yaml:259 Home/Metadata/Models/SubscriptionInstalment.yaml:43
+msgid "Discount/Voucher"
+msgstr "Descuento/vale"
+
+#: Home/Metadata/Views/Layouts/ADMIN_AccountingEntries_Grid.yaml:12 Home/Metadata/Views/Layouts/ADMIN_AccountingLines_Grid.yaml:31
+msgid "Doc. No."
+msgstr "N.º de doc."
+
+#: Home/Metadata/Models/Document.yaml:6 Home/Metadata/Models/VPersonDocument.yaml:6 Home/Metadata/Models/VPersonDocument.yaml:17
+msgid "Document"
+msgstr "Documento"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:50 Home/Metadata/Models/VVatRegister.yaml:19 Home/Metadata/Models/VAccountingLine.yaml:47
+msgid "Document date"
+msgstr "Fecha del documento"
+
+#: Source/SCM.Rules.AccountingEntry.pas:161
+msgid "Document date is required"
+msgstr "La fecha del documento es obligatoria"
+
+#: Home/Metadata/Models/AccountingReason.yaml:41
+msgid "Document date ref."
+msgstr "Ref. de la fecha del documento"
+
+#: Home/Metadata/Models/Document.yaml:17
+msgid "Document description"
+msgstr "Descripción del documento"
+
+#: Home/Metadata/Views/USER_Documents.yaml:5 Home/Metadata/Views/USER_PersonDocuments.yaml:5
+msgid "Document filter"
+msgstr "Filtro de documentos"
+
+#: Home/Metadata/Views/USER_Documents.yaml:1
+msgid "Document Management"
+msgstr "Gestión de documentos"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:54 Home/Metadata/Models/VAccountingLine.yaml:51
+msgid "Document number"
+msgstr "Número de documento"
+
+#: Source/SCM.Rules.AccountingEntry.pas:165
+msgid "Document number is required"
+msgstr "El número de documento es obligatorio"
+
+#: Home/Metadata/Models/AccountingReason.yaml:45
+msgid "Document number ref."
+msgstr "Ref. del número de documento"
+
+#: Home/Metadata/Views/USER_PersonDocuments.yaml:1
+msgid "Document Summary"
+msgstr "Resumen de documentos"
+
+#: Home/Metadata/Models/Document.yaml:28 Home/Metadata/Models/Document.yaml:73 Home/Metadata/Models/DocumentType.yaml:5
+msgid "Document type"
+msgstr "Tipo de documento"
+
+#: Home/Metadata/Models/DocumentType.yaml:3
+msgid "Document types"
+msgstr "Tipos de documento"
+
+#: Home/Metadata/Models/Document.yaml:5 Home/Metadata/Models/Document.yaml:69 Home/Metadata/Models/VPersonDocument.yaml:5
+msgid "Documents"
+msgstr "Documentos"
+
+#: Home/Metadata/Models/Configuration.yaml:91
+msgid "Door-to-door sales scheme - art. 25-bis, c.6, D.P.R. 600/73"
+msgstr "Régimen de venta a domicilio - art. 25-bis, c.6, D.P.R. 600/73"
+
+#: Home/Metadata/Views/ADMIN_Staff.yaml:29 Home/Metadata/Views/ADMIN_FinancialStatement.yaml:36 Home/Metadata/Views/ADMIN_DetailedFinancialStatement.yaml:36
+msgid "Download to Excel"
+msgstr "Descargar a Excel"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:106
+msgid "Due date"
+msgstr "Fecha de vencimiento"
+
+#: Home/Metadata/Models/AccountingReason.yaml:49
+msgid "Due date ref."
+msgstr "Ref. de la fecha de vencimiento"
+
+#: Home/Metadata/Models/AccountingLine.yaml:26 Home/Metadata/Models/VAccountingLine.yaml:172
+msgid "Due date/Value date"
+msgstr "Fecha de vencimiento/valor"
+
+#: Home/Metadata/Views/ADMIN_Seasons.yaml:33
+msgid "Duplicate campaigns"
+msgstr "Duplicar campañas"
+
+#: Home/Metadata/Views/ADMIN_Seasons.yaml:34
+msgid "Duplicate the previous season's subscription campaigns"
+msgstr "Duplicar las campañas de inscripción de la temporada anterior"
+
+#: Home/Metadata/Models/Policy.yaml:42
+msgid "Duration Type"
+msgstr "Tipo de duración"
+
+#: Home/Metadata/Models/DurationType.yaml:5
+msgid "Duration type"
+msgstr "Tipo de duración"
+
+#: Home/Metadata/Models/DurationType.yaml:3
+msgid "Duration types"
+msgstr "Tipos de duración"
+
+#: Home/Metadata/Models/StaffMember.yaml:29 Home/Metadata/Models/Duty.yaml:5 Home/Metadata/Models/Duty.yaml:16
+msgid "Duty"
+msgstr "Puesto"
+
+#: Home/Metadata/Models/Clinic.yaml:41 Home/Metadata/Models/Bank.yaml:44 Home/Metadata/Models/Customer.yaml:72
+msgid "E-mail"
+msgstr "Correo electrónico"
+
+#: Home/Metadata/Models/EmailQueue.yaml:57
+msgid "E-mail content"
+msgstr "Contenido del correo"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:50
+msgid "E-mail Management"
+msgstr "Gestión de correos"
+
+#: Home/Metadata/Models/EmailQueue.yaml:92 Home/Metadata/Models/EmailQueue.yaml:93
+msgid "E-mail Queue"
+msgstr "Cola de correos"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:79
+msgid "E-mail Template"
+msgstr "Plantilla de correo"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:80
+msgid "E-mail Templates"
+msgstr "Plantillas de correo"
+
+#: Home/Metadata/Models/EmailQueue.yaml:26
+msgid "E-mail Type"
+msgstr "Tipo de correo"
+
+#: Home/Metadata/Views/EmailQueue.yaml:16
+msgid "E-mail type"
+msgstr "Tipo de correo"
+
+#: Home/Metadata/Models/EmailQueue.yaml:77
+msgid "Earliest Transmission Date/Time"
+msgstr "Fecha y hora mínima de transmisión"
+
+#: Home/Metadata/Models/Policy.yaml:33
+msgid "Effective date"
+msgstr "Fecha de efecto"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:58 Home/Metadata/Models/FinancialYear.yaml:25 Home/Metadata/Models/Season.yaml:22
+msgid "End date"
+msgstr "Fecha de fin"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:119
+msgid "End time 1"
+msgstr "Hora de fin 1"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:137
+msgid "End time 2"
+msgstr "Hora de fin 2"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:155
+msgid "End time 3"
+msgstr "Hora de fin 3"
+
+#: Home/Metadata/Models/SportType.yaml:25
+msgid "English-style average"
+msgstr "Media al estilo inglés"
+
+#: Home/Metadata/Views/USER_Subscribe.yaml:1
+msgid "Enrol"
+msgstr "Inscríbete"
+
+#: Home/Metadata/Views/USER_SubscribeChild.yaml:1
+msgid "Enrol child"
+msgstr "Inscribir hijo"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:32 Home/Metadata/Models/EmailTemplate.yaml:36 Home/Metadata/Models/EmailTemplate.yaml:40
+msgid "Enter e-mail addresses separated by ;"
+msgstr "Introduzca direcciones de correo separadas por ;"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:44 Home/Metadata/Models/EmailTemplate.yaml:48 Home/Metadata/Models/EmailTemplate.yaml:52
+msgid "Enter OPERATOR codes separated by ;"
+msgstr "Introduzca códigos de OPERADORES separados por ;"
+
+#: Home/Metadata/Views/USER_Payments.yaml:1
+msgid "Enter payment"
+msgstr "Registrar pago"
+
+#: Source/SCM.Rules.Payment.pas:168
+msgid "Enter the payment details"
+msgstr "Introduzca los detalles del pago"
+
+#: Home/Metadata/Views/InputPIN.yaml:2
+msgid "Enter the PIN"
+msgstr "Introduzca el PIN"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:56
+msgid "Enter user PROFILE codes separated by ;"
+msgstr "Introduzca códigos de PERFILES de usuario separados por ;"
+
+#: Home/Metadata/Models/Subscription.yaml:292 Home/Metadata/Models/Subscription.yaml:324 Home/Metadata/Models/Payment.yaml:103
+msgid "Entered"
+msgstr "Registrada"
+
+#: Home/Metadata/Models/EmailQueue.yaml:69
+msgid "Entered By"
+msgstr "Registrado por"
+
+#: Home/Metadata/Models/Configuration.yaml:88
+msgid "Entertainment, gaming and other activities listed in the DPR 640/72 tariff scheme - art. 74, c.6, D.P.R. 633/72"
+msgstr "Régimen de espectáculos, juegos y otras actividades de la tarifa del DPR 640/72 - art. 74, c.6, D.P.R. 633/72"
+
+#: Home/Metadata/Models/VatDetail.yaml:57 Home/Metadata/Models/WithholdingDetail.yaml:85 Home/Metadata/Models/AccountingLine.yaml:89
+msgid "Entry"
+msgstr "Asiento"
+
+#: Home/Metadata/Models/VAccountingLine.yaml:59
+msgid "Entry amount"
+msgstr "Importe del asiento"
+
+#: Source/SCM.Rules.AccountingEntry.pas:177
+msgid "Entry amount %s differs from the line total %s"
+msgstr "El importe del asiento %s difiere del total de las líneas %s"
+
+#: Home/Metadata/Views/Layouts/ADMIN_AccountingLines_Grid.yaml:42
+msgid "Entry Bank"
+msgstr "Banco del asiento"
+
+#: Home/Metadata/Views/Layouts/ADMIN_AccountingLines_Grid.yaml:40
+msgid "Entry Customer"
+msgstr "Cliente del asiento"
+
+#: Home/Metadata/Models/EmailQueue.yaml:64 Home/Metadata/Models/Subscription.yaml:267
+msgid "Entry Date/Time"
+msgstr "Fecha y hora de registro"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:17 Home/Metadata/Models/DetailedAccountBalanceLine.yaml:26 Home/Metadata/Models/VAccountingLine.yaml:20
+msgid "Entry description"
+msgstr "Descripción del asiento"
+
+#: Home/Metadata/Views/ADMIN_AccountingEntries.yaml:14 Home/Metadata/Views/ADMIN_AccountingLines.yaml:14 Home/Metadata/Views/Layouts/ADMIN_AccountingEntries_Grid.yaml:4
+msgid "Entry No."
+msgstr "N.º de asiento"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:20 Home/Metadata/Models/DetailedAccountBalanceLine.yaml:21 Home/Metadata/Models/VAccountingLine.yaml:23
+msgid "Entry Number"
+msgstr "Número de asiento"
+
+#: Home/Metadata/Views/Layouts/ADMIN_AccountingLines_Grid.yaml:38
+msgid "Entry Supplier"
+msgstr "Proveedor del asiento"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:33 Home/Metadata/Models/VVatRegister.yaml:26 Home/Metadata/Models/VAccountingLine.yaml:32
+msgid "Entry Type"
+msgstr "Tipo de asiento"
+
+#: Home/Metadata/Models/Equipment.yaml:62 Home/Metadata/Models/Equipment.yaml:63
+msgid "Equipment"
+msgstr "Equipamiento"
+
+#: Home/Metadata/Models/Country.yaml:28
+msgid "EU member"
+msgstr "Miembro de la UE"
+
+#: Home/Metadata/Views/ConfermaPagamentoMailMessage.yaml:7
+msgid "euros."
+msgstr "euros."
+
+#: Home/Metadata/Views/ADMIN_Sponsors.yaml:24 Home/Metadata/Views/ADMIN_MedicalVisits.yaml:64
+msgid "Excel export"
+msgstr "Exportación a Excel"
+
+#: Home/Metadata/Models/VatCode.yaml:51
+msgid "Exclude from VAT settlement"
+msgstr "Excluir de la liquidación de IVA"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:23 Home/Metadata/Models/DetailedFinancialStatement.yaml:23 Home/Metadata/Models/LedgerAccount.yaml:36
+msgid "Expenses"
+msgstr "Gastos"
+
+#: Home/Metadata/Models/Subscription.yaml:303 Home/Metadata/Models/Person.yaml:214 Home/Metadata/Views/ADMIN_Documents.yaml:15
+msgid "Expired"
+msgstr "Caducadas"
+
+#: Home/Metadata/Models/Kpi.yaml:27 Home/Metadata/Views/ADMIN_DashKpiExpiredCertificates.yaml:2 Home/Resources/DashKpiExpiredCertificates.html:5
+msgid "Expired certificates"
+msgstr "Certificados caducados"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:53
+msgid "Expired certificates for the active and previous season"
+msgstr "Certificados caducados de la temporada activa y la anterior"
+
+#: Home/Metadata/Models/Kpi.yaml:33 Home/Metadata/Views/ADMIN_DashKpiExpiringRegistrations.yaml:2
+msgid "Expiring federation registrations"
+msgstr "Fichas federativas por vencer"
+
+#: Home/Metadata/Models/FederationRegistration.yaml:66 Home/Metadata/Models/MedicalVisitType.yaml:21 Home/Metadata/Models/MedicalVisit.yaml:62
+msgid "Expiry"
+msgstr "Vencimiento"
+
+#: Home/Metadata/Models/Document.yaml:42 Home/Metadata/Models/Policy.yaml:35 Home/Metadata/Models/SubscriptionInstalment.yaml:32
+msgid "Expiry Date"
+msgstr "Fecha de vencimiento"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:111 Home/Metadata/Models/MedicalVisit.yaml:133
+msgid "Expiry date"
+msgstr "Fecha de vencimiento"
+
+#: Home/Metadata/Models/SportsFacility.yaml:11
+msgid "Facility"
+msgstr "Instalación"
+
+#: Home/Metadata/Models/SportsFacility.yaml:55
+msgid "Facility photo"
+msgstr "Foto de la instalación"
+
+#: Home/Metadata/Models/SportsFacility.yaml:77
+msgid "Facility Type"
+msgstr "Tipo de instalación"
+
+#: Home/Metadata/Models/FacilityType.yaml:5
+msgid "Facility type"
+msgstr "Tipo de instalación"
+
+#: Home/Metadata/Models/FacilityType.yaml:3
+msgid "Facility types"
+msgstr "Tipos de instalación"
+
+#: Home/Metadata/Models/Family.yaml:4
+msgid "Families"
+msgstr "Familias"
+
+#: Home/Metadata/Models/Family.yaml:5
+msgid "Family"
+msgstr "Familia"
+
+#: Home/Metadata/Models/Family.yaml:22 Home/Metadata/Views/Layouts/ADMIN_FamilyMembers_Form.yaml:15
+msgid "Family Creator"
+msgstr "Creador de la familia"
+
+#: Home/Metadata/Models/FamilyMember.yaml:26
+msgid "Family Creator Tax Code"
+msgstr "NIF del creador de la familia"
+
+#: Home/Metadata/Models/FamilyMember.yaml:5 Home/Metadata/Views/Layouts/ADMIN_FamilyMembers_Form.yaml:4
+msgid "Family Member"
+msgstr "Miembro de la familia"
+
+#: Home/Metadata/Models/FamilyMember.yaml:4 Home/Metadata/Models/Person.yaml:208
+msgid "Family members"
+msgstr "Miembros de la familia"
+
+#: Home/Metadata/Models/Configuration.yaml:90
+msgid "Farm holiday scheme - art. 5, c.2, L. 413/91"
+msgstr "Régimen de agroturismo - art. 5, c.2, L. 413/91"
+
+#: Home/Metadata/Models/SportsFacility.yaml:52
+msgid "Fax"
+msgstr "Fax"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:19 Home/Metadata/Views/ADMIN_VatRegisters.yaml:43
+msgid "February"
+msgstr "Febrero"
+
+#: Home/Metadata/Models/Federation.yaml:58 Home/Metadata/Models/Affiliation.yaml:35
+msgid "Federation"
+msgstr "Federación"
+
+#: Home/Metadata/Models/Team.yaml:24
+msgid "Federation code"
+msgstr "Código de federación"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Federations_Form.yaml:2
+msgid "Federation Data"
+msgstr "Datos de la federación"
+
+#: Home/Metadata/Models/Federation.yaml:41 Home/Metadata/Models/Affiliation.yaml:24
+msgid "Federation Logo"
+msgstr "Logotipo de la federación"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Federations_AutoForm.yaml:2
+msgid "Federation Preview"
+msgstr "Vista previa de la federación"
+
+#: Home/Metadata/Models/FederationRegistration.yaml:5 Home/Metadata/Models/FederationRegistration.yaml:41
+msgid "Federation registration"
+msgstr "Ficha federativa"
+
+#: Home/Metadata/Models/FederationRegistrationType.yaml:5
+msgid "Federation registration type"
+msgstr "Tipo de ficha federativa"
+
+#: Home/Metadata/Models/FederationRegistrationType.yaml:3
+msgid "Federation registration types"
+msgstr "Tipos de ficha federativa"
+
+#: Home/Metadata/Models/FederationRegistration.yaml:4
+msgid "Federation registrations"
+msgstr "Fichas federativas"
+
+#: Home/Resources/DashKpiExpiringRegistrations.html:5
+msgid "Federation registrations expiring in 30 days"
+msgstr "Fichas federativas que vencen en 30 días"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:68
+msgid "Federation registrations expiring in the next 30 days"
+msgstr "Fichas federativas que vencen en los próximos 30 días"
+
+#: Home/Metadata/Models/Championship.yaml:22
+msgid "Federation section"
+msgstr "Sección de la federación"
+
+#: Home/Metadata/Models/Federation.yaml:57
+msgid "Federations"
+msgstr "Federaciones"
+
+#: Home/Metadata/Models/Championship.yaml:41
+msgid "Fee"
+msgstr "Cuota"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:29
+msgid "Fee amount"
+msgstr "Importe de la retribución"
+
+#: Home/Metadata/Models/Deposit.yaml:18
+msgid "Fee Paid"
+msgstr "Cuota abonada"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:22
+msgid "Fee payment date"
+msgstr "Fecha de pago de la retribución"
+
+#: Home/Metadata/Views/Layouts/ADMIN_SubscriptionCampaigns_Form.yaml:14
+msgid "Fee/Discounts"
+msgstr "Cuota/descuentos"
+
+#: Home/Metadata/Models/MembersRegister.yaml:73
+msgid "Fees"
+msgstr "Cuotas"
+
+#: Home/Metadata/Models/FederationRegistration.yaml:76
+msgid "Fees Paid"
+msgstr "Cuotas abonadas"
+
+#: Home/Metadata/Models/Category.yaml:21 Home/Metadata/Models/Subscription.yaml:108 Home/Metadata/Models/Person.yaml:46
+msgid "Female"
+msgstr "Femenino"
+
+#: Home/Metadata/Models/Attachment.yaml:21 Home/Metadata/Models/Attachment.yaml:31
+msgid "File"
+msgstr "Archivo"
+
+#: Home/Metadata/Models/FederationRegistration.yaml:58
+msgid "Filed on"
+msgstr "Depositado el"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:5 Home/Metadata/Models/FinancialStatement.yaml:6
+msgid "Financial statement"
+msgstr "Balance"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:14 Home/Metadata/Models/DetailedFinancialStatement.yaml:14 Home/Metadata/Models/WithholdingDetail.yaml:98
+msgid "Financial Year"
+msgstr "Ejercicio"
+
+#: Home/Metadata/Models/FinancialYear.yaml:3
+msgid "Financial Years"
+msgstr "Ejercicios contables"
+
+#: Home/Metadata/Models/Customer.yaml:26 Home/Metadata/Models/FamilyDeduction.yaml:21 Home/Metadata/Models/TaxDeduction.yaml:23
+msgid "First Name"
+msgstr "Nombre"
+
+#: Source/SCM.Rules.CustomerSupplier.pas:79
+msgid "First name is required."
+msgstr "El nombre es obligatorio."
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:72 Home/Metadata/Models/MedicalVisit.yaml:94
+msgid "Fitness"
+msgstr "Aptitud"
+
+#: Home/Metadata/Models/Configuration.yaml:96
+msgid "Flat-rate scheme"
+msgstr "Régimen de módulos"
+
+#: Home/Metadata/Models/SportsFacility.yaml:40
+msgid "Floodlit"
+msgstr "Iluminado"
+
+#: Home/Metadata/Views/RichiestaIscrizioneMailMessage.yaml:6
+msgid "for an amount of"
+msgstr "por un importe de"
+
+#: Home/Metadata/Views/ConfermaPagamentoMailMessage.yaml:7
+msgid "for the amount of"
+msgstr "por el importe de"
+
+#: Home/Resources/privacy.htm:7
+msgid "for the free use and publication of images of their son or daughter taken or filmed during sports activity - training sessions, matches, tournaments and the like - on the club website, in the press, and for participation in events, tournaments and similar occasions. This authorisation does not allow the images to be used in contexts that harm the personal dignity and decorum of the minor, nor for uses or purposes other than those indicated above. The user confirms that they have no claim in respect of the above and irrevocably waives any right, action or claim arising from what is authorised here."
+msgstr "para el uso gratuito y la publicación de las imágenes de su hijo o hija tomadas o grabadas durante la actividad deportiva -entrenamientos, partidos, torneos y similares- en el sitio web del club, en prensa y para la participación en eventos, torneos y ocasiones similares. Esta autorización no permite el uso de las imágenes en contextos que perjudiquen la dignidad personal y el decoro del menor, ni para usos o fines distintos de los indicados anteriormente. Se confirma no tener nada que reclamar por lo anterior y se renuncia irrevocablemente a cualquier derecho, acción o pretensión derivada de lo aquí autorizado."
+
+#: Home/Metadata/Models/StageType.yaml:34
+msgid "Forfeit-loss penalty"
+msgstr "Penalización por derrota administrativa"
+
+#: Home/Metadata/Views/ADMIN_AutomaticReasons.yaml:6 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:6 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:6
+msgid "Free search"
+msgstr "Búsqueda libre"
+
+#: Home/Metadata/Models/Team.yaml:97
+msgid "Friday"
+msgstr "Viernes"
+
+#: Home/Metadata/Models/Duty.yaml:33 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:41
+msgid "From"
+msgstr "Desde"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:28
+msgid "From address"
+msgstr "Dirección de origen"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:24 Home/Metadata/Views/ADMIN_Subscriptions.yaml:55 Home/Metadata/Views/ADMIN_Payments.yaml:51
+msgid "From date"
+msgstr "Desde la fecha"
+
+#: Home/Metadata/Models/StaffMember.yaml:14 Home/Metadata/Models/Person.yaml:15 Home/Metadata/Models/Squad.yaml:15
+msgid "Full Name"
+msgstr "Nombre completo"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:8
+msgid "Full name"
+msgstr "Nombre y apellidos"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:33
+msgid "Fully settled subscription instalments"
+msgstr "Cuotas de inscripción totalmente saldadas"
+
+#: Home/Metadata/Views/ADMIN_SubscriptionCampaigns.yaml:14 Home/Metadata/Views/ADMIN_SubscriptionFees.yaml:18 Home/Metadata/Views/ADMIN_Seasons.yaml:14
+msgid "Future"
+msgstr "Futuras"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:63
+msgid "Future visits not yet carried out"
+msgstr "Revisiones futuras aún no realizadas"
+
+#: Home/Metadata/Models/Category.yaml:17 Home/Metadata/Models/Subscription.yaml:104 Home/Metadata/Models/Person.yaml:43
+msgid "Gender"
+msgstr "Sexo"
+
+#: Home/Metadata/Models/AccountingReason.yaml:34 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:31 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:30
+msgid "General ledger"
+msgstr "Contabilidad general"
+
+#: Home/Metadata/Views/ADMIN_TaxDeductions.yaml:47
+msgid "Generate documents"
+msgstr "Generar documentos"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:90
+msgid "Generate payment receipt"
+msgstr "Generar recibo de pago"
+
+#: Home/Metadata/Views/ADMIN_TaxDeductions.yaml:41
+msgid "Generate receipts"
+msgstr "Generar recibos"
+
+#: Home/Metadata/Views/ADMIN_TaxDeductions.yaml:52
+msgid "Generate the documents?"
+msgstr "¿Generar los documentos?"
+
+#: Home/Metadata/Views/ADMIN_AccountingEntries.yaml:61
+msgid "Generate the electronic invoice XML?"
+msgstr "¿Generar el XML de la factura electrónica?"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:93
+msgid "Generate the receipts for the payment?"
+msgstr "¿Generar los recibos del pago?"
+
+#: Home/Metadata/Views/ADMIN_TaxDeductions.yaml:45
+msgid "Generate the receipts for the previous year?"
+msgstr "¿Generar los recibos del año anterior?"
+
+#: Home/Metadata/Models/Region.yaml:17
+msgid "Geographic Area"
+msgstr "Área geográfica"
+
+#: Home/Metadata/Views/ADMIN_TopMenu.yaml:2 Home/Metadata/Views/ADMIN_TreeMenu.yaml:54
+msgid "Geographic parameters"
+msgstr "Parámetros geográficos"
+
+#: Home/Metadata/Models/Conversation.yaml:19 Home/Metadata/Models/ParticipantDetail.yaml:19 Home/Metadata/Models/ParticipantGroup.yaml:15
+msgid "Group"
+msgstr "Grupo"
+
+#: Home/Metadata/Models/ParticipantGroup.yaml:14
+msgid "Group Name"
+msgstr "Nombre del grupo"
+
+#: Home/Metadata/Views/ADMIN_Home.yaml:58 Home/Metadata/Views/ADMIN_HomeTablet.yaml:48 Home/Metadata/Views/USER_HomeTablet.yaml:52
+msgid "Guide index..."
+msgstr "Índice de la guía..."
+
+#: Home/Metadata/Config_KittoLibertasCernusco.yaml:32 Home/Metadata/Config_KittoXSCM.yaml:39 Setup/Config_KittoGinnasticaCernuschese.yaml:32
+msgid "Guide..."
+msgstr "Guía..."
+
+#: Home/Metadata/Views/ApprovaIscrizioneMailMessage.yaml:7
+msgid "has been approved for an amount of"
+msgstr "ha sido aprobada por un importe de"
+
+#: Home/Metadata/Models/Person.yaml:164
+msgid "Health Card"
+msgstr "Tarjeta sanitaria"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:31 Home/Metadata/Models/MedicalVisit.yaml:41
+msgid "Health card no."
+msgstr "N.º de tarjeta sanitaria"
+
+#: Home/Metadata/Models/Person.yaml:159
+msgid "Height (cm)"
+msgstr "Altura (cm)"
+
+#: Home/Metadata/Views/ADMIN_SubscriptionCampaigns.yaml:17 Home/Metadata/Views/ADMIN_SubscriptionFees.yaml:21 Home/Metadata/Views/ADMIN_Seasons.yaml:17
+msgid "History"
+msgstr "Histórico"
+
+#: Home/Metadata/Models/MatchPairing.yaml:78
+msgid "Home"
+msgstr "Local"
+
+#: Home/Metadata/Models/Subscription.yaml:143
+msgid "Home Address"
+msgstr "Dirección de residencia"
+
+#: Home/Metadata/Models/Person.yaml:80
+msgid "Home address"
+msgstr "Dirección de residencia"
+
+#: Home/Metadata/Models/StageType.yaml:22
+msgid "Home and away planned"
+msgstr "Ida y vuelta previstas"
+
+#: Home/Metadata/Models/Match.yaml:33
+msgid "Home match"
+msgstr "Partido en casa"
+
+#: Home/Metadata/Models/MatchPairing.yaml:12
+msgid "Home Points"
+msgstr "Puntos del local"
+
+#: Home/Metadata/Models/MatchPairing.yaml:15
+msgid "Home Sets"
+msgstr "Sets del local"
+
+#: Home/Metadata/Views/USER_People.yaml:5
+msgid "Household"
+msgstr "Unidad familiar"
+
+#: Home/Metadata/Models/Bank.yaml:16 Home/Metadata/Models/Customer.yaml:62 Home/Metadata/Models/BankAccount.yaml:11
+msgid "IBAN"
+msgstr "IBAN"
+
+#: Home/Metadata/Models/MatchPairing.yaml:6 Home/Metadata/Models/StaffMember.yaml:11 Home/Metadata/Models/Insurance.yaml:12
+msgid "Id"
+msgstr "Id"
+
+#: Home/Metadata/Models/Clinic.yaml:6
+msgid "Identifier"
+msgstr "Identificador"
+
+#: Home/Metadata/Models/Person.yaml:152
+msgid "Identity Document"
+msgstr "Documento de identidad"
+
+#: Home/Metadata/Views/ApprovaIscrizioneMailMessage.yaml:11 Home/Metadata/Views/ConfermaPagamentoMailMessage.yaml:9 Home/Metadata/Views/NotificaVisitaMedicaMailMessage.yaml:10
+msgid "If you received this e-mail by mistake or the information does not look correct, please write to us at:"
+msgstr "Si ha recibido este correo por error o los datos no le parecen correctos, escríbanos a:"
+
+#: Home/Metadata/Views/NotificaVisitaMedicaMailMessage.yaml:8
+msgid "in"
+msgstr "en"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:16
+msgid "In progress"
+msgstr "En curso"
+
+#: Home/Metadata/Views/SubscriptionFee.yaml:13
+msgid "Inactive"
+msgstr "No activas"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:59
+msgid "Income tax"
+msgstr "IRPF"
+
+#: Home/Metadata/Models/VIncomeExpense.yaml:1 Home/Metadata/Models/VIncomeExpense.yaml:2 Home/Metadata/Views/ADMIN_DashIncomeExpense.yaml:2
+msgid "Income vs Expenses"
+msgstr "Ingresos frente a gastos"
+
+#: Home/Metadata/Models/Configuration.yaml:51
+msgid "Information E-mail"
+msgstr "Correo de información"
+
+#: Home/Metadata/Models/Configuration.yaml:53
+msgid "Information e-mail"
+msgstr "Correo de información"
+
+#: Home/Metadata/Views/Layouts/ADMIN_SubscriptionInstalments_Form.yaml:4
+msgid "Instalment"
+msgstr "Cuota"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:50
+msgid "Instalment 1 amount"
+msgstr "Importe de la cuota 1"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:46
+msgid "Instalment 1 due date"
+msgstr "Vencimiento de la cuota 1"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:61
+msgid "Instalment 2 amount"
+msgstr "Importe de la cuota 2"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:57
+msgid "Instalment 2 due date"
+msgstr "Vencimiento de la cuota 2"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:72
+msgid "Instalment 3 amount"
+msgstr "Importe de la cuota 3"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:68
+msgid "Instalment 3 due date"
+msgstr "Vencimiento de la cuota 3"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:83
+msgid "Instalment 4 amount"
+msgstr "Importe de la cuota 4"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:79
+msgid "Instalment 4 due date"
+msgstr "Vencimiento de la cuota 4"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:94
+msgid "Instalment 5 amount"
+msgstr "Importe de la cuota 5"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:90
+msgid "Instalment 5 due date"
+msgstr "Vencimiento de la cuota 5"
+
+#: Home/Metadata/Models/PaymentDetail.yaml:43
+msgid "Instalment amount"
+msgstr "Importe de la cuota"
+
+#: Home/Metadata/Views/USER_SubscriptionInstalments.yaml:4
+msgid "Instalment Filter"
+msgstr "Filtro de cuotas"
+
+#: Home/Metadata/Views/USER_SubscriptionInstalments.yaml:16
+msgid "Instalment summary"
+msgstr "Resumen de cuotas"
+
+#: Home/Metadata/Views/Layouts/ADMIN_SubscriptionFees_Form.yaml:14
+msgid "Instalments"
+msgstr "Cuotas"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:38
+msgid "Instalments entered or only partly paid"
+msgstr "Cuotas registradas o pagadas solo parcialmente"
+
+#: Home/Metadata/Models/Kpi.yaml:15 Home/Metadata/Views/ADMIN_DashKpiInstalmentsPaid.yaml:2 Home/Resources/DashKpiInstalmentsPaid.html:5
+msgid "Instalments paid"
+msgstr "Cuotas abonadas"
+
+#: Home/Metadata/Models/Kpi.yaml:17 Home/Metadata/Views/ADMIN_DashKpiInstalmentsDue.yaml:2 Home/Resources/DashKpiInstalmentsDue.html:5
+msgid "Instalments to be paid"
+msgstr "Cuotas por abonar"
+
+#: Home/Metadata/Models/Insurance.yaml:4
+msgid "Insurance policies"
+msgstr "Seguros"
+
+#: Home/Metadata/Models/Insurance.yaml:5
+msgid "Insurance policy"
+msgstr "Seguro"
+
+#: Source/SCM.Utils.pas:799
+msgid "Invalid IBAN"
+msgstr "IBAN incorrecto"
+
+#: Source/SCM.Rules.pas:350
+msgid "Invalid parent tax code checksum"
+msgstr "Dígito de control del NIF del progenitor incorrecto"
+
+#: Source/SCM.Rules.pas:337
+msgid "Invalid parent tax code format"
+msgstr "Formato del NIF del progenitor incorrecto"
+
+#: Source/SCM.Rules.pas:347
+msgid "Invalid tax code checksum"
+msgstr "Dígito de control del NIF incorrecto"
+
+#: Source/SCM.Rules.pas:334
+msgid "Invalid tax code format"
+msgstr "Formato de NIF incorrecto"
+
+#: Source/SCM.Rules.pas:514
+msgid "Invalid VAT number format"
+msgstr "Formato del NIF-IVA incorrecto"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:66
+msgid "Invoice"
+msgstr "Factura"
+
+#: Home/Metadata/Models/CustomerInvoice.yaml:17
+msgid "Invoice date"
+msgstr "Fecha de factura"
+
+#: Home/Metadata/Models/CustomerInvoice.yaml:12
+msgid "Invoice number"
+msgstr "Número de factura"
+
+#: Home/Metadata/Models/CustomerInvoice.yaml:27
+msgid "Invoice total"
+msgstr "Total de la factura"
+
+#: Home/Metadata/Models/Subscription.yaml:282 Home/Metadata/Models/User.yaml:106
+msgid "IP Address"
+msgstr "Dirección IP"
+
+#: Source/SCM.Rules.pas:431
+msgid "is not greater than"
+msgstr "no es mayor que"
+
+#: Source/SCM.Rules.pas:433
+msgid "is not greater than or equal to"
+msgstr "no es mayor o igual que"
+
+#: Source/SCM.Rules.pas:430
+msgid "is not less than"
+msgstr "no es menor que"
+
+#: Source/SCM.Rules.pas:432
+msgid "is not less than or equal to"
+msgstr "no es menor o igual que"
+
+#: Home/Metadata/Models/Country.yaml:10
+msgid "ISO 2 Code"
+msgstr "Código ISO 2"
+
+#: Home/Metadata/Models/Country.yaml:18
+msgid "ISO 3 Code"
+msgstr "Código ISO 3"
+
+#: Home/Metadata/Models/Document.yaml:34
+msgid "Issue Date"
+msgstr "Fecha de expedición"
+
+#: Home/Metadata/Models/Document.yaml:39
+msgid "Issued by"
+msgstr "Expedido por"
+
+#: Home/Metadata/Models/Payment.yaml:67
+msgid "Issuing Bank"
+msgstr "Banco emisor"
+
+#: Home/Metadata/Models/Country.yaml:32
+msgid "ISTAT Code"
+msgstr "Código ISTAT"
+
+#: Home/Metadata/Models/Equipment.yaml:36
+msgid "Item"
+msgstr "Artículo"
+
+#: Home/Metadata/Models/SportsFacility.yaml:62
+msgid "Itinerary"
+msgstr "Itinerario"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:17 Home/Metadata/Views/ADMIN_VatRegisters.yaml:41
+msgid "January"
+msgstr "Enero"
+
+#: Home/Metadata/Models/BoardMember.yaml:36
+msgid "Joining date"
+msgstr "Fecha de incorporación"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:29 Home/Metadata/Views/ADMIN_VatRegisters.yaml:53
+msgid "July"
+msgstr "Julio"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:27 Home/Metadata/Views/ADMIN_VatRegisters.yaml:51
+msgid "June"
+msgstr "Junio"
+
+#: Home/Metadata/Views/ApprovaIscrizioneMailMessage.yaml:13 Home/Metadata/Views/ConfermaPagamentoMailMessage.yaml:11 Home/Metadata/Views/NotificaVisitaMedicaMailMessage.yaml:12
+msgid "Kind regards."
+msgstr "Un cordial saludo."
+
+#: Home/Metadata/Models/StageType.yaml:16
+msgid "Knockout stage"
+msgstr "Fase eliminatoria"
+
+#: Home/Metadata/Models/Kpi.yaml:1
+msgid "KPI"
+msgstr "KPI"
+
+#: Home/Metadata/Models/Kpi.yaml:5
+msgid "KPI Id"
+msgstr "Id del KPI"
+
+#: Home/Metadata/Models/Kpi.yaml:2
+msgid "KPIs"
+msgstr "KPI"
+
+#: Home/Metadata/Models/Language.yaml:5
+msgid "Language"
+msgstr "Idioma"
+
+#: Home/Metadata/Models/Language.yaml:9
+msgid "Language code"
+msgstr "Código de idioma"
+
+#: Home/Metadata/Models/Language.yaml:13
+msgid "Language description"
+msgstr "Descripción del idioma"
+
+#: Home/Metadata/Models/Language.yaml:4
+msgid "Languages"
+msgstr "Idiomas"
+
+#: Home/Metadata/Views/ADMIN_MedicalVisits.yaml:13
+msgid "Last"
+msgstr "Anterior"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:16
+msgid "Last 3 months"
+msgstr "Últimos 3 meses"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:14
+msgid "Last 30 days"
+msgstr "Últimos 30 días"
+
+#: Home/Metadata/Models/FinancialYear.yaml:37
+msgid "Last entry number used"
+msgstr "Último número de asiento utilizado"
+
+#: Home/Metadata/Models/Conversation.yaml:37
+msgid "Last Message"
+msgstr "Último mensaje"
+
+#: Home/Metadata/Models/Conversation.yaml:36
+msgid "Last Message Date"
+msgstr "Fecha del último mensaje"
+
+#: Home/Metadata/Models/Customer.yaml:20 Home/Metadata/Models/FamilyDeduction.yaml:17 Home/Metadata/Models/TaxDeduction.yaml:19
+msgid "Last Name"
+msgstr "Apellidos"
+
+#: Home/Metadata/Views/People_Lookup.yaml:9
+msgid "Last Name / First Name / Tax code"
+msgstr "Apellidos / Nombre / NIF"
+
+#: Source/SCM.Rules.CustomerSupplier.pas:77
+msgid "Last name is required."
+msgstr "Los apellidos son obligatorios."
+
+#: Home/Metadata/Models/VatRegisterType.yaml:29
+msgid "Last prot. date prev. year"
+msgstr "Fecha del último protocolo del año anterior"
+
+#: Home/Metadata/Models/VatRegisterType.yaml:37
+msgid "Last prot. number prev. year"
+msgstr "Número del último protocolo del año anterior"
+
+#: Home/Metadata/Models/VatRegisterType.yaml:25
+msgid "Last protocol date"
+msgstr "Fecha del último protocolo"
+
+#: Home/Metadata/Models/VatRegisterType.yaml:33
+msgid "Last protocol number"
+msgstr "Número del último protocolo"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:11
+msgid "Last week"
+msgstr "Última semana"
+
+#: Home/Metadata/Models/BoardMember.yaml:44
+msgid "Leaving date"
+msgstr "Fecha de salida"
+
+#: Home/Metadata/Models/AutomaticAccount.yaml:31 Home/Metadata/Models/CustomerInvoiceLine.yaml:33
+msgid "Ledger Account"
+msgstr "Cuenta contable"
+
+#: Home/Metadata/Models/LedgerAccount.yaml:5 Home/Metadata/Models/AccountingLine.yaml:73 Home/Metadata/Models/VAccountingLine.yaml:222
+msgid "Ledger account"
+msgstr "Cuenta contable"
+
+#: Home/Metadata/Models/LedgerAccount.yaml:49
+msgid "Ledger Account Description"
+msgstr "Descripción de la cuenta contable"
+
+#: Home/Metadata/Models/Customer.yaml:137 Home/Metadata/Models/LegalForm.yaml:5 Home/Metadata/Models/Supplier.yaml:152
+msgid "Legal form"
+msgstr "Forma jurídica"
+
+#: Home/Metadata/Models/LegalForm.yaml:4
+msgid "Legal forms"
+msgstr "Formas jurídicas"
+
+#: Home/Metadata/Models/Sponsor.yaml:81
+msgid "Legal rep. title"
+msgstr "Cargo del rep. legal"
+
+#: Home/Metadata/Models/Sponsor.yaml:85
+msgid "Legal representative"
+msgstr "Representante legal"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:40 Home/Metadata/Models/DetailedFinancialStatement.yaml:35 Home/Metadata/Models/LedgerAccount.yaml:41
+msgid "Level"
+msgstr "Nivel"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:22 Home/Metadata/Models/DetailedFinancialStatement.yaml:22 Home/Metadata/Models/LedgerAccount.yaml:35
+msgid "Liabilities"
+msgstr "Pasivo"
+
+#: Home/Metadata/Models/DetailedAccountBalanceLine.yaml:4 Home/Metadata/Models/DetailedAccountBalanceLine.yaml:5
+msgid "Line detail"
+msgstr "Detalle de líneas"
+
+#: Home/Metadata/Views/Layouts/ADMIN_AccountingLines_Detail_Grid.yaml:3 Home/Metadata/Views/Layouts/ADMIN_AccountingLines_Grid.yaml:3
+msgid "Line No."
+msgstr "N.º de línea"
+
+#: Home/Metadata/Models/AccountingLine.yaml:22 Home/Metadata/Models/VAccountingLine.yaml:168
+msgid "Line number"
+msgstr "Número de línea"
+
+#: Home/Metadata/Models/FederationRegistration.yaml:73
+msgid "Loan"
+msgstr "Cesión"
+
+#: Home/Metadata/Models/Clinic.yaml:34
+msgid "Local health authority"
+msgstr "Servicio de salud de referencia"
+
+#: Home/Metadata/Models/Equipment.yaml:27
+msgid "Location"
+msgstr "Ubicación"
+
+#: Home/Metadata/Models/Sponsor.yaml:57
+msgid "Logo"
+msgstr "Logotipo"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:21
+msgid "Loss for the year"
+msgstr "Pérdida del ejercicio"
+
+#: Home/Metadata/Models/Affiliation.yaml:48
+msgid "Main Sponsor"
+msgstr "Patrocinador principal"
+
+#: Home/Metadata/Models/Category.yaml:20 Home/Metadata/Models/Subscription.yaml:107 Home/Metadata/Models/Person.yaml:45
+msgid "Male"
+msgstr "Masculino"
+
+#: Home/Metadata/Views/USER_TreeMenu.yaml:10
+msgid "Management"
+msgstr "Gestión"
+
+#: Home/Metadata/Models/StaffRole.yaml:16
+msgid "Management staff"
+msgstr "Personal directivo"
+
+#: Home/Metadata/Models/Person.yaml:174 Home/Metadata/Views/ADMIN_People.yaml:11
+msgid "Manager"
+msgstr "Directivo"
+
+#: Home/Metadata/Models/SportsFacility.yaml:66
+msgid "Map"
+msgstr "Mapa"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:21 Home/Metadata/Views/ADMIN_VatRegisters.yaml:45
+msgid "March"
+msgstr "Marzo"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:43 Home/Metadata/Models/DetailedFinancialStatement.yaml:38 Home/Metadata/Models/LedgerAccount.yaml:45
+msgid "Master account"
+msgstr "Cuenta mayor"
+
+#: Home/Metadata/Models/DetailedAccountBalance.yaml:30
+msgid "Master Account Code"
+msgstr "Código de cuenta mayor"
+
+#: Home/Metadata/Models/Match.yaml:5 Home/Metadata/Models/AccountingLine.yaml:30 Home/Metadata/Models/VAccountingLine.yaml:176
+msgid "Match"
+msgstr "Partido"
+
+#: Home/Metadata/Models/MatchPairing.yaml:27 Home/Metadata/Models/Match.yaml:27
+msgid "Match date"
+msgstr "Fecha del partido"
+
+#: Home/Metadata/Models/MatchPairing.yaml:66 Home/Metadata/Models/MatchDay.yaml:44
+msgid "Match day"
+msgstr "Jornada"
+
+#: Home/Metadata/Models/Team.yaml:88
+msgid "Match Day"
+msgstr "Día de partido"
+
+#: Home/Metadata/Models/Match.yaml:23
+msgid "Match day description"
+msgstr "Descripción de la jornada"
+
+#: Home/Metadata/Models/MatchDay.yaml:34
+msgid "Match Day Type"
+msgstr "Tipo de jornada"
+
+#: Home/Metadata/Models/MatchDayType.yaml:5
+msgid "Match day type"
+msgstr "Tipo de jornada"
+
+#: Home/Metadata/Models/MatchDayType.yaml:9
+msgid "Match day type code"
+msgstr "Código de tipo de jornada"
+
+#: Home/Metadata/Models/MatchDayType.yaml:3
+msgid "Match day types"
+msgstr "Tipos de jornada"
+
+#: Home/Metadata/Models/MatchDay.yaml:43
+msgid "Match days"
+msgstr "Jornadas"
+
+#: Home/Metadata/Models/MatchPairing.yaml:24
+msgid "Match number"
+msgstr "Número de partido"
+
+#: Home/Metadata/Models/Match.yaml:19
+msgid "Match Number"
+msgstr "Número de partido"
+
+#: Home/Metadata/Models/MatchPairing.yaml:96 Home/Metadata/Models/Scorer.yaml:18
+msgid "Match pairing"
+msgstr "Emparejamiento"
+
+#: Home/Metadata/Models/MatchPairing.yaml:95
+msgid "Match pairings"
+msgstr "Emparejamientos"
+
+#: Home/Metadata/Models/MatchStatus.yaml:5
+msgid "Match status"
+msgstr "Estado del partido"
+
+#: Home/Metadata/Models/MatchStatus.yaml:3
+msgid "Match statuses"
+msgstr "Estados de los partidos"
+
+#: Home/Metadata/Models/MatchPairing.yaml:30
+msgid "Match time"
+msgstr "Hora del partido"
+
+#: Home/Metadata/Models/Match.yaml:29
+msgid "Match Time"
+msgstr "Hora del partido"
+
+#: Home/Metadata/Models/Configuration.yaml:84
+msgid "Match trading scheme - art. 74, c.1, D.P.R. 633/72"
+msgstr "Régimen de comercio de cerillas - art. 74, c.1, D.P.R. 633/72"
+
+#: Home/Metadata/Models/Match.yaml:4
+msgid "Matches"
+msgstr "Partidos"
+
+#: Home/Metadata/Models/Championship.yaml:31
+msgid "Maximum age"
+msgstr "Edad máxima"
+
+#: Home/Metadata/Models/Category.yaml:29
+msgid "Maximum Age"
+msgstr "Edad máxima"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:25 Home/Metadata/Views/ADMIN_VatRegisters.yaml:49
+msgid "May"
+msgstr "Mayo"
+
+#: Home/Metadata/Models/Equipment.yaml:13
+msgid "Measure"
+msgstr "Medida"
+
+#: Home/Metadata/Views/Layouts/ADMIN_People_Form.yaml:35 Home/Metadata/Views/Layouts/USER_People_Form.yaml:42
+msgid "Measurements"
+msgstr "Medidas"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:76 Home/Metadata/Models/MedicalVisit.yaml:98
+msgid "Medical Certificate"
+msgstr "Certificado médico"
+
+#: Home/Metadata/Views/USER_MedicalCertificate.yaml:1
+msgid "Medical certificate"
+msgstr "Certificado médico"
+
+#: Home/Metadata/Views/USER_MedicalCertificate.yaml:6
+msgid "Medical Certificate Filter"
+msgstr "Filtro de certificados médicos"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:13 Home/Metadata/Models/MedicalVisit.yaml:16
+msgid "Medical visit"
+msgstr "Revisión médica"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:141 Home/Metadata/Views/Layouts/USER_MedicalCertificate_Form.yaml:2
+msgid "Medical Visit"
+msgstr "Revisión médica"
+
+#: Home/Metadata/Views/USER_MedicalVisits.yaml:1
+msgid "Medical visit appointment"
+msgstr "Cita de revisión médica"
+
+#: Home/Metadata/Models/MedicalVisitBooking.yaml:3
+msgid "Medical visit booking"
+msgstr "Reserva de revisión médica"
+
+#: Home/Metadata/Models/MedicalVisitBooking.yaml:4
+msgid "Medical visit bookings"
+msgstr "Reservas de revisiones médicas"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:96 Home/Metadata/Models/VSubscriptionVisit.yaml:115
+msgid "Medical visit expired"
+msgstr "Revisión médica caducada"
+
+#: Home/Metadata/Views/USER_MedicalVisits.yaml:5
+msgid "Medical Visit Filter"
+msgstr "Filtro de revisiones médicas"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:94 Home/Metadata/Models/VSubscriptionVisit.yaml:113
+msgid "Medical visit not found"
+msgstr "Revisión médica no encontrada"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:95 Home/Metadata/Models/VSubscriptionVisit.yaml:114 Home/Metadata/Models/MedicalVisit.yaml:135
+msgid "Medical visit to be carried out"
+msgstr "Revisión médica pendiente"
+
+#: Home/Metadata/Models/MedicalVisitBooking.yaml:36 Home/Metadata/Models/VSubscriptionVisit.yaml:23 Home/Metadata/Models/MedicalVisit.yaml:33
+msgid "Medical Visit Type"
+msgstr "Tipo de revisión médica"
+
+#: Home/Metadata/Models/MedicalVisitType.yaml:5
+msgid "Medical visit type"
+msgstr "Tipo de revisión médica"
+
+#: Home/Metadata/Models/MedicalVisitType.yaml:3
+msgid "Medical visit types"
+msgstr "Tipos de revisión médica"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:97 Home/Metadata/Models/VSubscriptionVisit.yaml:116
+msgid "Medical visit valid"
+msgstr "Revisión médica válida"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:99 Home/Metadata/Models/VSubscriptionVisit.yaml:119 Home/Metadata/Models/VSubscriptionVisit.yaml:120
+msgid "Medical visits"
+msgstr "Revisiones médicas"
+
+#: Home/Metadata/Models/Match.yaml:75
+msgid "Meeting date"
+msgstr "Fecha de encuentro"
+
+#: Home/Metadata/Models/Match.yaml:78
+msgid "Meeting place"
+msgstr "Lugar de encuentro"
+
+#: Home/Metadata/Models/AccountingLine.yaml:115 Home/Metadata/Models/Member.yaml:22 Home/Metadata/Models/VAccountingLine.yaml:251
+msgid "Member"
+msgstr "Socio"
+
+#: Home/Metadata/Views/Layouts/ADMIN_MembersRegister_Form.yaml:14
+msgid "Member data"
+msgstr "Datos del socio"
+
+#: Source/SCM.Rules.AccountingEntry.pas:294
+msgid "Member is required"
+msgstr "El socio es obligatorio"
+
+#: Home/Metadata/Models/LedgerAccount.yaml:98
+msgid "Member reference"
+msgstr "Referencia de socio"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:11
+msgid "Member status"
+msgstr "Estado de los socios"
+
+#: Home/Metadata/Models/Member.yaml:21
+msgid "Members"
+msgstr "Socios"
+
+#: Source/SCM.Tools.pas:454
+msgid "Members approved"
+msgstr "Socios aprobados"
+
+#: Home/Metadata/Models/MembersRegister.yaml:4 Home/Metadata/Models/MembersRegister.yaml:5 Home/Metadata/Models/MembershipFee.yaml:36
+msgid "Members Register"
+msgstr "Libro de socios"
+
+#: Home/Metadata/Models/Member.yaml:11
+msgid "Membership"
+msgstr "Adhesión"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:64 Home/Metadata/Models/MembershipFee.yaml:5 Home/Metadata/Models/MembershipFee.yaml:29
+msgid "Membership fee"
+msgstr "Cuota de socio"
+
+#: Home/Metadata/Models/MembershipFee.yaml:4
+msgid "Membership fees"
+msgstr "Cuotas de socio"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:49 Home/Metadata/Views/ADMIN_MembersRegister.yaml:50
+msgid "Membership request"
+msgstr "Solicitud de socio"
+
+#: Home/Metadata/Views/ADMIN_Home.yaml:8 Home/Metadata/Views/ADMIN_HomeTablet.yaml:8 Home/Metadata/Views/USER_HomeTablet.yaml:8
+msgid "Menu - Version %APP_VERSION_FULL%"
+msgstr "Menú - Versión %APP_VERSION_FULL%"
+
+#: Home/Metadata/Models/Message.yaml:6 Home/Metadata/Models/Message.yaml:23
+msgid "Message"
+msgstr "Mensaje"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:23
+msgid "Message Management"
+msgstr "Gestión de mensajes"
+
+#: Home/Metadata/Models/MessageStatus.yaml:3 Home/Metadata/Models/MessageStatus.yaml:5
+msgid "Message Status"
+msgstr "Estado de los mensajes"
+
+#: Home/Metadata/Models/Attachment.yaml:35 Home/Metadata/Models/Message.yaml:4
+msgid "Messages"
+msgstr "Mensajes"
+
+#: Home/Metadata/Models/Payment.yaml:44
+msgid "Method"
+msgstr "Modalidad"
+
+#: Source/SCM.DbUtils.pas:648
+msgid "Min. 8 characters with letters and digits"
+msgstr "Mín. 8 caracteres con letras y números"
+
+#: Home/Metadata/Config_KittoLibertasCernusco.yaml:74 Home/Metadata/Config_KittoXSCM.yaml:83 Setup/Config_KittoGinnasticaCernuschese.yaml:68
+msgid "Min. 8, max. 30 letters, digits and symbols"
+msgstr "Mín. 8, máx. 30 letras, números y símbolos"
+
+#: Home/Metadata/Models/Championship.yaml:25
+msgid "Minimum age"
+msgstr "Edad mínima"
+
+#: Home/Metadata/Models/Category.yaml:25
+msgid "Minimum Age"
+msgstr "Edad mínima"
+
+#: Home/Metadata/Models/Configuration.yaml:81
+msgid "Minimum taxpayers scheme - art. 1, c.96-117, L. 244/07"
+msgstr "Régimen de contribuyentes mínimos - art. 1, c.96-117, L. 244/07"
+
+#: Home/Metadata/Models/Scorer.yaml:12
+msgid "Minute"
+msgstr "Minuto"
+
+#: Home/Metadata/Models/Category.yaml:22
+msgid "Mixed"
+msgstr "Mixto"
+
+#: Home/Metadata/Models/Customer.yaml:94 Home/Metadata/Models/Supplier.yaml:109 Home/Metadata/Models/Subscription.yaml:168
+msgid "Mobile"
+msgstr "Móvil"
+
+#: Home/Metadata/Models/User.yaml:51
+msgid "Mobile no."
+msgstr "N.º de móvil"
+
+#: Home/Metadata/Models/Team.yaml:93
+msgid "Monday"
+msgstr "Lunes"
+
+#: Home/Metadata/Models/VSubscriptionTrend.yaml:5 Home/Metadata/Views/ADMIN_Withholdings.yaml:15 Home/Metadata/Views/ADMIN_VatRegisters.yaml:39
+msgid "Month"
+msgstr "Mes"
+
+#: Home/Metadata/Views/ADMIN_MedicalVisits.yaml:46
+msgid "Month + 1"
+msgstr "Mes + 1"
+
+#: Home/Metadata/Views/ADMIN_MedicalVisits.yaml:48
+msgid "Month + 2"
+msgstr "Mes + 2"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:88
+msgid "Monthly subscription trend for the active season"
+msgstr "Evolución mensual de las inscripciones en la temporada activa"
+
+#: Home/Metadata/Models/BoardMember.yaml:14
+msgid "Mr/Ms"
+msgstr "Sr./Sra."
+
+#: Home/Metadata/Models/Clinic.yaml:20 Home/Metadata/Models/Bank.yaml:29 Home/Metadata/Models/Customer.yaml:103
+msgid "Municipality"
+msgstr "Municipio"
+
+#: Home/Metadata/Models/Clinic.yaml:9
+msgid "Name"
+msgstr "Denominación"
+
+#: Home/Metadata/Models/LegalForm.yaml:26
+msgid "Natural person"
+msgstr "Persona física"
+
+#: Home/Metadata/Models/VatCode.yaml:47
+msgid "Nature"
+msgstr "Naturaleza"
+
+#: Home/Metadata/Views/ADMIN_HomeTiles.yaml:40 Home/Metadata/Views/LoginView.yaml:29 Home/Metadata/Views/USER_Home.yaml:56
+msgid "Need help?"
+msgstr "¿Necesita ayuda?"
+
+#: Home/Metadata/Views/ResetPassword.yaml:1
+msgid "New password request"
+msgstr "Solicitud de nueva contraseña"
+
+#: Home/Metadata/Views/ResetMailMessage.yaml:2
+msgid "New password request to sign in to %Config:AppTitle%"
+msgstr "Solicitud de nueva contraseña para acceder a %Config:AppTitle%"
+
+#: Home/Metadata/Views/ADMIN_NewSubscription.yaml:1 Home/Metadata/Views/Layouts/USER_SubscribeChild_Form.yaml:8
+msgid "New Subscription"
+msgstr "Nueva inscripción"
+
+#: Home/Metadata/Views/RegisterNewUser.yaml:1
+msgid "New user registration"
+msgstr "Registro de nuevo usuario"
+
+#: Home/Metadata/Models/Municipality.yaml:22
+msgid "No"
+msgstr "No"
+
+#: Home/Metadata/Models/VVatRegister.yaml:82
+msgid "Non-deductible amount"
+msgstr "Importe no deducible"
+
+#: Home/Metadata/Models/VatCode.yaml:31
+msgid "Non-deductible code"
+msgstr "Código no deducible"
+
+#: Home/Metadata/Models/VatDetail.yaml:37
+msgid "Non-deductible tax"
+msgstr "Impuesto no deducible"
+
+#: Home/Metadata/Models/FederationRegistrationType.yaml:18
+msgid "Non-EU"
+msgstr "Extracomunitario"
+
+#: Home/Metadata/Models/Region.yaml:21
+msgid "North"
+msgstr "Norte"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:65
+msgid "Not Approved"
+msgstr "No aprobado"
+
+#: Home/Metadata/Models/Subscription.yaml:305 Home/Metadata/Models/Person.yaml:218 Home/Metadata/Views/ADMIN_Subscriptions.yaml:51
+msgid "Not Present"
+msgstr "No presente"
+
+#: Home/Metadata/Views/EmailQueue.yaml:10
+msgid "Not Sent"
+msgstr "No enviados"
+
+#: Home/Metadata/Models/Insurance.yaml:33 Home/Metadata/Models/Document.yaml:49 Home/Metadata/Models/CustomerInvoice.yaml:31
+msgid "Notes"
+msgstr "Notas"
+
+#: Home/Metadata/Views/Layouts/USER_SubscribeChild_Form.yaml:64 Home/Metadata/Views/Layouts/USER_Subscribe_Form.yaml:49 Home/Metadata/Views/Layouts/USER_Subscriptions_Form.yaml:78
+msgid "Notes for the club"
+msgstr "Notas para el club"
+
+#: Home/Metadata/Views/Layouts/ADMIN_MedicalVisits_Form.yaml:13
+msgid "Notification Data"
+msgstr "Datos de la notificación"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:58
+msgid "Notification Date"
+msgstr "Fecha de notificación"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:82
+msgid "Notified on"
+msgstr "Notificada el"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:37 Home/Metadata/Views/ADMIN_VatRegisters.yaml:61
+msgid "November"
+msgstr "Noviembre"
+
+#: Home/Metadata/Models/Document.yaml:46 Home/Metadata/Models/ChampionshipStage.yaml:11 Home/Metadata/Models/MatchDay.yaml:11
+msgid "Number"
+msgstr "Número"
+
+#: Home/Metadata/Models/StageType.yaml:19
+msgid "Number of matches"
+msgstr "Número de partidos"
+
+#: Home/Metadata/Models/MedicalVisitBooking.yaml:21
+msgid "Number of people"
+msgstr "Número de personas"
+
+#: Home/Metadata/Models/Kpi.yaml:11 Home/Metadata/Views/ADMIN_DashKpiSubscriberCount.yaml:2
+msgid "Number of subscribers"
+msgstr "Número de inscritos"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:35 Home/Metadata/Views/ADMIN_VatRegisters.yaml:59
+msgid "October"
+msgstr "Octubre"
+
+#: Home/Metadata/Models/Equipment.yaml:24
+msgid "Office location"
+msgstr "Ubicación de la sede"
+
+#: Home/Metadata/Models/Configuration.yaml:68
+msgid "Office phone"
+msgstr "Teléfono de la sede"
+
+#: Home/Metadata/Views/RegisterMailMessage.yaml:9 Home/Metadata/Views/ResetMailMessage.yaml:8
+msgid "Once you have signed in you will have to set a new password for future access."
+msgstr "Una vez que haya accedido deberá indicar una nueva contraseña para los accesos futuros."
+
+#: Home/Metadata/Models/FinancialYear.yaml:33 Home/Metadata/Views/ADMIN_FinancialYears.yaml:11
+msgid "Open"
+msgstr "Abierto"
+
+#: Home/Metadata/Config_KittoLibertasCernusco.yaml:31 Home/Metadata/Config_KittoXSCM.yaml:38 Setup/Config_KittoGinnasticaCernuschese.yaml:31
+msgid "Open the guide for \"%s\"..."
+msgstr "Abrir la guía de \"%s\"..."
+
+#: Home/Metadata/Views/LoginView.yaml:29
+msgid "Open the guide..."
+msgstr "Abrir la guía..."
+
+#: Home/Metadata/Views/ADMIN_FinancialStatement.yaml:41 Home/Metadata/Views/ADMIN_FinancialStatement.yaml:42
+msgid "Open/Close financial statement"
+msgstr "Apertura/Cierre del balance"
+
+#: Home/Metadata/Models/AccountingReason.yaml:27 Home/Metadata/Models/AccountingEntry.yaml:44 Home/Metadata/Models/VVatRegister.yaml:37
+msgid "Opening entries"
+msgstr "Asientos de apertura"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:18
+msgid "Opening of financial statement"
+msgstr "Apertura del balance"
+
+#: Home/Metadata/Views/ADMIN_TopMenu.yaml:12 Home/Metadata/Views/ADMIN_TreeMenu.yaml:65
+msgid "Operational parameters"
+msgstr "Parámetros de gestión"
+
+#: Home/Metadata/Models/Match.yaml:55
+msgid "Opponent"
+msgstr "Rival"
+
+#: Home/Metadata/Models/Match.yaml:66
+msgid "Opponent points"
+msgstr "Puntos del rival"
+
+#: Home/Metadata/Models/Match.yaml:70
+msgid "Opponent sets"
+msgstr "Sets del rival"
+
+#: Home/Metadata/Models/Configuration.yaml:80
+msgid "Ordinary scheme"
+msgstr "Régimen ordinario"
+
+#: Home/Metadata/Models/Attachment.yaml:30 Home/Metadata/Models/TaxDeduction.yaml:113 Home/Metadata/Models/Document.yaml:65
+msgid "Original File Name"
+msgstr "Nombre original del archivo"
+
+#: Home/Metadata/Models/Document.yaml:74 Home/Metadata/Models/VPersonDocument.yaml:54
+msgid "Original file name"
+msgstr "Nombre original del archivo"
+
+#: Home/Metadata/Models/Configuration.yaml:97 Home/Metadata/Models/SportsFacility.yaml:46
+msgid "Other"
+msgstr "Otro"
+
+#: Home/Metadata/Models/Affiliation.yaml:54
+msgid "Other Sponsor"
+msgstr "Otro patrocinador"
+
+#: Home/Metadata/Models/SportsFacility.yaml:36
+msgid "Outdoor court"
+msgstr "Pista descubierta"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:81 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:91
+msgid "Outstanding"
+msgstr "Pendiente"
+
+#: Home/Metadata/Models/PaymentDetail.yaml:55 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:90
+msgid "Outstanding amount"
+msgstr "Importe pendiente"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:80
+msgid "Outstanding Amount"
+msgstr "Importe pendiente"
+
+#: Home/Metadata/Models/SportsFacility.yaml:73
+msgid "Own"
+msgstr "Propio"
+
+#: Home/Metadata/Models/Team.yaml:30
+msgid "Own Team"
+msgstr "Equipo propio"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:28
+msgid "Own teams entered in the active season"
+msgstr "Equipos propios inscritos en la temporada activa"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:73 Home/Metadata/Models/SubscriptionInstalment.yaml:92 Home/Metadata/Models/SubscriptionInstalment.yaml:112
+msgid "Paid"
+msgstr "Pagada"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:53
+msgid "Parameters"
+msgstr "Parámetros"
+
+#: Home/Metadata/Models/Relationship.yaml:17 Home/Metadata/Views/ADMIN_FamilyDeductions.yaml:6 Home/Metadata/Views/ADMIN_TaxDeductions.yaml:6
+msgid "Parent"
+msgstr "Progenitor"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Subscriptions_Form.yaml:56 Home/Metadata/Views/Layouts/ADMIN_SubscriberPaymentSummary_Form.yaml:23
+msgid "Parent (optional)"
+msgstr "Progenitor (opcional)"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:27 Home/Metadata/Models/DetailedFinancialStatement.yaml:27 Home/Metadata/Models/LedgerAccount.yaml:20
+msgid "Parent code"
+msgstr "Cód. superior"
+
+#: Home/Metadata/Models/Subscription.yaml:207
+msgid "Parent E-mail"
+msgstr "Correo del progenitor"
+
+#: Home/Metadata/Models/Subscription.yaml:186 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:61
+msgid "Parent First Name"
+msgstr "Nombre del progenitor"
+
+#: Home/Metadata/Models/Subscription.yaml:181 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:57
+msgid "Parent Last Name"
+msgstr "Apellidos del progenitor"
+
+#: Home/Metadata/Models/Subscription.yaml:201
+msgid "Parent Mobile"
+msgstr "Móvil del progenitor"
+
+#: Home/Metadata/Models/TaxDeduction.yaml:134
+msgid "Parent Name"
+msgstr "Nombre del progenitor"
+
+#: Source/SCM.Rules.Subscription.pas:850
+msgid "Parent record not found: the household cannot be created."
+msgstr "No se ha encontrado al progenitor: no se puede crear la unidad familiar."
+
+#: Home/Metadata/Models/Subscription.yaml:191 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:65
+msgid "Parent Tax Code"
+msgstr "NIF del progenitor"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:111
+msgid "Partial"
+msgstr "Parcial"
+
+#: Home/Metadata/Models/MatchPairing.yaml:33
+msgid "Partial scores"
+msgstr "Parciales"
+
+#: Home/Metadata/Models/ParticipantDetail.yaml:4 Home/Metadata/Models/ParticipantDetail.yaml:6
+msgid "Participant Details"
+msgstr "Detalles de participantes"
+
+#: Home/Metadata/Models/ParticipantGroup.yaml:5
+msgid "Participant Group"
+msgstr "Grupo de participantes"
+
+#: Home/Metadata/Models/ParticipantGroup.yaml:3
+msgid "Participant Groups"
+msgstr "Grupos de participantes"
+
+#: Home/Metadata/Models/Participant.yaml:4 Home/Metadata/Models/Participant.yaml:6
+msgid "Participants"
+msgstr "Participantes"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:93 Home/Metadata/Views/ADMIN_SubscriptionInstalments.yaml:24
+msgid "Partly paid"
+msgstr "Pago parcial"
+
+#: Home/Metadata/Models/User.yaml:89
+msgid "Password Must Be Changed"
+msgstr "Contraseña por actualizar"
+
+#: Source/SCM.DbUtils.pas:653
+msgid "Password validation"
+msgstr "Validación de la contraseña"
+
+#: Home/Metadata/Views/ADMIN_MedicalVisits.yaml:16 Home/Metadata/Views/USER_Subscriptions.yaml:12 Home/Metadata/Views/USER_SubscriptionInstalments.yaml:12
+msgid "Past"
+msgstr "Pasadas"
+
+#: Home/Metadata/Models/Supplier.yaml:68
+msgid "Payee"
+msgstr "Perceptor"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Suppliers_Form.yaml:56
+msgid "Payee data"
+msgstr "Datos del perceptor"
+
+#: Home/Metadata/Models/Payment.yaml:19 Home/Metadata/Models/Payment.yaml:128
+msgid "Payer"
+msgstr "Pagador"
+
+#: Home/Metadata/Models/AccountingReason.yaml:38 Home/Metadata/Models/WithholdingDetail.yaml:65 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:39
+msgid "Payment"
+msgstr "Pago"
+
+#: Source/SCM.Tools.pas:1177
+msgid "Payment already approved"
+msgstr "Pago ya aprobado"
+
+#: Source/SCM.Rules.Payment.pas:315 Source/SCM.Rules.Payment.pas:322
+msgid "Payment already confirmed: it cannot be changed"
+msgstr "Pago ya confirmado: no se puede modificar"
+
+#: Source/SCM.Tools.pas:1250
+msgid "Payment already rejected"
+msgstr "Pago ya rechazado"
+
+#: Home/Metadata/Views/ConfermaPagamentoMailMessage.yaml:2
+msgid "Payment confirmation"
+msgstr "Confirmación de pago"
+
+#: Home/Metadata/Models/TaxDeduction.yaml:143 Home/Metadata/Models/Payment.yaml:130
+msgid "Payment date"
+msgstr "Fecha de pago"
+
+#: Home/Metadata/Models/Payment.yaml:52
+msgid "Payment Date"
+msgstr "Fecha de pago"
+
+#: Home/Metadata/Models/PaymentDetail.yaml:6 Home/Metadata/Models/PaymentDetail.yaml:15
+msgid "Payment detail"
+msgstr "Detalle del pago"
+
+#: Home/Metadata/Models/PaymentDetail.yaml:5 Home/Metadata/Models/Payment.yaml:139
+msgid "Payment details"
+msgstr "Detalles del pago"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:45
+msgid "Payment due date"
+msgstr "Fecha de vencimiento del ingreso"
+
+#: Home/Metadata/Views/USER_PaymentSummary.yaml:5
+msgid "Payment Filter"
+msgstr "Filtro de pagos"
+
+#: Home/Metadata/Models/AutomaticAccount.yaml:44 Home/Metadata/Models/TaxDeduction.yaml:118 Home/Metadata/Models/AccountingEntry.yaml:107
+msgid "Payment method"
+msgstr "Forma de pago"
+
+#: Home/Metadata/Models/CustomerInvoice.yaml:52
+msgid "Payment Method"
+msgstr "Forma de pago"
+
+#: Home/Metadata/Models/PaymentMethod.yaml:3 Home/Metadata/Models/PaymentMethod.yaml:5 Home/Metadata/Models/PaymentMethod.yaml:13
+msgid "Payment methods"
+msgstr "Formas de pago"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Payments_Form.yaml:17
+msgid "Payment Status"
+msgstr "Estado del pago"
+
+#: Home/Metadata/Views/USER_PaymentSummary.yaml:1
+msgid "Payment summary"
+msgstr "Resumen de pagos"
+
+#: Home/Metadata/Models/Payment.yaml:120 Home/Metadata/Views/ADMIN_Payments.yaml:2 Home/Metadata/Views/USER_TreeMenu.yaml:22
+msgid "Payments"
+msgstr "Pagos"
+
+#: Home/Metadata/Models/Kpi.yaml:21 Home/Metadata/Views/ADMIN_DashKpiPaymentsToVerify.yaml:2 Home/Resources/DashKpiPaymentsToVerify.html:5
+msgid "Payments to check"
+msgstr "Pagos por verificar"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:43
+msgid "Payments with status Entered"
+msgstr "Medios de pago con estado Registrado"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:193 Home/Metadata/Models/VAccountingLine.yaml:125
+msgid "PDF Invoice"
+msgstr "Factura PDF"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:205 Home/Metadata/Models/VAccountingLine.yaml:137
+msgid "PDF Invoice File Name"
+msgstr "Nombre del archivo PDF de factura"
+
+#: Source/SCM.Tools.pas:984
+msgid "PDF invoice printing"
+msgstr "Impresión de la factura PDF"
+
+#: Home/Metadata/Models/Kpi.yaml:13 Home/Metadata/Views/ADMIN_DashKpiPendingSubscriptions.yaml:2
+msgid "Pending subscriptions"
+msgstr "Inscripciones pendientes"
+
+#: Home/Metadata/Models/Person.yaml:5
+msgid "People"
+msgstr "Personas"
+
+#: Home/Metadata/Views/ADMIN_PeopleMap.yaml:25
+msgid "People Map"
+msgstr "Mapa de personas"
+
+#: Home/Metadata/Models/VVatRegister.yaml:86 Home/Metadata/Views/ADMIN_Payments.yaml:9 Home/Metadata/Views/ADMIN_VatRegisters.yaml:27
+msgid "Period"
+msgstr "Periodo"
+
+#: Home/Metadata/Models/StaffMember.yaml:17 Home/Metadata/Models/Insurance.yaml:15 Home/Metadata/Models/BoardMember.yaml:17
+msgid "Person"
+msgstr "Persona"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Subscriptions_Form.yaml:12
+msgid "Person/Athlete"
+msgstr "Persona/deportista"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Subscriptions_Form.yaml:20
+msgid "Person/Athlete Details"
+msgstr "Datos de la persona/deportista"
+
+#: Home/Metadata/Models/Clinic.yaml:45
+msgid "Person/Contact"
+msgstr "Persona/contacto"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Customers_Form.yaml:3 Home/Metadata/Views/Layouts/ADMIN_Suppliers_Form.yaml:4
+msgid "Personal details"
+msgstr "Datos personales"
+
+#: Home/Metadata/Models/Clinic.yaml:37 Home/Metadata/Models/Bank.yaml:48 Home/Metadata/Models/Customer.yaml:91
+msgid "Phone"
+msgstr "Teléfono"
+
+#: Home/Metadata/Models/Team.yaml:59
+msgid "Photo"
+msgstr "Foto"
+
+#: Home/Metadata/Models/Subscription.yaml:122
+msgid "Place of Birth"
+msgstr "Lugar de nacimiento"
+
+#: Home/Metadata/Models/MembersRegister.yaml:49 Home/Metadata/Models/Person.yaml:57
+msgid "Place of birth"
+msgstr "Lugar de nacimiento"
+
+#: Home/Metadata/Models/EmailQueue.yaml:52
+msgid "Plain text"
+msgstr "Texto sin formato"
+
+#: Home/Metadata/Models/Person.yaml:120
+msgid "Player on loan"
+msgstr "Jugador cedido"
+
+#: Home/Metadata/Models/PlayerRole.yaml:5
+msgid "Player role"
+msgstr "Posición del jugador"
+
+#: Home/Metadata/Models/PlayerRole.yaml:3
+msgid "Player roles"
+msgstr "Posiciones de los jugadores"
+
+#: Home/Metadata/Models/Match.yaml:47
+msgid "Points"
+msgstr "Puntos"
+
+#: Home/Metadata/Models/StageType.yaml:28
+msgid "Points for draws"
+msgstr "Puntos por empate"
+
+#: Home/Metadata/Models/StageType.yaml:31
+msgid "Points for losses"
+msgstr "Puntos por derrota"
+
+#: Home/Metadata/Models/StageType.yaml:40
+msgid "Points for narrow losses"
+msgstr "Puntos por derrota ajustada"
+
+#: Home/Metadata/Models/StageType.yaml:37
+msgid "Points for narrow wins"
+msgstr "Puntos por victoria ajustada"
+
+#: Home/Metadata/Models/StageType.yaml:25
+msgid "Points for wins"
+msgstr "Puntos por victoria"
+
+#: Home/Metadata/Models/Policy.yaml:47
+msgid "Policies"
+msgstr "Pólizas"
+
+#: Home/Metadata/Models/Insurance.yaml:21 Home/Metadata/Models/Policy.yaml:48
+msgid "Policy"
+msgstr "Póliza"
+
+#: Home/Metadata/Models/Policy.yaml:19
+msgid "Policy Number"
+msgstr "Número de póliza"
+
+#: Home/Metadata/Models/Clinic.yaml:24 Home/Metadata/Models/Bank.yaml:35 Home/Metadata/Models/Customer.yaml:58
+msgid "Postal Code"
+msgstr "Código postal"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:26 Home/Metadata/Models/Payment.yaml:83 Home/Metadata/Models/DetailedAccountBalanceLine.yaml:29
+msgid "Posting Date"
+msgstr "Fecha de registro"
+
+#: Home/Metadata/Models/VVatRegister.yaml:23
+msgid "Posting date"
+msgstr "Fecha de registro"
+
+#: Source/SCM.Accounting.pas:1122 Source/SCM.Accounting.pas:1145
+msgid "Posting of profit/loss for the year"
+msgstr "Registro del resultado del ejercicio"
+
+#: Home/Metadata/Models/AccountingReason.yaml:18 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:10 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:9
+msgid "Posting type"
+msgstr "Tipo de registro"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:16 Home/Metadata/Views/ADMIN_SubscriptionInstalments.yaml:13 Home/Metadata/Views/ADMIN_SubscriberPaymentSummary.yaml:12
+msgid "Previous"
+msgstr "Anteriores"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:26
+msgid "Previous year"
+msgstr "Año anterior"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:23
+msgid "Previous year loss"
+msgstr "Pérdida del ejercicio anterior"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:22
+msgid "Previous year profit"
+msgstr "Beneficio del ejercicio anterior"
+
+#: Home/Metadata/Models/Equipment.yaml:19
+msgid "Price"
+msgstr "Precio"
+
+#: Home/Metadata/Models/TaxDeduction.yaml:99
+msgid "Print date"
+msgstr "Fecha de impresión"
+
+#: Home/Metadata/Views/ADMIN_AccountingEntries.yaml:51
+msgid "Print invoice"
+msgstr "Imprimir factura"
+
+#: Home/Metadata/Views/ADMIN_AccountingEntries.yaml:55
+msgid "Print the invoice?"
+msgstr "¿Imprimir la factura?"
+
+#: Home/Metadata/Views/ADMIN_TaxDeductions.yaml:13
+msgid "Printed"
+msgstr "Impresas"
+
+#: Home/Metadata/Views/ConfirmAccess.yaml:20 Home/Metadata/Views/RegisterNewUser.yaml:18
+msgid "Privacy"
+msgstr "Privacidad"
+
+#: Home/Metadata/Views/ConfirmAccess.yaml:1
+msgid "Privacy Confirmation"
+msgstr "Confirmación de privacidad"
+
+#: Home/Metadata/Models/User.yaml:96
+msgid "Privacy consent"
+msgstr "Consentimiento de privacidad"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Users_Grid.yaml:23
+msgid "Privacy Consent"
+msgstr "Consentimiento de privacidad"
+
+#: Source/SCM.Rules.User.pas:115 Source/SCM.Rules.User.pas:175
+msgid "Privacy consent is required to continue!"
+msgstr "El consentimiento de privacidad es obligatorio para continuar."
+
+#: Home/Metadata/Views/PrivacyPolicy.yaml:1
+msgid "Privacy Policy"
+msgstr "Política de privacidad"
+
+#: Home/Resources/privacy.htm:2
+msgid "PRIVACY POLICY"
+msgstr "POLÍTICA DE PRIVACIDAD"
+
+#: Home/Metadata/Models/FederationRegistrationType.yaml:15
+msgid "Professional"
+msgstr "Profesional"
+
+#: Home/Metadata/Models/Profile.yaml:5 Home/Metadata/Models/User.yaml:62 Home/Metadata/Views/ADMIN_TopMenu.yaml:48
+msgid "Profile"
+msgstr "Perfil"
+
+#: Home/Metadata/Views/ADMIN_UserProfile.yaml:1 Home/Metadata/Views/USER_UserProfile.yaml:1
+msgid "Profile data"
+msgstr "Datos del perfil"
+
+#: Home/Metadata/Views/USER_TopMenu.yaml:5
+msgid "Profile of %Auth:USER_FULLNAME%"
+msgstr "Perfil de %Auth:USER_FULLNAME%"
+
+#: Home/Metadata/Models/Person.yaml:139
+msgid "Profile photo"
+msgstr "Foto de perfil"
+
+#: Home/Metadata/Models/Profile.yaml:4
+msgid "Profiles"
+msgstr "Perfiles"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:20
+msgid "Profit for the year"
+msgstr "Beneficio del ejercicio"
+
+#: Home/Metadata/Models/Clinic.yaml:31 Home/Metadata/Models/Bank.yaml:38 Home/Metadata/Models/Customer.yaml:123
+msgid "Province"
+msgstr "Provincia"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:39
+msgid "Province code"
+msgstr "Código de provincia"
+
+#: Home/Metadata/Models/Subscription.yaml:128
+msgid "Province of Birth"
+msgstr "Provincia de nacimiento"
+
+#: Home/Metadata/Models/Person.yaml:63
+msgid "Province of birth"
+msgstr "Provincia de nacimiento"
+
+#: Home/Metadata/Models/Province.yaml:5 Home/Metadata/Models/Region.yaml:27
+msgid "Provinces"
+msgstr "Provincias"
+
+#: Home/Metadata/Models/Configuration.yaml:86
+msgid "Public telephone services scheme - art. 74, c.1, D.P.R. 633/72"
+msgstr "Régimen de gestión de servicios de telefonía pública - art. 74, c.1, D.P.R. 633/72"
+
+#: Home/Metadata/Models/Configuration.yaml:85
+msgid "Publishing scheme - art. 74, c.1, D.P.R. 633/72"
+msgstr "Régimen editorial - art. 74, c.1, D.P.R. 633/72"
+
+#: Home/Metadata/Models/VatRegisterType.yaml:21 Home/Metadata/Views/ADMIN_VatRegisterTypes.yaml:11
+msgid "Purchase"
+msgstr "Compra"
+
+#: Home/Metadata/Models/AccountingReason.yaml:36 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:35 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:34
+msgid "Purchase VAT"
+msgstr "IVA soportado"
+
+#: Home/Metadata/Views/ADMIN_VatRegisters.yaml:29
+msgid "Q1"
+msgstr "1.er trimestre"
+
+#: Home/Metadata/Views/ADMIN_VatRegisters.yaml:31
+msgid "Q2"
+msgstr "2.º trimestre"
+
+#: Home/Metadata/Views/ADMIN_VatRegisters.yaml:33
+msgid "Q3"
+msgstr "3.er trimestre"
+
+#: Home/Metadata/Views/ADMIN_VatRegisters.yaml:35
+msgid "Q4"
+msgstr "4.º trimestre"
+
+#: Home/Metadata/Models/Equipment.yaml:16
+msgid "Qty"
+msgstr "Cant."
+
+#: Home/Metadata/Models/Kpi.yaml:23 Home/Metadata/Views/ADMIN_DashKpiQueuedEmails.yaml:2 Home/Resources/DashKpiQueuedEmails.html:5
+msgid "Queued e-mails"
+msgstr "Correos en cola"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:73
+msgid "Queued e-mails not yet sent"
+msgstr "Correos en cola aún no enviados"
+
+#: Home/Metadata/Models/VatCode.yaml:19
+msgid "Rate %"
+msgstr "Tipo %"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:77 Home/Metadata/Models/VAccountingLine.yaml:74 Home/Metadata/Views/ADMIN_AccountingEntries.yaml:18
+msgid "Reason"
+msgstr "Concepto"
+
+#: Home/Metadata/Models/AccountingReason.yaml:10
+msgid "Reason code"
+msgstr "Código de concepto"
+
+#: Home/Metadata/Models/AccountingReason.yaml:31 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:29 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:28
+msgid "Reason type"
+msgstr "Tipo de concepto"
+
+#: Home/Metadata/Models/FederationRegistration.yaml:47
+msgid "Rebate"
+msgstr "Bonificación"
+
+#: Home/Metadata/Models/TaxDeduction.yaml:87
+msgid "Receipt no."
+msgstr "N.º de recibo"
+
+#: Home/Metadata/Models/TaxDeduction.yaml:6
+msgid "Receipt/Deduction"
+msgstr "Recibo/Deducción"
+
+#: Home/Metadata/Models/TaxDeduction.yaml:5
+msgid "Receipts/Deductions"
+msgstr "Recibos/deducciones"
+
+#: Home/Metadata/Models/EmailQueue.yaml:36
+msgid "Recipient"
+msgstr "Destinatario"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:66
+msgid "Record a new payment"
+msgstr "Registrar un nuevo pago"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:65
+msgid "Record payment"
+msgstr "Registrar pago"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:74
+msgid "Record subscription"
+msgstr "Registrar inscripción"
+
+#: Home/Metadata/Models/DetailedFinancialStatement.yaml:48 Home/Metadata/Views/ADMIN_AccountingLines.yaml:25 Home/Metadata/Views/ADMIN_DetailedAccountBalance.yaml:32
+msgid "Reference"
+msgstr "Referencia"
+
+#: Home/Metadata/Models/Deposit.yaml:26
+msgid "Reference details"
+msgstr "Datos identificativos"
+
+#: Home/Metadata/Views/Layouts/ADMIN_DetailedAccountBalance_Form.yaml:12
+msgid "References"
+msgstr "Referencias"
+
+#: Home/Metadata/Models/Province.yaml:18 Home/Metadata/Models/Region.yaml:5 Home/Metadata/Models/Region.yaml:14
+msgid "Region"
+msgstr "Región"
+
+#: Home/Metadata/Models/Region.yaml:4
+msgid "Regions"
+msgstr "Regiones"
+
+#: Home/Metadata/Views/ADMIN_VatRegisterTypes.yaml:9
+msgid "Register type"
+msgstr "Tipo de registro"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Customers_Form.yaml:17 Home/Metadata/Views/Layouts/ADMIN_Suppliers_Form.yaml:18
+msgid "Registered address/residence"
+msgstr "Domicilio social/residencia"
+
+#: Home/Metadata/Models/Equipment.yaml:10
+msgid "Registration number"
+msgstr "Número de matrícula"
+
+#: Home/Metadata/Views/USER_TopMenu.yaml:2
+msgid "Registries"
+msgstr "Registros"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:13
+msgid "Registry Management"
+msgstr "Gestión de registros"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:84
+msgid "Reject payment"
+msgstr "Rechazar pago"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:94
+msgid "Reject subscription"
+msgstr "Rechazar inscripción"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:88
+msgid "Reject the payment from {Payer}?"
+msgstr "¿Rechazar el pago de {Payer}?"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:98
+msgid "Reject the subscription of {LastName} {FirstName}?"
+msgstr "¿Rechazar la inscripción de {LastName} {FirstName}?"
+
+#: Home/Metadata/Models/Subscription.yaml:295 Home/Metadata/Models/Subscription.yaml:325 Home/Metadata/Models/Payment.yaml:106
+msgid "Rejected"
+msgstr "Rechazados"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Subscriptions_Detail_Grid.yaml:18 Home/Metadata/Views/Layouts/ADMIN_Subscriptions_Grid.yaml:31
+msgid "Rejection"
+msgstr "Rechazo"
+
+#: Home/Metadata/Models/Subscription.yaml:215 Home/Metadata/Models/MembersRegister.yaml:29
+msgid "Rejection date"
+msgstr "Fecha de rechazo"
+
+#: Home/Metadata/Models/Payment.yaml:115
+msgid "Rejection Date"
+msgstr "Fecha de rechazo"
+
+#: Home/Metadata/Models/MembersRegister.yaml:70
+msgid "Rejection reason"
+msgstr "Motivo del rechazo"
+
+#: Home/Metadata/Models/FamilyMember.yaml:45 Home/Metadata/Models/Person.yaml:207 Home/Metadata/Models/Relationship.yaml:4
+msgid "Relationship"
+msgstr "Parentesco"
+
+#: Home/Metadata/Models/Relationship.yaml:3
+msgid "Relationships"
+msgstr "Parentescos"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:67
+msgid "Remitted"
+msgstr "Ingresada"
+
+#: Home/Metadata/Models/MedicalVisitBooking.yaml:16 Home/Metadata/Models/MembersRegister.yaml:21
+msgid "Request date"
+msgstr "Fecha de solicitud"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:34 Home/Metadata/Models/MedicalVisit.yaml:45
+msgid "Request Date"
+msgstr "Fecha de solicitud"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:23
+msgid "Requests with status Entered awaiting approval"
+msgstr "Solicitudes con estado Registrada pendientes de aprobación"
+
+#: Home/Metadata/Models/PaymentMethod.yaml:17
+msgid "Requires bank details"
+msgstr "Requiere datos bancarios"
+
+#: Home/Metadata/Models/LegalForm.yaml:18
+msgid "Requires the tax code"
+msgstr "Requiere NIF"
+
+#: Home/Metadata/Models/LegalForm.yaml:22
+msgid "Requires the VAT number"
+msgstr "Requiere NIF-IVA"
+
+#: Home/Metadata/Models/Configuration.yaml:87
+msgid "Resale of public transport and parking tickets scheme - art. 74, c.1, D.P.R. 633/72"
+msgstr "Régimen de reventa de títulos de transporte público y aparcamiento - art. 74, c.1, D.P.R. 633/72"
+
+#: Home/Metadata/Models/Configuration.yaml:92
+msgid "Resale of used goods, art, antiques and collectibles scheme - art. 36, D.L. 41/95"
+msgstr "Régimen de reventa de bienes usados, arte, antigüedades y objetos de colección - art. 36, D.L. 41/95"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:24 Home/Metadata/Models/DetailedFinancialStatement.yaml:24 Home/Metadata/Models/LedgerAccount.yaml:37
+msgid "Revenues"
+msgstr "Ingresos"
+
+#: Home/Metadata/Models/MembersRegister.yaml:66 Home/Metadata/Models/Squad.yaml:42 Home/Metadata/Models/PlayerRole.yaml:13
+msgid "Role"
+msgstr "Función"
+
+#: Home/Metadata/Models/Duty.yaml:27
+msgid "Role Type"
+msgstr "Tipo de función"
+
+#: Home/Metadata/Models/BoardMember.yaml:29
+msgid "Role/Duty"
+msgstr "Función/cargo"
+
+#: Home/Metadata/Models/StaffRole.yaml:5
+msgid "Role/Duty Type"
+msgstr "Tipo de función/cargo"
+
+#: Home/Metadata/Models/StaffRole.yaml:3
+msgid "Role/Duty Types"
+msgstr "Tipos de función/cargo"
+
+#: Home/Metadata/Models/Duty.yaml:4
+msgid "Roles/Duties"
+msgstr "Funciones/cargos"
+
+#: Home/Metadata/Models/VatRegisterType.yaml:22 Home/Metadata/Views/ADMIN_VatRegisterTypes.yaml:13
+msgid "Sales"
+msgstr "Ventas"
+
+#: Home/Metadata/Models/AccountingReason.yaml:35 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:33 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:32
+msgid "Sales VAT"
+msgstr "IVA repercutido"
+
+#: Home/Metadata/Models/Configuration.yaml:83
+msgid "Salt and tobacco sales scheme - art. 74, c.1, D.P.R. 633/72"
+msgstr "Régimen de venta de sal y tabaco - art. 74, c.1, D.P.R. 633/72"
+
+#: Home/Metadata/Models/Team.yaml:98
+msgid "Saturday"
+msgstr "Sábado"
+
+#: Home/Metadata/Models/TaxDeduction.yaml:103 Home/Metadata/Models/Document.yaml:55 Home/Metadata/Models/VPersonDocument.yaml:35
+msgid "Scan"
+msgstr "Escaneo"
+
+#: Home/Metadata/Models/ScoringType.yaml:16
+msgid "Score"
+msgstr "Puntuación"
+
+#: Home/Metadata/Models/Scorer.yaml:15 Home/Metadata/Models/Scorer.yaml:36
+msgid "Scorer"
+msgstr "Goleador"
+
+#: Home/Metadata/Models/Scorer.yaml:35
+msgid "Scorers"
+msgstr "Goleadores"
+
+#: Home/Metadata/Models/Scorer.yaml:30
+msgid "Scoring Type"
+msgstr "Tipo de anotación"
+
+#: Home/Metadata/Models/ScoringType.yaml:13
+msgid "Scoring type"
+msgstr "Tipo de anotación"
+
+#: Home/Metadata/Models/ScoringType.yaml:5
+msgid "Scoring type by sport type"
+msgstr "Tipo de anotación por tipo de deporte"
+
+#: Home/Metadata/Models/ScoringType.yaml:3
+msgid "Scoring types by sport type"
+msgstr "Tipos de anotación por tipo de deporte"
+
+#: Home/Metadata/Views/ADMIN_FamilyDeductions.yaml:4
+msgid "Search"
+msgstr "Búsqueda"
+
+#: Home/Metadata/Views/ADMIN_DetailedAccountBalance.yaml:4
+msgid "Search Account Balances"
+msgstr "Buscar saldos de cuentas"
+
+#: Home/Metadata/Views/ADMIN_AccountingEntries.yaml:4 Home/Metadata/Views/ADMIN_AccountingLines.yaml:4
+msgid "Search Accounting Entries"
+msgstr "Buscar asientos contables"
+
+#: Home/Metadata/Views/ADMIN_AccountingReasons.yaml:4 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:4
+msgid "Search Accounting Reasons"
+msgstr "Buscar conceptos contables"
+
+#: Home/Metadata/Views/ADMIN_AutomaticReasons.yaml:4
+msgid "Search Automatic Reasons"
+msgstr "Buscar conceptos automáticos"
+
+#: Home/Metadata/Views/ADMIN_Board.yaml:4
+msgid "Search Board Members"
+msgstr "Buscar miembros de la junta"
+
+#: Home/Metadata/Views/ADMIN_LedgerAccounts.yaml:4
+msgid "Search Chart of Accounts"
+msgstr "Buscar plan contable"
+
+#: Home/Metadata/Views/Municipality.yaml:4
+msgid "Search Cities/Municipalities"
+msgstr "Buscar ciudades/municipios"
+
+#: Home/Metadata/Views/ADMIN_Affiliations.yaml:4 Home/Metadata/Views/AffiliationUnused.yaml:6
+msgid "Search Clubs"
+msgstr "Buscar clubes"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:5
+msgid "Search Conversations"
+msgstr "Buscar conversaciones"
+
+#: Home/Metadata/Views/ADMIN_Customers.yaml:4
+msgid "Search Customers"
+msgstr "Buscar clientes"
+
+#: Home/Metadata/Views/ADMIN_Documents.yaml:5
+msgid "Search Documents"
+msgstr "Buscar documentos"
+
+#: Home/Metadata/Views/ADMIN_Families.yaml:4
+msgid "Search Families"
+msgstr "Buscar familias"
+
+#: Home/Metadata/Views/ADMIN_FamilyMembers.yaml:4
+msgid "Search Family Members"
+msgstr "Buscar miembros de la familia"
+
+#: Home/Metadata/Views/ADMIN_FederationRegistrations.yaml:4
+msgid "Search Federation Registrations"
+msgstr "Buscar fichas federativas"
+
+#: Home/Metadata/Views/ADMIN_Federations.yaml:4
+msgid "Search Federations"
+msgstr "Buscar federaciones"
+
+#: Home/Metadata/Views/ADMIN_FinancialStatement.yaml:4 Home/Metadata/Views/ADMIN_DetailedFinancialStatement.yaml:4
+msgid "Search Financial Statement"
+msgstr "Buscar balance"
+
+#: Home/Metadata/Views/ADMIN_FinancialYears.yaml:4
+msgid "Search Financial Years"
+msgstr "Buscar ejercicios contables"
+
+#: Home/Metadata/Views/EmailQueue.yaml:4
+msgid "Search in E-mail Queue"
+msgstr "Buscar en la cola de correos"
+
+#: Home/Metadata/Views/EmailTemplates.yaml:4
+msgid "Search in E-mail Templates"
+msgstr "Buscar en las plantillas de correo"
+
+#: Home/Metadata/Views/SubscriptionInstalment_Lookup.yaml:7
+msgid "Search Instalment"
+msgstr "Buscar cuota"
+
+#: Home/Metadata/Views/ADMIN_LegalForms.yaml:4
+msgid "Search Legal Forms"
+msgstr "Buscar formas jurídicas"
+
+#: Home/Metadata/Views/ADMIN_MedicalVisits.yaml:5
+msgid "Search Medical Visits"
+msgstr "Buscar revisiones médicas"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:4
+msgid "Search Members"
+msgstr "Buscar socios"
+
+#: Home/Metadata/Views/ADMIN_ParticipantGroups.yaml:4
+msgid "Search Participant Groups"
+msgstr "Buscar grupos de participantes"
+
+#: Home/Metadata/Views/ADMIN_Payments.yaml:5
+msgid "Search Payments"
+msgstr "Buscar pagos"
+
+#: Home/Metadata/Views/ADMIN_People.yaml:4
+msgid "Search People"
+msgstr "Buscar personas"
+
+#: Home/Metadata/Views/People_Lookup.yaml:7
+msgid "Search Person"
+msgstr "Buscar persona"
+
+#: Home/Metadata/Views/Provinces.yaml:4
+msgid "Search Provinces"
+msgstr "Buscar provincias"
+
+#: Home/Metadata/Views/ADMIN_TaxDeductions.yaml:4
+msgid "Search Receipts/Deductions"
+msgstr "Buscar recibos/deducciones"
+
+#: Home/Metadata/Views/Region.yaml:4
+msgid "Search Regions"
+msgstr "Buscar regiones"
+
+#: Home/Metadata/Views/ADMIN_Seasons.yaml:4
+msgid "Search Seasons"
+msgstr "Buscar temporadas"
+
+#: Home/Metadata/Views/ADMIN_Sponsors.yaml:4
+msgid "Search Sponsors"
+msgstr "Buscar patrocinadores"
+
+#: Home/Metadata/Views/ADMIN_Squad.yaml:4
+msgid "Search Squad"
+msgstr "Buscar plantilla"
+
+#: Home/Metadata/Views/ADMIN_Staff.yaml:4
+msgid "Search Staff"
+msgstr "Buscar personal"
+
+#: Home/Metadata/Views/ADMIN_SubscriptionCampaigns.yaml:4
+msgid "Search Subscription Campaigns"
+msgstr "Buscar campañas de inscripción"
+
+#: Home/Metadata/Views/ADMIN_SubscriptionFees.yaml:4
+msgid "Search Subscription Fees"
+msgstr "Buscar cuotas de inscripción"
+
+#: Home/Metadata/Views/ADMIN_SubscriptionInstalments.yaml:4
+msgid "Search Subscription Instalments"
+msgstr "Buscar cuotas de inscripción"
+
+#: Home/Metadata/Views/ADMIN_SubscriberPaymentSummary.yaml:4
+msgid "Search Subscription Payment Status"
+msgstr "Buscar estado de pagos de inscripciones"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:5
+msgid "Search Subscriptions"
+msgstr "Buscar inscripciones"
+
+#: Home/Metadata/Views/ADMIN_Suppliers.yaml:4
+msgid "Search Suppliers"
+msgstr "Buscar proveedores"
+
+#: Home/Metadata/Views/ADMIN_Teams.yaml:4
+msgid "Search Teams"
+msgstr "Buscar equipos"
+
+#: Home/Metadata/Views/ADMIN_Users.yaml:4 Home/Metadata/Views/UsersUnused.yaml:4
+msgid "Search Users"
+msgstr "Buscar usuarios"
+
+#: Home/Metadata/Views/ADMIN_VatCodes.yaml:4
+msgid "Search VAT Codes"
+msgstr "Buscar códigos de IVA"
+
+#: Home/Metadata/Views/ADMIN_VatRegisters.yaml:4
+msgid "Search VAT Register"
+msgstr "Buscar registro de IVA"
+
+#: Home/Metadata/Views/ADMIN_VatRegisterTypes.yaml:4
+msgid "Search VAT Register Types"
+msgstr "Buscar tipos de registro de IVA"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:4
+msgid "Search Withholding Taxes"
+msgstr "Buscar retenciones"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:21 Home/Metadata/Models/Championship.yaml:57 Home/Metadata/Models/Subscription.yaml:26
+msgid "Season"
+msgstr "Temporada"
+
+#: Home/Metadata/Models/ChampionshipStage.yaml:14 Home/Metadata/Models/Kpi.yaml:9
+msgid "Season description"
+msgstr "Descripción de la temporada"
+
+#: Home/Metadata/Models/Kpi.yaml:7
+msgid "Season Id"
+msgstr "Id de la temporada"
+
+#: Home/Metadata/Models/Season.yaml:2 Home/Metadata/Views/ADMIN_Subscriptions.yaml:11 Home/Metadata/Views/ADMIN_SubscriptionInstalments.yaml:8
+msgid "Seasons"
+msgstr "Temporadas"
+
+#: Home/Metadata/Models/Team.yaml:37
+msgid "Secondary colour"
+msgstr "Color secundario"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:18 Home/Metadata/Models/FinancialStatement.yaml:46 Home/Metadata/Models/DetailedFinancialStatement.yaml:18
+msgid "Section"
+msgstr "Sección"
+
+#: Source/SCM.Tools.pas:782 Source/SCM.Tools.pas:987
+msgid "Select an invoice."
+msgstr "Seleccione una factura."
+
+#: Home/Metadata/Views/ADMIN_MedicalVisits.yaml:73
+msgid "Send the medical visit notification for {Person}?"
+msgstr "¿Enviar la notificación de la revisión médica de {Person}?"
+
+#: Home/Metadata/Models/EmailQueue.yaml:32 Home/Metadata/Models/Message.yaml:19
+msgid "Sender"
+msgstr "Remitente"
+
+#: Home/Metadata/Views/EmailQueue.yaml:8
+msgid "Sending"
+msgstr "Envío"
+
+#: Home/Metadata/Views/EmailQueue.yaml:13
+msgid "Sent"
+msgstr "Enviados"
+
+#: Home/Metadata/Models/Message.yaml:26
+msgid "Sent Date"
+msgstr "Fecha de envío"
+
+#: Home/Metadata/Views/ADMIN_Withholdings.yaml:33 Home/Metadata/Views/ADMIN_VatRegisters.yaml:57
+msgid "September"
+msgstr "Septiembre"
+
+#: Home/Metadata/Models/MatchPairing.yaml:39
+msgid "Set 1 Away"
+msgstr "Set 1 visitante"
+
+#: Home/Metadata/Models/MatchPairing.yaml:36
+msgid "Set 1 Home"
+msgstr "Set 1 local"
+
+#: Home/Metadata/Models/MatchPairing.yaml:45
+msgid "Set 2 Away"
+msgstr "Set 2 visitante"
+
+#: Home/Metadata/Models/MatchPairing.yaml:42
+msgid "Set 2 Home"
+msgstr "Set 2 local"
+
+#: Home/Metadata/Models/MatchPairing.yaml:51
+msgid "Set 3 Away"
+msgstr "Set 3 visitante"
+
+#: Home/Metadata/Models/MatchPairing.yaml:48
+msgid "Set 3 Home"
+msgstr "Set 3 local"
+
+#: Home/Metadata/Models/MatchPairing.yaml:57
+msgid "Set 4 Away"
+msgstr "Set 4 visitante"
+
+#: Home/Metadata/Models/MatchPairing.yaml:54
+msgid "Set 4 Home"
+msgstr "Set 4 local"
+
+#: Home/Metadata/Models/MatchPairing.yaml:63
+msgid "Set 5 Away"
+msgstr "Set 5 visitante"
+
+#: Home/Metadata/Models/MatchPairing.yaml:60
+msgid "Set 5 Home"
+msgstr "Set 5 local"
+
+#: Home/Metadata/Models/Match.yaml:52
+msgid "Sets"
+msgstr "Sets"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:79
+msgid "Settlement method"
+msgstr "Forma de liquidación"
+
+#: Home/Metadata/Models/Team.yaml:34
+msgid "Shirt colour"
+msgstr "Color de la camiseta"
+
+#: Home/Metadata/Models/Squad.yaml:18
+msgid "Shirt Number"
+msgstr "Número de camiseta"
+
+#: Home/Metadata/Models/Team.yaml:27
+msgid "Short abbreviation for the scoreboard"
+msgstr "Siglas cortas para el marcador"
+
+#: Home/Metadata/Views/ADMIN_SubscriptionCampaigns.yaml:7 Home/Metadata/Views/ADMIN_Seasons.yaml:7
+msgid "Show campaigns"
+msgstr "Mostrar campañas"
+
+#: Home/Metadata/Views/ADMIN_SubscriptionFees.yaml:11 Home/Metadata/Views/SubscriptionFee.yaml:6
+msgid "Show fees"
+msgstr "Mostrar cuotas"
+
+#: Home/Metadata/Models/Subscription.yaml:231 Home/Metadata/Models/Subscription.yaml:236
+msgid "Sibling Discount"
+msgstr "Descuento por hermanos"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:33
+msgid "Sibling Discount Amount"
+msgstr "Importe del descuento por hermanos"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:61 Home/Metadata/Models/DetailedFinancialStatement.yaml:60 Home/Metadata/Models/AutomaticAccount.yaml:18
+msgid "Sign"
+msgstr "Signo"
+
+#: Home/Metadata/Views/LoginView.yaml:2
+msgid "Sign in to %Config:AppTitle% %APP_VERSION_FULL%"
+msgstr "Acceso a %Config:AppTitle% %APP_VERSION_FULL%"
+
+#: Home/Metadata/Views/ADMIN_Home.yaml:58 Home/Metadata/Views/ADMIN_HomeTablet.yaml:48 Home/Metadata/Views/USER_HomeTablet.yaml:52
+msgid "Signed in as:"
+msgstr "Conectado como:"
+
+#: Home/Metadata/Models/Policy.yaml:24
+msgid "Signing date"
+msgstr "Fecha de firma"
+
+#: Home/Metadata/Models/AccountingReason.yaml:21 Home/Metadata/Models/AccountingEntry.yaml:38 Home/Metadata/Models/VVatRegister.yaml:31
+msgid "Simple entry"
+msgstr "Asiento simple"
+
+#: Home/Metadata/Models/Subscription.yaml:244
+msgid "Single instalment"
+msgstr "Pago único"
+
+#: Home/Metadata/Models/Subscription.yaml:249 Home/Metadata/Models/SubscriptionFee.yaml:168
+msgid "Single instalment discount"
+msgstr "Descuento por pago único"
+
+#: Home/Metadata/Models/Person.yaml:146 Home/Metadata/Models/Size.yaml:12
+msgid "Size"
+msgstr "Talla"
+
+#: Home/Metadata/Models/Size.yaml:11
+msgid "Sizes"
+msgstr "Tallas"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:58
+msgid "Social security"
+msgstr "Seguridad Social"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:53
+msgid "Social security activity code"
+msgstr "Código de actividad de la seguridad social"
+
+#: Home/Metadata/Models/Supplier.yaml:74
+msgid "Social security fund of the registered party"
+msgstr "Caja de previsión del sujeto registrado"
+
+#: Home/Metadata/Models/Language.yaml:17
+msgid "Sort order"
+msgstr "Orden de clasificación"
+
+#: Home/Metadata/Models/EmailQueue.yaml:91
+msgid "Source Object"
+msgstr "Objeto de origen"
+
+#: Home/Metadata/Models/EmailQueue.yaml:87
+msgid "Source Table"
+msgstr "Tabla de origen"
+
+#: Home/Metadata/Models/Region.yaml:23
+msgid "South"
+msgstr "Sur"
+
+#: Home/Metadata/Models/Sponsor.yaml:5
+msgid "Sponsor"
+msgstr "Patrocinador"
+
+#: Home/Metadata/Models/Sponsor.yaml:91
+msgid "Sponsor website URL"
+msgstr "URL del sitio del patrocinador"
+
+#: Home/Metadata/Models/Sponsor.yaml:4 Home/Metadata/Models/Team.yaml:112
+msgid "Sponsors"
+msgstr "Patrocinadores"
+
+#: Home/Metadata/Models/Sponsor.yaml:77
+msgid "Sponsorship end"
+msgstr "Fin del patrocinio"
+
+#: Home/Metadata/Models/Sponsor.yaml:73
+msgid "Sponsorship start"
+msgstr "Inicio del patrocinio"
+
+#: Home/Metadata/Models/SportType.yaml:21
+msgid "Sport scored in sets"
+msgstr "Deporte con resultados por sets"
+
+#: Home/Metadata/Models/SportType.yaml:17
+msgid "Sport that allows draws"
+msgstr "Deporte que permite el empate"
+
+#: Home/Metadata/Models/Championship.yaml:63 Home/Metadata/Models/Federation.yaml:35 Home/Metadata/Models/Affiliation.yaml:60
+msgid "Sport Type"
+msgstr "Tipo de deporte"
+
+#: Home/Metadata/Models/ScoringType.yaml:20 Home/Metadata/Models/SportType.yaml:5 Home/Metadata/Models/SportType.yaml:13
+msgid "Sport type"
+msgstr "Tipo de deporte"
+
+#: Home/Metadata/Models/SportType.yaml:3
+msgid "Sport types"
+msgstr "Tipos de deporte"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:84
+msgid "Sports activity"
+msgstr "Actividad deportiva"
+
+#: Home/Metadata/Models/SportsFacility.yaml:81
+msgid "Sports Facilities"
+msgstr "Instalaciones deportivas"
+
+#: Home/Metadata/Models/MatchPairing.yaml:72 Home/Metadata/Models/SportsFacility.yaml:82 Home/Metadata/Models/Equipment.yaml:41
+msgid "Sports Facility"
+msgstr "Instalación deportiva"
+
+#: Home/Metadata/Views/NotificaVisitaMedicaMailMessage.yaml:2
+msgid "Sports medical examination"
+msgstr "Revisión médica deportiva"
+
+#: Home/Metadata/Models/SanctionType.yaml:4
+msgid "Sports sanction type"
+msgstr "Tipo de sanción deportiva"
+
+#: Home/Metadata/Models/SanctionType.yaml:3
+msgid "Sports sanction types"
+msgstr "Tipos de sanción deportiva"
+
+#: Home/Metadata/Models/Squad.yaml:4 Home/Metadata/Models/Squad.yaml:5
+msgid "Squad"
+msgstr "Plantilla"
+
+#: Home/Metadata/Models/StaffMember.yaml:4 Home/Metadata/Models/StaffMember.yaml:40
+msgid "Staff"
+msgstr "Personal"
+
+#: Home/Metadata/Models/StaffMember.yaml:41
+msgid "Staff member"
+msgstr "Miembro del personal"
+
+#: Home/Metadata/Models/ChampionshipStage.yaml:35
+msgid "Stage Type"
+msgstr "Tipo de fase"
+
+#: Home/Metadata/Models/StageType.yaml:12
+msgid "Stage type"
+msgstr "Tipo de fase"
+
+#: Home/Metadata/Models/VatCode.yaml:35
+msgid "Stamp duty amount"
+msgstr "Importe del timbre"
+
+#: Home/Metadata/Models/ChampionshipStage.yaml:26
+msgid "Standalone standing"
+msgstr "Clasificación independiente"
+
+#: Home/Metadata/Models/FederationRegistration.yaml:62
+msgid "Start"
+msgstr "Inicio"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:51 Home/Metadata/Models/FinancialYear.yaml:19 Home/Metadata/Models/Season.yaml:18
+msgid "Start date"
+msgstr "Fecha de inicio"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:113
+msgid "Start time 1"
+msgstr "Hora de inicio 1"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:131
+msgid "Start time 2"
+msgstr "Hora de inicio 2"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:149
+msgid "Start time 3"
+msgstr "Hora de inicio 3"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:13
+msgid "Started"
+msgstr "Iniciadas"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:2
+msgid "Statistics"
+msgstr "Estadísticas"
+
+#: Home/Metadata/Models/MatchPairing.yaml:90 Home/Metadata/Models/Conversation.yaml:27 Home/Metadata/Models/FinancialYear.yaml:29
+msgid "Status"
+msgstr "Estado"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:45 Home/Metadata/Models/DetailedFinancialStatement.yaml:40 Home/Metadata/Models/LedgerAccount.yaml:47
+msgid "Sub-account"
+msgstr "Subcuenta"
+
+#: Home/Metadata/Models/MatchDay.yaml:25
+msgid "Sub-number"
+msgstr "Subnúmero"
+
+#: Home/Metadata/Models/EmailQueue.yaml:47 Home/Metadata/Models/EmailTemplate.yaml:65
+msgid "Subject"
+msgstr "Asunto"
+
+#: Home/Metadata/Models/Supplier.yaml:77
+msgid "Subject to social security contribution, 10% - 13%"
+msgstr "Sujeto a cotización a la seguridad social, 10 % - 13 %"
+
+#: Home/Metadata/Models/MembersRegister.yaml:33
+msgid "Submission date"
+msgstr "Fecha de presentación"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:16
+msgid "Submitted"
+msgstr "Presentados"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:26
+msgid "Submitted on"
+msgstr "Presentados el"
+
+#: Home/Metadata/Models/Payment.yaml:40
+msgid "Subscribed people"
+msgstr "Personas inscritas"
+
+#: Home/Metadata/Views/ADMIN_FamilyDeductions.yaml:9 Home/Metadata/Views/ADMIN_TaxDeductions.yaml:8 Home/Metadata/Views/Layouts/ADMIN_FamilyDeductions_Form.yaml:17
+msgid "Subscriber"
+msgstr "Inscrito"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:60 Home/Metadata/Models/TaxDeduction.yaml:63
+msgid "Subscriber birth municipality"
+msgstr "Municipio de nacimiento del inscrito"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:56 Home/Metadata/Models/TaxDeduction.yaml:59
+msgid "Subscriber date of birth"
+msgstr "Fecha de nacimiento del inscrito"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:52 Home/Metadata/Models/TaxDeduction.yaml:55
+msgid "Subscriber first name"
+msgstr "Nombre del inscrito"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:48 Home/Metadata/Models/TaxDeduction.yaml:51
+msgid "Subscriber last name"
+msgstr "Apellidos del inscrito"
+
+#: Home/Metadata/Models/Subscription.yaml:218
+msgid "Subscriber Notes"
+msgstr "Notas del inscrito"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:116 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:6 Home/Metadata/Views/ADMIN_SubscriberPaymentSummary.yaml:47
+msgid "Subscriber Payment Summary"
+msgstr "Resumen de pagos del inscrito"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:68 Home/Metadata/Models/TaxDeduction.yaml:71
+msgid "Subscriber province"
+msgstr "Provincia del inscrito"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:64 Home/Metadata/Models/TaxDeduction.yaml:67
+msgid "Subscriber province code"
+msgstr "Código de provincia del inscrito"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:72 Home/Metadata/Models/TaxDeduction.yaml:75
+msgid "Subscriber tax code"
+msgstr "NIF del inscrito"
+
+#: Home/Metadata/Models/VSubscribersByDiscipline.yaml:7 Home/Metadata/Views/ADMIN_DashSubscribersByDiscipline.yaml:12 Home/Metadata/Views/ADMIN_DashSubscribersByDiscipline.yaml:21
+msgid "Subscribers"
+msgstr "Inscritos"
+
+#: Home/Resources/DashKpiSubscriberCount.html:5
+msgid "Subscribers - active season"
+msgstr "Inscritos (temporada activa)"
+
+#: Home/Metadata/Models/VSubscribersByDiscipline.yaml:1 Home/Metadata/Models/VSubscribersByDiscipline.yaml:2 Home/Metadata/Views/ADMIN_DashSubscribersByDiscipline.yaml:2
+msgid "Subscribers by discipline"
+msgstr "Inscritos por disciplina"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:78
+msgid "Subscribers by discipline - the team's sport type"
+msgstr "Inscritos por disciplina - tipo de deporte del equipo"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:58
+msgid "Subscribers with no medical visit on record"
+msgstr "Inscritos sin ninguna revisión médica registrada"
+
+#: Home/Resources/DashKpiWithoutCertificate.html:5
+msgid "Subscribers without certificate"
+msgstr "Inscritos sin certificado"
+
+#: Home/Metadata/Models/Subscription.yaml:6 Home/Metadata/Models/Subscription.yaml:320 Home/Metadata/Models/SubscriptionInstalment.yaml:15
+msgid "Subscription"
+msgstr "Inscripción"
+
+#: Source/SCM.Tools.pas:161
+msgid "Subscription already approved"
+msgstr "Inscripción ya aprobada"
+
+#: Source/SCM.Rules.Subscription.pas:916 Source/SCM.Rules.Subscription.pas:923
+msgid "Subscription already confirmed: it cannot be changed"
+msgstr "Inscripción ya confirmada: no se puede modificar"
+
+#: Source/SCM.Rules.Subscription.pas:758
+msgid "Subscription already exists!"
+msgstr "La inscripción ya existe."
+
+#: Home/Metadata/Models/AutomaticReason.yaml:17
+msgid "Subscription approval"
+msgstr "Aprobación de inscripción"
+
+#: Home/Metadata/Views/ApprovaIscrizioneMailMessage.yaml:2
+msgid "Subscription approved"
+msgstr "Inscripción aprobada"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:6 Home/Metadata/Models/SubscriptionFee.yaml:19
+msgid "Subscription campaign"
+msgstr "Campaña de inscripción"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:18
+msgid "Subscription Campaign"
+msgstr "Campaña de inscripción"
+
+#: Home/Metadata/Models/TaxDeduction.yaml:122
+msgid "Subscription campaign description"
+msgstr "Descripción de la campaña de inscripción"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:5
+msgid "Subscription campaigns"
+msgstr "Campañas de inscripción"
+
+#: Home/Metadata/Models/Subscription.yaml:50
+msgid "Subscription Course"
+msgstr "Curso de inscripción"
+
+#: Home/Metadata/Models/Subscription.yaml:24
+msgid "Subscription Date"
+msgstr "Fecha de inscripción"
+
+#: Home/Metadata/Models/VSubscriberPaymentSummary.yaml:72
+msgid "Subscription date"
+msgstr "Fecha de inscripción"
+
+#: Home/Metadata/Models/VSubscriberPaymentSummary.yaml:33
+msgid "Subscription Fee"
+msgstr "Cuota de inscripción"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:6
+msgid "Subscription fees"
+msgstr "Cuotas de inscripción"
+
+#: Home/Metadata/Views/SubscriptionFee.yaml:4
+msgid "Subscription Fees"
+msgstr "Cuotas de inscripción"
+
+#: Home/Metadata/Views/USER_Subscriptions.yaml:4
+msgid "Subscription Filter"
+msgstr "Filtro de inscripciones"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:5
+msgid "Subscription group/fee"
+msgstr "Grupo/cuota de inscripción"
+
+#: Home/Metadata/Models/PaymentDetail.yaml:27 Home/Metadata/Models/SubscriptionInstalment.yaml:6 Home/Metadata/Models/SubscriptionInstalment.yaml:114
+msgid "Subscription Instalment"
+msgstr "Cuota de inscripción"
+
+#: Home/Metadata/Models/Subscription.yaml:330 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:95
+msgid "Subscription instalments"
+msgstr "Cuotas de inscripción"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:5
+msgid "Subscription Instalments"
+msgstr "Cuotas de inscripción"
+
+#: Home/Metadata/Models/SubscriptionCampaign.yaml:69
+msgid "Subscription instructions"
+msgstr "Instrucciones de inscripción"
+
+#: Home/Metadata/Views/ADMIN_TreeMenu.yaml:5
+msgid "Subscription Management"
+msgstr "Gestión de inscripciones"
+
+#: Home/Metadata/Models/AutomaticReason.yaml:16
+msgid "Subscription payment collection"
+msgstr "Cobro del pago de inscripción"
+
+#: Home/Metadata/Views/RifiutaIscrizioneMailMessage.yaml:2
+msgid "Subscription rejected"
+msgstr "Inscripción rechazada"
+
+#: Home/Metadata/Views/Layouts/USER_SubscribeChild_Form.yaml:3
+msgid "Subscription renewal"
+msgstr "Renovación de la inscripción"
+
+#: Home/Metadata/Views/RichiestaIscrizioneMailMessage.yaml:2
+msgid "Subscription request"
+msgstr "Solicitud de inscripción"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:22
+msgid "Subscription Status"
+msgstr "Estado de las inscripciones"
+
+#: Home/Metadata/Models/Subscription.yaml:327 Home/Metadata/Views/USER_Subscriptions.yaml:20
+msgid "Subscription summary"
+msgstr "Resumen de inscripciones"
+
+#: Home/Metadata/Models/Subscription.yaml:262
+msgid "Subscription Total"
+msgstr "Total de la inscripción"
+
+#: Home/Metadata/Models/VSubscriptionTrend.yaml:1 Home/Metadata/Models/VSubscriptionTrend.yaml:2 Home/Metadata/Views/ADMIN_DashSubscriptionTrend.yaml:2
+msgid "Subscription trend"
+msgstr "Evolución de inscripciones"
+
+#: Home/Metadata/Models/Subscription.yaml:5 Home/Metadata/Models/VSubscriptionTrend.yaml:7 Home/Metadata/Views/ADMIN_DashSubscriptionTrend.yaml:11
+msgid "Subscriptions"
+msgstr "Inscripciones"
+
+#: Home/Metadata/Views/ADMIN_Dashboard.yaml:18
+msgid "Subscriptions approved in the active season"
+msgstr "Inscripciones aprobadas en la temporada activa"
+
+#: Home/Resources/DashKpiPendingSubscriptions.html:5
+msgid "Subscriptions awaiting confirmation"
+msgstr "Inscripciones pendientes de confirmación"
+
+#: Home/Metadata/Views/USER_TreeMenu.yaml:8
+msgid "Summary"
+msgstr "Resumen"
+
+#: Home/Metadata/Models/Team.yaml:92
+msgid "Sunday"
+msgstr "Domingo"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:91 Home/Metadata/Models/Supplier.yaml:6 Home/Metadata/Models/AccountingEntry.yaml:125
+msgid "Supplier"
+msgstr "Proveedor"
+
+#: Home/Metadata/Models/AccountingReason.yaml:25 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:20 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:19
+msgid "Supplier credit note"
+msgstr "Nota de crédito de proveedor"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:43 Home/Metadata/Models/VVatRegister.yaml:36 Home/Metadata/Models/VAccountingLine.yaml:42
+msgid "Supplier Credit Note"
+msgstr "Nota de crédito de proveedor"
+
+#: Home/Metadata/Models/AccountingReason.yaml:23 Home/Metadata/Views/ADMIN_AccountingReasons.yaml:16 Home/Metadata/Views/ADMIN_AccountingReasonsUnused.yaml:15
+msgid "Supplier invoice"
+msgstr "Factura de proveedor"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:41 Home/Metadata/Models/VVatRegister.yaml:34 Home/Metadata/Models/VAccountingLine.yaml:40
+msgid "Supplier Invoice"
+msgstr "Factura de proveedor"
+
+#: Source/SCM.Rules.AccountingEntry.pas:286
+msgid "Supplier is required"
+msgstr "El proveedor es obligatorio"
+
+#: Home/Metadata/Models/LedgerAccount.yaml:90
+msgid "Supplier reference"
+msgstr "Referencia de proveedor"
+
+#: Home/Metadata/Models/Supplier.yaml:5
+msgid "Suppliers"
+msgstr "Proveedores"
+
+#: Home/Metadata/Models/Configuration.yaml:46
+msgid "Support E-mail"
+msgstr "Correo de soporte"
+
+#: Home/Metadata/Models/SanctionType.yaml:16
+msgid "Suspension match days"
+msgstr "Jornadas de sanción"
+
+#: Home/Metadata/Models/User.yaml:81
+msgid "System"
+msgstr "Del sistema"
+
+#: Home/Metadata/Views/ADMIN_TopMenu.yaml:32 Home/Metadata/Views/ADMIN_TreeMenu.yaml:92
+msgid "System parameters"
+msgstr "Parámetros del sistema"
+
+#: Home/Metadata/Models/VatDetail.yaml:27 Home/Metadata/Models/VVatRegister.yaml:74
+msgid "Tax"
+msgstr "Impuesto"
+
+#: Home/Metadata/Models/Customer.yaml:34 Home/Metadata/Models/Supplier.yaml:34 Home/Metadata/Models/MembersRegister.yaml:54
+msgid "Tax code"
+msgstr "NIF"
+
+#: Home/Metadata/Models/Configuration.yaml:38 Home/Metadata/Models/Configuration.yaml:40 Home/Metadata/Models/FamilyDeduction.yaml:25
+msgid "Tax Code"
+msgstr "NIF"
+
+#: Source/SCM.Rules.Person.pas:32
+msgid "Tax code already on file - use the existing person"
+msgstr "El NIF ya existe: utilice la persona ya registrada"
+
+#: Source/SCM.Rules.CustomerSupplier.pas:67
+msgid "Tax code is required."
+msgstr "El NIF es obligatorio."
+
+#: Home/Metadata/Models/Supplier.yaml:71
+msgid "Tax code/group"
+msgstr "Código/grupo tributario"
+
+#: Home/Metadata/Views/ResetPassword.yaml:16
+msgid "Tax Code/User"
+msgstr "NIF/Usuario"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:26
+msgid "Tax levy code"
+msgstr "Código tributario"
+
+#: Home/Metadata/Models/Configuration.yaml:77
+msgid "Tax scheme"
+msgstr "Régimen fiscal"
+
+#: Home/Metadata/Models/VatDetail.yaml:20 Home/Metadata/Models/WithholdingDetail.yaml:33 Home/Metadata/Models/CustomerInvoice.yaml:19
+msgid "Taxable amount"
+msgstr "Base imponible"
+
+#: Home/Metadata/Models/LedgerAccount.yaml:102
+msgid "Taxes/Duties"
+msgstr "Impuestos/tributos"
+
+#: Home/Metadata/Models/StaffMember.yaml:35 Home/Metadata/Models/Equipment.yaml:52 Home/Metadata/Models/Scorer.yaml:24
+msgid "Team"
+msgstr "Equipo"
+
+#: Home/Metadata/Models/Team.yaml:21
+msgid "Team abbreviation"
+msgstr "Siglas del equipo"
+
+#: Home/Metadata/Models/Team.yaml:53
+msgid "Team escort"
+msgstr "Acompañante"
+
+#: Home/Metadata/Models/Team.yaml:67
+msgid "Team logo"
+msgstr "Logotipo del equipo"
+
+#: Home/Metadata/Models/Team.yaml:17
+msgid "Team name"
+msgstr "Nombre del equipo"
+
+#: Home/Metadata/Models/Team.yaml:4
+msgid "Teams"
+msgstr "Equipos"
+
+#: Home/Metadata/Models/Configuration.yaml:48
+msgid "Technical support e-mail"
+msgstr "Correo de soporte técnico"
+
+#: Home/Metadata/Views/ApplicationInfo.yaml:18 Home/Metadata/Views/LoginView.yaml:28
+msgid "Technical support:"
+msgstr "Soporte técnico:"
+
+#: Home/Metadata/Models/Member.yaml:14
+msgid "Termination"
+msgstr "Cese"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:70 Home/Metadata/Models/EmailTemplate.yaml:74
+msgid "Text"
+msgstr "Texto"
+
+#: Source/SCM.Rules.Payment.pas:170
+msgid "The amount paid and the sum of the detail amounts do not match"
+msgstr "El importe pagado y la suma de los importes del detalle no coinciden"
+
+#: Home/Resources/SubscriptionConfirmation.htm:5
+msgid "The amount to be paid is"
+msgstr "El importe a pagar es de"
+
+#: Source/SCM.Tools.pas:1147
+msgid "The campaign could not be duplicated: "
+msgstr "No se ha podido duplicar la campaña: "
+
+#: Home/Resources/SubscriptionConfirmation.htm:4
+msgid "The course you requested is"
+msgstr "El curso solicitado es"
+
+#: Source/SCM.Rules.Payment.pas:165
+msgid "The deposit bank reference is required"
+msgstr "La referencia del banco de ingreso es obligatoria"
+
+#: Source/SCM.Accounting.pas:847
+msgid "The financial year is already closed."
+msgstr "El ejercicio ya está cerrado."
+
+#: Source/SCM.Utils.pas:789
+msgid "The first 2 characters of the IBAN are the country code and must contain capital letters only, not digits."
+msgstr "Los 2 primeros caracteres del IBAN son el código de país y deben contener solo letras mayúsculas, no cifras."
+
+#: Source/SCM.Rules.MedicalVisit.pas:52
+msgid "The fitness outcome is inconsistent with the visit being marked as carried out."
+msgstr "La aptitud no concuerda con la indicación de revisión realizada."
+
+#: Source/SCM.Utils.pas:784
+msgid "The IBAN contains invalid characters: enter digits or capital letters only."
+msgstr "El IBAN contiene caracteres no permitidos: introduzca solo números o letras mayúsculas."
+
+#: Source/SCM.Utils.pas:812
+msgid "The IBAN entered is not correct"
+msgstr "El IBAN introducido no es correcto"
+
+#: Source/SCM.Utils.pas:778
+msgid "The IBAN is longer than allowed."
+msgstr "La longitud del IBAN es superior a la permitida."
+
+#: Source/SCM.Utils.pas:776
+msgid "The IBAN is shorter than allowed."
+msgstr "La longitud del IBAN es inferior a la permitida."
+
+#: Home/Metadata/Views/ApplicationInfo.yaml:12
+msgid "The management software for amateur sports clubs"
+msgstr "El software de gestión para clubes deportivos"
+
+#: Home/Metadata/Views/ResetMailMessage.yaml:7
+msgid "The new temporary password to use at your next sign-in is"
+msgstr "La nueva contraseña temporal que deberá usar en el próximo acceso es"
+
+#: Source/SCM.Accounting.pas:868
+msgid "The next open financial year was not found."
+msgstr "No se ha encontrado el siguiente ejercicio abierto."
+
+#: Source/SCM.Tools.pas:1248
+msgid "The payment has already been approved"
+msgstr "El pago ya ha sido aprobado"
+
+#: Source/SCM.Tools.pas:1175
+msgid "The payment has already been rejected"
+msgstr "El pago ya ha sido rechazado"
+
+#: Source/SCM.Tools.pas:984
+msgid "The PDF invoice already exists."
+msgstr "La factura PDF ya existe."
+
+#: Source/SCM.Rules.pas:544
+msgid "The percentage value must not be lower than 0"
+msgstr "El valor porcentual no debe ser inferior a 0"
+
+#: Source/SCM.Rules.pas:540
+msgid "The percentage value must not exceed 100"
+msgstr "El valor porcentual no debe superar 100"
+
+#: Source/SCM.Rules.MedicalVisit.pas:54
+msgid "The person is required when a notification date is set"
+msgstr "La persona es obligatoria si hay fecha de notificación"
+
+#: Source/SCM.Rules.MedicalVisit.pas:56
+msgid "The person is required when the visit is marked as carried out"
+msgstr "La persona es obligatoria si la revisión figura como realizada"
+
+#: Source/SCM.Rules.AccountingEntry.pas:188
+msgid "The posting date falls outside the financial year"
+msgstr "La fecha de registro no está dentro del ejercicio contable"
+
+#: Source/SCM.Rules.Conversation.pas:133
+msgid "The same participant cannot be added to the conversation twice."
+msgstr "No se puede añadir dos veces el mismo participante a la conversación."
+
+#: Home/Metadata/Views/ApprovaIscrizioneMailMessage.yaml:15 Home/Metadata/Views/ConfermaPagamentoMailMessage.yaml:13 Home/Metadata/Views/NotificaVisitaMedicaMailMessage.yaml:14
+msgid "The staff of"
+msgstr "El equipo de"
+
+#: Source/SCM.Rules.pas:396
+msgid "The tax code does not match the country of birth."
+msgstr "El NIF no concuerda con el país de nacimiento."
+
+#: Source/SCM.Rules.pas:378
+msgid "The tax code does not match the date of birth."
+msgstr "El NIF no concuerda con la fecha de nacimiento."
+
+#: Source/SCM.Rules.pas:373
+msgid "The tax code does not match the first name."
+msgstr "El NIF no concuerda con el nombre."
+
+#: Source/SCM.Rules.pas:388
+msgid "The tax code does not match the gender."
+msgstr "El NIF no concuerda con el sexo."
+
+#: Source/SCM.Rules.pas:367
+msgid "The tax code does not match the last name."
+msgstr "El NIF no concuerda con los apellidos."
+
+#: Source/SCM.Rules.pas:383
+msgid "The tax code does not match the place of birth."
+msgstr "El NIF no concuerda con el lugar de nacimiento."
+
+#: Home/Metadata/Views/RegisterMailMessage.yaml:8
+msgid "The temporary password to use at first sign-in is"
+msgstr "La contraseña temporal que deberá usar en el primer acceso es"
+
+#: Source/SCM.Utils.pas:792
+msgid "The third and fourth characters are check digits and must contain digits only, not letters."
+msgstr "Los caracteres tercero y cuarto son dígitos de control y deben contener solo cifras, no letras."
+
+#: Source/SCM.Rules.Payment.pas:161
+msgid "The transfer reference is not allowed for the selected payment method"
+msgstr "No se admite la referencia de transferencia para la forma de pago seleccionada"
+
+#: Home/Resources/privacy.htm:4
+msgid "the user acknowledges that:"
+msgstr "el usuario es consciente de lo siguiente:"
+
+#: Source/SCM.Tools.pas:346
+msgid "The user has already been notified"
+msgstr "El usuario ya ha sido notificado"
+
+#: Source/SCM.Rules.pas:436
+msgid "The value %s %s the value %s of field %s"
+msgstr "El valor %s %s el valor %s del campo %s"
+
+#: Source/SCM.Tools.pas:582
+msgid "The XML invoice already exists."
+msgstr "La factura XML ya existe."
+
+#: Home/Metadata/Views/NotificaVisitaMedicaMailMessage.yaml:7
+msgid "This is a reminder of the medical visit to be carried out on"
+msgstr "Le recordamos la revisión médica prevista para el"
+
+#: Home/Metadata/Views/ADMIN_MedicalVisits.yaml:44
+msgid "This month"
+msgstr "En el mes"
+
+#: Home/Metadata/Models/Team.yaml:96
+msgid "Thursday"
+msgstr "Jueves"
+
+#: Home/Metadata/Models/MatchDay.yaml:20 Home/Metadata/Models/MedicalVisit.yaml:60
+msgid "Time"
+msgstr "Hora"
+
+#: Home/Metadata/Models/VatCode.yaml:43
+msgid "Title"
+msgstr "Título"
+
+#: Home/Metadata/Models/Duty.yaml:37 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:43
+msgid "To"
+msgstr "Hasta"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:31
+msgid "To addresses"
+msgstr "Direcciones Para"
+
+#: Home/Metadata/Views/ADMIN_TaxDeductions.yaml:15
+msgid "To be printed"
+msgstr "Por imprimir"
+
+#: Home/Metadata/Views/ADMIN_MembersRegister.yaml:13
+msgid "To be submitted"
+msgstr "Por presentar"
+
+#: Home/Metadata/Views/ADMIN_Conversations.yaml:29 Home/Metadata/Views/ADMIN_Subscriptions.yaml:62 Home/Metadata/Views/ADMIN_Payments.yaml:56
+msgid "To date"
+msgstr "Hasta la fecha"
+
+#: Home/Metadata/Views/ApprovaIscrizioneMailMessage.yaml:8
+msgid "To make the payment, follow these instructions."
+msgstr "Para efectuar el pago, siga estas instrucciones."
+
+#: Home/Metadata/Models/EmailTemplate.yaml:43
+msgid "To Operators"
+msgstr "Operadores Para"
+
+#: Home/Metadata/Models/EmailTemplate.yaml:55
+msgid "To Profiles"
+msgstr "Perfiles Para"
+
+#: Home/Metadata/Views/RichiestaIscrizioneMailMessage.yaml:6
+msgid "to:"
+msgstr "a:"
+
+#: Home/Metadata/Models/Conversation.yaml:16 Home/Metadata/Views/ADMIN_Conversations.yaml:8
+msgid "Topic"
+msgstr "Asunto"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:55 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:81 Home/Metadata/Views/USER_SubscriptionInstalments.yaml:37
+msgid "Total"
+msgstr "Total"
+
+#: Home/Metadata/Models/Payment.yaml:95 Home/Metadata/Models/VSubscriberPaymentSummary.yaml:80
+msgid "Total amount"
+msgstr "Importe total"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:54
+msgid "Total Amount"
+msgstr "Importe total"
+
+#: Home/Metadata/Views/Layouts/USER_PaymentSummary_Form.yaml:25
+msgid "Total amount summary"
+msgstr "Resumen del importe total"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:57 Home/Metadata/Models/DetailedFinancialStatement.yaml:56 Home/Metadata/Models/DetailedAccountBalance.yaml:54
+msgid "Total Credit"
+msgstr "Total haber"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:170 Home/Metadata/Models/AccountingEntry.yaml:187
+msgid "Total credit lines"
+msgstr "Total de líneas del haber"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:53 Home/Metadata/Models/DetailedFinancialStatement.yaml:52 Home/Metadata/Models/DetailedAccountBalance.yaml:50
+msgid "Total Debit"
+msgstr "Total debe"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:164
+msgid "Total debit lines"
+msgstr "Total de líneas del debe"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:101 Home/Metadata/Models/FederationRegistration.yaml:51
+msgid "Total fee"
+msgstr "Cuota total"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:181
+msgid "Total tax"
+msgstr "Impuesto total"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:175
+msgid "Total taxable amount"
+msgstr "Base imponible total"
+
+#: Home/Metadata/Models/CustomerInvoice.yaml:23
+msgid "Total VAT"
+msgstr "Total del IVA"
+
+#: Home/Metadata/Models/Configuration.yaml:26 Home/Metadata/Models/Configuration.yaml:28
+msgid "Town"
+msgstr "Localidad"
+
+#: Home/Metadata/Models/Sponsor.yaml:65
+msgid "Trade mark"
+msgstr "Marca comercial"
+
+#: Home/Metadata/Models/Payment.yaml:74
+msgid "Transfer reference"
+msgstr "Referencia de la transferencia"
+
+#: Home/Metadata/Models/EmailQueue.yaml:82
+msgid "Transmission Date/Time"
+msgstr "Fecha y hora de transmisión"
+
+#: Home/Metadata/Models/Configuration.yaml:89
+msgid "Travel and tourism agencies scheme - art. 74-ter, D.P.R. 633/72"
+msgstr "Régimen de agencias de viajes y turismo - art. 74-ter, D.P.R. 633/72"
+
+#: Home/Metadata/Models/Team.yaml:94
+msgid "Tuesday"
+msgstr "Martes"
+
+#: Home/Metadata/Models/VIncomeExpense.yaml:5 Home/Metadata/Views/ADMIN_People.yaml:7
+msgid "Type"
+msgstr "Tipo"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:64
+msgid "Unapproved Amount"
+msgstr "Importe no aprobado"
+
+#: Home/Metadata/Models/SubscriptionInstalment.yaml:108
+msgid "Unapproved amount"
+msgstr "Importe no aprobado"
+
+#: Home/Metadata/Views/RifiutaIscrizioneMailMessage.yaml:7
+msgid "Unfortunately we cannot accept your request, which has therefore been rejected."
+msgstr "Lamentablemente no podemos aceptar su solicitud, que ha sido rechazada."
+
+#: Home/Metadata/Models/Customer.yaml:68 Home/Metadata/Models/Supplier.yaml:83
+msgid "Unique code"
+msgstr "Código único"
+
+#: Home/Metadata/Models/Equipment.yaml:57
+msgid "Unit of Measure"
+msgstr "Unidad de medida"
+
+#: Home/Metadata/Models/UnitOfMeasure.yaml:3 Home/Metadata/Models/UnitOfMeasure.yaml:5 Home/Metadata/Models/UnitOfMeasure.yaml:13
+msgid "Unit of measure"
+msgstr "Unidad de medida"
+
+#: Home/Metadata/Models/UnitOfMeasure.yaml:9
+msgid "Unit of measure code"
+msgstr "Código de unidad de medida"
+
+#: Home/Metadata/Models/ChampionshipStage.yaml:23
+msgid "Update scorer standings"
+msgstr "Actualizar clasificación de goleadores"
+
+#: Home/Metadata/Models/ChampionshipStage.yaml:20
+msgid "Update standings"
+msgstr "Actualizar clasificación"
+
+#: Source/SCM.Rules.MedicalVisit.pas:58
+msgid "Upload the certificate scan"
+msgstr "Cargue el escaneo del certificado"
+
+#: Home/Metadata/Models/AccountingLine.yaml:43 Home/Metadata/Models/User.yaml:6 Home/Metadata/Models/VAccountingLine.yaml:197
+msgid "User"
+msgstr "Usuario"
+
+#: Home/Metadata/Models/User.yaml:11
+msgid "User account Id"
+msgstr "Id de cuenta de usuario"
+
+#: Home/Metadata/Views/ConfirmAccess.yaml:44
+msgid "User Id"
+msgstr "Id de usuario"
+
+#: Home/Metadata/Models/Profile.yaml:13
+msgid "User profile"
+msgstr "Perfil de usuario"
+
+#: Home/Metadata/Models/User.yaml:5
+msgid "Users"
+msgstr "Usuarios"
+
+#: Home/Metadata/Models/Team.yaml:43
+msgid "Usual schedule"
+msgstr "Horario habitual"
+
+#: Home/Metadata/Models/Payment.yaml:89
+msgid "Value Date"
+msgstr "Fecha valor"
+
+#: Home/Metadata/Models/VatDetail.yaml:42 Home/Metadata/Models/AccountingLine.yaml:60 Home/Metadata/Models/VVatRegister.yaml:66
+msgid "VAT"
+msgstr "IVA"
+
+#: Home/Metadata/Models/VatCode.yaml:4 Home/Metadata/Models/CustomerInvoiceLine.yaml:27
+msgid "VAT Code"
+msgstr "Código de IVA"
+
+#: Home/Metadata/Models/VatCode.yaml:3
+msgid "VAT Codes"
+msgstr "Códigos de IVA"
+
+#: Home/Metadata/Models/VatDetail.yaml:6
+msgid "VAT Detail"
+msgstr "Detalle de IVA"
+
+#: Home/Metadata/Models/VatDetail.yaml:5
+msgid "VAT Details"
+msgstr "Detalles de IVA"
+
+#: Source/SCM.Rules.AccountingEntry.pas:193
+msgid "VAT entry type: the VAT register is required"
+msgstr "Tipo de asiento de IVA: el registro de IVA es obligatorio"
+
+#: Source/SCM.Rules.AccountingEntry.pas:196
+msgid "VAT line total differs from the tax total of the VAT detail"
+msgstr "El total de las líneas de IVA difiere del total del impuesto del detalle de IVA"
+
+#: Home/Metadata/Models/Customer.yaml:45 Home/Metadata/Models/Configuration.yaml:42 Home/Metadata/Models/Configuration.yaml:44
+msgid "VAT Number"
+msgstr "NIF-IVA"
+
+#: Home/Metadata/Models/Sponsor.yaml:28
+msgid "VAT number"
+msgstr "NIF-IVA"
+
+#: Source/SCM.Rules.CustomerSupplier.pas:72
+msgid "VAT number is required."
+msgstr "El NIF-IVA es obligatorio."
+
+#: Home/Metadata/Models/LedgerAccount.yaml:106
+msgid "VAT payable to tax authority"
+msgstr "Hacienda pública, IVA"
+
+#: Home/Metadata/Views/Layouts/ADMIN_AccountingEntries_Grid.yaml:16 Home/Metadata/Views/Layouts/ADMIN_AccountingLines_Grid.yaml:35
+msgid "VAT Prot."
+msgstr "Prot. de IVA"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:58 Home/Metadata/Models/VAccountingLine.yaml:55
+msgid "VAT protocol number"
+msgstr "Número de protocolo de IVA"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:118 Home/Metadata/Models/VVatRegister.yaml:5 Home/Metadata/Models/VVatRegister.yaml:6
+msgid "VAT Register"
+msgstr "Registro de IVA"
+
+#: Home/Metadata/Models/VatRegisterType.yaml:14
+msgid "VAT register description"
+msgstr "Descripción del registro de IVA"
+
+#: Home/Metadata/Models/VatRegisterType.yaml:5 Home/Metadata/Views/ADMIN_VatRegisters.yaml:7
+msgid "VAT Register Type"
+msgstr "Tipo de registro de IVA"
+
+#: Home/Metadata/Models/VatRegisterType.yaml:18
+msgid "VAT register type"
+msgstr "Tipo de registro de IVA"
+
+#: Home/Metadata/Models/VatRegisterType.yaml:4
+msgid "VAT Register Types"
+msgstr "Tipos de registro de IVA"
+
+#: Home/Metadata/Models/SubscriptionFee.yaml:161
+msgid "Venue"
+msgstr "Lugar"
+
+#: Home/Metadata/Views/ApplicationInfo.yaml:13
+msgid "Version:"
+msgstr "Versión:"
+
+#: Home/Metadata/Views/USER_TreeMenu.yaml:20
+msgid "Visit appt."
+msgstr "Cita revisión"
+
+#: Home/Metadata/Models/MedicalVisitBooking.yaml:18 Home/Metadata/Models/VSubscriptionVisit.yaml:42 Home/Metadata/Models/VSubscriptionVisit.yaml:108
+msgid "Visit date"
+msgstr "Fecha de la revisión"
+
+#: Home/Metadata/Models/MedicalVisit.yaml:51
+msgid "Visit Date"
+msgstr "Fecha de la revisión"
+
+#: Home/Metadata/Models/Subscription.yaml:176 Home/Metadata/Models/Person.yaml:179 Home/Metadata/Views/ADMIN_MedicalVisits.yaml:42
+msgid "Visit Expiry"
+msgstr "Vencimiento de la revisión"
+
+#: Home/Metadata/Views/ADMIN_Subscriptions.yaml:18
+msgid "Visit expiry"
+msgstr "Vencimiento de revisiones"
+
+#: Home/Metadata/Views/Layouts/ADMIN_MedicalVisits_Form.yaml:18
+msgid "Visit Outcome"
+msgstr "Resultado de la revisión"
+
+#: Home/Metadata/Models/Subscription.yaml:306 Home/Metadata/Models/Person.yaml:219 Home/Metadata/Views/ADMIN_Subscriptions.yaml:43
+msgid "Visit Status"
+msgstr "Estado de las revisiones"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:44
+msgid "Visit Time"
+msgstr "Hora de la revisión"
+
+#: Home/Metadata/Models/VSubscriptionVisit.yaml:109 Home/Metadata/Models/MedicalVisit.yaml:130
+msgid "Visit time"
+msgstr "Hora de la revisión"
+
+#: Source/SCM.Rules.MembersRegister.pas:29
+msgid "Warning: a reason is required when the member is rejected"
+msgstr "Atención: el motivo es obligatorio si se rechaza al socio"
+
+#: Source/SCM.Rules.User.pas:71 Source/SCM.Rules.User.pas:138
+msgid "Warning: a user with this tax code already exists: request a new password!"
+msgstr "Atención: ya existe un usuario con este NIF: solicite una nueva contraseña."
+
+#: Source/SCM.Rules.Payment.pas:255
+msgid "Warning: the amount paid is greater than the outstanding amount of the instalment"
+msgstr "Atención: el importe pagado es mayor que el importe pendiente de la cuota"
+
+#: Source/SCM.Rules.pas:182
+msgid "Warning: value %s already exists in %s!"
+msgstr "Atención: el valor %s ya existe en %s."
+
+#: Home/Metadata/Views/ConfermaPagamentoMailMessage.yaml:7
+msgid "We confirm receipt of the payment of the fee for"
+msgstr "Le confirmamos el pago de la cuota correspondiente a"
+
+#: Home/Metadata/Views/RichiestaIscrizioneMailMessage.yaml:6
+msgid "We have received the subscription request of"
+msgstr "Hemos recibido la solicitud de inscripción de"
+
+#: Home/Resources/SubscriptionConfirmation.htm:3
+msgid "we have received your request to subscribe to a course through"
+msgstr "hemos recibido su solicitud de inscripción a un curso a través de"
+
+#: Home/Metadata/Views/RegisterMailMessage.yaml:6
+msgid "we see that you have requested access to"
+msgstr "nos consta que ha solicitado acceso a"
+
+#: Home/Metadata/Views/RifiutaIscrizioneMailMessage.yaml:6
+msgid "we see that you have requested to subscribe to the course"
+msgstr "nos consta que ha solicitado inscribirse en el curso"
+
+#: Home/Metadata/Models/Configuration.yaml:57
+msgid "Website"
+msgstr "Sitio web"
+
+#: Home/Metadata/Models/Team.yaml:95
+msgid "Wednesday"
+msgstr "Miércoles"
+
+#: Home/Metadata/Models/Person.yaml:162
+msgid "Weight (kg)"
+msgstr "Peso (kg)"
+
+#: Home/Metadata/Models/Subscription.yaml:318
+msgid "with Sibling Discount"
+msgstr "con descuento por hermanos"
+
+#: Home/Metadata/Models/Subscription.yaml:319
+msgid "with Single Instalment Discount"
+msgstr "con descuento por pago único"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:11
+msgid "Withholding code"
+msgstr "Código de retención"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:62
+msgid "Withholding status"
+msgstr "Estado de la retención"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:6
+msgid "Withholding tax"
+msgstr "Retención"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:41
+msgid "Withholding tax amount"
+msgstr "Importe de la retención"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:5
+msgid "Withholding taxes"
+msgstr "Retenciones"
+
+#: Home/Metadata/Models/WithholdingDetail.yaml:56
+msgid "Withholding type"
+msgstr "Tipo de retención"
+
+#: Home/Metadata/Models/Kpi.yaml:29 Home/Metadata/Views/ADMIN_DashKpiWithoutCertificate.yaml:2
+msgid "Without certificate"
+msgstr "Sin certificado"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:211 Home/Metadata/Models/VAccountingLine.yaml:143 Home/Metadata/Views/ADMIN_AccountingEntries.yaml:58
+msgid "XML Invoice"
+msgstr "Factura XML"
+
+#: Home/Metadata/Models/AccountingEntry.yaml:222 Home/Metadata/Models/VAccountingLine.yaml:154
+msgid "XML Invoice File Name"
+msgstr "Nombre del archivo XML de factura"
+
+#: Source/SCM.Tools.pas:582 Source/SCM.Tools.pas:782 Source/SCM.Tools.pas:987
+msgid "XML invoice generation"
+msgstr "Generación de la factura XML"
+
+#: Home/Metadata/Models/FamilyDeduction.yaml:83 Home/Metadata/Models/TaxDeduction.yaml:93 Home/Metadata/Models/FinancialYear.yaml:10
+msgid "Year"
+msgstr "Año"
+
+#: Home/Metadata/Models/Person.yaml:185
+msgid "Year of birth"
+msgstr "Año de nacimiento"
+
+#: Home/Metadata/Models/Municipality.yaml:23
+msgid "Yes"
+msgstr "Sí"
+
+#: Home/Resources/SubscriptionConfirmation.htm:6
+msgid "You can pay by cheque or by bank transfer made out to"
+msgstr "Puede pagar con cheque o mediante transferencia a nombre de"
+
+#: Home/Metadata/Views/RichiestaIscrizioneMailMessage.yaml:7
+msgid "You will shortly receive a confirmation e-mail with the instructions to pay the fee."
+msgstr "Recibirá en breve un correo de confirmación de la inscripción, con las instrucciones para el pago de la cuota."
+
+#: Home/Metadata/Views/RegisterMailMessage.yaml:7
+msgid "Your access code is"
+msgstr "Su código de acceso es"
+
+#: Home/Metadata/Views/ApprovaIscrizioneMailMessage.yaml:7
+msgid "Your subscription to"
+msgstr "Tu inscripción a"
+
+#: Home/Metadata/Views/Layouts/ADMIN_Users_Form.yaml:13
+msgid "Account settings"
+msgstr "Ajustes de la cuenta"
+
+#: Home/Metadata/Models/VIncomeExpense.yaml:8
+msgid "Income"
+msgstr "Ingresos"
+
+#: Home/Metadata/Models/Kpi.yaml:14
+msgid "None"
+msgstr "Ninguna"
+
+#: Home/Metadata/Models/FinancialStatement.yaml:23 Home/Metadata/Models/LedgerAccount.yaml:36
+msgid "Costs"
+msgstr "Costes"

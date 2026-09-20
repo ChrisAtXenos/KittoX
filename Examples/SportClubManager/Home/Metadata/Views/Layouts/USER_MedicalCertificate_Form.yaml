@@ -1,0 +1,24 @@
+﻿FieldSet:
+  Title: _(Medical Visit)
+  Row:
+    Field: Performed
+  Row:
+    Field: Person
+      CharWidth: 53
+  Row:
+    Field: MedicalVisitType
+      CharWidth: 53
+  Row:
+    Field: VisitDate
+    Field: VisitTime
+  Row:
+    Field: Notes
+      CharWidth: 59
+FieldSet:
+  Title: _(Certificate)
+  Row:
+    Field: Fitness
+  Row:
+    Field: DocumentFile
+  Row:
+    Field: ExpiryDate

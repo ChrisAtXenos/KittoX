@@ -1,0 +1,26 @@
+﻿ModelName: MedicalVisitType
+PhysicalName: TPVISITAMED
+PluralDisplayLabel: _(Medical visit types)
+PluralModelName: MedicalVisitTypes
+DisplayLabel: _(Medical visit type)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 100
+  Cost: Currency not null
+    PhysicalName: COSTO
+    DisplayLabel: _(Cost)
+    DisplayWidth: 10
+    DefaultValue: 0
+  ValidityMonths: Reference(DurationType)
+    DisplayLabel: _(Expiry)
+    PhysicalName: FK_TPVISITAMED_SCADENZA
+    Fields:
+      ExpiryDateId:
+        PhysicalName: ScadenzaId
+ImageName: enhanced_encryption

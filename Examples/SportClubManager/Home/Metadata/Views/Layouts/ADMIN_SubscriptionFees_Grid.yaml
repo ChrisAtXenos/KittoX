@@ -1,0 +1,36 @@
+﻿Field: Campaign
+Field: Description
+Field: BirthYearFrom
+Field: BirthYearTo
+Field: TotalFee
+Field: SingleInstalmentDiscount
+Field: Instalment1DueDate
+Field: Instalment1Amount
+Field: Instalment2DueDate
+Field: Instalment2Amount
+Field: Instalment3DueDate
+Field: Instalment3Amount
+Field: Instalment4DueDate
+Field: Instalment4Amount
+Field: Instalment5DueDate
+Field: Instalment5Amount
+Field: Venue
+Field: Day1
+  DisplayWidth: 10
+Field: StartTime1
+  DisplayWidth: 10
+Field: EndTime1
+  DisplayWidth: 10
+Field: Day2
+  DisplayWidth: 10
+Field: StartTime2
+  DisplayWidth: 10
+Field: EndTime2
+  DisplayWidth: 10
+Field: Day3
+  DisplayWidth: 10
+Field: StartTime3
+  DisplayWidth: 10
+Field: EndTime3
+  DisplayWidth: 10
+Field: CourseComplete

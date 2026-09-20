@@ -1,0 +1,28 @@
+﻿LabelAlign: Right
+FieldSet:
+  Row:
+    Field: Season
+      CharWidth: 60
+  Row:
+    Field: Affiliation
+      CharWidth: 60
+  Row:
+    Field: Person
+      CharWidth: 80
+  Row:
+    Field: Championship
+      CharWidth: 80
+  Row:
+    Field: Description
+  Row:
+    Field: Rebate
+    Field: TotalFee
+    Field: Loan
+  Row:
+    Field: ContractCode
+    Field: ContractFiledDate
+  Row:
+    Field: StartDate
+    Field: ExpiryDate
+  Row:
+    Field: CardNumber

@@ -1,0 +1,42 @@
+Field: LineNumber
+  DisplayWidth: 10
+  DisplayLabel: _(Line No.)
+Field: LedgerAccount
+Field: LineDescription
+  DisplayWidth: 60
+Field: DebitAmount
+  DisplayWidth: 15
+Field: CreditAmount
+  DisplayWidth: 15
+Field: DueDate
+  DisplayWidth: 20
+Field: Match
+Field: VatCode
+Field: CostCentre
+Field: LineBank
+Field: LineSupplier
+Field: LineCustomer
+Field: Person
+Field: FinancialYear
+Field: EntryNumber
+  DisplayWidth: 10
+  DisplayLabel: _(Entry No.)
+Field: AccountingReason
+Field: PostingDate
+Field: EntryAmount
+  DisplayWidth: 15
+Field: DocumentDate
+Field: DocumentNumber
+  DisplayWidth: 10
+  DisplayLabel: _(Doc. No.)
+Field: VatRegister
+Field: VatProtocolNumber
+  DisplayWidth: 10
+  DisplayLabel: _(VAT Prot.)
+Field: PaymentMethod
+Field: EntrySupplier
+  DisplayLabel: _(Entry Supplier)
+Field: EntryCustomer
+   DisplayLabel: _(Entry Customer)
+Field: EntryBank
+  DisplayLabel: _(Entry Bank)

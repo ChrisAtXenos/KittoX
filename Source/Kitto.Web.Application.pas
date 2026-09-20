@@ -286,9 +286,9 @@ type
     /// <summary>Serves the given bytes as a download (or inline) response.</summary>
     procedure DownloadBytes(const ABytes: TBytes; const AFileName: string; const AContentType: string = ''; const AInline: Boolean = True);
     /// <summary>
-    ///  Checks user credentials (fetched from Query parameters UserName and Passwords)
-    ///  and returns True if the current authenticator allows them, or if the
-    ///  user was already authenticated in this session.
+    ///  Checks user credentials (read from the POST body fields UserName and
+    ///  Password) and returns True if the current authenticator allows them, or
+    ///  if the user was already authenticated in this session.
     /// </summary>
     function Authenticate: Boolean;
 
@@ -389,6 +389,14 @@ type
     ///  controller type, ADefaultControllerType is used (e.g. 'Login').
     /// </summary>
     function RenderViewAsPage(const AView: TKView; const ADefaultControllerType: string = ''): string;
+    /// <summary>
+    ///  Single source of truth for choosing which controller renders a view.
+    ///  Used by BOTH the kx/view route (Kitto.Web.Handler.View) and by a view
+    ///  served as a page (home page + KIDEX live preview), so the two paths never
+    ///  diverge in how they resolve the controller.
+    /// </summary>
+    function CreateControllerForView(const AView: TKView;
+      const ADefaultControllerType: string = ''): IKXController;
     /// <summary>
     ///  Renders AView and serves it wrapped in the _Page template (theme,
     ///  scripts) via ServeHomePage. Reusable entry point for page handlers.
@@ -671,30 +679,41 @@ end;
 
 function TKWebApplication.GetLoginView: TKView;
 begin
-  if not Assigned(FLoginNode) then
-  begin
-    FOwnsLoginNode := False;
-    FLoginNode := Config.Config.FindNode('Login');
+  // The application object is shared across request threads, so the lazy init
+  // of FLoginNode (and the non-persistent view built for it when config has no
+  // Login node and no Login view) must be serialized: two first hits used to
+  // each create a node and one overwrote the other, leaking that node and the
+  // non-persistent view registered for it. The Exit below sits inside the try,
+  // so the finally always releases the monitor.
+  TMonitor.Enter(Self);
+  try
     if not Assigned(FLoginNode) then
     begin
-      Result := Config.Views.FindView('Login');
-      if Assigned(Result) then
-        Exit;
+      FOwnsLoginNode := False;
+      FLoginNode := Config.Config.FindNode('Login');
+      if not Assigned(FLoginNode) then
+      begin
+        Result := Config.Views.FindView('Login');
+        if Assigned(Result) then
+          Exit;
 
-      FLoginNode := TEFNode.Create('Login');
-      try
-        FOwnsLoginNode := True;
-        FLoginNode.SetString('Controller', 'Login');
-      except
-        FreeAndNil(FLoginNode);
-        FOwnsLoginNode := False;
-        raise;
+        FLoginNode := TEFNode.Create('Login');
+        try
+          FOwnsLoginNode := True;
+          FLoginNode.SetString('Controller', 'Login');
+        except
+          FreeAndNil(FLoginNode);
+          FOwnsLoginNode := False;
+          raise;
+        end;
       end;
     end;
+    Result := Config.Views.FindViewByNode(FLoginNode);
+    if not Assigned(Result) then
+      raise Exception.Create('Login View not found');
+  finally
+    TMonitor.Exit(Self);
   end;
-  Result := Config.Views.FindViewByNode(FLoginNode);
-  if not Assigned(Result) then
-    raise Exception.Create('Login View not found');
 end;
 
 procedure TKWebApplication.DetectScreenSize;
@@ -902,11 +921,22 @@ begin
 end;
 
 procedure TKWebApplication.DownloadStream(const AStream: TStream; const AFileName, AContentType: string; const AInline: Boolean);
+var
+  LSafeName: string;
 begin
   if Assigned(AStream) then
   begin
+    // The file name can come from the client (the ?name= of a blob request) or
+    // from a record field, and was put verbatim inside a quoted header value: a
+    // name carrying a double quote or a CR/LF would close the quoted string or
+    // inject a new response header. Strip those; the path is already removed by
+    // ExtractFileName.
+    LSafeName := ExtractFileName(AFileName)
+      .Replace('"', '', [rfReplaceAll])
+      .Replace(#13, '', [rfReplaceAll])
+      .Replace(#10, '', [rfReplaceAll]);
     TKWebResponse.Current.SetCustomHeader('Content-Disposition',
-      Format('%s; filename="%s"', [IfThen(AInline, 'inline', 'attachment'), ExtractFileName(AFileName)]));
+      Format('%s; filename="%s"', [IfThen(AInline, 'inline', 'attachment'), LSafeName]));
     TKWebResponse.Current.ReplaceContentStream(AStream);
     if AContentType <> '' then
       TKWebResponse.Current.ContentType := AContentType
@@ -1054,18 +1084,20 @@ begin
         {AllowUnauthenticated} IsHomeRequest,
         {AllowSessionLost} IsHomeRequest));
       try
-        LChain.RunBefore;
-        if LChain.Context.Handled then
-          Result := True
-        else
+        // RunBefore is INSIDE the try so an exception from a filter's
+        // BeforeInvoke reaches HandleException too, instead of escaping to the
+        // raw server 500 (same reasoning as TKXFilterChain.Run).
         try
-        if IsHomeRequest then
-        begin
-          TEFLogger.Instance.Log('DoHandleRequest: IsHomeRequest=True, calling Home', TEFLogger.LOG_DEBUG);
-          Home;
-          Result := True;
-        end;
-        // If not handled, let the route system continue (→ 404).
+          LChain.RunBefore;
+          if LChain.Context.Handled then
+            Result := True
+          else if IsHomeRequest then
+          begin
+            TEFLogger.Instance.Log('DoHandleRequest: IsHomeRequest=True, calling Home', TEFLogger.LOG_DEBUG);
+            Home;
+            Result := True;
+          end;
+          // If not handled, let the route system continue (→ 404).
         except
           on E: Exception do
             // The error-handler filter turns the exception into a NON-FATAL
@@ -1178,6 +1210,22 @@ end;
 // HandleKXToolRequest, HandleKXTempUploadRequest, HandleKXNotifyChangeRequest,
 // NotifyFieldChangeHandler, HandleKXBlobRequest migrated to TKXViewHandlerBase
 // (Kitto.Web.Handler.View)
+
+// A stored file name must be a bare name — the application stores a GUID plus an
+// extension. Anything with a directory separator, a parent reference or a drive
+// is a path-traversal attempt: the name is combined with the field's storage
+// directory and then moved into, or deleted from, the file system, so a value
+// like  ..\..\..\Windows\win.ini  would move an uploaded file over, or delete,
+// a file outside that directory. Both the client-supplied '<field>__temp' name
+// and a name read back from the record pass through here.
+function IsSafeStoredFileName(const AFileName: string): Boolean;
+begin
+  Result := (AFileName <> '')
+    and (Pos('/', AFileName) = 0)
+    and (Pos('\', AFileName) = 0)
+    and (Pos('..', AFileName) = 0)
+    and not TPath.IsPathRooted(AFileName);
+end;
 
 procedure TKWebApplication.PopulateRecordFieldFromPost(
   ARecord: TKViewTableRecord; AViewField: TKViewField; AIsInsert: Boolean);
@@ -1366,6 +1414,9 @@ begin
     var LTempName := TKWebRequest.Current.GetField(LFieldName + '__temp');
     if LTempName <> '' then
     begin
+      // The name is client-supplied; a traversal value must not reach TFile.Move
+      // or be stored as the field value.
+      if not IsSafeStoredFileName(LTempName) then Continue;
       var LTempDir := TPath.Combine(TPath.Combine(TPath.GetTempPath, 'kxupload'),
         TKWebSession.Current.SessionId);
       var LTempSrc := TPath.Combine(LTempDir, LTempName);
@@ -1375,7 +1426,7 @@ begin
         if not AIsInsert then
         begin
           var LOldStored := ARecord.FieldByName(LFieldName).AsString;
-          if LOldStored <> '' then
+          if IsSafeStoredFileName(LOldStored) then
           begin
             var LOldFile := TPath.Combine(LFinalPath, LOldStored);
             if TFile.Exists(LOldFile) then TFile.Delete(LOldFile);
@@ -1395,7 +1446,7 @@ begin
       if SameText(LClearFlag, '1') then
       begin
         var LOldStored := ARecord.FieldByName(LFieldName).AsString;
-        if (LOldStored <> '') and (LFinalPath <> '') then
+        if IsSafeStoredFileName(LOldStored) and (LFinalPath <> '') then
         begin
           var LOldFile := TPath.Combine(LFinalPath, LOldStored);
           if TFile.Exists(LOldFile) then TFile.Delete(LOldFile);
@@ -1487,10 +1538,15 @@ begin
     LAuthData := TEFNode.Create;
     try
       LAuthenticator.DefineAuthData(LAuthData);
-      LUserName := TKWebRequest.Current.GetQueryField('UserName');
+      // Credentials from the POST body only, never the query string: the home
+      // used to accept ?UserName=&Password= in a GET (a Kitto1 leftover), which
+      // put passwords in URLs and proxy logs and enabled login-CSRF. On a GET
+      // home request GetFormField is empty, so this path no longer logs anyone
+      // in from the URL; the real login goes through POST /kx/login.
+      LUserName := TKWebRequest.Current.GetFormField('UserName');
       if LUserName <> '' then
         LAuthData.SetString('UserName', LUserName);
-      LPassword := TKWebRequest.Current.GetQueryField('Password');
+      LPassword := TKWebRequest.Current.GetFormField('Password');
       if LPassword <> '' then
         LAuthData.SetString('Password', LPassword);
       Result := LAuthenticator.Authenticate(LAuthData);
@@ -1498,6 +1554,13 @@ begin
       LAuthData.Free;
     end;
   end;
+  // NOTE (KIDEX preview): the preview runs the REAL authentication and ACL. To
+  // skip the login form it relies on the application's own Auth/Defaults
+  // (UserName/Password) exactly as a deployed app does -- forcing an
+  // authenticated session here (tried and reverted) leaves it without the ACL
+  // claim, so a closed-world AccessControl (e.g. JWT) then denies resources and
+  // the render breaks. Auto-login without configured defaults is a separate,
+  // still-open problem.
 end;
 
 procedure TKWebApplication.ReloadOrDisplayHomeView;
@@ -1523,21 +1586,33 @@ begin
   TEFMacroExpansionEngine.OnGetInstance := nil;
 end;
 
+function TKWebApplication.CreateControllerForView(const AView: TKView;
+  const ADefaultControllerType: string): IKXController;
+begin
+  // Shared controller resolution (see the interface summary). Two cases:
+  //  - a login-style view whose Controller node carries no type value (its
+  //    properties are children) falls back to ADefaultControllerType;
+  //  - otherwise the view's own Controller type.
+  // A "Controller: List" is created as the List: it hosts its CenterController
+  // (ChartPanel, CalendarPanel, the default GridPanel) and its other regions
+  // itself (TKXDataPanelCompositeController). Promoting the CenterController in
+  // its place, as this method and its copies once did, orphaned the sibling
+  // regions (WestController: GridPanel) and is gone.
+  if (AView.ControllerType = '') and (ADefaultControllerType <> '') then
+    Result := TKXControllerFactory.Instance.CreateController(AView, nil, nil, ADefaultControllerType)
+  else
+    Result := TKXControllerFactory.Instance.CreateController(AView);
+end;
+
 function TKWebApplication.RenderViewAsPage(const AView: TKView;
   const ADefaultControllerType: string): string;
 var
   LController: IKXController;
 begin
-  // A login-style view may declare a Controller node with no type value (its
-  // properties are children); fall back to ADefaultControllerType in that case,
-  // same as the ExtJS version did.
-  if (AView.ControllerType = '') and (ADefaultControllerType <> '') then
-    LController := TKXControllerFactory.Instance.CreateController(AView, nil, nil, ADefaultControllerType)
-  else
-    LController := TKXControllerFactory.Instance.CreateController(AView);
-  // A data view served as a page (the home page shows ChangePassword or
-  // ConfirmAccess this way) needs its record just as much as one opened
-  // through the kx/view route.
+  LController := CreateControllerForView(AView, ADefaultControllerType);
+  // A data view whose own Controller is a Form (the home page shows
+  // ChangePassword or ConfirmAccess this way) needs its record; PrepareStandalone
+  // FormRecord is a no-op for any other view or controller.
   PrepareStandaloneFormRecord(AView.PersistentName, AView, LController);
   LController.Display;
   Result := LController.Render;
@@ -1706,7 +1781,25 @@ begin
       TKWebSession.Current.AutoOpenViewName := 'ConfirmAccess';
     end
     else
+    begin
+{$IFDEF KITTOX_PREVIEW_MODE}
+      // Preview (KIDEX): "empty home" — host the requested view directly as the
+      // page body, with no real Home/dashboard chrome (tree/menu) or its
+      // auto-opened views around it. If no target view was asked for, or it does
+      // not exist, fall back to the normal Home. Compiled out in an app build.
+      LView := nil;
+      if TKWebSession.Current.AutoOpenViewName <> '' then
+      begin
+        LView := Config.Views.FindView(TKWebSession.Current.AutoOpenViewName);
+        if Assigned(LView) then
+          TKWebSession.Current.AutoOpenViewName := ''; // it is the body; do not auto-open again
+      end;
+      if not Assigned(LView) then
+        LView := GetHomeView;
+{$ELSE}
       LView := GetHomeView;
+{$ENDIF}
+    end;
   end
   else
     LView := GetLoginView;
@@ -1714,6 +1807,17 @@ begin
   // LoginView may have Controller: with no type value (properties are children);
   // RenderViewAsPage falls back to the 'Login' controller type in that case.
   LBodyContent := RenderViewAsPage(LView, 'Login');
+
+{$IFDEF KITTOX_PREVIEW_MODE}
+  // Preview (KIDEX): host the view in an OPAQUE, full-height content area -- a
+  // "real Home with nothing in it but the view". The view then renders exactly
+  // as in the deployed app (where it lives inside the Home's content region): it
+  // fills the height and no page background shows through. Without this the view
+  // sat on the bare page body, so transparent areas -- a chart canvas that
+  // collapsed to zero height, the space below a short grid -- revealed the
+  // background. Compiled out in an application build.
+  LBodyContent := '<div class="kx-preview-host">' + LBodyContent + '</div>';
+{$ENDIF}
 
   TKWebSession.Current.ReloadingHome := False;
   ServeHomePage(LBodyContent);
@@ -1737,6 +1841,18 @@ begin
     if not Assigned(FAccessController) then
     begin
       LType := Config.Config.GetExpandedString('AccessControl', NODE_NULL_VALUE);
+{$IFDEF KITTOX_PREVIEW_MODE}
+      // Preview (KIDEX): a custom access controller registered by app code is not
+      // linked here; fall back to Null (grants every access) so the preview shows
+      // the whole view rather than failing. Compiled out in an application build.
+      if not TKAccessControllerFactory.Instance.HasClass(LType) then
+      begin
+        TEFLogger.Instance.Log(Format('[PREVIEW MODE] AccessController "%s" is not ' +
+          'registered (app-specific code not linked into KIDEX); falling back to "%s".',
+          [LType, NODE_NULL_VALUE]));
+        LType := NODE_NULL_VALUE;
+      end;
+{$ENDIF}
       FAccessController := TKAccessControllerFactory.Instance.CreateObject(LType);
       LConfig := Config.Config.FindNode('AccessControl');
       if Assigned(LConfig) then
@@ -1782,6 +1898,24 @@ begin
     if not Assigned(FAuthenticator) then
     begin
       LType := Config.Config.GetExpandedString('Auth', NODE_NULL_VALUE);
+{$IFDEF KITTOX_PREVIEW_MODE}
+      // Preview (KIDEX): an app may declare a custom authenticator registered by
+      // its own code (e.g. 'TasKitto' in the app's Auth.pas), which KIDEX does
+      // not link. Rather than fail, fall back to the standard DB authenticator
+      // (custom ones typically descend from TKDBAuthenticator, so real DB logins
+      // still work), or to Null if DB is not linked either. Never reached in an
+      // application build — this branch is compiled out there.
+      if not TKAuthenticatorFactory.Instance.HasClass(LType) then
+      begin
+        if TKAuthenticatorFactory.Instance.HasClass('DB') then
+          LType := 'DB'
+        else
+          LType := NODE_NULL_VALUE;
+        TEFLogger.Instance.Log(Format('[PREVIEW MODE] Authenticator "%s" is not ' +
+          'registered (app-specific code not linked into KIDEX); falling back to "%s".',
+          [Config.Config.GetExpandedString('Auth', NODE_NULL_VALUE), LType]));
+      end;
+{$ENDIF}
       FAuthenticator := TKAuthenticatorFactory.Instance.CreateObject(LType);
       LConfig := Config.Config.FindNode('Auth');
       if Assigned(LConfig) then
@@ -1869,6 +2003,13 @@ begin
         // authenticated home (never on the login page, which shares this skeleton).
         if TKAuthenticator.Current.IsAuthenticated then
           LBodyClass := Trim(LBodyClass + ' kx-authenticated');
+{$IFDEF KITTOX_PREVIEW_MODE}
+        // Preview (KIDEX): the view is hosted directly as the page body (no Home
+        // chrome), so give the body a full-height flex context; otherwise a
+        // panel's flex:1 has no flex parent and the view does not fill the
+        // viewport (visible when a grid has no rows). Compiled out in an app build.
+        LBodyClass := Trim(LBodyClass + ' kx-preview');
+{$ENDIF}
         ATemplate.SetData('bodyClass', TValue.From<string>(LBodyClass));
         ATemplate.SetData('appTitle', TValue.From<string>(_(Config.AppTitle)));
         ATemplate.SetData('iconLink', TValue.From<string>(LIconLink));
@@ -1878,18 +2019,31 @@ begin
         ATemplate.SetData('iconStyle', TValue.From<string>(GetIconStyle));
         // Guard: if an optional feature is enabled in Config but its opt-in unit
         // is missing from UseKitto.pas, fail fast here with an actionable error.
+        // Skipped in preview: Help Chat / Notifications are forced off below, so
+        // there is nothing to validate (and a custom chat provider registered by
+        // the app's own code -- not linked into KIDEX -- would raise here).
+{$IFNDEF KITTOX_PREVIEW_MODE}
         CheckOptionalFeatureUnits;
+{$ENDIF}
         // Marker used by the client to enable the help-chat assistant button
         // (only when HelpChat/Enabled is set, and only on the authenticated home).
         var LHelpChatEnabled := 'false';
-        if Config.Config.GetBoolean('HelpChat/Enabled', False) then
-          LHelpChatEnabled := 'true';
-        ATemplate.SetData('helpChatEnabled', TValue.From<string>(LHelpChatEnabled));
         // Marker used by the client to enable the notification-center bell
         // (only when Notifications/Enabled is set, e.g. apps that run background tools).
         var LNotificationsEnabled := 'false';
+{$IFDEF KITTOX_PREVIEW_MODE}
+        // Preview (KIDEX): the Help Chat and the Notification Center are
+        // application-level chrome, not part of the view being designed. Keep
+        // them OFF so they neither render nor poll (their notifications XHR was
+        // the only traffic on an otherwise data-less preview). Compiled out in
+        // an application build.
+{$ELSE}
+        if Config.Config.GetBoolean('HelpChat/Enabled', False) then
+          LHelpChatEnabled := 'true';
         if Config.Notifications.Enabled then
           LNotificationsEnabled := 'true';
+{$ENDIF}
+        ATemplate.SetData('helpChatEnabled', TValue.From<string>(LHelpChatEnabled));
         ATemplate.SetData('notificationsEnabled', TValue.From<string>(LNotificationsEnabled));
         ATemplate.SetData('loadingMessage', TValue.From<string>(Format(_('Loading %s...'), [Config.AppTitle])));
         ATemplate.SetData('themeAttr', TValue.From<string>(LThemeAttr));

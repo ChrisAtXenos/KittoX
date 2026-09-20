@@ -1,0 +1,5 @@
+Field: Id
+Field: Description
+Field: IsNaturalPerson
+Field: RequiresTaxCode
+Field: RequiresVatNumber

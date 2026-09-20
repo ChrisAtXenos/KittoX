@@ -114,7 +114,7 @@ type
     [TKXPath('/data')] [TKXANY]
     procedure HandleData([TKXPathParam('ViewName')] const AViewName: string); virtual;
     /// Delete a record (by key), then return refreshed rows (+ OOB pager/state).
-    [TKXPath('/delete')] [TKXPOST]
+    [TKXPath('/delete')] [TKXPOST] [TKXNotPublic]
     procedure HandleDelete([TKXPathParam('ViewName')] const AViewName: string); virtual;
     /// Open the form dialog (op=new/add/edit/view/dup); registers the session store.
     [TKXPath('/form')] [TKXGET]
@@ -145,12 +145,12 @@ type
     /// Delete a detail record from the master's in-memory store: a record that
     /// was already persisted is marked rsDeleted, one that was never saved is
     /// removed outright.
-    [TKXPath('/detail/{Index}/delete')] [TKXPOST]
+    [TKXPath('/detail/{Index}/delete')] [TKXPOST] [TKXNotPublic]
     procedure HandleDetailDelete([TKXPathParam('ViewName')] const AViewName: string;
       [TKXPathParam('Index')] const AIndex: Integer); virtual;
     /// Execute a tool view (Controller/ToolViews or EditController/ToolViews).
     /// The tool controller writes its own response (download stream or HTML).
-    [TKXPath('/tool/{ToolName}')] [TKXPOST]
+    [TKXPath('/tool/{ToolName}')] [TKXPOST] [TKXNotPublic]
     procedure HandleTool([TKXPathParam('ViewName')] const AViewName: string;
       [TKXPathParam('ToolName')] const AToolName: string); virtual;
     /// Store an uploaded file in a per-session temp dir before the form is
@@ -209,7 +209,9 @@ uses
   Kitto.Html.Form,
   Kitto.Html.Wizard,
   Kitto.Rules.Wizard,
+  Kitto.Html.DataPanel,
   Kitto.Html.List,
+  Kitto.Html.GridPanel,
   Kitto.Html.GroupingList,
   Kitto.Html.TemplateDataPanel,
   Kitto.Html.Filters,
@@ -381,8 +383,6 @@ var
   LController: IKXController;
   LObject: TKXComponent;
   LHtml: string;
-  LControllerNode, LCenterNode: TEFNode;
-  LControllerType: string;
 
   procedure AdjustForContext;
   begin
@@ -401,56 +401,17 @@ begin
     if not LApp.IsViewAccessGranted(LView, ACM_VIEW) then
       Exit;
     try
-      // CenterController interception (e.g. Controller: List / CenterController:
-      // ChartPanel), only when CenterController specifies a controller type.
-      LCenterNode := nil;
-      LControllerNode := LView.FindNode('Controller');
-      if Assigned(LControllerNode) then
-      begin
-        LCenterNode := LControllerNode.FindNode('CenterController');
-        if Assigned(LCenterNode) and (LCenterNode.AsString = '') then
-          LCenterNode := nil; // Config-only node, not a controller type
-      end;
-
-      // Standalone Form controller: load record via DefaultFilter/FilterExpression.
-      LControllerType := '';
-      if Assigned(LControllerNode) then
-        LControllerType := LControllerNode.AsString;
-      if SameText(LControllerType, 'Form') and (LView is TKDataView) then
-      begin
-        LController := TKXControllerFactory.Instance.CreateController(LView);
-        if LController is TKXFormPanelController then
-        begin
-          // Record, store and session registration are prepared by the
-          // application, which does the same for a view served as the home
-          // page (ChangePassword, ConfirmAccess): the two paths must not
-          // diverge.
-          LApp.PrepareStandaloneFormRecord(AViewName, LView, LController);
-          LController.Display;
-          AdjustForContext;
-          LHtml := LController.Render;
-        end
-        else
-        begin
-          LController.Display;
-          AdjustForContext;
-          LHtml := LController.Render;
-        end;
-      end
-      else if Assigned(LCenterNode) then
-      begin
-        LController := TKXControllerFactory.Instance.CreateController(LView, nil, LCenterNode);
-        LController.Display;
-        AdjustForContext;
-        LHtml := LController.Render;
-      end
-      else
-      begin
-        LController := TKXControllerFactory.Instance.CreateController(LView);
-        LController.Display;
-        AdjustForContext;
-        LHtml := LController.Render;
-      end;
+      // Resolve which controller renders this view through the SHARED
+      // application logic -- the same call the home page and the KIDEX live
+      // preview use (TKWebApplication.CreateControllerForView) -- so the route is
+      // unified and the two paths cannot diverge (which is what let a view render
+      // one way here and another way as a page).
+      LController := LApp.CreateControllerForView(LView);
+      // Standalone Form views load their record here; a no-op for anything else.
+      LApp.PrepareStandaloneFormRecord(AViewName, LView, LController);
+      LController.Display;
+      AdjustForContext;
+      LHtml := LController.Render;
 
       // Wizard modal: replace generic dialog id/close with wizard-specific ones.
       if (LController.AsObject is TKXWizardController) and
@@ -525,8 +486,6 @@ var
   LStart, LLimit: Integer;
   LSort, LDir: string;
   LFilterExpr, LSortExpr: string;
-  LFilterItemsNode: TEFNode;
-  LFilterConnector: string;
   LControllerNode: TEFNode;
   LViewField: TKViewField;
   LHtml: string;
@@ -578,23 +537,10 @@ begin
   LSort := TKWebRequest.Current.GetField('sort');
   LDir := TKWebRequest.Current.GetField('dir');
 
-  // Build filter expression from all active filters
-  LFilterExpr := '';
+  // Filter expression from the filter panel's current values (f_N fields);
+  // the same one the chart and calendar endpoints apply.
   LControllerNode := LView.FindNode('Controller');
-  if Assigned(LControllerNode) then
-  begin
-    LFilterItemsNode := LControllerNode.FindNode('Filters/Items');
-    if Assigned(LFilterItemsNode) then
-    begin
-      LFilterConnector := LControllerNode.GetString('Filters/Connector', 'and');
-      LFilterExpr := BuildFilterExpression(
-        LFilterItemsNode, LFilterConnector,
-        function(AIndex: Integer): string
-        begin
-          Result := TKWebRequest.Current.GetField('f_' + IntToStr(AIndex));
-        end);
-    end;
-  end;
+  LFilterExpr := BuildRequestFilterExpression(LControllerNode);
 
   // Lookup mode: also apply the calling reference field's LookupFilter, so a
   // dedicated IsLookup grid honors the same restriction as the inline combo
@@ -688,8 +634,7 @@ begin
     end;
   end
   else if Assigned(LControllerNode) and
-    (LControllerNode.GetString('TemplateFileName',
-      LControllerNode.GetString('CenterController/TemplateFileName')) <> '') then
+    (LControllerNode.GetString('TemplateFileName') <> '') then
   begin
     // List + TemplateFileName — re-render selectable cards (paged if PageRecordCount defined)
     LSortExpr := '';
@@ -760,7 +705,7 @@ begin
       // Main target content: raw rows (swapped into tbody via hx-target),
       // plus OOB updates for pager and state.
       LHtml :=
-        TKXListPanelController.BuildDataRows(LStore, LViewTable, LViewAlias, LUrlViewName,
+        TKXGridPanelController.BuildDataRows(LStore, LViewTable, LViewAlias, LUrlViewName,
           LViewTable.FindLayout('Grid'));
 
       // OOB: pager (only when PagingTools is enabled)
@@ -800,8 +745,6 @@ var
   LStart, LLimit: Integer;
   LSort, LDir: string;
   LFilterExpr, LSortExpr, LKeyFilter: string;
-  LFilterItemsNode: TEFNode;
-  LFilterConnector: string;
   LControllerNode: TEFNode;
   LViewField: TKViewField;
   LKeyStr: string;
@@ -877,22 +820,8 @@ begin
   end;
 
   // Now return refreshed data (same logic as HandleData).
-  LFilterExpr := '';
   LControllerNode := LView.FindNode('Controller');
-  if Assigned(LControllerNode) then
-  begin
-    LFilterItemsNode := LControllerNode.FindNode('Filters/Items');
-    if Assigned(LFilterItemsNode) then
-    begin
-      LFilterConnector := LControllerNode.GetString('Filters/Connector', 'and');
-      LFilterExpr := BuildFilterExpression(
-        LFilterItemsNode, LFilterConnector,
-        function(AIndex: Integer): string
-        begin
-          Result := TKWebRequest.Current.GetField('f_' + IntToStr(AIndex));
-        end);
-    end;
-  end;
+  LFilterExpr := BuildRequestFilterExpression(LControllerNode);
 
   // GroupingList: return grouped rows (no paging)
   if SameText(LView.GetString('Controller'), 'GroupingList') then
@@ -938,8 +867,7 @@ begin
     end;
   end
   else if Assigned(LControllerNode) and
-    (LControllerNode.GetString('TemplateFileName',
-      LControllerNode.GetString('CenterController/TemplateFileName')) <> '') then
+    (LControllerNode.GetString('TemplateFileName') <> '') then
   begin
     // List + TemplateFileName — re-render selectable cards after delete
     LSortExpr := '';
@@ -1016,7 +944,7 @@ begin
     try
       LTotal := LStore.Load(LFilterExpr, LSortExpr, LStart, LLimit);
       LHtml :=
-        TKXListPanelController.BuildDataRows(LStore, LViewTable, AViewName, '',
+        TKXGridPanelController.BuildDataRows(LStore, LViewTable, AViewName, '',
           LViewTable.FindLayout('Grid'));
 
       // Pager OOB (only when PagingTools is enabled)
@@ -1063,6 +991,37 @@ var
   LFormController: TKXFormPanelController;
   LHtml: string;
   I: Integer;
+  LHosted: Boolean;
+  LHostIntf: IKXController;
+  LRegionNode: TEFNode;
+  LRegionName: string;
+
+  // The region of the view's List that hosts a Form ({Region}Controller: Form):
+  // its node is the hosted form's config (Width, Layout, ...).
+  function FindHostedFormRegion(out ARegionName: string): TEFNode;
+  const
+    REGIONS: array[0..3] of string = ('East', 'West', 'South', 'North');
+  var
+    LControllerNode: TEFNode;
+    LRegion: string;
+  begin
+    Result := nil;
+    ARegionName := '';
+    LControllerNode := LView.FindNode('Controller');
+    if not Assigned(LControllerNode) then
+      Exit;
+    for LRegion in REGIONS do
+    begin
+      Result := LControllerNode.FindNode(LRegion + 'Controller');
+      if Assigned(Result) and SameText(Result.AsString, 'Form') then
+      begin
+        ARegionName := LRegion;
+        Exit;
+      end;
+    end;
+    Result := nil;
+  end;
+
 begin
   LApp := TKWebApplication.Current;
   LView := LApp.FindViewOrSetNotFound(AViewName);
@@ -1074,6 +1033,12 @@ begin
   LViewTable := LDataView.MainTable;
   if not Assigned(LViewTable) then
     Exit;
+
+  // host=1: the form of the current record hosted in a region of the view's
+  // List (EastController: Form), swapped by the client into the record panel
+  // (kxDataPanel.loadRecord). Same record loading, rules and session store as
+  // the dialog; only the rendering differs (bare, no overlay).
+  LHosted := TKWebRequest.Current.GetQueryField('host') = '1';
 
   // Read operation and key from query string
   LOperation := TKWebRequest.Current.GetQueryField('op');
@@ -1263,11 +1228,32 @@ begin
       end;
     end;
 
-    // Create form controller (force 'Form' controller type)
-    LController := TKXControllerFactory.Instance.CreateController(LView, nil, nil, 'Form');
+    // Create form controller (force 'Form' controller type). Hosted: the List
+    // host is created too (not rendered) so the form takes its actions and
+    // list-level options from it, exactly as at the view's first render, and
+    // the form's own config is its region node.
+    LHostIntf := nil;
+    if LHosted then
+    begin
+      LRegionNode := FindHostedFormRegion(LRegionName);
+      LHostIntf := LApp.CreateControllerForView(LView);
+      if not Assigned(LRegionNode)
+        or not (LHostIntf.AsObject is TKXDataPanelCompositeController) then
+      begin
+        LApp.RenderErrorDialog(_('The view does not host a form.'), False, 409);
+        Exit;
+      end;
+      LHostIntf.Display;
+      LController := TKXControllerFactory.Instance.CreateController(LView, nil, LRegionNode);
+    end
+    else
+      LController := TKXControllerFactory.Instance.CreateController(LView, nil, nil, 'Form');
     if not (LController is TKXFormPanelController) then
       Exit;
     LFormController := TKXFormPanelController(LController);
+    if LHosted then
+      LFormController.AttachToHost(
+        TKXDataPanelCompositeController(LHostIntf.AsObject), LRegionName);
 
     LFormController.Operation := LOperation;
     LFormController.FormRecord := LRecord;
@@ -1276,16 +1262,21 @@ begin
       TKWebRequest.Current.GetQueryField('fkField'));
 
     LController.Display;
-    LApp.AdjustControllerForContext(LController);
-    LHtml := LController.Render;
+    if LHosted then
+      LHtml := LFormController.RenderHostedRecord
+    else
+    begin
+      LApp.AdjustControllerForContext(LController);
+      LHtml := LController.Render;
 
-    // Form-specific dialog overlay id + close handler
-    LHtml := ReplaceStr(LHtml,
-      'id="kx-' + AViewName + '"',
-      'id="kx-form-overlay-' + AViewName + '"');
-    LHtml := ReplaceStr(LHtml,
-      'onclick="this.closest(''.kx-dialog-overlay'').remove();"',
-      'onclick="kxForm.cancel(''' + AViewName + ''');"');
+      // Form-specific dialog overlay id + close handler
+      LHtml := ReplaceStr(LHtml,
+        'id="kx-' + AViewName + '"',
+        'id="kx-form-overlay-' + AViewName + '"');
+      LHtml := ReplaceStr(LHtml,
+        'onclick="this.closest(''.kx-dialog-overlay'').remove();"',
+        'onclick="kxForm.cancel(''' + AViewName + ''');"');
+    end;
 
     // Initialize detail stores for master-detail transactional save.
     if Assigned(LRecord) and (LViewTable.DetailTableCount > 0) then
@@ -2097,7 +2088,7 @@ begin
     begin
       // Rows for tbody innerHTML swap + OOB state update.
       LHtml :=
-        TKXListPanelController.BuildDataRows(
+        TKXGridPanelController.BuildDataRows(
           LStore, LDetailViewTable, LViewAlias, LDetailViewName,
           LDetailViewTable.FindLayout('Grid')) +
         ReplaceStr(
@@ -2114,7 +2105,7 @@ begin
       // Full grid: toolbar + column headers + tbody + rows + state.
       LHtml := LToolbar +
         '<div class="kx-list-grid"><table class="kx-grid-table">' +
-        TKXListPanelController.BuildColumnHeaders(
+        TKXGridPanelController.BuildColumnHeaders(
           LDetailViewTable, LViewAlias, LSort, LDir, LDetailUrlPath,
           LDetailViewTable.FindLayout('Grid')) +
         '<tbody id="kx-list-body-' + LViewAlias + '"' +
@@ -2126,7 +2117,7 @@ begin
         ' data-master-key="' + TNetEncoding.HTML.Encode(LKeyStr) + '"' +
         IfThen(Assigned(LRefField), ' data-fk-field="' + LRefField.FieldName + '"', '') +
         '>' +
-        TKXListPanelController.BuildDataRows(
+        TKXGridPanelController.BuildDataRows(
           LStore, LDetailViewTable, LViewAlias, LDetailViewName,
           LDetailViewTable.FindLayout('Grid')) +
         '</tbody></table></div>' +
@@ -2848,6 +2839,7 @@ var
   LIsDownload: Boolean;
   LStream: TBytesStream;
   I: Integer;
+  LResolvedOk: Boolean;
 begin
   LApp := TKWebApplication.Current;
   LView := LApp.FindViewOrSetNotFound(AViewName);
@@ -2874,7 +2866,22 @@ begin
       var LTempDir := TPath.Combine(TPath.Combine(TPath.GetTempPath, 'kxupload'),
         TKWebSession.Current.SessionId);
       var LTempFilePath := TPath.Combine(LTempDir, LTempParam);
-      if not TFile.Exists(LTempFilePath) then
+      // The legitimate value is the GUID+extension that HandleTempUpload returned;
+      // nothing enforces that, so 'temp' is client-controlled. Without a
+      // containment check a value like  ..\..\..\Windows\win.ini  (or an absolute
+      // path, which TPath.Combine returns verbatim) escapes the per-session upload
+      // directory and serves any file the server process can read. Require the
+      // resolved path to stay under LTempDir; canonicalise both so '..' and mixed
+      // separators cannot slip through. GetFullPath raises on characters illegal
+      // for the file system, which cannot name a real temp file → treated as absent.
+      try
+        LResolvedOk := TPath.GetFullPath(LTempFilePath).StartsWith(
+          IncludeTrailingPathDelimiter(TPath.GetFullPath(LTempDir)), True);
+      except
+        on E: Exception do
+          LResolvedOk := False;
+      end;
+      if not LResolvedOk or not TFile.Exists(LTempFilePath) then
       begin
         TKWebResponse.Current.StatusCode := 404;
         TKWebResponse.Current.ContentType := 'application/json; charset=utf-8';

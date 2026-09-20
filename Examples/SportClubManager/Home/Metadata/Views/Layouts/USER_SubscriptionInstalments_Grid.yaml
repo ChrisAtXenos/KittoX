@@ -1,0 +1,4 @@
+﻿Field: SubscriptionInstalmentCalc
+Field: TotalAmount
+  DisplayLabel: _(Amount)
+Field: DueDate

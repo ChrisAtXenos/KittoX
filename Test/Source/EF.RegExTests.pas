@@ -50,6 +50,25 @@ type
       const AString, APattern: string; const AExpected: Boolean);
 
     /// <summary>
+    ///  Case-insensitive matching (AIgnoreCase=True), used by the access
+    ///  controller. The 'CS escalation' vs 'CI covers' pair is the security
+    ///  fix: with the historical case-sensitive match a negated rule
+    ///  ~metadata/views/admin* does NOT cover metadata/views/AdminUsers, so
+    ///  'not (no match)' is True and the "everything but admin" rule grants
+    ///  the admin view (True below); case-insensitive it is correctly covered
+    ///  and denied (False). Case folding leaves ~, * and ? untouched.
+    /// </summary>
+    [Test]
+    [TestCase('CI wildcard hit',   'metadata/views/AdminUsers|metadata/views/admin*|True|True', '|')]
+    [TestCase('CI covers negated', 'metadata/views/AdminUsers|~metadata/views/admin*|True|False', '|')]
+    [TestCase('CS escalation',     'metadata/views/AdminUsers|~metadata/views/admin*|False|True', '|')]
+    [TestCase('CS wildcard miss',  'metadata/views/AdminUsers|metadata/views/admin*|False|False', '|')]
+    [TestCase('CI regex hit',      'metadata/views/admin;REGEX:(Admin|Root)$;True;True', ';')]
+    [TestCase('CS regex miss',     'metadata/views/admin;REGEX:(Admin|Root)$;False;False', ';')]
+    procedure StrMatchesPatternOrRegex_IgnoreCase(
+      const AString, APattern: string; const AIgnoreCase, AExpected: Boolean);
+
+    /// <summary>
     ///  Regression. The unit used to keep one TPerlRegEx instance in a unit
     ///  variable and hand it to every caller. Since that instance carries both
     ///  the pattern and the subject, two threads evaluating a permission at the
@@ -89,6 +108,13 @@ procedure TEFRegExTests.StrMatchesPatternOrRegex_WithNegatedRegex(
   const AString, APattern: string; const AExpected: Boolean);
 begin
   Assert.AreEqual(AExpected, StrMatchesPatternOrRegex(AString, APattern));
+end;
+
+procedure TEFRegExTests.StrMatchesPatternOrRegex_IgnoreCase(
+  const AString, APattern: string; const AIgnoreCase, AExpected: Boolean);
+begin
+  Assert.AreEqual(AExpected,
+    StrMatchesPatternOrRegex(AString, APattern, AIgnoreCase));
 end;
 
 procedure TEFRegExTests.StrMatchesPatternOrRegex_UnderConcurrency_KeepsPatternsApart;

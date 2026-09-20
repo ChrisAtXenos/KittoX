@@ -1,0 +1,41 @@
+﻿ModelName: Attachment
+PhysicalName: ALLEGATI
+PluralDisplayLabel: _(Attachments)
+PluralModelName: Attachments
+DisplayLabel: _(Attachment)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DefaultValue: '-'
+    IsVisible: False
+  DocumentFile: FileReference(50)
+    PhysicalName: FILE_DOCUMENTO
+    FileNameField: OriginalFileName
+    DisplayLabel: _(File)
+    MaxUploadSize: 1MB
+    PreviewWindow: True
+      Width: 226
+      Height: 320
+    Path: %Config:UploadPath%Allegati
+    DisplayWidth: 35
+  OriginalFileName: String(200)
+    PhysicalName: NOME_FILE_ORIGINALE
+    DisplayLabel: _(Original File Name)
+    DisplayLabel_Grid: _(File)
+    IsReadOnly: True
+  Messages: Reference(Message) not null
+    PhysicalName: DT_ALLEGATI_MESSAGGI
+    DisplayLabel: _(Messages)
+    IsVisible: False
+    AutoAddFields:
+      Id: Messages_Id
+    Fields:
+      MessagesId:
+        PhysicalName: MESSAGGIID
+ImageName: attach_file

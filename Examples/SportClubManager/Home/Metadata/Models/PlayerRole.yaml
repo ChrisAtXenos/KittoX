@@ -1,0 +1,15 @@
+﻿ModelName: PlayerRole
+PhysicalName: RUOLI_GIOC
+PluralDisplayLabel: _(Player roles)
+PluralModelName: PlayerRoles
+DisplayLabel: _(Player role)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Role)
+    DisplayWidth: 15
+ImageName: group_work

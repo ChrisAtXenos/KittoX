@@ -1,0 +1,94 @@
+﻿ModelName: Sponsor
+PhysicalName: SPONSORS
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Sponsors)
+DisplayLabel: _(Sponsor)
+PluralModelName: Sponsors
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DefaultValue: %COMPACT_GUID%
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Company Name)
+    DisplayWidth: 50
+  TaxCode: String(16)
+    PhysicalName: CODICE_FISCALE
+    DisplayLabel: _(Tax Code)
+    DisplayWidth: 20
+    Rules:
+      ForceUpperCase:
+      CheckFieldDupValue:
+      CheckTaxCodeFormat:
+      CheckTaxCodeChecksum:
+  VatNumber: String(11)
+    PhysicalName: PARTITA_IVA
+    DisplayLabel: _(VAT number)
+    DisplayWidth: 20
+    Rules:
+      ForceUpperCase:
+      CheckFieldDupValue:
+      CheckVatNumberFormat:
+  Address: String(50) not null
+    PhysicalName: INDIRIZZO
+    DisplayLabel: _(Address)
+  Municipality: Reference(Municipality)
+    PhysicalName: FK_SPONSOR_COMUNE
+    Fields:
+      MunicipalityId:
+        PhysicalName: COMUNEID
+    DisplayLabel: _(Municipality)
+    DisplayWidth: 40
+    LookupFilter: (COMUNI.ESTINTO = 'N')
+    Rules:
+      CalcProvince:
+  Province: Reference(Province) not null
+    DisplayLabel: _(Province)
+    PhysicalName: FK_SPONSORS_PROVINCIA
+    Fields:
+      ProvinceId:
+        PhysicalName: ProvinciaId
+  PostalCode: String(5) not null
+    PhysicalName: CAP
+    DisplayLabel: _(Postal Code)
+  Logo: Blob
+    PhysicalName: LOGO
+    DisplayLabel: _(Logo)
+    MaxUploadSize: 1MB
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
+  TradeMark: String(50)
+    PhysicalName: MARCHIO
+    DisplayLabel: _(Trade mark)
+  Season: Reference(Season)
+    DisplayLabel: _(Season)
+    PhysicalName: FK_SPONSORS_STAGIONE
+    Fields:
+      SeasonId:
+        PhysicalName: StagioneId
+  SponsorshipStart: Date
+    PhysicalName: INIZIO_ABB
+    DisplayLabel: _(Sponsorship start)
+    DisplayWidth: 12
+  SponsorshipEnd: Date
+    PhysicalName: FINE_ABB
+    DisplayLabel: _(Sponsorship end)
+    DisplayWidth: 12
+  LegalRepTitle: String(30)
+    PhysicalName: QUALIFICA
+    DisplayLabel: _(Legal rep. title)
+  Person: Reference(Person)
+    PhysicalName: FK_SPONSORS_LEG_RAPP
+    DisplayWidth: 50
+    DisplayLabel: _(Legal representative)
+    Fields:
+      PersonId:
+        PhysicalName: LEG_RAPPID
+  WebsiteUrl: String(100)
+    PhysicalName: LINK
+    DisplayLabel: _(Sponsor website URL)
+ImageName: monetization_on

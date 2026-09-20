@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -81,6 +81,9 @@ type
     property UseTLS: Boolean read FUseTLS;
 
     [YamlNode('TLSMode', 'Explicit', 'How TLS is established: Explicit (STARTTLS on the plain port, the usual choice on 587) | Implicit (TLS from the first byte, port 465) | Required (explicit, and refuse to send if the server does not offer it)')]
+    [YamlEnumValue('Explicit', 'STARTTLS on the plain port (usually 587)')]
+    [YamlEnumValue('Implicit', 'TLS from the first byte (port 465)')]
+    [YamlEnumValue('Required', 'Explicit, and refuse to send if the server does not offer it')]
     property TLSMode: string read FTLSMode;
 
     [YamlNode('VerifyCertificate', 'True', 'Check the server certificate. Set to False only for an internal server with a self-signed certificate, knowing that the connection is then open to interception')]
@@ -103,8 +106,11 @@ type
     ///  The default SMTP server, i.e. Email/SMTP/Default. Servers declared
     ///  under other names are read by name from the node itself; this property
     ///  exists so the common case is typed, and so KIDE has something to show.
+    ///  SMTP is a container: each child is one named server (Default, ...), so
+    ///  the RTTI marker is [YamlContainer] and the validator descends into every
+    ///  named entry rather than treating 'Default' as an unknown node.
     /// </summary>
-    [YamlSubNode('SMTP', TKSMTPConfig, 'SMTP servers, by name. The framework uses the one called Default unless a tool names another')]
+    [YamlContainer('SMTP', TKSMTPConfig, 'SMTP servers, by name. The framework uses the one called Default unless a tool names another')]
     property SMTP: TKSMTPConfig read FSMTP;
   end;
 

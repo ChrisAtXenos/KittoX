@@ -193,6 +193,17 @@ begin
     // never sees the exception and no dialog is ever rendered. Verified.
     if not Assigned(LAuthClass) then
     begin
+{$IFDEF KITTOX_PREVIEW_MODE}
+      // Preview (KIDEX): an app may declare a custom authenticator registered by
+      // its own code (e.g. 'TasKitto'), which KIDEX does not link. Do NOT fail
+      // here — TKWebApplication.GetAuthenticator applies the real fallback (DB,
+      // else Null). This probe only needs a class to read FAuthCarriesSessionId
+      // from below, and that is derived from the Auth/JWT node, not LAuthClass,
+      // so simply logging and carrying on is enough. Compiled out in an app build.
+      TEFLogger.Instance.Log(Format('[PREVIEW MODE] Auth "%s" is not registered ' +
+        '(app-specific code not linked into KIDEX); the application will fall back ' +
+        'to the standard authenticator.', [LAuthType]));
+{$ELSE}
       // Logged as well as raised: on a Windows service, an ISAPI dll or an
       // Apache module nobody sees the dialog, and the log file is the only
       // place the operator can find out why the application will not start.
@@ -204,6 +215,7 @@ begin
         _('Auth: %s is not a registered authenticator. Check the spelling, and make sure the unit that registers it (e.g. Kitto.Auth.%s) is in your project''s UseKitto.pas. Registered: %s.'),
         [LAuthType, LAuthType,
          String.Join(', ', TKAuthenticatorRegistry.Instance.GetClassIds)]);
+{$ENDIF}
     end;
     // Session-id-in-credential is a property of the JWT envelope: the credential
     // carries the 'sid' claim exactly when the auth config declares a JWT
@@ -385,7 +397,10 @@ begin
           AResponse.Content :=
             '<html>' +
             '<head><title>Web Server Application</title></head>' +
-            '<body>Unknown request: ' + ARequest.PathInfo + '</body>' +
+            // PathInfo is attacker-controlled and was reflected verbatim into
+            // the page: a request path carrying markup executed as script in the
+            // victim's browser. Encode it, as RenderMessageDialog already does.
+            '<body>Unknown request: ' + TNetEncoding.HTML.Encode(ARequest.PathInfo) + '</body>' +
             '</html>';
           AResponse.StatusCode := 404;
           AResponse.HTTPRequest.URL.Empty;
@@ -496,14 +511,21 @@ begin
   // closure below runs later, on the main thread. Capturing ASession instead of
   // this copy is a use-after-free — see TKWebEngineSessionProc.
   LSessionId := ASession.SessionId;
-  // ...then queue the rest in the main thread.
-  TThread.Queue(nil,
-    procedure
-    begin
-      TEFLogger.Instance.LogFmt('Session %s terminating.', [LSessionId], TEFLogger.LOG_MEDIUM);
-      if Assigned(FOnSessionEnd) then
-        FOnSessionEnd(Self, LSessionId);
-    end);
+  // Log inline. TEFLogger is thread-safe, and a queued log line would be lost —
+  // and its TThread.Queue record leaked — in every host without a main-thread
+  // message loop: Console, ISAPI, Apache and the Windows service never pump
+  // CheckSynchronize, so nothing runs or frees the queued closures, and they
+  // accumulate one per session for the life of the process.
+  TEFLogger.Instance.LogFmt('Session %s terminating.', [LSessionId], TEFLogger.LOG_MEDIUM);
+  // The host callback must run on the main thread — only the VCL host sets one,
+  // and only it pumps the queue — so queue just that, and only when set.
+  if Assigned(FOnSessionEnd) then
+    TThread.Queue(nil,
+      procedure
+      begin
+        if Assigned(FOnSessionEnd) then
+          FOnSessionEnd(Self, LSessionId);
+      end);
 end;
 
 procedure TKWebEngine.DoSessionStart(ASession: TKWebSession);
@@ -514,13 +536,17 @@ begin
   // here, but the closure runs later and a short-lived session may already have
   // expired and been freed by then.
   LSessionId := ASession.SessionId;
-  TThread.Queue(nil,
-    procedure
-    begin
-      TEFLogger.Instance.LogFmt('New session %s.', [LSessionId], TEFLogger.LOG_MEDIUM);
-      if Assigned(FOnSessionStart) then
-        FOnSessionStart(Self, LSessionId);
-    end);
+  // Log inline; queue only the host callback, and only when set — see
+  // DoSessionEnd for why (a queued closure never runs, and leaks, in a host
+  // with no main-thread message loop).
+  TEFLogger.Instance.LogFmt('New session %s.', [LSessionId], TEFLogger.LOG_MEDIUM);
+  if Assigned(FOnSessionStart) then
+    TThread.Queue(nil,
+      procedure
+      begin
+        if Assigned(FOnSessionStart) then
+          FOnSessionStart(Self, LSessionId);
+      end);
 end;
 
 procedure TKWebEngine.BeforeHandleRequest(const ARequest: TKWebRequest;

@@ -1,0 +1,111 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    LabelWidth: 120
+    DisplayLabel: _(Search Subscriptions)
+    Connector: and
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: ({Q}COGNOME LIKE '%{value}%') or ({Q}NOME LIKE '%{value}%') or ({Q}COGNOME_GENITORE LIKE '%{value}%') or ({Q}NOME_GENITORE LIKE '%{value}%')
+        AutoSearchAfterChars: 3
+      ButtonList: _(Seasons)
+        Items:
+          ATT: _(Current)
+            Expression: {Q}QUOTA_ISCRIZIONEID IN  (select ID from QUOTE_ISCRIZIONI where (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where INIZIO <= CURRENT_TIMESTAMP and FINE >= CURRENT_TIMESTAMP)))
+            IsDefault: True
+          PRE: _(Previous)
+            Expression: {Q}QUOTA_ISCRIZIONEID IN  (select ID from QUOTE_ISCRIZIONI where (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where FINE < CURRENT_TIMESTAMP)))
+      DateSearch: _(Visit expiry)
+        Width: 14
+        ExpressionTemplate: (SELECT MAX(SCADENZA) FROM VISITEMEDICHE WHERE NOMINATIVOID = {Q}NOMINATIVOID) <= '{value}'
+      ColumnBreak:
+      ButtonList: _(Subscription Status)
+        Items:
+          INS: _(Entered)
+            Expression: {Q}STATUS = 'INS'
+            IsDefault: True
+          ATT: _(Approved)
+            Expression: {Q}STATUS = 'ATT'
+          ANN: _(Cancelled)
+            Expression: {Q}STATUS = 'ANN'
+          RIF: _(Rejected)
+            Expression: {Q}STATUS = 'RIF'
+      DynaList: _(Active Courses)
+        Width: 50
+        CommandText: |
+          select ID, DX
+          from QUOTE_ISCRIZIONI
+          where
+          (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where INIZIO <= CURRENT_TIMESTAMP and FINE >= CURRENT_TIMESTAMP))
+          order by DX
+        ExpressionTemplate: {Q}QUOTA_ISCRIZIONEID = '{value}'
+        AutoCompleteMinChars: 3
+      ButtonList: _(Visit Status)
+        Items:
+          Active: _(Active)
+            Expression: EXISTS(SELECT ID FROM VISITEMEDICHE V1 WHERE NOMINATIVOID = {Q}NOMINATIVOID AND UPDTIMESTAMP = (SELECT MAX(UPDTIMESTAMP) FROM VISITEMEDICHE V2 WHERE V2.NOMINATIVOID = V1.NOMINATIVOID) AND V1.SCADENZA >= GETDATE() AND COALESCE(V1.IDEONEITA,0) = 1)
+          Booked: _(Booked)
+            Expression: EXISTS(SELECT ID FROM VISITEMEDICHE V1 WHERE NOMINATIVOID = {Q}NOMINATIVOID AND UPDTIMESTAMP = (SELECT MAX(UPDTIMESTAMP) FROM VISITEMEDICHE V2 WHERE V2.NOMINATIVOID = V1.NOMINATIVOID) AND (V1.SCADENZA IS NULL OR COALESCE(V1.IDEONEITA,0) = 0))
+          Expired: _(Expired)
+            Expression: EXISTS(SELECT ID FROM VISITEMEDICHE V1 WHERE NOMINATIVOID = {Q}NOMINATIVOID AND UPDTIMESTAMP = (SELECT MAX(UPDTIMESTAMP) FROM VISITEMEDICHE V2 WHERE V2.NOMINATIVOID = V1.NOMINATIVOID) AND V1.SCADENZA < GETDATE())
+          NotPresent: _(Not Present)
+            Expression: NOT EXISTS(SELECT ID FROM VISITEMEDICHE V1 WHERE NOMINATIVOID = {Q}NOMINATIVOID)
+      ColumnBreak:
+        LabelWidth: 130
+      DateSearch: _(From date)
+        Width: 14
+        ExpressionTemplate: {Q}DATA_ISCRIZIONE >= '{value}'
+      NumericSearch: _(Birth year from)
+        Width: 11
+        ExpressionTemplate: YEAR({Q}DATANASC) >= '{value}'
+      ColumnBreak:
+      DateSearch: _(To date)
+        Width: 14
+        ExpressionTemplate: {Q}DATA_ISCRIZIONE <= '{value}'
+      NumericSearch: _(Birth year to)
+        Width: 11
+        ExpressionTemplate: YEAR({Q}DATANASC) <= '{value}'
+MainTable:
+  Model: Subscription
+  Controller:
+    PopupWindow:
+      Width: 1020
+      Height: 740
+    Add: _(Record subscription)
+    AllowViewing: True
+    PreventAdding: False
+    Form:
+      Layout: ADMIN_Subscriptions_Form
+    Grid:
+      Layout: ADMIN_Subscriptions_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Subscriptions.xlsx
+          RequireSelection: False
+      ApproveSubscription:
+        DisplayLabel: _(Approve subscription)
+        Controller: ApproveSubscription
+          RequireSelection: True
+          AutoRefresh: All
+          ConfirmationMessage: _(Approve the subscription of {LastName} {FirstName} for an amount of {SubscriptionTotal}?)
+      RejectSubscription:
+        DisplayLabel: _(Reject subscription)
+        Controller: RejectSubscription
+          RequireSelection: True
+          AutoRefresh: All
+          ConfirmationMessage: _(Reject the subscription of {LastName} {FirstName}?)
+  DetailTables:
+    Controller:
+    Table:
+      Model: SubscriptionInstalment
+      Controller:
+        PreventAdding: True
+        PopupWindow:
+          Width: 1000
+          Height: 600
+        Form:
+          Layout: ADMIN_SubscriptionInstalments_Form
+        Grid:
+          Layout: ADMIN_SubscriptionInstalments_Detail_Grid

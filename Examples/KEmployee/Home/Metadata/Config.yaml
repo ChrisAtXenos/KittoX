@@ -121,6 +121,9 @@ Auth: LDAP
       IncludeDB: False
       IncludeDisplayName: True
       IncludeLanguage: True
+  .Defaults:
+    UserName: tesla
+    Password: password
       # The kx_acl claim is included automatically only when AccessControl
       # below is set to JWT. KEmployee uses AccessControl: Null so the
       # claim is omitted by the framework.

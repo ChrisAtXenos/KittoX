@@ -1,0 +1,68 @@
+﻿ModelName: Message
+PhysicalName: MESSAGGI
+PluralDisplayLabel: _(Messages)
+PluralModelName: Messages
+DisplayLabel: _(Message)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    IsVisible: False
+  Sender: String(200) not null
+    PhysicalName: MITTENTE
+    DisplayLabel: _(Sender)
+    IsReadOnly: True
+  Message: Memo
+    PhysicalName: MESSAGGIO
+    DisplayLabel: _(Message)
+  SentDate: DateTime not null
+    PhysicalName: DATA_INVIO
+    DisplayLabel: _(Sent Date)
+    IsReadOnly: True
+    DefaultValue: {now}
+  Conversation: Reference(Conversation) not null
+    PhysicalName: DT_MESSAGGI_CONVERSAZIONE
+    DisplayLabel: _(Conversation)
+    IsVisible: False
+    AutoAddFields:
+      Id: Conversation_Id
+    Fields:
+      ConversationId:
+        PhysicalName: CONVERSAZIONEID
+  CreatedBy: Reference(User) not null
+    PhysicalName: FK_MESSAGGI_UTENTE_CREATORE
+    DisplayLabel: _(Created By)
+    IsReadOnly: True
+    IsVisible: False
+    AutoAddFields:
+      LastName: CreatedBy_LastName
+        IsVisible: False
+      FirstName: CreatedBy_FirstName
+        IsVisible: False
+    Fields:
+      CreatedById:
+        PhysicalName: UTENTE_CREATOREID
+    Rules:
+      CalcDescription: {CreatedBy_FirstName} {CreatedBy_LastName}, {SentDate}
+      CreateMessage:
+  Status: Reference(MessageStatus) not null
+    PhysicalName: FK_MESSAGGI_STATUS
+    DisplayLabel: _(Status)
+    AutoAddFields:
+      Id: Status_Id
+    Fields:
+      StatusId:
+        PhysicalName: STATUSID
+        DefaultValue: 1
+Rules:
+  CreateMessage:
+DetailReferences:
+  Attachments: Attachment
+    PhysicalName: DT_ALLEGATI_MESSAGGI
+    ReferenceField: Messages
+ImageName: message

@@ -1,0 +1,18 @@
+﻿ModelName: Language
+PhysicalName: LANGUAGE
+PluralModelName: Languages
+PluralDisplayLabel: _(Languages)
+DisplayLabel: _(Language)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Language code)
+    DisplayWidth: 2
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Language description)
+    DisplayWidth: 20
+  SequenceNumber: Integer
+    PhysicalName: SEQ_NUMBER
+    DisplayLabel: _(Sort order)
+DefaultSorting: LANGUAGE.ID

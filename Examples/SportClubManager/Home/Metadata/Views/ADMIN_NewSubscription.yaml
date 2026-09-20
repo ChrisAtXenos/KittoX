@@ -1,0 +1,15 @@
+﻿DisplayLabel: _(New Subscription)
+Type: Data
+Controller: Form
+  Operation: Add
+  CloneButton:
+    Hidden: True
+  KeepOpenAfterOperation: False
+MainTable:
+  Model: Subscription
+  Rules:
+    SubscribeByAdmin:
+  Controller:
+    Form:
+      Layout: ADMIN_NewSubscription_Form
+  DetailTables:

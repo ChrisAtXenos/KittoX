@@ -1,0 +1,48 @@
+﻿Field: LastName
+Field: FirstName
+Field: TaxCode
+Field: Mobile
+Field: Phone
+Field: Email
+Field: Gender
+Field: Address
+Field: Municipality
+Field: PostalCode
+Field: Province
+Field: BirthDate
+Field: BirthPlace
+Field: BirthProvince
+Field: BirthCountry
+Field: Age
+Field: Height
+  DisplayWidth: 14
+Field: Weight
+  DisplayWidth: 10
+Field: Size
+Field: Athlete
+Field: Manager
+Field: Coach
+  DisplayWidth: 10
+Field: Loan
+  DisplayWidth: 20
+Field: CardNumber
+Field: Bank
+Field: BankAccount
+Field: Iban
+Field: VisitExpiry
+  DisplayWidth: 15
+Field: StatusCalc
+
+
+
+
+
+
+
+
+
+
+
+
+
+

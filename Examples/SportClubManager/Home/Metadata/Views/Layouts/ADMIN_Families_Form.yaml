@@ -1,0 +1,6 @@
+﻿LabelAlign: Right
+Field: CreatorPerson
+  CharWidth: 80
+Field: Description
+Field: CreatorLastName
+Field: CreatorFirstName

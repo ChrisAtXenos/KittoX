@@ -327,18 +327,20 @@ begin
 end;
 
 function TNewProjectWizardForm.GetDefaultProjectTemplatesPath: string;
-var
-  LHome: string;
 begin
-  // Fallback chain for the ProjectTemplates folder shown on PAGE_DEPLOY_MODE
-  // when no MRU value exists yet:
-  //   1. %KITTOX_HOME%\ProjectTemplates\  if the env var is set
-  //   2. TKideConfig.Instance.TemplatePath  (sane for KIDEX standalone)
-  LHome := GetEnvironmentVariable('KITTOX_HOME');
-  if LHome <> '' then
-    Result := IncludeTrailingPathDelimiter(LHome) + 'ProjectTemplates' + PathDelim
-  else
-    Result := TKideConfig.Instance.TemplatePath;
+  // Default ProjectTemplates folder shown on PAGE_DEPLOY_MODE when no MRU value
+  // exists yet. Defer to TKideConfig.TemplatePath (= GetBasePath +
+  // 'ProjectTemplates'), the single source of truth used everywhere else in
+  // KIDE: GetBasePath resolves, in order, the module folder that ships a
+  // Config.yaml, then %KITTOX_HOME%\Kide\Bin (the setup sets KITTOX_HOME to the
+  // install ROOT, and the templates live under <root>\Kide\Bin\ProjectTemplates),
+  // then the module folder.
+  //
+  // The old code here read %KITTOX_HOME%\ProjectTemplates\ directly, which was
+  // inconsistent with GetBasePath: the templates are NOT at <root>\ProjectTemplates
+  // but at <root>\Kide\Bin\ProjectTemplates, so even with KITTOX_HOME set the
+  // wizard pointed at a non-existent folder.
+  Result := TKideConfig.Instance.TemplatePath;
 end;
 
 procedure TNewProjectWizardForm.LoadDeployMRU;

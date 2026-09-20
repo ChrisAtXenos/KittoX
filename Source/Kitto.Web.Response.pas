@@ -176,7 +176,11 @@ end;
 
 function TKWebResponseContent.GetEncoding: TEncoding;
 begin
-  if FCharset = 'utf-8' then
+  // Match the charset case- and separator-insensitively: the comparison used
+  // to be against the literal 'utf-8', so Charset: UTF-8 or utf8 in config (the
+  // header string is emitted verbatim as 'charset=' + FCharset) encoded the
+  // body as ANSI while the header announced UTF-8 -- mojibake on any non-ASCII.
+  if SameText(StringReplace(FCharset, '-', '', [rfReplaceAll]), 'utf8') then
     Result := TEncoding.UTF8
   else
     Result := TEncoding.ANSI;

@@ -47,8 +47,11 @@ uses
   Kitto.Config.UserFormats,
   Kitto.Config.AccessControl,
   Kitto.Config.Log,
+  Kitto.Config.Engine,
+  Kitto.Config.Database,
   Kitto.Config.Desktop,
   Kitto.Config.Theme,
+  Kitto.Config.Defaults,
   Kitto.Metadata.SubNodes;
 
 const
@@ -99,7 +102,9 @@ type
     FNotifications: TKNotificationsConfig;
     FUserFormats: TKUserFormatsConfig;
     FAccessControl: TKAccessControlConfig;
-    FLogTextFile: TKLogTextFileConfig;
+    FLog: TKLogConfig;
+    FEngine: TKEngineConfig;
+    FDefaults: TKDefaultsConfig;
     FDesktop: TKDesktopConfig;
     FUserFormatSettings: TFormatSettings;
 
@@ -131,12 +136,29 @@ type
     function GetLanguagePerSession: Boolean;
     function GetFOPEnginePath: string;
     function GetUseAltLanguage: Boolean;
+    function GetAppPath: string;
+    function GetHandleResources: Boolean;
+    function GetCharset: string;
+    function GetAjaxTimeout: Integer;
+    function GetGoogleMapsApiKey: string;
+    function GetEmailSupport: string;
+    function GetBlobPath: string;
+    function GetApplicationNode: string;
+    function GetLanguageId: string;
+    function GetDatabaseRouterId: string;
+    function GetConfigAppName: string;
+    function GetHomeViewName: string;
+    function GetHomeSmallViewName: string;
+    function GetHomeTinyViewName: string;
+    function GetLoginViewName: string;
     function GetServer: TKServerConfig;
     function GetAuth: TKAuthConfig;
     function GetEmail: TKEmailConfig;
     function GetAccessControl: TKAccessControlConfig;
     function GetUserFormats: TKUserFormatsConfig;
-    function GetLogTextFile: TKLogTextFileConfig;
+    function GetLog: TKLogConfig;
+    function GetEngine: TKEngineConfig;
+    function GetDefaults: TKDefaultsConfig;
     function GetDesktop: TKDesktopConfig;
     function GetTheme: TKThemeConfig;
     function GetNotifications: TKNotificationsConfig;
@@ -331,6 +353,10 @@ type
     ///  Returns the names of all defined database
     ///  connections.
     /// </summary>
+    /// <remarks>Decorated as the RTTI carrier of the Databases container: each
+    /// child is a named connection described by TKDatabaseConfig. The property
+    /// value itself (the names) is unrelated to the attribute.</remarks>
+    [YamlContainer('Databases', TKDatabaseConfig, 'Named database connections')]
     property DBConnectionNames: TStringDynArray read GetDBConnectionNames;
 
     /// <summary>
@@ -417,10 +443,10 @@ type
     [YamlNode('MultiFieldSeparator', '~', 'Separator for multi-field composite keys')]
     property MultiFieldSeparator: string read GetMultiFieldSeparator;
 
-    [YamlNode('LanguagePerSession', 'True', 'Allow language selection per session')]
+    [YamlNode('LanguagePerSession', 'False', 'Allow language selection per session')]
     property LanguagePerSession: Boolean read GetLanguagePerSession;
 
-    [YamlNode('UseAltLanguage', 'True', 'Enable alternate language for localizable labels')]
+    [YamlNode('UseAltLanguage', 'False', 'Enable alternate language for localizable labels')]
     property UseAltLanguage: Boolean read GetUseAltLanguage;
 
     /// <summary>
@@ -434,6 +460,73 @@ type
     /// </summary>
     [YamlNode('UploadPath', 'Directory for uploaded files (expands %HOME_PATH%)')]
     property UploadPath: string read GetUploadPath;
+
+    /// <summary>URL base path of this app (defaults to /&lt;appname&gt;).</summary>
+    [YamlNode('AppPath', 'URL base path of this app (default /<appname>)')]
+    property AppPath: string read GetAppPath;
+
+    /// <summary>Whether the app serves its own static resources (/res/*).</summary>
+    [YamlNode('Application/HandleResources', 'True', 'Let the app serve its own static resources')]
+    property HandleResources: Boolean read GetHandleResources;
+
+    /// <summary>Charset of HTTP responses.</summary>
+    [YamlNode('Charset', 'utf-8', 'HTTP response charset')]
+    property Charset: string read GetCharset;
+
+    /// <summary>Client AJAX request timeout, in milliseconds.</summary>
+    [YamlNode('AjaxTimeout', '100000', 'Client AJAX request timeout (ms)')]
+    property AjaxTimeout: Integer read GetAjaxTimeout;
+
+    /// <summary>Google Maps JavaScript API key (used by the GoogleMap controller).</summary>
+    [YamlNode('GoogleMapsApiKey', 'Google Maps JavaScript API key')]
+    property GoogleMapsApiKey: string read GetGoogleMapsApiKey;
+
+    /// <summary>Support e-mail address shown to users (e.g. in error/help pages).</summary>
+    [YamlNode('EmailSupport', 'Support e-mail address shown to users')]
+    property EmailSupport: string read GetEmailSupport;
+
+    /// <summary>Filesystem directory where uploaded BLOB/file fields are stored.</summary>
+    [YamlNode('BlobPath', 'Directory where uploaded BLOB/file field contents are stored')]
+    property BlobPath: string read GetBlobPath;
+
+    /// <summary>RTTI carrier for the Application node (deployment/proxy options,
+    /// e.g. HandleResources). Read by full path at run time.</summary>
+    [YamlNode('Application', 'Application deployment options (e.g. partial proxy, resource handling)')]
+    property ApplicationNode: string read GetApplicationNode;
+
+    /// <summary>Default UI language code (e.g. en, it).</summary>
+    [YamlNode('LanguageId', 'Default UI language code (e.g. en, it)')]
+    property LanguageId: string read GetLanguageId;
+
+    /// <summary>Database router plugin id (routes model -> database at run time).
+    /// The router's own configuration lives in the node's children and is
+    /// plugin-specific, so only the id is described here.</summary>
+    [YamlNode('DatabaseRouter', 'Database router plugin id (routes model -> database)')]
+    property DatabaseRouterId: string read GetDatabaseRouterId;
+
+    /// <summary>The application name node. Distinct from the class property
+    /// AppName (which derives the name from the module file / OnGetAppName): this
+    /// is the RTTI carrier of the optional 'AppName' YAML override.</summary>
+    [YamlNode('AppName', 'Application name (defaults to the module file name)')]
+    property ConfigAppName: string read GetConfigAppName;
+
+    /// <summary>The desktop home view. Its value names an external view, or the
+    /// node carries an inline view definition (resolved via FindViewByNode).</summary>
+    [YamlViewNode('HomeView', 'Desktop home view: an existing view name, or an inline view definition')]
+    property HomeViewName: string read GetHomeViewName;
+
+    /// <summary>The tablet / phone-landscape home view (falls back to HomeView).</summary>
+    [YamlViewNode('HomeSmallView', 'Tablet/landscape home view: a view name or an inline view definition')]
+    property HomeSmallViewName: string read GetHomeSmallViewName;
+
+    /// <summary>The small-phone-portrait home view (falls back to HomeSmallView/HomeView).</summary>
+    [YamlViewNode('HomeTinyView', 'Small-phone home view: a view name or an inline view definition')]
+    property HomeTinyViewName: string read GetHomeTinyViewName;
+
+    /// <summary>The login view. Its value names an external view, or the node
+    /// carries an inline view definition (resolved via FindViewByNode).</summary>
+    [YamlViewNode('Login', 'Login view: an existing view name, or an inline view definition')]
+    property LoginViewName: string read GetLoginViewName;
 
     [YamlSubNode('Server', TKServerConfig, 'HTTP server settings (Port, SessionTimeOut, ThreadPoolSize)')]
     property Server: TKServerConfig read GetServer;
@@ -450,8 +543,14 @@ type
     [YamlSubNode('UserFormats', TKUserFormatsConfig, 'User date/time format overrides')]
     property UserFormats: TKUserFormatsConfig read GetUserFormats;
 
-    [YamlSubNode('Log/TextFile', TKLogTextFileConfig, 'Text file logging settings')]
-    property LogTextFile: TKLogTextFileConfig read GetLogTextFile;
+    [YamlSubNode('Log', TKLogConfig, 'Logging settings: Level and the TextFile sub-node')]
+    property Log: TKLogConfig read GetLog;
+
+    [YamlSubNode('Engine', TKEngineConfig, 'Web engine settings (Session TimeOut and CleanupInterval)')]
+    property Engine: TKEngineConfig read GetEngine;
+
+    [YamlSubNode('Defaults', TKDefaultsConfig, 'Application-wide UI defaults (Help, Spacing, FormPanel, Window, Grid, AlwaysNotifyChange)')]
+    property Defaults: TKDefaultsConfig read GetDefaults;
 
     [YamlSubNode('Desktop', TKDesktopConfig, 'Desktop embedded mode settings (window size, position, border icons)')]
     property Desktop: TKDesktopConfig read GetDesktop;
@@ -563,7 +662,9 @@ begin
   FreeAndNil(FNotifications);
   FreeAndNil(FUserFormats);
   FreeAndNil(FAccessControl);
-  FreeAndNil(FLogTextFile);
+  FreeAndNil(FLog);
+  FreeAndNil(FEngine);
+  FreeAndNil(FDefaults);
   FreeAndNil(FDesktop);
   FreeAndNil(FViews);
   FreeAndNil(FModels);
@@ -587,8 +688,12 @@ begin
     FUserFormats.Refresh(Config.FindNode('UserFormats'));
   if FAccessControl <> nil then
     FAccessControl.Refresh(Config.FindNode('AccessControl'));
-  if FLogTextFile <> nil then
-    FLogTextFile.Refresh(Config.FindNode('Log/TextFile'));
+  if FLog <> nil then
+    FLog.Refresh(Config.FindNode('Log'));
+  if FEngine <> nil then
+    FEngine.Refresh(Config.FindNode('Engine'));
+  if FDefaults <> nil then
+    FDefaults.Refresh(Config.FindNode('Defaults'));
   if FDesktop <> nil then
     FDesktop.Refresh(Config.FindNode('Desktop'));
 end;
@@ -854,6 +959,82 @@ end;
 function TKConfig.GetAppTitle: string;
 begin
   Result := Config.GetString('AppTitle', 'Kitto');
+end;
+
+function TKConfig.GetAppPath: string;
+begin
+  Result := Config.GetString('AppPath', '/' + AppName.ToLower);
+end;
+
+function TKConfig.GetHandleResources: Boolean;
+begin
+  Result := Config.GetBoolean('Application/HandleResources', True);
+end;
+
+function TKConfig.GetCharset: string;
+begin
+  Result := Config.GetString('Charset', 'utf-8');
+end;
+
+function TKConfig.GetAjaxTimeout: Integer;
+begin
+  Result := Config.GetInteger('AjaxTimeout', 100000);
+end;
+
+function TKConfig.GetGoogleMapsApiKey: string;
+begin
+  Result := Config.GetString('GoogleMapsApiKey', '');
+end;
+
+function TKConfig.GetEmailSupport: string;
+begin
+  Result := Config.GetString('EmailSupport', '');
+end;
+
+function TKConfig.GetBlobPath: string;
+begin
+  Result := Config.GetString('BlobPath', '');
+end;
+
+function TKConfig.GetApplicationNode: string;
+begin
+  // RTTI carrier only: the Application block is read by full path at run time.
+  Result := '';
+end;
+
+function TKConfig.GetLanguageId: string;
+begin
+  Result := Config.GetString('LanguageId', '');
+end;
+
+function TKConfig.GetDatabaseRouterId: string;
+begin
+  Result := Config.GetString('DatabaseRouter', '');
+end;
+
+function TKConfig.GetConfigAppName: string;
+begin
+  Result := Config.GetString('AppName', '');
+end;
+
+function TKConfig.GetHomeViewName: string;
+begin
+  Result := Config.GetString('HomeView', '');
+end;
+
+function TKConfig.GetHomeSmallViewName: string;
+begin
+  Result := Config.GetString('HomeSmallView', '');
+end;
+
+function TKConfig.GetHomeTinyViewName: string;
+begin
+  Result := Config.GetString('HomeTinyView', '');
+end;
+
+function TKConfig.GetLoginViewName: string;
+begin
+  Result := Config.GetString('Login', '');
 end;
 
 procedure TKConfig.GetHelpSupport(out AShowLink: Boolean;
@@ -1127,11 +1308,25 @@ begin
   Result := FUserFormats;
 end;
 
-function TKConfig.GetLogTextFile: TKLogTextFileConfig;
+function TKConfig.GetLog: TKLogConfig;
 begin
-  if FLogTextFile = nil then
-    FLogTextFile := TKLogTextFileConfig.Create(Config.FindNode('Log/TextFile'));
-  Result := FLogTextFile;
+  if FLog = nil then
+    FLog := TKLogConfig.Create(Config.FindNode('Log'));
+  Result := FLog;
+end;
+
+function TKConfig.GetEngine: TKEngineConfig;
+begin
+  if FEngine = nil then
+    FEngine := TKEngineConfig.Create(Config.FindNode('Engine'));
+  Result := FEngine;
+end;
+
+function TKConfig.GetDefaults: TKDefaultsConfig;
+begin
+  if FDefaults = nil then
+    FDefaults := TKDefaultsConfig.Create(Config.FindNode('Defaults'));
+  Result := FDefaults;
 end;
 
 function TKConfig.GetDesktop: TKDesktopConfig;

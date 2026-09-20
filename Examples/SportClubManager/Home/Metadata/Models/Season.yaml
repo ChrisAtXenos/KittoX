@@ -1,0 +1,24 @@
+﻿ModelName: Season
+PhysicalName: STAGIONE
+PluralDisplayLabel: _(Seasons)
+DisplayLabel: _(Season)
+PluralModelName: Seasons
+DefaultSorting: {Q}DX DESC
+Fields:
+  Id: String(10) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 8
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Season)
+    DisplayWidth: 50
+  StartDate: Date not null
+    PhysicalName: DATAINI
+    DisplayWidth: 12
+    DisplayLabel: _(Start date)
+  EndDate: Date not null
+    PhysicalName: DATAFINE
+    DisplayWidth: 12
+    DisplayLabel: _(End date)
+ImageName: calendar_month

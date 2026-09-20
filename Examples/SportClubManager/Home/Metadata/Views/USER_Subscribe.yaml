@@ -1,0 +1,20 @@
+﻿DisplayLabel: _(Enrol)
+Type: Data
+Controller: Form
+  Operation: Add
+  #FilterExpression: {Q}CODFISC = '%Auth:USER_NAME%'
+  #HideLabels: True
+  CloneButton:
+    Hidden: True
+  KeepOpenAfterOperation: False
+MainTable:
+  Model: Subscription
+  IsLarge: False
+  Rules:
+    SubscribeUser:
+  Controller:
+    AllowDuplicating: False
+    AllowEdit: False
+    AllowDelete: False
+    Form:
+      Layout: USER_Subscribe_Form

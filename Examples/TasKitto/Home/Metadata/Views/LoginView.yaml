@@ -3,6 +3,7 @@
   Style: opacity:0.9
   FormPanel:
     UserName: _(User Name)
+    LabelWidth: 150
   BorderPanel:
     # Logo + short app description + copyright on the LEFT of the form
     # (WestView hosts a single controller, so it's all one HtmlPanel).
@@ -29,7 +30,6 @@
   # Wider than a plain login: the WestView logo (~150px + padding) sits beside
   # the form, so the dialog needs room for both. ~560 keeps the fields roomy.
   ExtraWidth: 560
-  LabelWidth: 150
   ExtraHeight: 120
   ResetPassword: True
     HrefStyle: color:orange; font-size: medium

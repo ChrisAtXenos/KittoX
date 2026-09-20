@@ -1,0 +1,39 @@
+﻿ModelName: VatRegisterType
+PhysicalName: REGISTRI_IVA
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(VAT Register Types)
+DisplayLabel: _(VAT Register Type)
+PluralModelName: VatRegisterTypes
+Fields:
+  Id: String(2) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 5
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(VAT register description)
+    DisplayWidth: 40
+  VatRegisterType: String(1)
+    PhysicalName: TIPO_REG
+    DisplayLabel: _(VAT register type)
+    DisplayWidth: 25
+    AllowedValues:
+      A: _(Purchase)
+      V: _(Sales)
+  LastProtocolDate: Date
+    PhysicalName: DATA_ULT_PROT
+    DisplayLabel: _(Last protocol date)
+    DisplayWidth: 12
+  LastProtocolDatePrevYear: Date
+    PhysicalName: DATA_ULT_PROT_PREC
+    DisplayLabel: _(Last prot. date prev. year)
+    DisplayWidth: 12
+  LastProtocolNumber: Integer
+    PhysicalName: NR_PROT
+    DisplayLabel: _(Last protocol number)
+    DisplayWidth: 10
+  LastProtocolNumberPrevYear: Integer
+    PhysicalName: NR_PROT_PREC
+    DisplayLabel: _(Last prot. number prev. year)
+    DisplayWidth: 10
+ImageName: account_balance

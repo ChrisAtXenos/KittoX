@@ -1,0 +1,42 @@
+Controller:
+  Title: _(Sign in to %Config:AppTitle% %APP_VERSION_FULL%)
+  Style: opacity:0.9
+  ExtraWidth: 400
+  LabelWidth: 150
+  ExtraHeight: 160
+  FormPanel:
+    UserName: _(Tax Code)
+  BorderPanel:
+    NorthView:
+      Controller: HtmlPanel
+        Html: <img src="%IMAGE(%Config:SportsClubLogo%)%" style="width: 100%; height: auto; display: block">
+    # SouthView stacks, in DOM order: the support/help panel first, then the
+    # theme switcher — so the support div sits between kx-login-links and the
+    # theme buttons. The nested BorderPanel uses only North+South (no Center)
+    # so the `.kx-login-south > .kx-border-panel { height: auto }` rule in
+    # application.css sizes it to content. The coloured chrome band that
+    # .kx-region-south normally paints is stripped in application.css, so the
+    # switcher shows the neutral pill (like the KEmployee login) — three
+    # buttons above the Login button, no coloured background.
+    SouthView:
+      Controller: BorderPanel
+        NorthView:
+          Height: 60
+          Controller: HtmlPanel
+            Html: |
+              <center style="color: var(--kx-text); font-size: medium">_(Technical support:) <a href="mailto:%Config:SupportEmail%" style="color:orange; font-size: medium">%Config:SupportEmail%</a><br/>
+              <span>_(Need help?)</span> <a target="_blank" href="https://sportclubmanager.it/docs/scm/login" style="color:orange; font-size: medium">_(Open the guide...)</a>
+              </center>
+        SouthView:
+          Height: 44
+          Controller: ThemeSwitcher
+
+  ResetPassword: True
+    HrefStyle: color:orange; font-size: medium
+  RegisterNewUser: True
+    HrefStyle: color:orange; font-size: medium
+  PrivacyPolicy: True
+    HrefStyle: color:orange; font-size: medium
+  LocalStorage:
+    Mode: Password
+    AskUser: True

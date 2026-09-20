@@ -1,0 +1,5 @@
+﻿Field: TaxCode
+Field: LastName
+Field: FirstName
+Field: PrivacyConsent
+LabelAlign: Right

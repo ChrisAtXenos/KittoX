@@ -1,0 +1,23 @@
+LabelAlign: Right
+LabelWidth: 130
+FieldSet:
+  Title: _(Account)
+  Row:
+    Field: Section
+    Field: MasterAccountCode
+  Row:
+    Field: AccountCode
+    Field: AccountDescription
+FieldSet:
+  Title: _(References)
+  Row:
+    Field: FinancialYear
+    Field: AccountReference
+FieldSet:
+  Title: _(Amounts)
+  Row:
+    Field: DebitAmount
+    Field: CreditAmount
+  Row:
+    Field: Sign
+    Field: AbsoluteBalance

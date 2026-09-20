@@ -10,10 +10,11 @@ Controller: List
         # ExpressionTemplate should contain a {value} placeholder for the search term.
         ExpressionTemplate: >
           upper(EMPLOYEE_NAME) like upper('%{value}%')
-  CenterController:
-    AutoFormPlacement: Right
-      Size: 450
-  Edit:
+  # The form of the current record beside the grid: the List keeps it on the
+  # selected row, in view mode; Edit and Save happen in place.
+  EastController: Form
+    Width: 450
+    Split: True
     NorthController: StatusBar
       ImageName: visibility
       Text: Current record values

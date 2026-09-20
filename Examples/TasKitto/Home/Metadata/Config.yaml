@@ -4,16 +4,6 @@ AppTitle: Tasks & Activities
 # Default is the application name in lower case.
 AppPath: /taskittox
 
-EmailSupport: <support@kitto.org>
-Email:
-  SMTP:
-    Default:
-      HostName: abc.it
-      UserName: qwerty@abc.com
-      Password: qwerty
-      Port: 100
-      UseTLS: True
-
 # Defaults for entire application
 Defaults:
   Grid:
@@ -226,7 +216,6 @@ Auth: TasKitto
       # the DB on every request. Trade-off: changes to the underlying tables
       # are not reflected until the user logs in again.
 
-
 AccessControl: JWT
   # Closed-world: the kx_acl claim is the sole source of truth. Anything not
   # covered by the claim is denied. For DB-driven evaluation use
@@ -279,6 +268,7 @@ UserFormats:
   Thousand: .
 
 Log:
+  Level: medium
   TextFile:
     FileName: %APP_PATH%log.txt
     # Set this to false to disable this logger without deleting its configuration.
@@ -325,3 +315,13 @@ Engine:
     TimeOut: 10
     # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
     CleanupInterval: 30
+
+EmailSupport: <support@kitto.org>
+Email:
+  SMTP:
+    Default:
+      HostName: abc.it
+      UserName: qwerty@abc.com
+      Password: qwerty
+      Port: 100
+      UseTLS: True

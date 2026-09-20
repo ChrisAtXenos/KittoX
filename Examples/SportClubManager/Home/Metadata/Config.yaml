@@ -1,0 +1,250 @@
+﻿# Sport Club Manager - demo configuration.
+#
+# One club, "A.S.D. ETHEA", on the KITTOXSCM database: see DB\README.md
+# for how to get it. The real deployments of this application carry one
+# Config_<exename>.yaml per club, which is how a single build serves several
+# of them; the example ships a single Config.yaml, read by every deployment
+# mode (standalone, service, ISAPI, Apache, embedded).
+#
+# Sign in with the passepartout below, as any user in APPUSER: SYSDBA for the
+# admin interface, any member for the user one. Auth/.Defaults only pre-fills
+# the login fields.
+#
+AppTitle: Sport Club Manager
+HomeUrl: http://localhost/kittox
+AppPath: /scm
+AppIcon: SportClubManager_64
+AppName: SportClubManager
+
+#Settings specific to the sports club
+SportsClubName: A.S.D. ETHEA
+SportsClubEmail: demo@sportclubmanager.it
+SupportEmail: support@ethea.it
+SportsClubLogo: SCMLogo
+UploadPath: %HOME_PATH%..\KittoDocs\SCM\
+UploadURL: /SportClubManager-KittoDocs/SCM/
+Email:
+  SMTP:
+    Default:
+      # Set these to your own SMTP server: with the placeholders below the
+      # application enqueues the messages and the send fails, which is what
+      # a demo without a mail server is expected to do.
+      HostName: smtp.example.com
+      UserName: demo@example.com
+      Password:
+      Port: 587
+      UseTLS: True
+      # Implicit, Required, Explicit
+      TLSMode: Required
+
+# Help chat assistant. The per-view "?" buttons open the chat, grounded (RAG)
+# on the SCM VitePress documentation index, built from the markdown corpus with
+# Tools/build_help_index.py. Rebuild the index whenever the guide changes.
+# Never put the real API key here: use the ANTHROPIC_API_KEY environment
+# variable, exactly as for GoogleMapsApiKey.
+HelpChat:
+  Enabled: False
+  Provider: claude
+  DocIndex: %HOME_PATH%Resources\help\scm-help.json
+  DocBaseUrl: https://sportclubmanager.it/docs/scm/
+  Claude:
+    ApiKey: %ENV(ANTHROPIC_API_KEY)%
+    Model: claude-haiku-4-5
+    MaxTokens: 1024
+    GroundingMaxPages: 3
+
+# Defaults for entire application
+Defaults:
+  #DocuWiki help support
+  Help:
+    HRef: https://scm.ethea.it/scm_docuwiki/doku.php?id=%s
+    HRefStyle: color:orange; font-size: medium
+    LongText: _(Open the guide for "%s"...)
+    ShortText: _(Guide...)
+  Grid:
+    PageRecordCount: 50
+    DefaultAction: Edit
+  FormPanel:
+    HideLabels: False
+  Window:
+    Width: 1000
+    Height: 700
+  Layout:
+    Char_Width_Factor: 0,86
+    Char_Height_Factor: 0,95
+    MemoWidth: 70
+    MaxFieldWidth: 70
+    MinFieldWidth: 6
+    RequiredLabelTemplate: {label}
+    # Default/Layout/LabelSeparator empty if you don't want hide the default LabelSeparator (:)
+    LabelSeparator:
+  #Prevents the automatic field change notification on every field, which is faster
+  AlwaysNotifyChange: False
+
+Databases:
+  Main: FD
+    Connection:
+      DriverID: MSSQL
+      Server: 127.0.0.1, 1433
+      ApplicationName: %APPTITLE%
+      Database: KITTOXSCM
+      OSAuthent: No
+      User_Name: SA
+      Password: 12345
+      Isolation: ReadCommitted
+      ODBCAdvanced: TrustServerCertificate=yes
+      POOL_MaximumItems: 50
+
+Auth: SCMAuthenticator
+  IsClearPassword: False
+  IsPassepartoutEnabled: True
+  PassepartoutPassword: password
+  .Defaults:
+    UserName: SYSDBA
+    Password: password
+    Profile: ADMIN
+  ValidatePassword:
+    Message: _(Min. 8, max. 30 letters, digits and symbols)
+    RegEx: ^(?=.*\d)(?=.*[A-Z,a-z])([^\s]){8,30}$
+
+  ReadUserCommandText: |
+    select
+      APPUSER.ID AS USER_NAME,
+      APPUSER.DX AS USER_FULLNAME,
+      APPUSER.PASSWD AS PASSWORD_HASH,
+      CASE WHEN APPUSER.ACCESS_DENIED = 1 THEN 0 ELSE 1 END ISACTIVE,
+      COALESCE(APPUSER.MUST_CHANGE_PASSWORD,0) MUST_CHANGE_PASSWORD,
+      APPUSER.PROFILEID PROFILEID,
+      APPUSER.FIRST_NAME FIRST_NAME,
+      APPUSER.LAST_NAME LAST_NAME,
+      APPUSER.ADMINISTRATOR IS_ADMINISTRATOR,
+      APPUSER.IS_SYSTEM IS_SYSTEM,
+      APPUSER.EMAIL_ADDRESS EMAIL_ADDRESS,
+      APPUSER.FISCAL_ID FISCAL_ID,
+      APPUSER.PRIVACY_CONFIRM PRIVACY_CONFIRM,
+      CONFIGURATION.COMPANYNAME COMPANY_NAME,
+      CONFIGURATION.FISCAL_CODE COMPANY_FISCAL_CODE,
+      CONFIGURATION.VATNUM COMPANY_VATNUM,
+      CONFIGURATION.ADDRESS COMPANY_ADDRESS,
+      CONFIGURATION.CITY COMPANY_CITY,
+      CONFIGURATION.PROVINCE COMPANY_PROVINCE,
+      CONFIGURATION.SUPPORT_EMAIL COMPANY_SUPPORT_EMAIL,
+      CONFIGURATION.INFO_EMAIL COMPANY_INFO_EMAIL,
+      CONFIGURATION.SITO_INTERNET COMPANY_SITO_INTERNET
+    from APPUSER
+      inner join CONFIGURATION ON CONFIGURATION.ID = 'CONFIG000'
+    where
+      UPPER(APPUSER.ID) = UPPER(:USER_NAME)
+      AND ((ACCESS_DENIED = 1 AND MUST_CHANGE_PASSWORD = 1) OR (COALESCE(ACCESS_DENIED,0) = 0))
+
+  SetPasswordCommandText: |
+    update APPUSER
+      set PASSWD = :PASSWORD_HASH,
+      MUST_CHANGE_PASSWORD = 0,
+      ACCESS_DENIED = 0
+      WHERE ID = :USER_NAME
+
+  ResetPasswordCommandText: |
+    update APPUSER
+      set PASSWD = :PASSWORD_HASH,
+      MUST_CHANGE_PASSWORD = 1
+      WHERE ID = :USER_NAME AND EMAIL_ADDRESS = :EMAIL_ADDRESS
+      AND COALESCE(ACCESS_DENIED,0) = 0
+
+  # Optional JWT envelope. Present = issue/validate a JWT (the engine is added
+  # by the Kitto.Auth.JWT unit referenced from UseKitto.pas). The kx_acl claim
+  # is populated automatically because AccessControl below is JWT.
+  JWT:
+    SigningAlgorithm: HS256
+    SigningKey: env:KX_JWT_KEY_SCM
+    Issuer: SportClubManager
+    Audience: kx-app
+    TokenLifetime: 3600
+    SlidingThreshold: 600
+    ClockSkew: 60
+    Claims:
+      IncludeRoles: True
+      IncludeDB: False
+      IncludeDisplayName: True
+      IncludeLanguage: True
+
+AccessControl: JWT
+  FallbackToDB: True
+  ReadRolesCommandText: |
+    SELECT ROLE_NAME NAME FROM
+    (
+    SELECT ID, 'USER_ROLE' ROLE_NAME FROM APPUSER WHERE PROFILEID = 'USER'
+    UNION ALL SELECT ID, 'ADMIN_ROLE' ROLE_NAME FROM APPUSER WHERE PROFILEID = 'ADMIN' AND ADMINISTRATOR=0 AND IS_SYSTEM=0
+    UNION ALL SELECT ID, 'SUPERADMIN_ROLE' ROLE_NAME FROM APPUSER WHERE PROFILEID = 'ADMIN' AND ADMINISTRATOR=1 AND IS_SYSTEM=0
+    UNION ALL SELECT ID, 'SYSTEM_ROLE' ROLE_NAME FROM APPUSER WHERE PROFILEID = 'ADMIN' AND ADMINISTRATOR=1 AND IS_SYSTEM=1
+    ) USER_ROLES
+    WHERE ID = :USER_NAME
+  #Log for debugging only
+  .Log:
+    FileName: %APP_PATH%%APP_BASENAME%_AC_log.csv
+    IncludeHeader: True
+
+Login: LoginView
+
+# to use GoogleMap you must acquire an Api Key for your applications.
+GoogleMapsApiKey: XYZ
+
+#Home with user profile
+HomeView: %Auth:PROFILEID%_Home
+HomeSmallView: %Auth:PROFILEID%_HomeTablet
+HomeTinyView: %Auth:PROFILEID%_HomeTiles
+
+Theme: Auto
+  # UserSelection: True turns the TKXThemeSwitcher controller from a no-op
+  # to a rendered three-button toggle (Light / Auto / Dark) that persists
+  # the user's choice in localStorage (key kx_theme:SportClubManager). It is
+  # honoured only when Theme: Auto — with Theme: Light or Dark the admin
+  # has fixed the theme and the switcher renders nothing.
+  UserSelection: True
+  Font-Family: Tahoma
+  Font-Size: 14px
+.Theme: Light
+  Font-Family: Tahoma
+  Font-Size: 14px
+.Theme: Dark
+  Font-Family: Tahoma
+  Font-Size: 14px
+
+AjaxTimeout: 100000
+
+# The source language of the metadata is English. Leave LanguageId empty so the
+# language requested by the browser (Accept-Language) is honoured at login; the
+# LanguageSwitcher (flag dropdown on the login page and in the Home toolbar)
+# lets the user pick any language shipped under Home\Locale (it, es).
+LanguageId:
+LanguagePerSession: True
+# Either utf-8 or a SBCS corresponding to the system code page
+# (such as iso-8859-1 for Western Europe). Defaults to utf-8.
+Charset: utf-8
+
+Server:
+  Port: 2220
+  ThreadPoolSize: 15
+
+UserFormats:
+  Time: hh:mm
+  Date: dd/mm/yyyy
+  DecimalSeparator: ","
+  ThousandSeparator: "."
+
+Log:
+  # low, medium, high, detailed, debug (an integer 1-5 is accepted too).
+  Level: debug
+  TextFile:
+    FileName: %APP_PATH%%APP_BASENAME%_log.txt
+    # Set this to false to disable this logger without deleting its configuration.
+    IsEnabled: True
+  Console:
+    IsEnabled: True
+
+Engine:
+  Session:
+    # Minutes after which an inactive session is cleaned up. Defaults to 10.
+    TimeOut: 10
+    # Seconds after wich the cleanup of inactive sessions kicks in. Defaults to 30.
+    CleanupInterval: 30

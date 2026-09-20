@@ -1,0 +1,52 @@
+﻿Type: Tree
+Folder: _(Geographic parameters)
+  View: Build AutoList
+    Model: Country
+  View: Region
+  View: Provinces
+  View: Build AutoList
+    Model: Municipality
+  View: Build AutoList
+    Model: Language
+  IsInitiallyCollapsed: True
+Folder: _(Operational parameters)
+  IsInitiallyCollapsed: True
+  View: Build AutoList
+    Model: Season
+  View: Build AutoList
+    Model: Category
+  View: Build AutoList
+    Model: MedicalVisitType
+  View: Build AutoList
+    Model: PlayerRole
+  View: Build AutoList
+    Model: DocumentType
+  View: Build AutoList
+    Model: DurationType
+  View: Build AutoList
+    Model: StaffRole
+  View: Build AutoList
+    Model: FacilityType
+  View: Build AutoList
+    Model: Size
+Folder: _(System parameters)
+  IsInitiallyCollapsed: True
+  View: Build AutoList
+    Model: Configuration
+  View: Build AutoList
+    Model: Profile
+  View: Build AutoList
+    Model: User
+  View: Build AutoList
+    Model: SportType
+Folder: _(Administrative parameters)
+  IsInitiallyCollapsed: True
+  View: Build AutoList
+    Model: PaymentMethod
+  View: Build AutoList
+    Model: Policy
+Folder: _(Profile)
+  View:
+    Controller: ChangePassword
+  View:
+    Controller: Logout

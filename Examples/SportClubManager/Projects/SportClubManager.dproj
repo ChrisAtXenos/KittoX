@@ -1,0 +1,547 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{227CC26E-2DBA-4169-AB3F-0AF5AAFCB49D}</ProjectGuid>
+        <ProjectVersion>20.5</ProjectVersion>
+        <FrameworkType>VCL</FrameworkType>
+        <MainSource>SportClubManager.dpr</MainSource>
+        <Base>True</Base>
+        <Config Condition="'$(Config)'==''">Debug</Config>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
+        <TargetedPlatforms>3</TargetedPlatforms>
+        <AppType>Application</AppType>
+        <ProjectName Condition="'$(ProjectName)'==''">SportClubManager</ProjectName>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
+        <Base_Win32>true</Base_Win32>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
+        <Base_Win64>true</Base_Win64>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='WinARM64EC' and '$(Base)'=='true') or '$(Base_WinARM64EC)'!=''">
+        <Base_WinARM64EC>true</Base_WinARM64EC>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
+        <Cfg_1>true</Cfg_1>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
+        <Cfg_1_Win32>true</Cfg_1_Win32>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
+        <Cfg_1_Win64>true</Cfg_1_Win64>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
+        <Cfg_2>true</Cfg_2>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+        <Cfg_2_Win32>true</Cfg_2_Win32>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win64)'!=''">
+        <Cfg_2_Win64>true</Cfg_2_Win64>
+        <CfgParent>Cfg_2</CfgParent>
+        <Cfg_2>true</Cfg_2>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base)'!=''">
+        <DCC_AssertionsAtRuntime>true</DCC_AssertionsAtRuntime>
+        <DCC_SYMBOL_PLATFORM>false</DCC_SYMBOL_PLATFORM>
+        <SanitizedProjectName>SportClubManager</SanitizedProjectName>
+        <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
+        <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=;FileVersion=4.0.19.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=4.0;Comments=</VerInfo_Keys>
+        <DCC_ExeOutput>..\Home</DCC_ExeOutput>
+        <DCC_DcuOutput>..\Lib\$(Platform)</DCC_DcuOutput>
+        <DCC_UnitSearchPath>..\Source;..\..\..\Source;..\..\..\Source\EF;..\..\..\Source\ThirdParty;..\..\..\Source\ThirdParty\delphi-jose-jwt\Source\Common;..\..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE;..\..\..\Source\ThirdParty\MarkdownProcessor\source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_E>false</DCC_E>
+        <DCC_ImageBase>00400000</DCC_ImageBase>
+        <DCC_N>false</DCC_N>
+        <DCC_S>false</DCC_S>
+        <DCC_F>false</DCC_F>
+        <DCC_K>false</DCC_K>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_MajorVer>4</VerInfo_MajorVer>
+        <VerInfo_Release>19</VerInfo_Release>
+        <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
+        <UWP_DelphiLogo44>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_44.png</UWP_DelphiLogo44>
+        <UWP_DelphiLogo150>$(BDS)\bin\Artwork\Windows\UWP\delphi_UwpDefault_150.png</UWP_DelphiLogo150>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+        <Icon_MainIcon>SportClubManager.ico</Icon_MainIcon>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win64)'!=''">
+        <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+        <Icon_MainIcon>SportClubManager.ico</Icon_MainIcon>
+        <AppDPIAwarenessMode>none</AppDPIAwarenessMode>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_WinARM64EC)'!=''">
+        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
+        <BT_BuildType>Debug</BT_BuildType>
+        <VerInfo_IncludeVerInfo>false</VerInfo_IncludeVerInfo>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=4.0.19.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1)'!=''">
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <BT_BuildType>Debug</BT_BuildType>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
+        <BT_BuildType>Debug</BT_BuildType>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <DCC_StrictVarStrings>false</DCC_StrictVarStrings>
+        <DCC_DebugDCUs>true</DCC_DebugDCUs>
+        <DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
+        <DCC_Optimize>false</DCC_Optimize>
+        <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+        <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+        <DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
+        <DCC_RangeChecking>true</DCC_RangeChecking>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <BT_BuildType>Debug</BT_BuildType>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
+        <BT_BuildType>Debug</BT_BuildType>
+    </PropertyGroup>
+    <!-- Optional FlexCel build, see Source\SCM.Defines.inc: passing
+         /p:FLEXCEL=<folder with the FlexCel .dcu> to msbuild adds both the
+         compiler define and the library path, so the Excel export of every grid
+         goes through FlexCel. Without it the export is built on the framework's
+         ADO engine and nothing else changes. -->
+    <PropertyGroup Condition="'$(FLEXCEL)'!=''">
+        <DCC_Define>KITTOX_FLEXCEL_SUPPORT;$(DCC_Define)</DCC_Define>
+        <DCC_UnitSearchPath>$(FLEXCEL);$(FLEXCEL)\$(Platform)\Release;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+    </PropertyGroup>
+    <ItemGroup>
+        <DelphiCompile Include="$(MainSource)">
+            <MainSource>MainSource</MainSource>
+        </DelphiCompile>
+        <DCCReference Include="..\Source\UseKitto.pas">
+            <Form>$R *.res</Form>
+        </DCCReference>
+        <None Include="..\Home\Metadata\Config.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_AccountingEntries.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_AccountingLines.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_AccountingReasons.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_AccountingReasonsUnused.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Affiliations.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_AutomaticReasons.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Board.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Configuration.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Conversations.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Customers.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashIncomeExpense.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiActiveTeams.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiBookedVisits.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiExpiredCertificates.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiExpiringRegistrations.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiInstalmentsDue.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiInstalmentsPaid.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiPaymentsToVerify.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiPendingSubscriptions.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiQueuedEmails.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiReceiptsToPrint.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiSeason.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiSubscriberCount.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashKpiWithoutCertificate.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashSubscribersByDiscipline.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DashSubscriptionTrend.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Dashboard.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DetailedAccountBalance.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_DetailedFinancialStatement.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Documents.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Families.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_FamilyDeductions.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_FamilyMembers.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_FederationRegistrations.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Federations.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_FinancialStatement.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_FinancialYears.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Home.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_HomeTablet.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_HomeTiles.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_LedgerAccounts.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_LegalForms.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_MedicalVisits.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_MembersRegister.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_NewSubscription.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_ParticipantGroups.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Payments.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_People.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_PeopleMap.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Seasons.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Sponsors.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Squad.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Staff.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_SubscriberPaymentSummary.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_SubscriptionCampaigns.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_SubscriptionFees.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_SubscriptionInstalments.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Subscriptions.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Suppliers.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_TaxDeductions.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Teams.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_TopMenu.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_TreeMenu.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_UserProfile.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Users.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_VatCodes.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_VatRegisterTypes.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_VatRegisters.yaml"/>
+        <None Include="..\Home\Metadata\Views\ADMIN_Withholdings.yaml"/>
+        <None Include="..\Home\Metadata\Views\ApplicationInfo.yaml"/>
+        <None Include="..\Home\Metadata\Views\ApprovaIscrizioneMailMessage.yaml"/>
+        <None Include="..\Home\Metadata\Views\ChangePassword.yaml"/>
+        <None Include="..\Home\Metadata\Views\ConfermaPagamentoMailMessage.yaml"/>
+        <None Include="..\Home\Metadata\Views\ConfirmAccess.yaml"/>
+        <None Include="..\Home\Metadata\Views\EmailQueue.yaml"/>
+        <None Include="..\Home\Metadata\Views\EmailTemplates.yaml"/>
+        <None Include="..\Home\Metadata\Views\InputPIN.yaml"/>
+        <None Include="..\Home\Metadata\Views\LoginView.yaml"/>
+        <None Include="..\Home\Metadata\Views\Municipality.yaml"/>
+        <None Include="..\Home\Metadata\Views\NotificaVisitaMedicaMailMessage.yaml"/>
+        <None Include="..\Home\Metadata\Views\People_Lookup.yaml"/>
+        <None Include="..\Home\Metadata\Views\PrivacyPolicy.yaml"/>
+        <None Include="..\Home\Metadata\Views\Provinces.yaml"/>
+        <None Include="..\Home\Metadata\Views\Region.yaml"/>
+        <None Include="..\Home\Metadata\Views\RegisterMailMessage.yaml"/>
+        <None Include="..\Home\Metadata\Views\RegisterNewUser.yaml"/>
+        <None Include="..\Home\Metadata\Views\ResetMailMessage.yaml"/>
+        <None Include="..\Home\Metadata\Views\ResetPassword.yaml"/>
+        <None Include="..\Home\Metadata\Views\RichiestaIscrizioneMailMessage.yaml"/>
+        <None Include="..\Home\Metadata\Views\RifiutaIscrizioneMailMessage.yaml"/>
+        <None Include="..\Home\Metadata\Views\SubscriptionFee.yaml"/>
+        <None Include="..\Home\Metadata\Views\SubscriptionInstalment_Lookup.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_Documents.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_Home.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_HomeTablet.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_HomeTiles.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_MedicalCertificate.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_MedicalVisits.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_PaymentSummary.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_Payments.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_People.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_PersonDocuments.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_Subscribe.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_SubscribeChild.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_SubscriptionInstalments.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_Subscriptions.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_TopMenu.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_TreeMenu.yaml"/>
+        <None Include="..\Home\Metadata\Views\USER_UserProfile.yaml"/>
+        <None Include="..\Home\Metadata\Views\UsersUnused.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AccountingEntries_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AccountingEntries_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AccountingLines_Detail_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AccountingLines_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AccountingLines_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AccountingLines_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AccountingReasons_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AccountingReasons_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Affiliations_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Affiliations_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Attachment_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Attachment_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AutomaticAccounts_Detail_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AutomaticAccounts_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AutomaticReasons_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_AutomaticReasons_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Board_Detail_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Board_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Board_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Board_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Configuration_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Conversation_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Conversation_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Customers_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Customers_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_DetailedAccountBalanceLines_Detail_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_DetailedAccountBalanceLines_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_DetailedAccountBalance_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_DetailedAccountBalance_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Documents_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Documents_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Documents_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Duties_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Duties_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Families_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Families_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_FamilyDeductions_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_FamilyDeductions_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_FamilyMembers_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_FamilyMembers_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_FederationRegistrations_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_FederationRegistrations_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_FederationRegistrations_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Federations_AutoForm.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Federations_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Federations_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_FinancialYears_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_FinancialYears_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Insurances_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Insurances_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_LedgerAccounts_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_LedgerAccounts_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_LegalForms_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_LegalForms_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_MedicalVisits_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_MedicalVisits_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_MedicalVisits_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_MembersRegister_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_MembersRegister_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_MembershipFees_Detail_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_MembershipFees_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Message_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Message_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_NewSubscription_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_ParticipantDetails_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_ParticipantDetails_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_ParticipantGroups_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_ParticipantGroups_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Participant_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Participant_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_PaymentDetails_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_PaymentDetails_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Payments_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Payments_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_People_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_People_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Sponsors_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Sponsors_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Squads_Detail_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Squads_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Staff_Detail_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Staff_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_SubscriberPaymentSummary_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_SubscriberPaymentSummary_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_SubscriptionCampaigns_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_SubscriptionCampaigns_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_SubscriptionFees_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_SubscriptionFees_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_SubscriptionInstalments_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_SubscriptionInstalments_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_SubscriptionInstalments_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Subscriptions_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Subscriptions_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Subscriptions_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Suppliers_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Suppliers_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_TaxDeductions_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_TaxDeductions_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Teams_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Teams_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_UserProfile_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Users_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Users_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_VatCodes_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_VatCodes_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_VatDetails_Detail_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_VatDetails_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_VatRegisterTypes_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_VatRegisterTypes_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_VatRegisters_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_WithholdingDetails_Detail_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_WithholdingDetails_Detail_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Withholdings_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\ADMIN_Withholdings_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\EmailQueue_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\EmailQueue_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\EmailTemplate_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\EmailTemplate_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\SubscriptionFee_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\SubscriptionFee_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_ConfirmAccess_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_Documents_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_Documents_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_MedicalCertificate_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_MedicalCertificate_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_MedicalVisits_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_MedicalVisits_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_PaymentDetails_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_PaymentDetails_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_PaymentSummary_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_PaymentSummary_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_People_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_People_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_PersonDocuments_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_PersonDocuments_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_RegisterNewUser_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_SubscribeChild_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_Subscribe_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_SubscriptionInstalments_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_SubscriptionInstalments_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_Subscriptions_Form.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_Subscriptions_Grid.yaml"/>
+        <None Include="..\Home\Metadata\Views\Layouts\USER_UserProfile_Form.yaml"/>
+        <None Include="..\Home\Metadata\Models\AccountBalance.yaml"/>
+        <None Include="..\Home\Metadata\Models\AccountingEntry.yaml"/>
+        <None Include="..\Home\Metadata\Models\AccountingLine.yaml"/>
+        <None Include="..\Home\Metadata\Models\AccountingReason.yaml"/>
+        <None Include="..\Home\Metadata\Models\Affiliation.yaml"/>
+        <None Include="..\Home\Metadata\Models\Attachment.yaml"/>
+        <None Include="..\Home\Metadata\Models\AutomaticAccount.yaml"/>
+        <None Include="..\Home\Metadata\Models\AutomaticReason.yaml"/>
+        <None Include="..\Home\Metadata\Models\Bank.yaml"/>
+        <None Include="..\Home\Metadata\Models\BankAccount.yaml"/>
+        <None Include="..\Home\Metadata\Models\BoardMember.yaml"/>
+        <None Include="..\Home\Metadata\Models\Category.yaml"/>
+        <None Include="..\Home\Metadata\Models\Championship.yaml"/>
+        <None Include="..\Home\Metadata\Models\ChampionshipStage.yaml"/>
+        <None Include="..\Home\Metadata\Models\Clinic.yaml"/>
+        <None Include="..\Home\Metadata\Models\Configuration.yaml"/>
+        <None Include="..\Home\Metadata\Models\Conversation.yaml"/>
+        <None Include="..\Home\Metadata\Models\ConversationStatus.yaml"/>
+        <None Include="..\Home\Metadata\Models\CostCentre.yaml"/>
+        <None Include="..\Home\Metadata\Models\Country.yaml"/>
+        <None Include="..\Home\Metadata\Models\Customer.yaml"/>
+        <None Include="..\Home\Metadata\Models\CustomerInvoice.yaml"/>
+        <None Include="..\Home\Metadata\Models\CustomerInvoiceLine.yaml"/>
+        <None Include="..\Home\Metadata\Models\Day.yaml"/>
+        <None Include="..\Home\Metadata\Models\Deposit.yaml"/>
+        <None Include="..\Home\Metadata\Models\DetailedAccountBalance.yaml"/>
+        <None Include="..\Home\Metadata\Models\DetailedAccountBalanceLine.yaml"/>
+        <None Include="..\Home\Metadata\Models\DetailedFinancialStatement.yaml"/>
+        <None Include="..\Home\Metadata\Models\Document.yaml"/>
+        <None Include="..\Home\Metadata\Models\DocumentType.yaml"/>
+        <None Include="..\Home\Metadata\Models\DurationType.yaml"/>
+        <None Include="..\Home\Metadata\Models\Duty.yaml"/>
+        <None Include="..\Home\Metadata\Models\EmailQueue.yaml"/>
+        <None Include="..\Home\Metadata\Models\EmailTemplate.yaml"/>
+        <None Include="..\Home\Metadata\Models\FacilityType.yaml"/>
+        <None Include="..\Home\Metadata\Models\Family.yaml"/>
+        <None Include="..\Home\Metadata\Models\FamilyDeduction.yaml"/>
+        <None Include="..\Home\Metadata\Models\FamilyMember.yaml"/>
+        <None Include="..\Home\Metadata\Models\Federation.yaml"/>
+        <None Include="..\Home\Metadata\Models\FederationRegistration.yaml"/>
+        <None Include="..\Home\Metadata\Models\FederationRegistrationType.yaml"/>
+        <None Include="..\Home\Metadata\Models\FinancialStatement.yaml"/>
+        <None Include="..\Home\Metadata\Models\FinancialYear.yaml"/>
+        <None Include="..\Home\Metadata\Models\Insurance.yaml"/>
+        <None Include="..\Home\Metadata\Models\Kpi.yaml"/>
+        <None Include="..\Home\Metadata\Models\Language.yaml"/>
+        <None Include="..\Home\Metadata\Models\LedgerAccount.yaml"/>
+        <None Include="..\Home\Metadata\Models\LegalForm.yaml"/>
+        <None Include="..\Home\Metadata\Models\Match.yaml"/>
+        <None Include="..\Home\Metadata\Models\MatchDay.yaml"/>
+        <None Include="..\Home\Metadata\Models\MatchDayType.yaml"/>
+        <None Include="..\Home\Metadata\Models\MatchPairing.yaml"/>
+        <None Include="..\Home\Metadata\Models\MatchStatus.yaml"/>
+        <None Include="..\Home\Metadata\Models\MedicalVisit.yaml"/>
+        <None Include="..\Home\Metadata\Models\MedicalVisitBooking.yaml"/>
+        <None Include="..\Home\Metadata\Models\MedicalVisitType.yaml"/>
+        <None Include="..\Home\Metadata\Models\Member.yaml"/>
+        <None Include="..\Home\Metadata\Models\MembersRegister.yaml"/>
+        <None Include="..\Home\Metadata\Models\MembershipFee.yaml"/>
+        <None Include="..\Home\Metadata\Models\Message.yaml"/>
+        <None Include="..\Home\Metadata\Models\MessageStatus.yaml"/>
+        <None Include="..\Home\Metadata\Models\Municipality.yaml"/>
+        <None Include="..\Home\Metadata\Models\Participant.yaml"/>
+        <None Include="..\Home\Metadata\Models\ParticipantDetail.yaml"/>
+        <None Include="..\Home\Metadata\Models\ParticipantGroup.yaml"/>
+        <None Include="..\Home\Metadata\Models\Payment.yaml"/>
+        <None Include="..\Home\Metadata\Models\PaymentDetail.yaml"/>
+        <None Include="..\Home\Metadata\Models\PaymentMethod.yaml"/>
+        <None Include="..\Home\Metadata\Models\Person.yaml"/>
+        <None Include="..\Home\Metadata\Models\PlayerRole.yaml"/>
+        <None Include="..\Home\Metadata\Models\Policy.yaml"/>
+        <None Include="..\Home\Metadata\Models\Profile.yaml"/>
+        <None Include="..\Home\Metadata\Models\Province.yaml"/>
+        <None Include="..\Home\Metadata\Models\Region.yaml"/>
+        <None Include="..\Home\Metadata\Models\Relationship.yaml"/>
+        <None Include="..\Home\Metadata\Models\SanctionType.yaml"/>
+        <None Include="..\Home\Metadata\Models\Scorer.yaml"/>
+        <None Include="..\Home\Metadata\Models\ScoringType.yaml"/>
+        <None Include="..\Home\Metadata\Models\Season.yaml"/>
+        <None Include="..\Home\Metadata\Models\Size.yaml"/>
+        <None Include="..\Home\Metadata\Models\Sponsor.yaml"/>
+        <None Include="..\Home\Metadata\Models\SportType.yaml"/>
+        <None Include="..\Home\Metadata\Models\SportsFacility.yaml"/>
+        <None Include="..\Home\Metadata\Models\Squad.yaml"/>
+        <None Include="..\Home\Metadata\Models\StaffMember.yaml"/>
+        <None Include="..\Home\Metadata\Models\StaffRole.yaml"/>
+        <None Include="..\Home\Metadata\Models\StageType.yaml"/>
+        <None Include="..\Home\Metadata\Models\Subscription.yaml"/>
+        <None Include="..\Home\Metadata\Models\SubscriptionCampaign.yaml"/>
+        <None Include="..\Home\Metadata\Models\SubscriptionFee.yaml"/>
+        <None Include="..\Home\Metadata\Models\SubscriptionInstalment.yaml"/>
+        <None Include="..\Home\Metadata\Models\Supplier.yaml"/>
+        <None Include="..\Home\Metadata\Models\TaxDeduction.yaml"/>
+        <None Include="..\Home\Metadata\Models\Team.yaml"/>
+        <None Include="..\Home\Metadata\Models\UnitOfMeasure.yaml"/>
+        <None Include="..\Home\Metadata\Models\User.yaml"/>
+        <None Include="..\Home\Metadata\Models\VAccountingLine.yaml"/>
+        <None Include="..\Home\Metadata\Models\VIncomeExpense.yaml"/>
+        <None Include="..\Home\Metadata\Models\VPersonDocument.yaml"/>
+        <None Include="..\Home\Metadata\Models\VSubscriberPaymentSummary.yaml"/>
+        <None Include="..\Home\Metadata\Models\VSubscribersByDiscipline.yaml"/>
+        <None Include="..\Home\Metadata\Models\VSubscriptionTrend.yaml"/>
+        <None Include="..\Home\Metadata\Models\VSubscriptionVisit.yaml"/>
+        <None Include="..\Home\Metadata\Models\VVatRegister.yaml"/>
+        <None Include="..\Home\Metadata\Models\VatCode.yaml"/>
+        <None Include="..\Home\Metadata\Models\VatDetail.yaml"/>
+        <None Include="..\Home\Metadata\Models\VatRegisterType.yaml"/>
+        <None Include="..\Home\Metadata\Models\WithholdingDetail.yaml"/>
+        <BuildConfiguration Include="Base">
+            <Key>Base</Key>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Release">
+            <Key>Cfg_1</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Debug">
+            <Key>Cfg_2</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Delphi.Personality.12</Borland.Personality>
+        <Borland.ProjectType>VCLApplication</Borland.ProjectType>
+        <BorlandProject>
+            <Delphi.Personality>
+                <Source>
+                    <Source Name="MainSource">SportClubManager.dpr</Source>
+                </Source>
+                <Excluded_Packages/>
+            </Delphi.Personality>
+            <Platforms>
+                <Platform value="Win32">True</Platform>
+                <Platform value="Win64">True</Platform>
+                <Platform value="WinARM64EC">False</Platform>
+            </Platforms>
+            <ModelSupport>False</ModelSupport>
+            <Deployment Version="5"/>
+        </BorlandProject>
+        <ProjectFileVersion>12</ProjectFileVersion>
+    </ProjectExtensions>
+    <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
+    <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
+</Project>

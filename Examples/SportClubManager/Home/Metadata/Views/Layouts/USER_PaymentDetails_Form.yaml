@@ -1,0 +1,11 @@
+﻿Row:
+  Field: SubscriptionInstalment
+    CharWidth: 62
+Row:
+  Field: InstalmentAmount
+Row:
+  Field: InstalmentPaidAmount
+  Field: InstalmentOutstandingAmount
+Spacer:
+Row:
+  Field: PaidAmount

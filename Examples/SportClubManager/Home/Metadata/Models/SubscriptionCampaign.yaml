@@ -1,0 +1,84 @@
+﻿ModelName: SubscriptionCampaign
+PhysicalName: CAMPAGNE_ISCRIZIONI
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Subscription campaigns)
+DisplayLabel: _(Subscription campaign)
+PluralModelName: SubscriptionCampaigns
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Campaign)
+    DisplayLabel_Grid: _(Subscription Campaign)
+    DisplayWidth: 60
+  Season: Reference(Season) not null
+    DisplayLabel: _(Season)
+    PhysicalName: FK_CAMPAGNE_ISCRIZIONI_STAGIONE
+    Fields:
+      SeasonId:
+        PhysicalName: STAGIONEID
+    DisplayWidth: 40
+    Rules:
+      SubscriptionCampaignSetSuggestedRef:
+  SiblingDiscount: Currency
+    PhysicalName: SCONTO_FRATELLI
+    DisplayWidth: 10
+    DefaultValue: 0
+    DisplayLabel: _(Sibling Discount Amount)
+    Rules:
+      SubscriptionCampaignSetDiscount:
+  SiblingDiscountPercent: Integer
+    PhysicalName: PERC_SCONTO_FRATELLI
+    DisplayWidth: 6
+    DisplayLabel: _(% Sibling Discount)
+    DefaultValue: 0
+    Rules:
+      CheckPercentage:
+      SubscriptionCampaignSetDiscount:
+  DiscountDeadline: Integer
+    PhysicalName: SCADENZA_SCONTO
+    DisplayLabel: _(Discount deadline)
+    DisplayWidth: 6
+  StartDate: Date not null
+    PhysicalName: INIZIO
+    DisplayWidth: 12
+    DisplayLabel: _(Start date)
+    NotifyChange: True
+    Rules:
+      LowerThan: EndDate
+  EndDate: Date not null
+    PhysicalName: FINE
+    DisplayWidth: 12
+    DisplayLabel: _(End date)
+    NotifyChange: True
+    Rules:
+      GreaterThan: StartDate
+  MembershipFee: Currency
+    PhysicalName: QUOTA_ASSOCIATIVA
+    DisplayLabel: _(Membership fee)
+    DisplayWidth: 10
+    DefaultValue: 0
+  SubscriptionInstructions: HTMLMemo
+    PhysicalName: NOTE_ISCRIZIONE
+    DisplayLabel: _(Subscription instructions)
+    DisplayWidth: 100
+    Lines: 20
+    ReadOnly: True
+    HTMLEditor:
+      EnableAlignments: True
+      EnableColors: True
+      EnableFont: True
+      EnableFontSize: True
+      EnableFormat: True
+      EnableLinks: True
+      EnableLists: True
+      EnableSourceEdit: True
+  SportsActivityFlag: Boolean
+    PhysicalName: FLAG_ATT_SPORTIVA
+    DisplayLabel: _(Sports activity)
+ImageName: shopping_basket

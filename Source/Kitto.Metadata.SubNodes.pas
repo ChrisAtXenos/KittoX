@@ -101,15 +101,16 @@ type
     function GetAskUserDefault: Boolean;
   public
     [YamlNode('Mode', '', 'Credentials to store: empty, UserName, or Password')]
+    [YamlEnumType(TypeInfo(TKLocalStorageMode))]
     property Mode: string read GetMode;
 
-    [YamlNode('AskUser', 'True', 'Show checkbox asking user to enable local storage')]
+    [YamlNode('AskUser', 'False', 'Show checkbox asking user to enable local storage')]
     property AskUser: Boolean read GetAskUser;
 
-    [YamlNode('AutoLogin', 'True', 'Automatically submit login if credentials are stored')]
+    [YamlNode('AutoLogin', 'False', 'Automatically submit login if credentials are stored')]
     property AutoLogin: Boolean read GetAutoLogin;
 
-    [YamlNode('AskUser/Default', 'False', 'Default state of the AskUser checkbox')]
+    [YamlNode('AskUser/Default', 'True', 'Default state of the AskUser checkbox')]
     property AskUserDefault: Boolean read GetAskUserDefault;
   end;
 
@@ -139,49 +140,11 @@ type
   // metadata unit no longer holds any chat config (no coupling to the chat domain).
 
 
-  /// <summary>
-  ///  Grid defaults from Config.yaml.
-  ///  YAML path: Defaults/Grid
-  /// </summary>
-  /// <example>
-  ///  Defaults:
-  ///    Grid:
-  ///      PageRecordCount: 100
-  ///      DefaultAction: Edit
-  /// </example>
-  TKDefaultsGridConfig = class(TEFNode)
-  private
-    function GetPageRecordCount: Integer;
-    function GetDefaultAction: string;
-  public
-    [YamlNode('PageRecordCount', '100', 'Number of records per grid page')]
-    property PageRecordCount: Integer read GetPageRecordCount;
-
-    [YamlNode('DefaultAction', 'Edit', 'Default action on grid row double-click')]
-    property DefaultAction: string read GetDefaultAction;
-  end;
-
-  /// <summary>
-  ///  Window defaults from Config.yaml.
-  ///  YAML path: Defaults/Window
-  /// </summary>
-  /// <example>
-  ///  Defaults:
-  ///    Window:
-  ///      Width: 800
-  ///      Height: 600
-  /// </example>
-  TKDefaultsWindowConfig = class(TEFNode)
-  private
-    function GetWidth: Integer;
-    function GetHeight: Integer;
-  public
-    [YamlNode('Width', '800', 'Default window width in pixels')]
-    property Width: Integer read GetWidth;
-
-    [YamlNode('Height', '600', 'Default window height in pixels')]
-    property Height: Integer read GetHeight;
-  end;
+  // NB: TKDefaultsGridConfig and TKDefaultsWindowConfig moved to
+  // Kitto.Config.Defaults (typed readers, per-domain config organization).
+  // Both are reached via TKDefaultsConfig's [YamlSubNode] annotations; the old
+  // TEFNode duplicates here were unreachable by KIDE discovery and TKDefaultsWindowConfig
+  // clashed by name with the new class.
 
 
   // NB: TKLogTextFileConfig moved to Kitto.Config.Log (typed reader,
@@ -285,30 +248,6 @@ end;
 function TKLocalStorageConfig.GetAskUserDefault: Boolean;
 begin
   Result := GetBoolean('AskUser/Default', True);
-end;
-
-{ TKDefaultsGridConfig }
-
-function TKDefaultsGridConfig.GetPageRecordCount: Integer;
-begin
-  Result := GetInteger('PageRecordCount', 100);
-end;
-
-function TKDefaultsGridConfig.GetDefaultAction: string;
-begin
-  Result := GetString('DefaultAction', 'Edit');
-end;
-
-{ TKDefaultsWindowConfig }
-
-function TKDefaultsWindowConfig.GetWidth: Integer;
-begin
-  Result := GetInteger('Width', 800);
-end;
-
-function TKDefaultsWindowConfig.GetHeight: Integer;
-begin
-  Result := GetInteger('Height', 600);
 end;
 
 { TKLoginFormPanelConfig }

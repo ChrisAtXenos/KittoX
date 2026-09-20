@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Without certificate)
+ImageName: dash_without_certificate.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiWithoutCertificate.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

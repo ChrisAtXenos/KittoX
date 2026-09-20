@@ -1,0 +1,19 @@
+﻿LabelAlign: Right
+LabelWidth: 180
+FieldSet:
+  Title: _(Family Member)
+  Row:
+    Field: Person
+      CharWidth: 90
+  Row:
+    Field: TaxCode
+  Row:
+    Field: Relationship
+  Row:
+    Field: DeductionPercent
+FieldSet:
+  Title: _(Family Creator)
+  Row:
+    Field: CreatorPersonCalc
+  Row:
+    Field: Family

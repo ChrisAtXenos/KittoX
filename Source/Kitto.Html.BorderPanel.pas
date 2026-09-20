@@ -44,11 +44,15 @@ function CreateRegionController(AConfig: TEFComponentConfig; AView: TKView;
 /// <summary>
 ///  Creates the controller and renders the full region HTML including
 ///  width, header, collapsible support based on config properties.
-///  Standalone function usable by any controller.
+///  Standalone function usable by any controller. AHook, when given, lets the
+///  caller attach and render the region controller itself (a data-list host
+///  rendering its presenters); when it declines, the controller is displayed
+///  and rendered here.
 /// </summary>
 function RenderNamedRegion(AConfig: TEFComponentConfig; AView: TKView;
   const ARegionName, ARegionClass: string;
-  const AIsRequired: Boolean = False): string;
+  const AIsRequired: Boolean = False;
+  const AHook: TKXRegionRenderHook = nil): string;
 
 type
   /// <summary>
@@ -189,7 +193,8 @@ begin
 end;
 
 function RenderNamedRegion(AConfig: TEFComponentConfig; AView: TKView;
-  const ARegionName, ARegionClass: string; const AIsRequired: Boolean): string;
+  const ARegionName, ARegionClass: string; const AIsRequired: Boolean;
+  const AHook: TKXRegionRenderHook): string;
 var
   LController: IKXController;
   LRegionNode, LControllerNode: TEFNode;
@@ -267,9 +272,13 @@ begin
   end;
   ConsumeConfigNode(LController, 'Split');
 
-  // Now Display + Render the inner controller (without consumed properties)
-  LController.Display;
-  LContent := LController.Render;
+  // Now Display + Render the inner controller (without consumed properties),
+  // unless the caller takes it over (a host rendering one of its presenters).
+  if not (Assigned(AHook) and AHook(LController, ARegionName, LContent)) then
+  begin
+    LController.Display;
+    LContent := LController.Render;
+  end;
 
   LIsSideRegion := SameText(ARegionName, 'East') or SameText(ARegionName, 'West');
 

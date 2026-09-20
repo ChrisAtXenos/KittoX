@@ -1,0 +1,50 @@
+﻿ModelName: Bank
+PhysicalName: BANCHE
+PluralDisplayLabel: _(Banks)
+DisplayLabel: _(Bank)
+PluralModelName: Banks
+Fields:
+  Id: String(20) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 15
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Bank)
+  Iban: String(30) not null
+    PhysicalName: IBAN
+    DisplayLabel: _(IBAN)
+    Rules:
+      ForceUpperCase:
+      CheckIBAN:
+  Address: String(40)
+    PhysicalName: INDIRIZZO
+    DisplayLabel: _(Address)
+  Municipality: Reference(Municipality)
+    PhysicalName: FK_BANCHE_CODCOMUNE
+    Fields:
+      MunicipalityId:
+        PhysicalName: CODCOMUNEID
+    LookupFilter: (COMUNI.ESTINTO = 'N')
+    DisplayLabel: _(Municipality)
+    DisplayWidth: 40
+    Rules:
+      CalcProvince:
+  PostalCode: String(5)
+    PhysicalName: CAP
+    DisplayLabel: _(Postal Code)
+  Province: Reference(Province)
+    PhysicalName: FK_BANCHE_PROVINCIA
+    DisplayLabel: _(Province)
+    Fields:
+      ProvinceId:
+        PhysicalName: PROVINCIAID
+  Email: String(50)
+    PhysicalName: EMAIL
+    DisplayLabel: _(E-mail)
+    DisplayWidth: 20
+  Phone: String(40)
+    PhysicalName: TELEFONO
+    DisplayLabel: _(Phone)
+    DisplayWidth: 15
+ImageName: store

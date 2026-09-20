@@ -1,0 +1,28 @@
+﻿FieldSet:
+  Row:
+    Field: LastName
+  Row:
+    Field: FirstName
+  Row:
+    Field: TaxCode
+    Field: Gender
+  Row:
+    Field: Address
+  Row:
+    Field: PostalCode
+    Field: Municipality
+  Row:
+    Field: Phone
+    Field: Mobile
+  Row:
+    Field: Email
+  Row:
+    Field: BirthDate
+  Row:
+    Field: BirthPlace
+  Row:
+    Field: BirthCountry
+  Row:
+    Field: VisitExpiry
+  Row:
+    Field: ProfilePhoto

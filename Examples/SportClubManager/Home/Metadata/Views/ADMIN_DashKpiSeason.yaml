@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Active season)
+ImageName: dash_season.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiSeason.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

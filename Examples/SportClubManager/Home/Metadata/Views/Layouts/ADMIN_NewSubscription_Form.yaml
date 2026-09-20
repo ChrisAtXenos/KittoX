@@ -1,0 +1,62 @@
+﻿LabelAlign: Right
+LabelWidth: 170
+Fieldset:
+  Title: _(Parent)
+  Row:
+    Field: ParentTaxCode
+    Field: ParentLastName
+    Field: ParentFirstName
+  Row:
+    Field: ParentEmail
+    Field: ParentMobile
+Spacer:
+FieldSet:
+  Title: _(Athlete)
+  Row:
+    Field: Person
+      CharWidth: 90
+  Row:
+    Field: TaxCode
+    Field: Gender
+  Row:
+    Field: LastName
+    Field: FirstName
+  Row:
+    Field: Address
+  Row:
+    Field: PostalCode
+    Field: Municipality
+      CharWidth: 50
+  Row:
+    Field: BirthDate
+    Field: BirthCountry
+      CharWidth: 46
+  Row:
+    Field: BirthPlace
+      CharWidth: 50
+  Row:
+    Field: BirthProvince
+      CharWidth: 50
+  Row:
+    Field: Email
+    Field: Mobile
+FieldSet:
+  Title: _(Course/Fee)
+  Row:
+    Field: SubscriptionFee
+      CharWidth: 130
+  Row:
+    Field: CourseFeeAmount
+  Row:
+    Field: SiblingDiscountAmount
+    Field: SiblingDiscount
+  Row:
+    Field: SingleInstalmentDiscountAmount
+    Field: SingleInstalmentDiscount
+  Row:
+    Field: SubscriptionTotal
+Fieldset:
+  Title: _(Notes)
+  Row:
+    Field: SubscriberNotes
+      CharWidth: 150

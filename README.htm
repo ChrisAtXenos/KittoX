@@ -37,9 +37,9 @@ td{
 }
 </style>
 <h1>Kitto<sup>x</sup> - A framework for creating data-driven web applications with Delphi and HTMX</h1>
-<p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a></p>
-<p><a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
-<p><strong>Latest Version 4.0.19 - 07 Sep 2026</strong></p>
+<p><a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/Core-Apache%202.0-yellowgreen.svg" alt="Core License"/></a>
+<a href="KittoLicensing"><img src="https://img.shields.io/badge/Enterprise-AGPL--3.0%20%2F%20Commercial-blue.svg" alt="Enterprise License"/></a></p>
+<p><strong>Actual Version 4.1.0 - 20 Sep 2026</strong></p>
 <p><img src="./images/kittoX_logo_200.png" alt="KittoX_logo.png"/></p>
 <p><strong>Kitto<sup>x</sup></strong> allows to create <strong>Rich Internet Applications</strong> based on a data model that can be mapped onto any database. The client-side part uses <strong>HTMX</strong> (through webbroker technology) to create a fully <strong>AJAX</strong> application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.</p>
 <p><strong>Kitto<sup>x</sup></strong> is aimed at <strong>Delphi</strong> developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS or Javascript, yet it allows access to the bare metal if required.</p>
@@ -48,12 +48,9 @@ td{
 <hr />
 <h2>Full documentation</h2>
 <ul>
-<li><p><a href="https://ethea.it/docs/kittox/">Documentation site</a> with 150+ pages</p>
-</li>
-<li><p>Pages for all controllers, filters, data concepts, how-to guides, FAQ</p>
-</li>
-<li><p>Three example applications: HelloKitto, TasKitto, KEmployee</p>
-</li>
+<li><a href="https://ethea.it/docs/kittox/">Documentation site</a> with 150+ pages</li>
+<li>Pages for all controllers, filters, data concepts, how-to guides, FAQ</li>
+<li>Three example applications: HelloKitto, TasKitto, KEmployee</li>
 </ul>
 <hr />
 <h2>Enterprise Edition</h2>
@@ -81,6 +78,21 @@ td{
 <p>Visit <a href="https://ethea.it/Kitto-Demo/">this site</a> for online demos.</p>
 <hr />
 <h1>Release Notes</h1>
+<h2>20 Sep 2026: ver. 4.1.0</h2>
+<ul>
+<li><strong>First stable release.</strong> Kitto<sup>x</sup> leaves beta: the HTMX client port, the REST server and the KIDE<sup>x</sup> / MCP-KittoX toolchain are feature-complete, and the framework has been through a full security and correctness review.</li>
+<li><strong>KIDE<sup>x</sup> / MCP-KittoX — YAML validation completed</strong>: the RTTI-driven validator now covers every Config, Model, View and Layout node the three examples use; <code>MCPKittoX --validate</code> reports <strong>zero errors</strong> on HelloKitto, KEmployee and TasKitto (only intentionally-disabled nodes remain). This closes the last major KIDE<sup>x</sup>/MCP feature.</li>
+<li><strong>Security &amp; correctness review — Core (<code>Source/Kitto</code>)</strong>: exposed-perimeter hardening — JWT algorithm pinning (RS256→HS256 confusion closed), immediate token revocation on logout / password change plus an absolute session cap, path-traversal containment on static and BLOB file serving, thread-safe per-user ACL cache with case-insensitive matching, credentials read only from the POST body (never the URL), logout via POST, and LDAP identity taken from the directory.</li>
+<li><strong>Security &amp; correctness review — EF layer</strong>: faithful database schema introspection (the Size/Scale contract and LOB detection verified on MSSQL, Oracle, Firebird and PostgreSQL), thread-safe regex and access-control, and a number of DoS and injection fixes.</li>
+<li><strong>Automated test suite</strong> now at <strong>271 tests</strong>, green on Win64 Debug; the integration tests run against real MSSQL, Oracle, Firebird and PostgreSQL servers, and the whole metadata catalogue of the three examples is loaded and walked.</li>
+<li><strong>KIDE<sup>x</sup> configuration editor</strong>: the remaining JWT / Defaults nodes (e.g. <code>MaxSessionLifetime</code>, Grid and Window defaults) are now discoverable.</li>
+<li><strong>KIDE<sup>x</sup> — Live Preview of Views and Layouts</strong>: render a view — or the first view that uses a layout — with the <strong>real</strong> engine in an embedded browser, without compiling or launching the application. It reloads automatically when you save a metadata or resource file, and includes mobile/tablet <strong>device emulation</strong> (viewport, device pixel ratio and user-agent). The login form is skipped in preview.</li>
+<li><strong>List as the data-list host</strong>: <code>Controller: List</code> composes <em>presenters</em> in its regions — the default GridPanel, a ChartPanel or CalendarPanel in the Center, a real grid beside a chart (<code>WestController: GridPanel</code>), and the <strong>form of the current record</strong> beside the grid (<code>EastController: Form</code>: view mode, Edit/Save in place). Filters and Refresh apply to every presenter. Replaces Kitto1's <code>AutoFormPlacement</code>.</li>
+<li><strong>CalendarPanel</strong>: <code>DefaultEventMinutes</code> gives a duration to point-in-time events, event content differs per view (month: time and title; week/day: title and notes), and calendar and chart data honor the List filters. HelloKitto gains a <em>Party calendar</em>.</li>
+<li><strong>KIDE<sup>x</sup> Live Preview — automatic login</strong>: <code>PreviewMode/Auth/Defaults</code> in the <code>.kproj</code> (File → Settings) logs the preview in as a chosen user or profile, also with custom authenticators; fixed the first render of JWT applications, which came up with an empty menu.</li>
+<li><strong>Build</strong>: <code>build_Examples.cmd</code> finds Delphi through the registry (13, 12, 11, 10.4).</li>
+<li><strong>Third-party libraries aligned to their latest releases</strong>: Delphi — Delphi-Neon 4.1.0, MarkdownProcessor 1.4.1 (with their LICENSE files in <code>Source/ThirdParty</code>, shipped by the setup but not added to the library path); client — HTMX 2.0.10, Alpine.js 3.17.3, Chart.js 4.5.1, EventCalendar 5.13.1, SunEditor 2.47.12 (XSS sanitizer fixes), Swagger UI 5.33.0; the never-referenced jQuery 2.1.3 and jSignature bundles were removed.</li>
+</ul>
 <h2>07 Sep 2026: ver. 4.0.19 Beta</h2>
 <ul>
 <li><strong>Automated test suite</strong> — 216 tests, green on Win64/Win32 × Debug/Release; 24 of them run against real MSSQL, PostgreSQL, Firebird and Oracle servers, and the whole metadata catalogue of the three examples is loaded and walked. <code>Test\run_tests.cmd</code></li>

@@ -1,0 +1,13 @@
+LabelAlign: Right
+LabelWidth: 170
+FieldSet:
+  Row:
+    Field: Id
+    Field: Description
+  Row:
+    Field: PostingType
+    Field: ReasonType
+  Row:
+    Field: DocumentDateRef
+    Field: DocumentNumberRef
+    Field: DueDateRef

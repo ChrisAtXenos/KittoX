@@ -1,6 +1,6 @@
 Localization:
   dxgettext:
-    .Path: C:\Program Files (x86)\dxgettext
+    Path: %APP_PATH%dxgettexttools
     URL: http://dxgettext.po.dk/
   Yaml:
     DefaultKeyNames:
@@ -20,24 +20,33 @@ Defaults:
 Authentication:
   Authenticators:
     Item: DB
+    Item: DBCrypt
     Item: DBServer
     Item: OSDB
     Item: TextFile
+    Item: LDAP
 AccessControl:
   AccessControllers:
+    Item: Null
+    Item: JWT
     Item: DB
-ExtThemes:
-  Item: classic
-  Item: gray
-  Item: triton
-  Item: neptune
-  Item: crisp
 LanguageIds:
   item: en
   item: it
+  item: de
+  item: es
+  item: pt
 Charsets:
   Item: utf-8
   Item: iso-8859-1
+HelpChatProviders:
+  Item: stub
+  Item: docsearch
+  Item: claude
+ClaudeModels:
+  Item: claude-haiku-4-5
+  Item: claude-sonnet-5
+  Item: claude-opus-5
 DetailTablesControllerStyle:
   item: Tabs
   item: Popup
@@ -77,6 +86,8 @@ DefaultDBConnections:
       Isolation: ReadCommitted
 View:
   Controller:
+    item: List
+    item: Form
     item: TabPanel
     item: BorderPanel
     item: TilePanel

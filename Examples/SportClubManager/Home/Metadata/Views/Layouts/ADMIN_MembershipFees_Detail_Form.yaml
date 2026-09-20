@@ -1,0 +1,9 @@
+﻿FieldSet:
+  Row:
+    Field: Description
+  Row:
+    Field: Year
+  Row:
+    Field: Fee
+    Field: CardNumber
+LabelAlign: Right

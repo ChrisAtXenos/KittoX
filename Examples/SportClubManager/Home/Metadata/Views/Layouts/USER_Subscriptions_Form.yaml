@@ -1,0 +1,81 @@
+﻿FieldSet:
+  Title: _(Athlete)
+  Row:
+    Field: Person
+      CharWidth: 53
+  Row:
+    Field: TaxCode
+      CharWidth: 30
+    Field: Gender
+      CharWidth: 20
+  Row:
+    Field: LastName
+      CharWidth: 53
+  Row:
+    Field: FirstName
+      CharWidth: 53
+  Row:
+    Field: Address
+      CharWidth: 53
+  Row:
+    Field: PostalCode
+      CharWidth: 10
+    Field: Municipality
+      CharWidth: 40
+  Row:
+    Field: BirthDate
+  Row:
+    Field: BirthCountry
+      CharWidth: 53
+  Row:
+    Field: BirthPlace
+      CharWidth: 53
+  Row:
+    Field: BirthProvince
+      CharWidth: 53
+  Row:
+    Field: Email
+    Field: Mobile
+FieldSet:
+  Title: _(Course/Fee)
+  Row:
+    Field: SubscriptionFee
+      CharWidth: 53
+  Row:
+    Field: CourseFeeAmount
+      CharWidth: 15
+  Row:
+    Field: SiblingDiscount
+  Row:
+    Field: SiblingDiscountAmount
+      CharWidth: 15
+  Row:
+    Field: InstalmentsDiscountAllowance
+      CharWidth: 15
+  Row:
+    Field: SubscriptionTotal
+      CharWidth: 15
+Fieldset:
+  Title: _(Parent)
+  Row:
+    Field: EnteredByUser
+      CharWidth: 53
+  Row:
+    Field: ParentLastName
+      CharWidth: 53
+  Row:
+    Field: ParentFirstName
+      CharWidth: 53
+  Row:
+    Field: ParentTaxCode
+      CharWidth: 53
+  Row:
+    Field: ParentEmail
+      CharWidth: 25
+    Field: ParentMobile
+      CharWidth: 25
+Fieldset:
+  Title: _(Notes for the club)
+  Row:
+    Field: SubscriberNotes
+      CharWidth: 59

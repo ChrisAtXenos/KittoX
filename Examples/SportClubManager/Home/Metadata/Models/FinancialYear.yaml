@@ -1,0 +1,40 @@
+﻿ModelName: FinancialYear
+PhysicalName: ESERCIZICONTABILI
+PluralDisplayLabel: _(Financial Years)
+DisplayLabel: _(Financial Year)
+PluralModelName: FinancialYears
+DefaultSorting: {Q}DX
+Fields:
+  Id: String(4) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Year)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Financial Year)
+    DisplayWidth: 30
+  StartDate: Date not null
+    PhysicalName: DATAINIZIO
+    DisplayWidth: 12
+    DisplayLabel: _(Start date)
+    Rules:
+      LowerThan: EndDate
+  EndDate: Date not null
+    PhysicalName: DATAFINE
+    DisplayWidth: 12
+    DisplayLabel: _(End date)
+    Rules:
+      GreaterThan: StartDate
+  Status: String(1) not null
+    DisplayLabel: _(Status)
+    PhysicalName: STATO
+    DisplayWidth: 20
+    AllowedValues:
+      A: _(Open)
+      C: _(Closed)
+  LastEntryNumber: Integer
+    PhysicalName: NRMOV
+    DisplayLabel: _(Last entry number used)
+    DefaultValue: 0
+    DisplayWidth: 10
+ImageName: account_balance

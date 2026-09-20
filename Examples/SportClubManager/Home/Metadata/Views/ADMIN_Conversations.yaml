@@ -1,0 +1,88 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    LabelWidth: 150
+    DisplayLabel: _(Search Conversations)
+    Connector: and
+    Items:
+      FreeSearch: _(Topic)
+        Width: 40
+        ExpressionTemplate: (CONVERSAZIONI.DX like '%{value}%')
+      ButtonList: _(Conversation Status)
+        Items:
+          Started: _(Started)
+            Expression: {Q}StatusID = 1
+            IsDefault: True
+          In corso: _(In progress)
+            Expression: {Q}StatusID = 2
+            IsDefault: True
+          Closed: _(Closed)
+            Expression: {Q}StatusID = 3
+          Deleted: _(Deleted)
+            Expression: {Q}StatusID = 4
+      ColumnBreak:
+      DateSearch: _(From date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_ULT_MSG >= '{value}'
+        LabelWidth: 80
+      ColumnBreak:
+      DateSearch: _(To date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_ULT_MSG <= '{value}'
+MainTable:
+  Model: Conversation
+  Controller:
+    PreventDeleting: True
+    PopUpWindow:
+      Width: 1000
+      Height: 700
+    Form:
+      Layout: ADMIN_Conversation_Form
+    Grid:
+      Layout: ADMIN_Conversation_Grid
+  DetailTables:
+    Controller:
+      Style: Bottom
+        Height: 500
+    Table:
+      Model: Message
+      Controller:
+        PreventDeleting: True
+        PopUpWindow:
+          Width: 800
+          Height: 600
+        Add: _(Add message)
+          Tooltip: _(Add a new message)
+        Form:
+          Layout: ADMIN_Message_Form
+        Grid:
+          Layout: ADMIN_Message_Grid
+      DetailTables:
+        Controller:
+          Style: Bottom
+            Height: 200
+        Table:
+          Model: Attachment
+          Controller:
+            PopUpWindow:
+              Width: 500
+              Height: 150
+            Add: _(Add attachment)
+              Tooltip: _(Add a new attachment)
+            Form:
+              Layout: ADMIN_Attachment_Form
+            Grid:
+              Layout: ADMIN_Attachment_Grid
+    Table:
+      Model: Participant
+      Controller:
+        PreventDeleting: False
+        PopUpWindow:
+          Width: 600
+          Height: 200
+        Add: _(Add participant)
+          Tooltip: _(Add a new participant)
+        Form:
+          Layout: ADMIN_Participant_Form
+        Grid:
+          Layout: ADMIN_Participant_Grid

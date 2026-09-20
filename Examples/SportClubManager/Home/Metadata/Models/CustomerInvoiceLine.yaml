@@ -1,0 +1,46 @@
+﻿ModelName: CustomerInvoiceLine
+PhysicalName: RIGHEFATTURECLIENTI
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  TaxableAmount: Currency not null
+    DisplayLabel: _(Taxable amount)
+    PhysicalName: IMPONIBILE
+    DisplayWidth: 10
+    DefaultValue: 0
+  Amount: Currency not null
+    DisplayLabel: _(Amount)
+    PhysicalName: IMPORTO
+    DisplayWidth: 10
+    DefaultValue: 0
+  CostCentre: Reference(CostCentre)
+    DisplayLabel: _(Cost Centre)
+    PhysicalName: FK_RIGHEFATTURECLIENTI_CENTROCOSTO
+    Fields:
+      CostCentreId:
+        PhysicalName: CENTROCOSTOID
+  VatCode: Reference(VatCode) not null
+    DisplayLabel: _(VAT Code)
+    PhysicalName: FK_RIGHEFATTURECLIENTI_ASSOGIVA
+    Fields:
+      VatCodeId:
+        PhysicalName: ASSOGIVAID
+  LedgerAccount: Reference(LedgerAccount) not null
+    DisplayLabel: _(Ledger Account)
+    PhysicalName: FK_RIGHEFATTURECLIENTI_CODRICAVO
+    Fields:
+      LedgerAccountId:
+        PhysicalName: CODRICAVOID
+  CustomerInvoice: Reference(CustomerInvoice) not null
+    DisplayLabel: _(Customer Invoice)
+    PhysicalName: DT_RIGHEFATTURECLIENTI_FATTCLI
+    Fields:
+      CustomerInvoiceId:
+        PhysicalName: FATTCLIID
+PluralDisplayLabel: _(Customer invoice lines)
+DisplayLabel: _(Customer invoice line)
+PluralModelName: CustomerInvoiceLines

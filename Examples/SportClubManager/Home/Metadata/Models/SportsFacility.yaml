@@ -1,0 +1,84 @@
+﻿ModelName: SportsFacility
+PhysicalName: IMPIANTI_SPORTIVI
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Facility)
+    DisplayWidth: 40
+  Address: String(50) not null
+    DisplayLabel: _(Address)
+    PhysicalName: INDIRIZZO
+  Municipality: Reference(Municipality)
+    PhysicalName: FK_CLIENTI_COMUNE
+    DisplayLabel: _(Municipality)
+    Fields:
+      MunicipalityId:
+        PhysicalName: COMUNEID
+    Rules:
+      CalcProvince:
+    LookupFilter: (COMUNI.ESTINTO = 'N')
+  Province: Reference(Province) not null
+    DisplayLabel: _(Province)
+    PhysicalName: FK_IMPIANTI_SPORTIVI_PROVINCIA
+    Fields:
+      ProvinceId:
+        PhysicalName: PROVINCIAID
+  PostalCode: String(5) not null
+    DisplayLabel: _(Postal Code)
+    PhysicalName: CAP
+  OutdoorCourt: Boolean
+    PhysicalName: CAMPOSCOPERTO
+    DisplayLabel: _(Outdoor court)
+    DisplayWidth: 15
+  Floodlit: Boolean
+    PhysicalName: ILLUMINATO
+    DisplayLabel: _(Floodlit)
+  CourtSurface: String(20)
+    PhysicalName: FONDO_CAMPO
+    DisplayLabel: _(Court surface)
+  Other: String(20)
+    PhysicalName: ALTRO
+    DisplayLabel: _(Other)
+  Phone: String(20)
+    PhysicalName: TELEFONO
+    DisplayLabel: _(Phone)
+  Fax: String(20)
+    PhysicalName: FAX
+    DisplayLabel: _(Fax)
+  Photo: Blob
+    PhysicalName: FOTO
+    DisplayLabel: _(Facility photo)
+    MaxUploadSize: 1MB
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
+  Itinerary: Memo
+    DisplayLabel: _(Itinerary)
+    PhysicalName: ITINERARIO
+  Map: Blob
+    PhysicalName: CARTINA
+    DisplayLabel: _(Map)
+    MaxUploadSize: 1MB
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
+  Own: Boolean
+    DisplayLabel: _(Own)
+    PhysicalName: PROPRIO
+  FacilityType: Reference(FacilityType)
+    PhysicalName: FK_IMPIANTI_SPORTIVI_TIPO_IMPIANTO
+    DisplayLabel: _(Facility Type)
+    Fields:
+      FacilityTypeId:
+        PhysicalName: TIPO_IMPIANTOID
+PluralDisplayLabel: _(Sports Facilities)
+DisplayLabel: _(Sports Facility)
+PluralModelName: SportsFacilities
+ImageName: group_work

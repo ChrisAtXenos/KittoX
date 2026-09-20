@@ -1,0 +1,48 @@
+﻿ModelName: BoardMember
+PhysicalName: CONSIGLIO
+PluralDisplayLabel: _(Board of Directors)
+DisplayLabel: _(Board of Directors)
+PluralModelName: BoardMembers
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Mr/Ms)
+    DisplayWidth: 100
+  Person: Reference(Person) not null
+    DisplayLabel: _(Person)
+    PhysicalName: FK_CONSIGLIO_NOMINATIVO
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+    AutoAddFields:
+      LastName: Person_LastName
+      FirstName: Person_FirstName
+    Rules:
+      CalcDescription: {Person_LastName} {Person_FirstName}
+  StaffRole: Reference(StaffRole) not null
+    PhysicalName: FK_CONSIGLIO_QUALIFICA
+    DisplayLabel: _(Role/Duty)
+    Fields:
+      StaffRoleId:
+        PhysicalName: QUALIFICAID
+    LookupFilter: DIRIGENZA = 1
+  JoiningDate: Date
+    PhysicalName: DATA_INI
+    DisplayLabel: _(Joining date)
+    DisplayWidth: 12
+    NotifyChange: True
+    Rules:
+      LowerThan: LeavingDate
+  LeavingDate: Date
+    PhysicalName: DATA_FINE
+    DisplayWidth: 12
+    DisplayLabel: _(Leaving date)
+    NotifyChange: True
+    Rules:
+      GreaterThan: JoiningDate
+ImageName: people

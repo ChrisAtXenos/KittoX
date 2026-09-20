@@ -1,0 +1,121 @@
+﻿ModelName: VSubscriptionVisit
+PhysicalName: V_ISCRIZIONI_VISITE
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Medical visit)
+    DisplayWidth: 100
+    DefaultValue: '-'
+  Person: Reference(Person) not null
+    DisplayLabel: _(Person)
+    PhysicalName: DT_VISITEMEDICHE_NOMINATIVO
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+  MedicalVisitType: Reference(MedicalVisitType)
+    DisplayLabel: _(Medical Visit Type)
+    PhysicalName: FK_VISITEMEDICHE_TPVISITA
+    Fields:
+      MedicalVisitTypeId:
+        PhysicalName: TPVISITAID
+    DisplayWidth: 40
+  HealthCard: String(8)
+    PhysicalName: TESSERASANIT
+    DisplayLabel: _(Health card no.)
+    DisplayWidth: 10
+  RequestDate: Date
+    DisplayLabel: _(Request Date)
+    PhysicalName: DATA_RICHIESTA
+    DisplayWidth: 12
+    DefaultValue: {date}
+    IsReadOnly: True
+  VisitDate: Date not null
+    PhysicalName: DATA_VISITA
+    DisplayWidth: 12
+    DisplayLabel: _(Visit date)
+  VisitTime: Time not null
+    DisplayLabel: _(Visit Time)
+    PhysicalName: ORA_VISITA
+    DisplayWidth: 12
+  ExpiryDate: Date
+    PhysicalName: SCADENZA
+    DisplayWidth: 12
+    DisplayLabel: _(Certificate expiry)
+    IsReadOnly: True
+  Clinic: Reference(Clinic)
+    DisplayLabel: _(Clinic)
+    PhysicalName: FK_VISITEMEDICHE_AMBULATORIO
+    Fields:
+      ClinicId:
+        PhysicalName: AmbulatorioId
+  NotificationDate: DateTime
+    DisplayLabel: _(Notification Date)
+    PhysicalName: DATA_NOTIFICA
+    IsReadOnly: True
+  Performed: Boolean
+    DisplayLabel: _(Carried out)
+    PhysicalName: EFFETTUATA
+    Rules:
+      MedicalVisitSetPerformed:
+  Notes: Memo
+    DisplayLabel: _(Notes)
+    PhysicalName: NOTE
+    DisplayWidth: 60
+  Fitness: Boolean
+    PhysicalName: IDEONEITA
+    DisplayLabel: _(Fitness)
+  DocumentFile: FileReference(50)
+    PhysicalName: FILE_DOCUMENTO
+    FileNameField: OriginalFileName
+    DisplayLabel: _(Medical Certificate)
+    MaxUploadSize: 1MB
+    PreviewWindow: True
+      Width: 226
+      Height: 320
+    Path: %APP_PATH%..\Dati\VisiteMediche
+    DisplayWidth: 35
+  OriginalFileName: String(200)
+    PhysicalName: NOME_FILE_ORIGINALE
+    DisplayWidth: 40
+    DisplayLabel: _(Original File Name)
+    IsReadOnly: True
+    IsVisible: False
+  VisitStatus: String(3)
+    PhysicalName: STATUS_VISITA
+    DisplayWidth: 10
+    DisplayLabel: _(Status)
+    AllowedValues:
+      VMN: _(Medical visit not found)
+      VMD: _(Medical visit to be carried out)
+      VMS: _(Medical visit expired)
+      VMO: _(Medical visit valid)
+  SubscriptionVisitCalc: HTMLMemo
+    DisplayLabel: _(Medical visits)
+    Expression: |
+      '<img style="float: left; margin: 0px 15px 15px 0px;" src="'+
+      CASE
+        WHEN {Q}STATUS_VISITA = 'VMO' THEN '%IMAGE(sentiment_satisfied_large.svg)%'
+        WHEN {Q}STATUS_VISITA = 'VMS' or {Q}STATUS_VISITA = 'VMN' THEN '%IMAGE(sentiment_dissatisfied_large.svg)%'
+        WHEN {Q}STATUS_VISITA = 'VMD' THEN '%IMAGE(sentiment_neutral_large.svg)%'
+      END+'" width="40" />'+
+      '<b> '+DT_VISITEMEDICHE_NOMINATIVO.COGNOME+' '+DT_VISITEMEDICHE_NOMINATIVO.NOME+'</b> <br /> '+
+      '_(Visit date):<b> '+COALESCE(CONVERT(VARCHAR, {Q}DATA_VISITA, 103),'')+'</b> - '+
+      '_(Visit time):<b>'+COALESCE(CONVERT(varchar, {Q}ORA_VISITA, 8), '')+'</b> <br /> '+
+      '_(Clinic):<b> '+COALESCE(FK_VISITEMEDICHE_AMBULATORIO.DX, '')+'</b> <br /> '+
+      '_(Expiry date):<b> '+COALESCE(CONVERT(VARCHAR, {Q}SCADENZA, 103),'')+'</b> <br /> '+
+      CASE
+        WHEN {Q}STATUS_VISITA = 'VMN' THEN '<font color="#E04B4B"> <b> _(Medical visit not found) </b> <br /> '
+        WHEN {Q}STATUS_VISITA = 'VMD' THEN '<font color="#B5761A"> <b> _(Medical visit to be carried out) </b> <br /> '
+        WHEN {Q}STATUS_VISITA = 'VMS' THEN '<font color="#E04B4B"> <b> _(Medical visit expired) </b> <br /> '
+        WHEN {Q}STATUS_VISITA = 'VMO' THEN '<font color="#388E3C"> <b> _(Medical visit valid) </b> <br /> '
+      END+'</font></div>'
+ImageName: enhanced_encryption
+DisplayLabel: _(Medical visits)
+PluralDisplayLabel: _(Medical visits)
+IsReadOnly: True

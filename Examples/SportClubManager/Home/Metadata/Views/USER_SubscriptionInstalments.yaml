@@ -1,0 +1,41 @@
+﻿Type: Data
+Controller: GroupingList
+  Filters:
+    DisplayLabel: _(Instalment Filter)
+    Connector: and
+    Items:
+      ButtonList: _(Season)
+        Items:
+          Current: _(Current)
+            Expression: DT_RATE_ISCRIZIONI_ISCRIZIONE.STAGIONEID IN (SELECT ID FROM STAGIONE WHERE DATAINI < CURRENT_TIMESTAMP AND DATAFINE >= CURRENT_TIMESTAMP )
+            IsDefault: True
+          Past: _(Past)
+            Expression: DT_RATE_ISCRIZIONI_ISCRIZIONE.STAGIONEID IN (SELECT ID FROM STAGIONE WHERE DATAFINE < CURRENT_TIMESTAMP)
+MainTable:
+  Model: SubscriptionInstalment
+  IsLarge: False
+  PluralDisplayLabel: _(Instalment summary)
+  PluralModelName: InstalmentSummary
+  DefaultFilter: {Q}ISCRIZIONEID in (SELECT ISCRIZIONI.ID FROM V_NUCLEO_FAMIGLIARE INNER JOIN ISCRIZIONI ON ISCRIZIONI.NOMINATIVOID = NOMINATIVO_ID WHERE CREATORE_CODFISC = '%Auth:USER_NAME%')
+  Controller:
+    Grid:
+      ForceFit: True
+      Layout: USER_SubscriptionInstalments_Grid
+    AllowDuplicating: False
+    PreventAdding: True
+    PreventDeleting: True
+    PreventEditing: True
+    AllowViewing: True
+    Grouping:
+      FieldName: DueDate
+      SortFieldNames: DueDate
+      StartCollapsed: False
+      ShowName: False
+      ShowCount: False
+      Aggregates:
+        TotalAmount:
+          Operation: Sum
+          Label: _(Total)
+    Form:
+      Layout: USER_SubscriptionInstalments_Form
+  IsReadOnly: True

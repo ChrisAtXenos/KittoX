@@ -1,0 +1,112 @@
+﻿ModelName: LedgerAccount
+PhysicalName: CONTICONTABILI
+IsLarge: True
+PluralDisplayLabel: _(Chart of accounts)
+DisplayLabel: _(Ledger account)
+PluralModelName: LedgerAccounts
+DefaultSorting: LedgerAccountOrder, {Q}CODCONTO
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: {Section}{LedgerAccountCode}
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 50
+  ParentCode: String(10) not null
+    PhysicalName: CODPADRE
+    DisplayLabel: _(Parent code)
+    Rules:
+      ForceUpperCase:
+  LedgerAccountCode: String(10) not null
+    PhysicalName: CODCONTO
+    DisplayLabel: _(Account code)
+    Rules:
+      ForceUpperCase:
+      CalcId: {Section}{LedgerAccountCode}
+  Section: String(3) not null
+    DisplayLabel: _(Section)
+    PhysicalName: SEZIONE
+    DisplayWidth: 20
+    AllowedValues:
+      A: _(Active)
+      P: _(Liabilities)
+      C: _(Costs)
+      R: _(Revenues)
+    Rules:
+      CalcId: {Section}{LedgerAccountCode}
+  Level: String(1) not null
+    DisplayLabel: _(Level)
+    PhysicalName: LIVELLO
+    DisplayWidth: 20
+    AllowedValues:
+      M: _(Master account)
+      C: _(Account)
+      S: _(Sub-account)
+  LedgerAccountDescription: String(210)
+    DisplayLabel: _(Ledger Account Description)
+    Expression: |
+      CASE
+        WHEN LIVELLO = 'M' THEN DX
+        WHEN LIVELLO = 'C' THEN '&emsp;'+DX
+        WHEN LIVELLO = 'S' THEN '&emsp;&emsp;'+DX
+      ELSE '' END
+  LedgerAccountOrder: String(40)
+    Expression: |
+      CASE WHEN {Q}SEZIONE = 'A' THEN
+        CASE
+          WHEN {Q}LIVELLO = 'M' THEN 'A'+{Q}CODCONTO
+          WHEN {Q}LIVELLO = 'C' THEN 'A'+{Q}CODPADRE+{Q}CODCONTO
+          WHEN {Q}LIVELLO = 'S' THEN 'A'+(SELECT C1.CODPADRE FROM CONTICONTABILI C1 WHERE C1.SEZIONE = {Q}SEZIONE AND C1.CODCONTO = {Q}CODPADRE)+{Q}CODPADRE+{Q}CODCONTO
+        END
+      WHEN {Q}SEZIONE = 'P' THEN
+        CASE
+          WHEN {Q}LIVELLO = 'M' THEN 'B'+{Q}CODCONTO
+          WHEN {Q}LIVELLO = 'C' THEN 'B'+{Q}CODPADRE+{Q}CODCONTO
+          WHEN {Q}LIVELLO = 'S' THEN 'B'+(SELECT C1.CODPADRE FROM CONTICONTABILI C1 WHERE C1.SEZIONE = {Q}SEZIONE AND C1.CODCONTO = {Q}CODPADRE)+{Q}CODPADRE+{Q}CODCONTO
+        END
+      WHEN {Q}SEZIONE = 'R' THEN
+        CASE
+          WHEN {Q}LIVELLO = 'M' THEN 'C'+{Q}CODCONTO
+          WHEN {Q}LIVELLO = 'C' THEN 'C'+{Q}CODPADRE+{Q}CODCONTO
+          WHEN {Q}LIVELLO = 'S' THEN 'C'+(SELECT C1.CODPADRE FROM CONTICONTABILI C1 WHERE C1.SEZIONE = {Q}SEZIONE AND C1.CODCONTO = {Q}CODPADRE)+{Q}CODPADRE+{Q}CODCONTO
+        END
+        WHEN {Q}SEZIONE = 'C' THEN
+        CASE
+          WHEN {Q}LIVELLO = 'M' THEN 'D'+{Q}CODCONTO
+          WHEN {Q}LIVELLO = 'C' THEN 'D'+{Q}CODPADRE+{Q}CODCONTO
+          WHEN {Q}LIVELLO = 'S' THEN 'D'+(SELECT C1.CODPADRE FROM CONTICONTABILI C1 WHERE C1.SEZIONE = {Q}SEZIONE AND C1.CODCONTO = {Q}CODPADRE)+{Q}CODPADRE+{Q}CODCONTO
+        END
+      ELSE '' END
+    IsVisible: False
+  CustomerReference: Boolean not null
+    PhysicalName: RIF_CLIENTE
+    DisplayLabel: _(Customer reference)
+    DisplayWidth: 20
+  SupplierReference: Boolean not null
+    PhysicalName: RIF_FORNITORE
+    DisplayLabel: _(Supplier reference)
+    DisplayWidth: 20
+  BankAccountReference: Boolean not null
+    PhysicalName: RIF_CONTO_CORRENTE
+    DisplayLabel: _(Bank reference)
+    DisplayWidth: 20
+  MemberReference: Boolean not null
+    PhysicalName: RIF_SOCIO
+    DisplayLabel: _(Member reference)
+    DisplayWidth: 20
+  TaxesAndDuties: Boolean
+    PhysicalName: IMPOSTE_TRIBUTI
+    DisplayLabel: _(Taxes/Duties)
+    DisplayWidth: 15
+  VatPayable: Boolean
+    PhysicalName: ERARIO_IVA
+    DisplayLabel: _(VAT payable to tax authority)
+    DisplayWidth: 15
+  Disabled: Boolean
+    PhysicalName: DISATTIVATO
+    DisplayLabel: _(Disabled)
+    DisplayWidth: 15
+ImageName: account_balance

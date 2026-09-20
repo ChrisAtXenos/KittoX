@@ -338,6 +338,14 @@ type
     procedure AfterQRGeneration(const AQRCode: TBitmap; const AParams: TEFNode); virtual;
 
   public
+    /// <summary>Refills AAuthData from the KITTO_USERS record (no password
+    /// check), for an identity a validated JWT already proved but whose session
+    /// was lost. Returns False when the user is unknown or no longer active —
+    /// the read filters IS_ACTIVE — so a disabled account's token stops
+    /// working. See TKAuthenticator.RehydrateAuthData.</summary>
+    function RehydrateAuthData(const AUserName: string;
+      const AAuthData: TEFNode): Boolean; override;
+
     /// <summary>Returns True if ASuppliedPasswordHash matches
     /// AStoredPasswordHash. By default this means that they are the same
     /// value. A descendant might use different matching rules or disable
@@ -365,9 +373,26 @@ type
   TKDBCryptAuthenticator = class(TKDBAuthenticator)
 
   strict private
-    FBCryptCost: integer;
     function GetRandomSpecialChar: char;
-    function GetBCryptedString(const AValue: string): string;
+    /// <summary>BCrypt-hashes AValue. AForcedCost, when &gt; 0, sets the work
+    /// factor for this one hash (the rehash path passes the stored cost + 1);
+    /// otherwise it comes from BCryptCostValue in config, or 13. Passing the
+    /// cost per call replaces a shared field that leaked the last rehash's cost
+    /// into every later hash and was written from request threads without a
+    /// lock.</summary>
+    function GetBCryptedString(const AValue: string; const AForcedCost: Integer = 0): string;
+    /// <summary>The password-policy regular expression and its error message.
+    /// Falls back to the built-in defaults when the optional ValidatePassword
+    /// node is absent, instead of dereferencing a nil node.</summary>
+    procedure GetPasswordPolicy(out ARegEx, AErrorMsg: string);
+    /// <summary>Stores AValue as the new password, hashing per IsClearPassword.
+    /// When AValidatePolicy is True the ValidatePassword rule is enforced first;
+    /// the migration/rehash path passes False, because the value is a password
+    /// the user already authenticated with — re-validating it there would refuse
+    /// a legitimate legacy password (e.g. shorter than the current rule) and
+    /// lock the user out of the very login that would upgrade it.</summary>
+    procedure StorePassword(const AValue: string; const AValidatePolicy: Boolean;
+      const AForcedCost: Integer = 0);
   protected
     /// <summary>Generates and returns a random password compatible with special rules defined in SetPassword.</summary>
     function GenerateRandomPassword: string; override;
@@ -411,8 +436,6 @@ type
     /// EMAIL_ADDRESS that will be filled in with the data used to locate the
     /// record and update the password.</remarks>
     function GetResetPasswordCommandText: string;
-
-    property BCryptCost: integer read FBCryptCost;
 
   public
     /// <summary>Marks the authenticator as BCrypt-enabled.</summary>
@@ -460,6 +483,25 @@ end;
 
 procedure TKDBAuthenticator.BeforeResetPassword(const AParams: TEFNode);
 begin
+end;
+
+function TKDBAuthenticator.RehydrateAuthData(const AUserName: string;
+  const AAuthData: TEFNode): Boolean;
+var
+  LUser: TKAuthUser;
+begin
+  if AUserName = '' then
+    Exit(False);
+  // CreateAndReadUser returns nil when the query — which filters IS_ACTIVE —
+  // finds no row: unknown, deactivated or deleted user. It also fills AAuthData
+  // with every column of the record (MUST_CHANGE_PASSWORD and the rest), which
+  // is exactly what the imposed-step gate and the %Auth:field% macros need.
+  LUser := CreateAndReadUser(AUserName, AAuthData);
+  try
+    Result := Assigned(LUser);
+  finally
+    LUser.Free;
+  end;
 end;
 
 function TKDBAuthenticator.CreateAndReadUser(
@@ -553,16 +595,21 @@ end;
 function TKDBAuthenticator.GetSuppliedPasswordHash(
   const AAuthData: TEFNode; const AHashNeeded: Boolean): string;
 begin
+  // The password TYPED at the login form is compared verbatim: it must never be
+  // macro-expanded. Expanding it let a user type %Config:Auth/PassepartoutPassword%
+  // and have it resolve to the real passepartout, or %Auth:UserName% and drive
+  // the engine into a self-referential loop. Macros in a *default* credential
+  // (Auth/Defaults) are expanded where they enter the auth data, in
+  // TKAuthenticator.ApplyConfigDefaults.
   Result := AAuthData.GetString('Password');
-  TKConfig.Instance.MacroExpansionEngine.Expand(Result);
   if AHashNeeded then
     Result := GetStringHash(Result);
 end;
 
 function TKDBAuthenticator.GetSuppliedUserName(const AAuthData: TEFNode): string;
 begin
+  // Verbatim, for the same reason as GetSuppliedPasswordHash.
   Result := AAuthData.GetString('UserName');
-  TKConfig.Instance.MacroExpansionEngine.Expand(Result);
 end;
 
 procedure TKDBAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);
@@ -977,26 +1024,25 @@ begin
   Result := GetRandomChar(SPECIAL_CHARS);
 end;
 
-function TKDBCryptAuthenticator.GetBCryptedString(const AValue: string): string;
+function TKDBCryptAuthenticator.GetBCryptedString(const AValue: string;
+  const AForcedCost: Integer): string;
 var
   LBCryptCostValue: integer;
 begin
-  // if BCryptCost is defined and <> 0 it means it has been invoked a password rehash: use BCryptCost value
-  if ((BCryptCost <> 0)) then
-    LBCryptCostValue := BCryptCost
-  // if BCryptCost isn't defined (or = 0), it searches on the Config.yaml for a valid value
+  // A forced cost (> 0) is a per-call value, used by the rehash path to raise
+  // an existing hash's work factor. Otherwise take it from config, or default.
+  if AForcedCost > 0 then
+    LBCryptCostValue := AForcedCost
   else if Assigned(Config.FindNode('BCryptCostValue')) then
     LBCryptCostValue := StrToInt(Config.GetString('BCryptCostValue'))
-  // if none of the above, it selects the default value 13
   else
     LBCryptCostValue := 13;
 
-  // BCrypt works with values in range 4..31, if LBCryptCostValue is not in that range it's replaced by the default value 13
-  if ((LBCryptCostValue <= 4) or (LBCryptCostValue >= 31)) then
+  // BCrypt accepts a cost in 4..31 INCLUSIVE; anything outside falls back to the
+  // default. The old bounds (<= 4 / >= 31) wrongly rejected the two valid ends.
+  if (LBCryptCostValue < 4) or (LBCryptCostValue > 31) then
     LBCryptCostValue := 13;
-  // Stores actual BCryptCost and hashed password
-  FBCryptCost := LBCryptCostValue;
-  Result := TBCrypt.HashPassword(AValue,LBCryptCostValue);
+  Result := TBCrypt.HashPassword(AValue, LBCryptCostValue);
 end;
 
 procedure TKDBCryptAuthenticator.AfterConstruction;
@@ -1007,13 +1053,14 @@ end;
 
 function TKDBCryptAuthenticator.GenerateRandomPassword: string;
 var
-  LValidatePasswordNode: TEFNode;
   LRegEx: string;
+  LErrorMsg: string;
   LRegularExpression : TRegEx;
   LMatch: TMatch;
 begin
-  LValidatePasswordNode := Config.FindNode('ValidatePassword');
-  LRegEx := LValidatePasswordNode.GetExpandedString('RegEx','^[ -~]{8,63}$');
+  // ValidatePassword is optional; GetPasswordPolicy defaults it instead of
+  // dereferencing a nil node (which used to access-violate here).
+  GetPasswordPolicy(LRegEx, LErrorMsg);
   LRegularExpression.Create(LRegEx);
   Result := GetRandomStringEx(8)+GetRandomSpecialChar;
   LMatch := LRegularExpression.Match(Result);
@@ -1026,15 +1073,45 @@ end;
 
 function TKDBCryptAuthenticator.GetSuppliedPasswordHash(const AAuthData: TEFNode; const AHashNeeded: Boolean): string;
 begin
+  // Verbatim: the typed password is never macro-expanded (see the base
+  // GetSuppliedPasswordHash for why). Config-default macros are expanded in
+  // TKAuthenticator.ApplyConfigDefaults.
   Result := AAuthData.GetString('Password');
-  TKConfig.Instance.MacroExpansionEngine.Expand(Result);
   // No need to check AHashNeeded because hashing is done in IsPasswordMatching
 end;
 
+procedure TKDBCryptAuthenticator.GetPasswordPolicy(out ARegEx, AErrorMsg: string);
+var
+  LValidatePasswordNode: TEFNode;
+begin
+  // ValidatePassword is an OPTIONAL node. Reading its RegEx/Message off a nil
+  // node raised an assertion in every build (assertions are on in Release too)
+  // and an access violation in GenerateRandomPassword, so an app that runs
+  // DBCrypt without declaring the node crashed on change/reset password. Fall
+  // back to the same defaults the node getters would have used.
+  LValidatePasswordNode := Config.FindNode('ValidatePassword');
+  if Assigned(LValidatePasswordNode) then
+  begin
+    ARegEx := LValidatePasswordNode.GetExpandedString('RegEx', '^[ -~]{8,63}$');
+    AErrorMsg := LValidatePasswordNode.GetExpandedString('Message', 'Minimun 8 characters');
+  end
+  else
+  begin
+    ARegEx := '^[ -~]{8,63}$';
+    AErrorMsg := 'Minimun 8 characters';
+  end;
+end;
+
 procedure TKDBCryptAuthenticator.SetPassword(const AValue: string);
+begin
+  // Change/reset password: enforce the policy on the new value.
+  StorePassword(AValue, True);
+end;
+
+procedure TKDBCryptAuthenticator.StorePassword(const AValue: string;
+  const AValidatePolicy: Boolean; const AForcedCost: Integer);
 var
   LDBConnection: TEFDBConnection;
-  LValidatePasswordNode: TEFNode;
   LRegEx: string;
   LErrorMsg: string;
   LRegularExpression : TRegEx;
@@ -1043,20 +1120,21 @@ var
   LCommand: TEFDBCommand;
   LCommandText: string;
 begin
-  // Example of enforcement of password strength rules.
-  LValidatePasswordNode := Config.FindNode('ValidatePassword');
-  Assert(Assigned(LValidatePasswordNode), 'Assigned(LValidatePasswordNode)');
-  LErrorMsg := LValidatePasswordNode.GetExpandedString('Message','Minimun 8 characters');
-  LRegEx := LValidatePasswordNode.GetExpandedString('RegEx','^[ -~]{8,63}$');
-  LRegularExpression.Create(LRegEx);
-  LMatch := LRegularExpression.Match(AValue);
-  if not LMatch.Success then
-    raise Exception.Create(LErrorMsg);
+  // Enforcement of password strength rules — but only for a value the user is
+  // choosing now, not for one migration/rehash is merely re-storing.
+  if AValidatePolicy then
+  begin
+    GetPasswordPolicy(LRegEx, LErrorMsg);
+    LRegularExpression.Create(LRegEx);
+    LMatch := LRegularExpression.Match(AValue);
+    if not LMatch.Success then
+      raise Exception.Create(LErrorMsg);
+  end;
 
   if IsClearPassword then
     LPasswordHash := AValue
   else
-    LPasswordHash := GetBCryptedString(AValue);
+    LPasswordHash := GetBCryptedString(AValue, AForcedCost);
 
   LCommandText := GetSetPasswordCommandText;
   LDBConnection := TKConfig.DatabaseFor(GetDatabaseName);
@@ -1142,7 +1220,7 @@ begin
         begin
           if (inherited IsPasswordMatching(LSuppliedPasswordHash, LUser.PasswordHash)) then
           begin
-            SetPassword(LSuppliedPasswordHash);
+            StorePassword(LSuppliedPasswordHash, False);
             Result := True;
           end
           else
@@ -1152,7 +1230,7 @@ begin
         begin
           if (inherited IsPasswordMatching(GetStringHash(LSuppliedPasswordHash), LUser.PasswordHash)) then
           begin
-            SetPassword(LSuppliedPasswordHash);
+            StorePassword(LSuppliedPasswordHash, False);
             Result := True;
           end
           else
@@ -1184,10 +1262,11 @@ begin
     Result := TBCrypt.CheckPassword(ASuppliedPasswordHash,AStoredPasswordHash,LIsRehashNeeded);
     if Result and LIsRehashNeeded then
     begin
-      // Increasing password's cost value (see BCrypt doc.) and rehashing when hash's strength is under a certain threshold
+      // Rehash raising the work factor by one over the stored hash's cost. The
+      // cost is passed to this one call only, not parked in a field that would
+      // then apply to every later user's hash.
       LBCryptCostValue := StringReplace(AStoredPasswordHash.Substring(3,3), '$', '', [rfReplaceAll]);
-      FBCryptCost := StrToInt(LBCryptCostValue)+1;
-      SetPassword(ASuppliedPasswordHash);
+      StorePassword(ASuppliedPasswordHash, False, StrToInt(LBCryptCostValue) + 1);
     end;
   end;
 end;

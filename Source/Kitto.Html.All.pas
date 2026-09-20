@@ -50,6 +50,7 @@ uses
   Kitto.Html.Editors,
   Kitto.Html.Filters,
   Kitto.Html.List,
+  Kitto.Html.GridPanel,
   Kitto.Html.GroupingList,
   Kitto.Html.Form,
   Kitto.Html.FlexPanel,

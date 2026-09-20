@@ -1,0 +1,6 @@
+PreviewMode:
+  Auth:
+    Defaults:
+      UserName: SYSDBA
+      Password: password
+      Profile: ADMIN

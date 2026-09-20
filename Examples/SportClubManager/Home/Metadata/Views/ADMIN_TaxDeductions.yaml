@@ -1,0 +1,58 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Receipts/Deductions)
+    Items:
+      FreeSearch: _(Parent)
+        ExpressionTemplate: ({Q}COGNOME like '%{value}%') or ({Q}NOME like '%{value}%') or ({Q}CODFISC like '%{value}%')
+      FreeSearch: _(Subscriber)
+        ExpressionTemplate: ({Q}ISCR_COGNOME like '%{value}%') or ({Q}ISCR_NOME like '%{value}%') or ({Q}ISCR_CODFISC like '%{value}%')
+      ColumnBreak:
+      ButtonList: _(Status)
+        Items:
+          STMP: _(Printed)
+            Expression: {Q}FILE_DOCUMENTO IS NOT NULL
+          DSTMP: _(To be printed)
+            Expression: {Q}FILE_DOCUMENTO IS NULL
+            IsDefault: True
+      ColumnBreak:
+      DynaList: _(Year)
+        CommandText: |
+          select DISTINCT c.ANNO, c.ANNO
+          from DETRAZIONI_FISCALI c
+          order by c.ANNO desc
+        ExpressionTemplate: {Q}ANNO = {value}
+        Width: 20
+MainTable:
+  Model: TaxDeduction
+  Controller:
+    AllowInsert: False
+    AllowViewing: True
+    PreventAdding: True
+    PopupWindow:
+      Width: 1000
+      Height: 700
+    Form:
+      Layout: ADMIN_TaxDeductions_Form
+    Grid:
+      Layout: ADMIN_TaxDeductions_Grid
+    ToolViews:
+      GenerateReceipts:
+        DisplayLabel: _(Generate receipts)
+        Controller: GenerateReceipts
+          RequireSelection: False
+          AutoRefresh: All
+          ConfirmationMessage: _(Generate the receipts for the previous year?)
+      PrintPaymentReceipts:
+        DisplayLabel: _(Generate documents)
+        Controller: PrintPaymentReceipts
+          BaseFileName: %APP_PATH%ReportTemplates\SportClubManager_DeductionStatement.pdf
+          LayoutFileName: %APP_PATH%ReportTemplates\SportClubManager_DeductionStatement.yaml
+          AutoRefresh: All
+          ConfirmationMessage: _(Generate the documents?)
+          RequireSelection: False
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: TaxDeductions.xlsx
+          RequireSelection: False

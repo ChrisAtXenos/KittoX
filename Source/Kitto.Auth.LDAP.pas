@@ -95,9 +95,13 @@ type
     /// before the @) used as the search key and as the canonical UserName.</summary>
     function ExtractSamAccountName(const AUserName: string): string;
     /// <summary>Performs the simple bind and, on success, reads the directory
-    /// attributes into AAuthData. Returns True only when the bind succeeds.</summary>
+    /// attributes into AAuthData. Returns True only when the bind succeeds.
+    /// ACanonicalSam receives the sAMAccountName as the directory spells it
+    /// (when a SearchBase is configured and the entry is found), so the caller
+    /// can use a stable identity instead of the one the user happened to type;
+    /// empty when there was no search or no such attribute.</summary>
     function BindAndFetchAttributes(const ABindName, ASamAccountName,
-      APassword: string; const AAuthData: TEFNode): Boolean;
+      APassword: string; const AAuthData: TEFNode; out ACanonicalSam: string): Boolean;
   strict protected
     /// <summary>The password is sent in clear to the LDAP bind, so no hashing
     /// takes place on our side. Returns True.</summary>
@@ -279,7 +283,8 @@ begin
 end;
 
 function TKLDAPAuthenticator.BindAndFetchAttributes(const ABindName,
-  ASamAccountName, APassword: string; const AAuthData: TEFNode): Boolean;
+  ASamAccountName, APassword: string; const AAuthData: TEFNode;
+  out ACanonicalSam: string): Boolean;
 var
   LLdap: PLDAP;
   LHost: string;
@@ -318,6 +323,7 @@ var
   end;
 
 begin
+  ACanonicalSam := '';
   LHost := Config.GetString('Host');
   if LHost = '' then
     raise EKError.Create(_('LDAP authenticator: the "Host" parameter is required.'));
@@ -329,6 +335,11 @@ begin
     LPort := Config.GetInteger('Port', LDAP_PORT);
 
   if LUseSSL then
+    // NB (review L6c, da valutare): apre LDAPS ma NON valida il certificato del
+    // server, quindi il canale cifrato non protegge da un MITM che presenti un
+    // certificato qualsiasi. Verificare il cert richiederebbe un callback
+    // LDAP_OPT_SERVER_CERTIFICATE con un opt-out per i certificati self-signed
+    // (comuni negli AD interni): lasciato invariato per scelta, tenuto tracciato.
     LLdap := ldap_sslinitW(PWideChar(LHost), LPort, 1)
   else
     LLdap := ldap_initW(PWideChar(LHost), LPort);
@@ -373,6 +384,11 @@ begin
         LEntry := ldap_first_entry(LLdap, LSearchResult);
         if LEntry <> nil then
         begin
+          // The sAMAccountName as the directory stores it: used by the caller as
+          // the canonical identity, so ALICE / alice / Alice all resolve to the
+          // one spelling the ACL rows are keyed on.
+          ACanonicalSam := GetAttrValues(
+            Config.GetString('Attributes/SamAccountName', 'sAMAccountName'));
           AAuthData.SetString('EMAIL_ADDRESS',
             GetAttrValues(Config.GetString('Attributes/Email', 'mail')));
           AAuthData.SetString('FIRST_NAME',
@@ -399,6 +415,7 @@ var
   LPassword: string;
   LBindName: string;
   LSamAccountName: string;
+  LCanonicalSam: string;
 begin
   LUserName := AAuthData.GetString('UserName');
   LPassword := AAuthData.GetString('Password');
@@ -411,12 +428,20 @@ begin
   LBindName := BuildBindName(LUserName);
   LSamAccountName := ExtractSamAccountName(LUserName);
 
-  Result := BindAndFetchAttributes(LBindName, LSamAccountName, LPassword, AAuthData);
+  Result := BindAndFetchAttributes(LBindName, LSamAccountName, LPassword,
+    AAuthData, LCanonicalSam);
 
   if Result then
+  begin
     // Store the canonical login (without the domain) as the user identifier
-    // used by the access controller and the %Auth:UserName% macro.
-    AAuthData.SetString('UserName', LSamAccountName);
+    // used by the access controller and the %Auth:UserName% macro. Prefer the
+    // spelling the directory returned; when there was no search (no SearchBase)
+    // fall back to the typed value folded to lower case, so ALICE and alice do
+    // not become two different identities that miss their ACL rows.
+    if LCanonicalSam = '' then
+      LCanonicalSam := LowerCase(LSamAccountName);
+    AAuthData.SetString('UserName', LCanonicalSam);
+  end;
 end;
 
 function TKLDAPAuthenticator.IsPasswordMatching(const ASuppliedPasswordHash,

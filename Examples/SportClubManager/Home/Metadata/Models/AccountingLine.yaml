@@ -1,0 +1,121 @@
+﻿ModelName: AccountingLine
+PhysicalName: RIGHE_CONTABILI
+IsLarge: True
+DefaultSorting: {Q}NR_RIGA
+PluralDisplayLabel: _(Accounting lines)
+DisplayLabel: _(Accounting line)
+PluralModelName: AccountingLines
+Rules:
+  AccountingLineCheck:
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Accounting line description)
+    DisplayWidth: 65
+  LineNumber: Integer not null
+    PhysicalName: NR_RIGA
+    DisplayLabel: _(Line number)
+  DueDate: Date not null
+    PhysicalName: DATASCADENZA
+    DisplayWidth: 12
+    DisplayLabel: _(Due date/Value date)
+  Match: String(30)
+    PhysicalName: PARTITA
+    DisplayWidth: 35
+    DisplayLabel: _(Match)
+  Amount: Currency not null
+    PhysicalName: IMPORTO
+    DisplayLabel: _(Amount)
+    DisplayWidth: 10
+  Sign: String(1) not null
+    PhysicalName: SEGNO
+    DisplayLabel: _(Sign)
+    AllowedValues:
+      D: _(Debit)
+      A: _(Credit)
+  EnteredByUser: Reference(User)
+    PhysicalName: FK_RIGHE_CONTABILI_UTENTE_INSERIMENTO
+    DisplayLabel: _(User)
+    DisplayWidth: 30
+    Fields:
+      EnteredByUserId:
+        PhysicalName: UTENTE_INSERIMENTOID
+        DefaultValue: %Auth:USER_NAME%
+    IsReadOnly: True
+    IsVisible: False
+  CostCentre: Reference(CostCentre)
+    PhysicalName: FK_RIGHE_CONTABILI_CENTRO_COSTO
+    DisplayLabel: _(Cost centre)
+    DisplayWidth: 30
+    Fields:
+      CostCentreId:
+        PhysicalName: CENTRO_COSTOID
+  VatCode: Reference(VatCode)
+    PhysicalName: FK_RIGHE_CONTABILI_COD_IVA
+    DisplayLabel: _(VAT)
+    DisplayWidth: 30
+    Fields:
+      VatCodeId:
+        PhysicalName: COD_IVAID
+    LookupFilter: DISATTIVATO = 0
+    AutoAddFields:
+      RatePercent: VatCode_RatePercent
+      Nature: VatCode_Nature
+      StampDutyAmount: VatCode_StampDutyAmount
+      Title: VatCode_Title
+  LedgerAccount: Reference(LedgerAccount) not null
+    PhysicalName: FK_RIGHE_CONTABILI_CONTO
+    DisplayLabel: _(Ledger account)
+    DisplayWidth: 40
+    LookupFilter: DISATTIVATO = 0 AND LIVELLO = 'S'
+    NotifyChange: True
+    Fields:
+      AccountId:
+        PhysicalName: CONTOID
+    AutoAddFields:
+      CustomerReference: Account_CustomerReference
+      SupplierReference: Account_SupplierReference
+      BankAccountReference: Account_BankAccountReference
+      MemberReference: Account_MemberReference
+    Rules:
+      AccountingLineCheck:
+  AccountingEntry: Reference(AccountingEntry)
+    PhysicalName: DT_RIGHE_CONTABILI_MOVIMENTO
+    DisplayLabel: _(Entry)
+    DisplayWidth: 30
+    Fields:
+      AccountingEntryId:
+        PhysicalName: Movimentoid
+  Supplier: Reference(Supplier)
+    PhysicalName: FK_RIGHE_CONTABILI_FORNITORE
+    DisplayLabel: _(Supplier)
+    DisplayWidth: 40
+    Fields:
+      SupplierId:
+        PhysicalName: FORNITOREID
+  Customer: Reference(Customer)
+    PhysicalName: FK_RIGHE_CONTABILI_CLIENTE
+    DisplayLabel: _(Customer)
+    DisplayWidth: 40
+    Fields:
+      CustomerId:
+        PhysicalName: CLIENTEID
+  Bank: Reference(Bank)
+    PhysicalName: FK_CLIENTI_BANCA
+    DisplayLabel: _(Bank)
+    Fields:
+      BankId:
+        PhysicalName: BANCAID
+  Person: Reference(Person)
+    PhysicalName: FK_RIGHE_CONTABILI_NOMINATIVO
+    DisplayLabel: _(Member)
+    DisplayWidth: 40
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+ImageName: account_balance

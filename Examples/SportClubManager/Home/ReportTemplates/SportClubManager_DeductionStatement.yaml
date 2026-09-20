@@ -1,0 +1,98 @@
+﻿DefaultFont: TimesRoman
+  Color: Black
+  Size: 12
+
+Information:
+  Author: %Auth:UserName%
+  Title: Ricevuta pagamento per detrazioni fiscali
+  Subject: {Description}
+  Creator: KittoSCM
+  Keywords: KittoSCM, {Description}
+  CreationDate: %DATETIME%
+ 
+Items:
+  Image: 
+    FileName: %Config:SportsClubLogo%.png
+    Left: 30
+    Top: 30
+    Width: 250
+    Height: 90
+  Text: 
+    Expression: %Config:SportsClubName%
+    Left: 300
+    Top: 40
+    Font: TimesBold
+      Size: 12
+  Text: 
+    Expression: Sede sociale - %Auth:COMPANY_ADDRESS% - %Auth:COMPANY_CITY% (%Auth:COMPANY_PROVINCE%)
+    Left: 300
+    Top: 55
+    Font: TimesRoman
+      Size: 11  
+  Text: 
+    Expression: P.IVA %Auth:COMPANY_VATNUM%
+    Left: 300
+    Top: 70
+    Font: TimesRoman
+      Size: 11       
+  TextBox: 
+    Expression: Il sottoscritto {PresidentLastName} {PresidentFirstName}, in qualità di Legale Rappresentante di %Config:SportsClubName%
+    Left: 30
+    Top: 200
+    Width: 575
+    Height: 60
+    Align: Left
+    VertAlign: Center
+    Font: TimesRoman
+      Size: 12   
+  Text: 
+    Expression: {Number} / {Year}
+    Left: 100
+    Top: 138
+    Font: TimesBold
+      Size: 12
+  Text: 
+    Expression: {PrintDate}
+    Left: 60
+    Top: 151
+    Font: TimesBold
+      Size: 12
+  TextBox: 
+    Expression: di aver ricevuto dal/dalla Sig./Sig.ra {LastName} {FirstName} residente in {Municipality} {ProvinceId}, {Address}, Codice fiscale {TaxCode} in qualità di genitore/tutore legale di {SubscriberLastName} {SubscriberFirstName} nato/a a {SubscriberBirthMunicipality} Codice fiscale {SubscriberTaxCode}
+    Left: 30
+    Top: 300
+    Width: 575
+    Height: 60
+    Align: Left
+    VertAlign: Center
+    Font: TimesRoman
+      Size: 12
+  TextBox: 
+    Expression: la somma di € {PaidAmount} (%NUM2LET({PaidAmount})%) pagata con {PaymentMethod} per il pagamento {CampaignDescription}
+    Left: 30
+    Top: 370
+    Width: 575
+    Height: 40
+    Align: Left
+    VertAlign: Center
+    Font: TimesRoman
+      Size: 12
+  Text: 
+    Expression: {PresidentLastName} {PresidentFirstName}
+    Left: 425
+    Top: 670
+    Font: TimesBold
+      Size: 12      
+  TextBox: 
+    Expression: %Auth:COMPANY_NAME% - %Auth:COMPANY_VATNUM% -  %Auth:COMPANY_ADDRESS% -  %Auth:COMPANY_CITY% -  %Auth:COMPANY_PROVINCE% -  %Auth:COMPANY_SITO_INTERNET% - %Auth:EMAIL_ADDRESS% - %Auth:COMPANY_INFO_EMAIL% 
+    Left: 100
+    Top: 760
+    Width: 400
+    Height: 40
+    Align: Center
+    VertAlign: Center
+    Font: TimesRoman
+      Size: 8      
+      
+      
+ 

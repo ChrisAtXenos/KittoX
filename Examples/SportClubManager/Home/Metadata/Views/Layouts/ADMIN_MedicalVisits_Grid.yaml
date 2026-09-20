@@ -1,0 +1,10 @@
+﻿Field: Person
+Field: MedicalVisitType
+Field: ExpiryDate
+Field: Status
+Field: Clinic
+Field: RequestDate
+Field: VisitDate
+Field: VisitTime
+Field: NotificationDate
+Field: Fitness

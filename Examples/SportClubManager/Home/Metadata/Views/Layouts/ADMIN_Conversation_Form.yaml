@@ -1,0 +1,7 @@
+Row:
+  Field: Description
+    CharWidth: 100
+Row:
+  Field: ParticipantGroup
+  Field: Status
+LabelAlign: Right

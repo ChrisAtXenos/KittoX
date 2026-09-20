@@ -24,6 +24,7 @@ interface
 
 uses
   System.Classes,
+  System.SyncObjs,
   EF.Classes,
   EF.Tree,
   Kitto.AccessControl,
@@ -204,6 +205,15 @@ type
   TKDBAccessController = class(TKAccessController)
   private
     FUserPermissions: TStringList;
+    // One controller instance is shared by every request thread (the access
+    // controller is a per-application singleton), and FUserPermissions is a
+    // sorted list mutated on the first access of each user. Without this a
+    // Find (binary search) running during another thread's AddObject (memmove
+    // of the tail, or a realloc) could return the wrong Objects[] slot — i.e.
+    // evaluate one user's request against another user's grants — or fault.
+    // Every access to the list, and the evaluation of the storage it returns,
+    // runs under this lock.
+    FLock: TCriticalSection;
     procedure ClearAllUserPermissions;
     function EnsureUserPermissions(const AUserId: string): TKUserPermissionStorage;
   protected
@@ -231,6 +241,7 @@ uses
 procedure TKDBAccessController.AfterConstruction;
 begin
   inherited;
+  FLock := TCriticalSection.Create;
   FUserPermissions := TStringList.Create;
   FUserPermissions.Sorted := True;
   FUserPermissions.Duplicates := dupError;
@@ -240,6 +251,7 @@ destructor TKDBAccessController.Destroy;
 begin
   ClearAllUserPermissions;
   FreeAndNil(FUserPermissions);
+  FreeAndNil(FLock);
   inherited;
 end;
 
@@ -282,7 +294,17 @@ end;
 function TKDBAccessController.InternalGetAccessGrantValue(const AUserId,
   AResourceURI, AMode: string): Variant;
 begin
-  Result := EnsureUserPermissions(AUserId).GetAccessGrantValue(AResourceURI, AMode);
+  // The whole operation is serialized: EnsureUserPermissions mutates the shared
+  // list, and the storage it returns loads its rows lazily on the first
+  // GetAccessGrantValue, so two threads reaching a just-created storage would
+  // otherwise race on that load too. Each evaluation is an in-memory match, so
+  // the coarse lock is cheap; correctness here outranks the small contention.
+  FLock.Enter;
+  try
+    Result := EnsureUserPermissions(AUserId).GetAccessGrantValue(AResourceURI, AMode);
+  finally
+    FLock.Leave;
+  end;
 end;
 
 { TKUserPermissionStorage }
@@ -417,13 +439,15 @@ begin
       TKConfig.Instance.MacroExpansionEngine.Expand(LPattern);
 
     // A match is found only if the resource URI pattern matches the given
-    // resource URI and if the given access mode is equal to or part of the
-    // list of stored access modes. The checks for ',' are meant to rule out
-    // false positives in an efficient, albeit not very elegant, way.
-    if StrMatchesPatternOrRegex(AResourceURI, LPattern)
-      and ((Pos(AMode + ',', LRecord[ACCESS_MODES].AsString) > 0)
-      or (Pos(',' + AMode, LRecord[ACCESS_MODES].AsString) > 0)
-      or (AMode = LRecord[ACCESS_MODES].AsString)) then
+    // resource URI and if the given access mode is one of the stored access
+    // modes. The URI match is case-insensitive: a negated rule such as
+    // ~metadata/views/admin* must cover metadata/views/AdminUsers, otherwise
+    // 'not (no match)' is True and the "everything except admin" rule ends up
+    // granting the admin view. The mode match is delegated to ModeMatches,
+    // which splits on ',' and trims (the old Pos test matched 'VIEW' inside
+    // 'PREVIEW' and missed 'VIEW, RUN').
+    if StrMatchesPatternOrRegex(AResourceURI, LPattern, True)
+      and TKAccessController.ModeMatches(AMode, LRecord[ACCESS_MODES].AsString) then
     begin
       Result := LRecord[GRANT_VALUE].Value;
       // In standard modes (that only support TRUE or FALSE as grant values)

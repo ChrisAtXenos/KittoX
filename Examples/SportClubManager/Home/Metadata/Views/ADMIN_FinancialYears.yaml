@@ -1,0 +1,31 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Financial Years)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (ESERCIZICONTABILI.DX like '%{value}%')
+      ColumnBreak:
+      List: _(Status)
+        Items:
+          APE: _(Open)
+            Expression: {Q}STATO = 'A'
+          CHI: _(Closed)
+            Expression: {Q}STATO = 'C'
+MainTable:
+  Model: FinancialYear
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Width: 600
+      Height: 350
+    Form:
+      Layout: ADMIN_FinancialYears_Form
+    Grid:
+      Layout: ADMIN_FinancialYears_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: FinancialYears.xlsx
+          RequireSelection: False

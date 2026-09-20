@@ -1,0 +1,52 @@
+DisplayLabel: _(KPI)
+PluralDisplayLabel: _(KPIs)
+Fields:
+  KpiId: Integer primary key
+    PhysicalName: KPI_ID
+    DisplayLabel: _(KPI Id)
+  SeasonId: String(20)
+    PhysicalName: STAGIONE_ID
+    DisplayLabel: _(Season Id)
+  SeasonDescription: String(200)
+    PhysicalName: STAGIONE_DESC
+    DisplayLabel: _(Season description)
+  SeasonLabel: String(50)
+    DisplayLabel: _(Season)
+    Expression: ISNULL((SELECT CONCAT('_(Season) ', YEAR(S.DATAINI), '/', YEAR(S.DATAFINE)) FROM STAGIONE S WHERE S.ID = {Q}STAGIONE_ID), '_(None)')
+  SubscriberCount: Integer
+    PhysicalName: NUM_ISCRITTI
+    DisplayLabel: _(Number of subscribers)
+  PendingSubscriptions: Integer
+    PhysicalName: ISCRIZIONI_IN_ATTESA
+    DisplayLabel: _(Pending subscriptions)
+  InstalmentsPaid: Integer
+    PhysicalName: RATE_VERSATE
+    DisplayLabel: _(Instalments paid)
+  InstalmentsDue: Integer
+    PhysicalName: RATE_DA_VERSARE
+    DisplayLabel: _(Instalments to be paid)
+  ActiveTeams: Integer
+    PhysicalName: SQUADRE_ATTIVE
+    DisplayLabel: _(Active teams)
+  PaymentsToVerify: Integer
+    PhysicalName: PAGAMENTI_DA_VERIFICARE
+    DisplayLabel: _(Payments to check)
+  QueuedEmails: Integer
+    PhysicalName: EMAIL_IN_CODA
+    DisplayLabel: _(Queued e-mails)
+  ReceiptsToPrint: Integer
+    PhysicalName: DETRAZIONI_DA_STAMPARE
+    DisplayLabel: _(Deductions to be printed)
+  ExpiredCertificates: Integer
+    PhysicalName: CERTIFICATI_SCADUTI
+    DisplayLabel: _(Expired certificates)
+  WithoutCertificate: Integer
+    PhysicalName: SENZA_CERTIFICATO
+    DisplayLabel: _(Without certificate)
+  BookedVisits: Integer
+    PhysicalName: VISITE_PRENOTATE
+    DisplayLabel: _(Booked visits)
+  ExpiringRegistrations: Integer
+    PhysicalName: TESSERAMENTI_IN_SCADENZA
+    DisplayLabel: _(Expiring federation registrations)
+PhysicalName: VW_KPI_SCM

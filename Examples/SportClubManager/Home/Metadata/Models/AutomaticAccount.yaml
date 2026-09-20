@@ -1,0 +1,55 @@
+﻿ModelName: AutomaticAccount
+PhysicalName: CONTI_AUTO
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Automatic accounts)
+DisplayLabel: _(Automatic account)
+PluralModelName: AutomaticAccounts
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    IsVisible: False
+  Sign: String(1)
+    PhysicalName: SEGNO
+    DisplayLabel: _(Sign)
+    DisplayWidth: 10
+    AllowedValues:
+      D: _(Debit)
+      A: _(Credit)
+  AutomaticReason: Reference(AutomaticReason)
+    PhysicalName: DT_CONTI_AUTO_CAUSALEAUTO
+    IsVisible: False
+    Fields:
+      AutomaticReasonId:
+        PhysicalName: CAUSALEAUTOID
+  LedgerAccount: Reference(LedgerAccount)
+    PhysicalName: FK_CONTI_AUTO_CONTO
+    DisplayLabel: _(Ledger Account)
+    NotifyChange: True
+    DisplayWidth: 40
+    LookupFilter: DISATTIVATO = 0 AND LIVELLO = 'S'
+    Fields:
+      AccountId:
+        PhysicalName: CONTOID
+    AutoAddFields:
+      Description: LedgerAccount_Description
+    Rules:
+      CalcDescription: {LedgerAccount_Description}
+  PaymentMethod: Reference(PaymentMethod)
+    PhysicalName: FK_CONTI_AUTO_MODPAGAMENTO
+    DisplayLabel: _(Payment method)
+    Fields:
+      PaymentMethodId:
+        PhysicalName: MODPAGAMENTOID
+  Bank: Reference(Bank)
+    PhysicalName: FK_CONTI_AUTO_BANCA
+    DisplayLabel: _(Bank)
+    DisplayWidth: 40
+    Fields:
+      BankId:
+        PhysicalName: BANCAID
+ImageName: account_balance

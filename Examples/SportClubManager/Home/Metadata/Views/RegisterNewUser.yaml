@@ -1,0 +1,37 @@
+﻿DisplayLabel: _(New user registration)
+# Empty ACName allows the view to be opened when no user is logged in.
+ACName:
+Type: Data
+Controller: Form
+  ExtraHeight: 320
+  Frame: True
+  PopupWindow:
+    Width: 700
+    Height: 700
+  BorderPanel:
+    NorthView:
+      Controller: HtmlPanel
+        Height: 100
+        Html: <center><img src="%IMAGE(%Config:SportsClubLogo%)%" height=100></img></center>
+    SouthView:
+      Controller: HtmlPanel
+        Title: _(Privacy)
+        Height: 300
+        Border: True
+        Frame: True
+        Collapsible: True
+        Collapsed: False
+        Autoscroll: True
+        #Style: opacity:0.5
+        FileName: Privacy.htm
+
+  Operation: Add
+  FilterExpression: {Q}CODFISC = '%Auth:USER_NAME%'
+  #HideLabels: True
+  KeepOpenAfterOperation: False
+  LabelWidth: 200
+MainTable:
+  Model: User
+  Controller:
+    Form:
+      Layout: USER_RegisterNewUser_Form

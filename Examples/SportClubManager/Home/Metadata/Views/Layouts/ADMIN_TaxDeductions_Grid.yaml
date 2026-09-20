@@ -1,0 +1,13 @@
+﻿Field: LastName
+Field: FirstName
+Field: TaxCode
+Field: DeductionPercent
+Field: SubscriberLastName
+Field: SubscriberFirstName
+Field: Number
+  DisplayWidth: 12
+Field: Year
+Field: PaidAmount
+Field: AmountPercent
+Field: PaymentMethod
+Field: CampaignDescription

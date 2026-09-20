@@ -1,0 +1,74 @@
+﻿ModelName: DetailedFinancialStatement
+PhysicalName: V_BILANCIO_DETT
+IsLarge: True
+DefaultSorting: {Q}ORD
+PluralDisplayLabel: _(Detailed financial statement)
+DisplayLabel: _(Detailed financial statement)
+PluralModelName: DetailedFinancialStatements
+Fields:
+  FinancialYearId: String(32) not null primary key
+    PhysicalName: ESERCID
+    IsVisible: False
+  FinancialYearDescription: String(200) not null
+    PhysicalName: ESERCDX
+    DisplayLabel: _(Financial Year)
+    IsVisible: False
+  Section: String(3) not null primary key
+    PhysicalName: SEZIONE
+    DisplayLabel: _(Section)
+    DisplayWidth: 15
+    AllowedValues:
+      A: _(Active)
+      P: _(Liabilities)
+      C: _(Costs)
+      R: _(Revenues)
+  ParentAccountCode: String(10)
+    PhysicalName: CODPADRE
+    DisplayLabel: _(Parent code)
+    DisplayWidth: 15
+  AccountCode: String(10) not null primary key
+    PhysicalName: CODCONTO
+    DisplayLabel: _(Account code)
+    DisplayWidth: 15
+  Level: String(1) not null
+    PhysicalName: LIVELLO
+    DisplayLabel: _(Level)
+    DisplayWidth: 15
+    AllowedValues:
+      M: _(Master account)
+      C: _(Account)
+      S: _(Sub-account)
+      A: _(Section)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 40
+  AccountReference: String(200) not null primary key
+    PhysicalName: DETTAGLIO
+    DisplayLabel: _(Reference)
+    DisplayWidth: 50
+  TotalDebitAmount: Currency
+    PhysicalName: TOT_DARE
+    DisplayLabel: _(Total Debit)
+    DisplayWidth: 10
+  CreditAmount: Currency
+    PhysicalName: TOT_AVERE
+    DisplayLabel: _(Total Credit)
+    DisplayWidth: 10
+  Sign: String(1) not null
+    PhysicalName: SEGNO_SALDO
+    DisplayLabel: _(Sign)
+    DisplayWidth: 10
+    AllowedValues:
+      D: _(Debit)
+      A: _(Credit)
+      0:
+  Balance: Currency
+    PhysicalName: SALDO
+    DisplayLabel: _(Balance)
+    DisplayWidth: 10
+  SortOrder: String(21)
+    PhysicalName: ORD
+    IsVisible: False
+IsReadOnly: True
+ImageName: poll

@@ -1,0 +1,27 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search)
+    Items:
+      FreeSearch: _(Parent)
+        ExpressionTemplate: (V_DETRAZIONI_FAMIGLIA.COGNOME like '%{value}%') or (V_DETRAZIONI_FAMIGLIA.NOME like '%{value}%') or (V_DETRAZIONI_FAMIGLIA.CODFISC like '%{value}%')
+      ColumnBreak:
+      FreeSearch: _(Subscriber)
+        ExpressionTemplate: (V_DETRAZIONI_FAMIGLIA.ISCR_COGNOME like '%{value}%') or (V_DETRAZIONI_FAMIGLIA.ISCR_NOME like '%{value}%') or (V_DETRAZIONI_FAMIGLIA.ISCR_CODFISC like '%{value}%')
+MainTable:
+  Model: FamilyDeduction
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Width: 1000
+      Height: 700
+    Form:
+      Layout: ADMIN_FamilyDeductions_Form
+    Grid:
+      Layout: ADMIN_FamilyDeductions_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: FamilyDeductions.xlsx
+          RequireSelection: False

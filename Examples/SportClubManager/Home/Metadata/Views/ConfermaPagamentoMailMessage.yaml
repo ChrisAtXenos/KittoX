@@ -1,0 +1,13 @@
+﻿From: <%Config:SportsClubEmail%>
+Subject: _(Payment confirmation)
+HTMLBody: |
+  <p><b>%Config:SportsClubName%</b>
+  <br/>
+  _(Dear) {MasterRecord.Payer_FirstName} {MasterRecord.Payer_LastName},<br/>
+  _(We confirm receipt of the payment of the fee for) <b>{SubscriptionInstalment}</b> _(for the amount of) <b>{PaidAmount}</b> _(euros.) <br/>
+  <br/>
+  _(If you received this e-mail by mistake or the information does not look correct, please write to us at:) <a href="mailto:%Config:SportsClubEmail%">%Config:SportsClubEmail%</a><br/>
+  <br/>
+  _(Kind regards.)</p>
+  </p>
+  <p><b>_(The staff of) %Config:SportsClubName%</b></p>

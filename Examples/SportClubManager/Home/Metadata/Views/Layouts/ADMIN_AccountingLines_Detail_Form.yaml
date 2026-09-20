@@ -1,0 +1,27 @@
+﻿LabelAlign: Right
+LabelWidth: 180
+FieldSet:
+  Row:
+    Field: LineNumber
+  Row:
+    Field: Sign
+    Field: LedgerAccount
+  Row:
+    Field: DueDate
+    Field: Match
+  Row:
+    Field: Amount
+    Field: VatCode
+  Row:
+    Field: Description
+      CharWidth: 80
+  Row:
+    Field: CostCentre
+  Row:
+    Field: Bank
+  Row:
+    Field: Supplier
+  Row:
+    Field: Customer
+  Row:
+    Field: Person

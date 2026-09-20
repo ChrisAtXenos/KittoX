@@ -1,0 +1,21 @@
+﻿LabelWidth: 160
+FieldSet:
+  Row:
+    Field: Description
+  Row:
+    Field: Season
+    Field: SportsActivityFlag
+  Row:
+    Field: StartDate
+    Field: EndDate
+  Row:
+    Field: SubscriptionInstructions
+FieldSet:
+  Title: _(Fee/Discounts)
+  Row:
+    Field: MembershipFee
+  Row:
+    Field: SiblingDiscount
+    Field: SiblingDiscountPercent
+    Field: DiscountDeadline
+LabelAlign: Right

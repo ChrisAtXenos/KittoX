@@ -1,0 +1,5 @@
+﻿Field: Person
+Field: Relationship
+Field: DeductionPercent
+  DisplayWidth: 10
+  DisplayLabel: _(% Ded.)

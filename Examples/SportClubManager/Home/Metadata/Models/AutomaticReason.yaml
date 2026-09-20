@@ -1,0 +1,38 @@
+﻿ModelName: AutomaticReason
+PhysicalName: CAUSALI_AUTO
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Automatic reasons)
+DisplayLabel: _(Automatic reason)
+PluralModelName: AutomaticReasons
+Rules:
+  AutomaticReasonCheck:
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+    CanUpdate: False
+    NotifyChange: True
+    AllowedValues:
+      INCPAG: _(Subscription payment collection)
+      ISCR: _(Subscription approval)
+      APEBIL: _(Opening of financial statement)
+      CHIUBIL: _(Closing of financial statement)
+      UTILESERC: _(Profit for the year)
+      PERDESERC: _(Loss for the year)
+      UTILESERCPREC: _(Previous year profit)
+      PERDESERCPREC: _(Previous year loss)
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+    CanUpdate: False
+    DisplayWidth: 40
+  AccountingReason: Reference(AccountingReason)
+    DisplayLabel: _(Accounting Reason)
+    PhysicalName: FK_CAUSALI_AUTO_CAUSALE
+    DisplayWidth: 40
+    Fields:
+      ReasonId:
+        PhysicalName: Causaleid
+ImageName: account_balance
+DetailReferences:
+  Accounts: AutomaticAccount

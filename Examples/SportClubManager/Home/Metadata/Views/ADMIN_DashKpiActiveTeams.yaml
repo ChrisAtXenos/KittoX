@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Active teams)
+ImageName: dash_active_teams.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiActiveTeams.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

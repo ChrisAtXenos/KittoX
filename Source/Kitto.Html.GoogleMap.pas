@@ -90,6 +90,10 @@ type
     [YamlNode('GoogleMap/Zoom', '12', 'Initial zoom level (1-20)')]
     property Zoom: Integer read GetZoom;
     [YamlNode('GoogleMap/MapTypeId', 'ROADMAP', 'Map type: ROADMAP, SATELLITE, HYBRID, TERRAIN')]
+    [YamlEnumValue('ROADMAP', 'Standard road map')]
+    [YamlEnumValue('SATELLITE', 'Satellite imagery')]
+    [YamlEnumValue('HYBRID', 'Satellite imagery with road overlay')]
+    [YamlEnumValue('TERRAIN', 'Physical relief map')]
     property MapTypeId: string read GetMapTypeId;
     [YamlNode('GoogleMap/Height', '0', 'Map height in px (0 = fill container)')]
     property MapHeight: Integer read GetMapHeight;
@@ -100,22 +104,24 @@ type
     [YamlNode('GoogleMap/InfoFields', '', 'Comma-separated model fields for InfoWindow content')]
     property InfoFields: string read GetInfoFields;
     [YamlNode('GoogleMap/SidebarPosition', 'West', 'Sidebar position: West or East')]
+    [YamlEnumValue('West', 'Sidebar on the left')]
+    [YamlEnumValue('East', 'Sidebar on the right')]
     property SidebarPosition: string read GetSidebarPosition;
     [YamlNode('GoogleMap/SidebarWidth', '400', 'Sidebar width in pixels')]
     property SidebarWidth: Integer read GetSidebarWidth;
-    [YamlNode('GoogleMap/MapControls/Zoom', 'False', 'Show zoom control on map')]
+    [YamlNode('GoogleMap/MapControls/Zoom', 'True', 'Show zoom control on map')]
     property MapControlZoom: Boolean read GetMapControlZoom;
-    [YamlNode('GoogleMap/MapControls/MapType', 'False', 'Show map type control')]
+    [YamlNode('GoogleMap/MapControls/MapType', 'True', 'Show map type control')]
     property MapControlMapType: Boolean read GetMapControlMapType;
-    [YamlNode('GoogleMap/MapControls/FullScreen', 'False', 'Show fullscreen control')]
+    [YamlNode('GoogleMap/MapControls/FullScreen', 'True', 'Show fullscreen control')]
     property MapControlFullScreen: Boolean read GetMapControlFullScreen;
-    [YamlNode('GoogleMap/MapControls/StreetView', 'True', 'Show street view control')]
+    [YamlNode('GoogleMap/MapControls/StreetView', 'False', 'Show street view control')]
     property MapControlStreetView: Boolean read GetMapControlStreetView;
-    [YamlNode('GoogleMap/MapView/Traffic', 'True', 'Show traffic layer')]
+    [YamlNode('GoogleMap/MapView/Traffic', 'False', 'Show traffic layer')]
     property MapViewTraffic: Boolean read GetMapViewTraffic;
-    [YamlNode('GoogleMap/MapView/Bicycling', 'True', 'Show bicycling layer')]
+    [YamlNode('GoogleMap/MapView/Bicycling', 'False', 'Show bicycling layer')]
     property MapViewBicycling: Boolean read GetMapViewBicycling;
-    [YamlNode('GoogleMap/MapView/Markers', 'False', 'Show markers')]
+    [YamlNode('GoogleMap/MapView/Markers', 'True', 'Show markers')]
     property MapViewMarkers: Boolean read GetMapViewMarkers;
   end;
 
@@ -165,75 +171,62 @@ begin
   // View-level override, then global Config.yaml
   Result := Config.GetExpandedString('GoogleMap/ApiKey', '');
   if Result = '' then
-    Result := Config.GetExpandedString('CenterController/GoogleMap/ApiKey', '');
-  if Result = '' then
     Result := TKConfig.Instance.Config.GetExpandedString('GoogleMapsApiKey', '');
 end;
 
 function TKXGoogleMapController.GetCenterLatitude: Double;
 begin
-  Result := Config.GetFloat('GoogleMap/Center/Latitude',
-    Config.GetFloat('CenterController/GoogleMap/Center/Latitude', 0));
+  Result := Config.GetFloat('GoogleMap/Center/Latitude', 0);
 end;
 
 function TKXGoogleMapController.GetCenterLongitude: Double;
 begin
-  Result := Config.GetFloat('GoogleMap/Center/Longitude',
-    Config.GetFloat('CenterController/GoogleMap/Center/Longitude', 0));
+  Result := Config.GetFloat('GoogleMap/Center/Longitude', 0);
 end;
 
 function TKXGoogleMapController.GetCenterAddress: string;
 begin
-  Result := Config.GetExpandedString('GoogleMap/Center/Address',
-    Config.GetExpandedString('CenterController/GoogleMap/Center/Address', ''));
+  Result := Config.GetExpandedString('GoogleMap/Center/Address', '');
 end;
 
 function TKXGoogleMapController.GetZoom: Integer;
 begin
-  Result := Config.GetInteger('GoogleMap/Zoom',
-    Config.GetInteger('CenterController/GoogleMap/Zoom', 12));
+  Result := Config.GetInteger('GoogleMap/Zoom', 12);
 end;
 
 function TKXGoogleMapController.GetMapTypeId: string;
 begin
-  Result := Config.GetString('GoogleMap/MapTypeId',
-    Config.GetString('CenterController/GoogleMap/MapTypeId', 'ROADMAP'));
+  Result := Config.GetString('GoogleMap/MapTypeId', 'ROADMAP');
 end;
 
 function TKXGoogleMapController.GetMapHeight: Integer;
 begin
-  Result := Config.GetInteger('GoogleMap/Height',
-    Config.GetInteger('CenterController/GoogleMap/Height', 0));
+  Result := Config.GetInteger('GoogleMap/Height', 0);
 end;
 
 function TKXGoogleMapController.GetAddressFields: string;
 begin
-  Result := Config.GetString('GoogleMap/AddressFields',
-    Config.GetString('CenterController/GoogleMap/AddressFields', ''));
+  Result := Config.GetString('GoogleMap/AddressFields', '');
 end;
 
 function TKXGoogleMapController.GetTitleField: string;
 begin
-  Result := Config.GetString('GoogleMap/TitleField',
-    Config.GetString('CenterController/GoogleMap/TitleField', ''));
+  Result := Config.GetString('GoogleMap/TitleField', '');
 end;
 
 function TKXGoogleMapController.GetInfoFields: string;
 begin
-  Result := Config.GetString('GoogleMap/InfoFields',
-    Config.GetString('CenterController/GoogleMap/InfoFields', ''));
+  Result := Config.GetString('GoogleMap/InfoFields', '');
 end;
 
 function TKXGoogleMapController.GetSidebarPosition: string;
 begin
-  Result := Config.GetString('GoogleMap/SidebarPosition',
-    Config.GetString('CenterController/GoogleMap/SidebarPosition', 'West'));
+  Result := Config.GetString('GoogleMap/SidebarPosition', 'West');
 end;
 
 function TKXGoogleMapController.GetSidebarWidth: Integer;
 begin
-  Result := Config.GetInteger('GoogleMap/SidebarWidth',
-    Config.GetInteger('CenterController/GoogleMap/SidebarWidth', 400));
+  Result := Config.GetInteger('GoogleMap/SidebarWidth', 400);
 end;
 
 function TKXGoogleMapController.GetMapControlZoom: Boolean;
@@ -424,8 +417,7 @@ end;
 
 function TKXGoogleMapController.GetMapBoolean(const APath: string; ADefault: Boolean): Boolean;
 begin
-  Result := Config.GetBoolean('GoogleMap/' + APath,
-    Config.GetBoolean('CenterController/GoogleMap/' + APath, ADefault));
+  Result := Config.GetBoolean('GoogleMap/' + APath, ADefault);
 end;
 
 function TKXGoogleMapController.BuildToggleButton(

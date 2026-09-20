@@ -1,0 +1,48 @@
+﻿ModelName: Squad
+PhysicalName: ROSE
+PluralDisplayLabel: _(Squad)
+DisplayLabel: _(Squad)
+PluralModelName: Squads
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Full Name)
+    DisplayWidth: 40
+  ShirtNumber: String(3) not null
+    DisplayLabel: _(Shirt Number)
+    PhysicalName: NUMERO_MAGLIA
+    DisplayWidth: 15
+  Person: Reference(Person)
+    DisplayLabel: _(Person)
+    PhysicalName: FK_ROSE_NOMINATIVO
+    DisplayWidth: 40
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+    LookupFilter: |
+      ID IN (SELECT I.NOMINATIVOID FROM ISCRIZIONI I WHERE I.STAGIONEID = '{MasterRecord.SeasonId}' and STATUS = 'ATT') AND
+      (FLOOR (CAST (DATEDIFF (DD, DATANASC, GETDATE()) AS DECIMAL (18, 7))/ 365.25) BETWEEN {MasterRecord.Category_MinimumAge} AND {MasterRecord.Category_MaximumAge})
+    AutoAddFields:
+      LastName: Person_LastName
+      FirstName: Person_FirstName
+    Rules:
+      CalcDescription: {Person_LastName} {Person_FirstName}
+    LookupFilter: ATLETA = 1
+  PlayerRole: Reference(PlayerRole)
+    PhysicalName: FK_ROSE_RUOLO_GIOC
+    Fields:
+      PlayerRoleId:
+        PhysicalName: RUOLO_GIOCID
+    DisplayLabel: _(Role)
+  Team: Reference(Team) not null
+    DisplayLabel: _(Team)
+    PhysicalName: DT_ROSE_SQUADRA
+    Fields:
+      TeamId:
+        PhysicalName: SQUADRAID
+ImageName: person

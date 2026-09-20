@@ -1,0 +1,24 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Squad)
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: {Q}DX like '%{value}%'
+      ColumnBreak:
+      DynaList: _(Team)
+        CommandText: |
+          select DISTINCT s.ID, s.DX
+          from SQUADRE s
+          order by s.DX
+        ExpressionTemplate: {Q}SQUADRAID = '{value}'
+        Width: 20
+MainTable:
+  Model: Squad
+  Controller:
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Squad.xlsx
+          RequireSelection: False

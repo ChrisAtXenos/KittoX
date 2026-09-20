@@ -1,0 +1,97 @@
+﻿ModelName: Configuration
+PhysicalName: CONFIGURATION
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Club data)
+DisplayLabel: _(Club data)
+PluralModelName: Configuration
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsReadOnly: True
+    DefaultValue: CONFIG000
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    IsVisible: False
+    IsReadOnly: True
+  ClubName: String(50)
+    PhysicalName: COMPANYNAME
+    DisplayLabel: _(Club Name)
+  Address: String(50)
+    DisplayLabel: _(Address)
+    PhysicalName: ADDRESS
+    DisplayName: _(Address)
+  Town: String(40)
+    DisplayLabel: _(Town)
+    PhysicalName: CITY
+    DisplayName: _(Town)
+  PostalCode: String(5)
+    DisplayLabel: _(Postal Code)
+    PhysicalName: ZIP
+    DisplayName: _(Postal Code)
+  Province: String(2)
+    DisplayLabel: _(Province)
+    PhysicalName: PROVINCE
+    DisplayName: _(Province)
+  TaxCode: String(16)
+    DisplayLabel: _(Tax Code)
+    PhysicalName: FISCAL_CODE
+    DisplayName: _(Tax Code)
+  VatNumber: String(11)
+    DisplayLabel: _(VAT Number)
+    PhysicalName: VATNUM
+    DisplayName: _(VAT Number)
+  SupportEmail: String(50)
+    DisplayLabel: _(Support E-mail)
+    PhysicalName: SUPPORT_EMAIL
+    DisplayName: _(Technical support e-mail)
+    DisplayWidth: 40
+  InfoEmail: String(50)
+    DisplayLabel: _(Information E-mail)
+    PhysicalName: INFO_EMAIL
+    DisplayName: _(Information e-mail)
+    DisplayWidth: 40
+  Website: String(40)
+    PhysicalName: SITO_INTERNET
+    DisplayLabel: _(Website)
+  ClubLogo: Blob
+    PhysicalName: LOGO_SOC
+    DisplayLabel: _(Club Logo)
+    MaxUploadSize: 1MB
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
+  Phone: String(20)
+    PhysicalName: TELEFONO
+    DisplayLabel: _(Office phone)
+  Fax: String(20)
+    PhysicalName: FAX
+    DisplayLabel: _(Club fax)
+  ClubColours: String(30)
+    PhysicalName: COLORI_SOCIALI
+    DisplayLabel: _(Club colours)
+  TaxScheme: String(4)
+    PhysicalName: REGIME_FISCALE
+    DisplayLabel: _(Tax scheme)
+    DisplayWidth: 60
+    AllowedValues:
+      RF01: _(Ordinary scheme)
+      RF02: _(Minimum taxpayers scheme - art. 1, c.96-117, L. 244/07)
+      RF04: _(Agriculture, related activities and fishing scheme - art. 34 and 34-bis, D.P.R. 633/72)
+      RF05: _(Salt and tobacco sales scheme - art. 74, c.1, D.P.R. 633/72)
+      RF06: _(Match trading scheme - art. 74, c.1, D.P.R. 633/72)
+      RF07: _(Publishing scheme - art. 74, c.1, D.P.R. 633/72)
+      RF08: _(Public telephone services scheme - art. 74, c.1, D.P.R. 633/72)
+      RF09: _(Resale of public transport and parking tickets scheme - art. 74, c.1, D.P.R. 633/72)
+      RF10: _(Entertainment, gaming and other activities listed in the DPR 640/72 tariff scheme - art. 74, c.6, D.P.R. 633/72)
+      RF11: _(Travel and tourism agencies scheme - art. 74-ter, D.P.R. 633/72)
+      RF12: _(Farm holiday scheme - art. 5, c.2, L. 413/91)
+      RF13: _(Door-to-door sales scheme - art. 25-bis, c.6, D.P.R. 600/73)
+      RF14: _(Resale of used goods, art, antiques and collectibles scheme - art. 36, D.L. 41/95)
+      RF15: _(Auction houses for art, antiques and collectibles scheme - art. 40-bis, D.L. 41/95)
+      RF16: _(Cash accounting VAT scheme for public bodies - art. 6, c.5, D.P.R. 633/1972)
+      RF17: _(Cash accounting VAT scheme - art. 32-bis, D.L. 83/2012)
+      RF19: _(Flat-rate scheme)
+      RF18: _(Other)
+ImageName: security

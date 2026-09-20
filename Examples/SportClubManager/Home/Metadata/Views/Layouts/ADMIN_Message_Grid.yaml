@@ -1,0 +1,6 @@
+Field: Sender
+  DisplayWidth: 42
+Field: Message
+  DisplayWidth: 55
+Field: SentDate
+Field: Status

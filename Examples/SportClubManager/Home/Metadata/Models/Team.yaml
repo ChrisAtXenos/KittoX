@@ -1,0 +1,132 @@
+﻿ModelName: Team
+PhysicalName: SQUADRE
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Teams)
+DisplayLabel: _(Team)
+PluralModelName: Teams
+Rules:
+  TeamCheck:
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DefaultValue: %COMPACT_GUID%
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Team name)
+    DisplayWidth: 40
+  Abbreviation: String(30) not null
+    PhysicalName: SIGLA
+    DisplayLabel: _(Team abbreviation)
+  FederationCode: String(15)
+    PhysicalName: COD_FEDER
+    DisplayLabel: _(Federation code)
+  ScoreboardAbbreviation: String(3)
+    PhysicalName: MINISIGLA
+    DisplayLabel: _(Short abbreviation for the scoreboard)
+  OwnTeam: Boolean not null
+    PhysicalName: PROPRIA
+    DisplayLabel: _(Own Team)
+    DefaultValue: True
+  ShirtColour: String(20)
+    PhysicalName: PRIMOCOLORE
+    DisplayLabel: _(Shirt colour)
+  SecondaryColour: String(20)
+    PhysicalName: SECONDOCOLORE
+    DisplayLabel: _(Secondary colour)
+  BallBrand: String(30)
+    PhysicalName: PALLONE
+    DisplayLabel: _(Ball brand)
+  UsualMatchTime: Time
+    PhysicalName: ORARIO
+    DisplayLabel: _(Usual schedule)
+  MeetingPoint: String(100)
+    PhysicalName: RITROVO
+    DisplayLabel: _(Call-up meeting point)
+  Coach: String(100)
+    DisplayLabel: _(Coach)
+    DisplayWidth: 50
+    Expression: |
+      (SELECT DX FROM ADDETTI WHERE SQUADRAID = {Q}ID AND MANSIONEID = 'AL')
+  TeamEscort: String(100)
+    DisplayLabel: _(Team escort)
+    DisplayWidth: 50
+    Expression: |
+      (SELECT DX FROM ADDETTI WHERE SQUADRAID = {Q}ID AND MANSIONEID = 'AC')
+  Photo: Blob
+    PhysicalName: FOTO
+    DisplayLabel: _(Photo)
+    MaxUploadSize: 1MB
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
+  Logo: Blob
+    PhysicalName: LOGO
+    DisplayLabel: _(Team logo)
+    MaxUploadSize: 1MB
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
+  TeamNumber: Integer not null
+    PhysicalName: NUMERO
+    DisplayLabel: _(Number)
+    DefaultValue: 0
+    IsVisible: False
+  Category: Reference(Category) not null
+    DisplayLabel: _(Category)
+    PhysicalName: FK_SQUADRE_CATEGORIA
+    Fields:
+      CategoryId:
+        PhysicalName: CATEGORIAID
+    AutoAddFields:
+      MinimumAge: Category_MinimumAge
+      MaximumAge: Category_MaximumAge
+  MatchDayOfWeek: String(2)
+    DisplayLabel: _(Match Day)
+    PhysicalName: DAY_GARAID
+    DisplayWidth: 10
+    AllowedValues:
+      DO: _(Sunday)
+      LU: _(Monday)
+      MA: _(Tuesday)
+      ME: _(Wednesday)
+      GI: _(Thursday)
+      VE: _(Friday)
+      SA: _(Saturday)
+  SportsFacility: Reference(SportsFacility)
+    DisplayLabel: _(Sports Facility)
+    PhysicalName: FK_SQUADRE_CAMPO
+    Fields:
+      SportsFacilityId:
+        PhysicalName: CAMPOID
+  Affiliation: Reference(Affiliation)
+    PhysicalName: FK_SQUADRE_SOCIETA
+    DisplayLabel: _(Affiliation)
+    Fields:
+      ClubNameId:
+        PhysicalName: SOCIETAID
+  Sponsor: Reference(Sponsor)
+    DisplayLabel: _(Sponsors)
+    PhysicalName: FK_SQUADRE_SPONSOR
+    Fields:
+      SponsorId:
+        PhysicalName: SPONSORID
+  Season: Reference(Season) not null
+    DisplayLabel: _(Season)
+    PhysicalName: FK_SQUADRE_STAGIONE
+    Fields:
+      SeasonId:
+        PhysicalName: STAGIONEID
+  SportType: Reference(SportType) not null
+    DisplayLabel: _(Sport Type)
+    PhysicalName: FK_SQUADRE_TIPOSPORT
+    Fields:
+      SportTypeId:
+        PhysicalName: TIPOSPORTID
+DetailReferences:
+  Staff: StaffMember
+  Squads: Squad
+ImageName: group_work

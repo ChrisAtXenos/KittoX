@@ -1,0 +1,51 @@
+﻿DisplayLabel: _(Payment summary)
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Payment Filter)
+    Items:
+      ButtonList: _(Status)
+        Items:
+          Approved: _(Approved)
+            Expression: {Q}STATUS = 'ATT'
+            IsDefault: True
+          Entered: _(Entered)
+            Expression: {Q}STATUS = 'INS'
+          Rejected: _(Rejected)
+            Expression: {Q}STATUS = 'RIF'
+      DateSearch: _(From date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_PAGAMENTO >= '{value}'
+      DateSearch: _(To date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_PAGAMENTO <= '{value}'
+MainTable:
+  Model: Payment
+  IsLarge: False
+  DefaultFilter: ((({Q}PAGANTEID in (SELECT NOMINATIVO_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%'))))
+  Rules:
+    PaymentCheckForEditing:
+  Controller:
+    AllowDuplicating: False
+    AllowInsert: False
+    AllowViewing: True
+    PreventAdding: True
+    Form:
+      Layout: USER_PaymentSummary_Form
+    Grid:
+      ForceFit: True
+      Layout: USER_PaymentSummary_Grid
+  DetailTables:
+    Controller:
+      Style: Bottom
+        Height: 300
+    Table:
+      Model: PaymentDetail
+      Controller:
+        PreventDeleting: True
+        Form:
+          Layout: USER_PaymentDetails_Form
+        Grid:
+          Layout: USER_PaymentDetails_Grid
+  ImageName: monetization_on
+ImageName: monetization_on

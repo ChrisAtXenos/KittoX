@@ -1,0 +1,30 @@
+﻿Type: Tree
+Folder: _(Profile)
+  View: USER_UserProfile
+  View: USER_People
+    ImageName: home
+Folder: _(Documents)
+  View: USER_PersonDocuments
+    DisplayLabel: _(Summary)
+  View: USER_Documents
+    DisplayLabel: _(Management)
+    ImageName: archive
+Folder: _(Subscriptions)
+  View: USER_Subscribe
+    ImageName: face
+  View: USER_SubscribeChild
+    ImageName: child_care
+  View: USER_Subscriptions
+Folder: _(Medical visits)
+  View: USER_MedicalVisits
+    DisplayLabel: _(Visit appt.)
+  View: USER_MedicalCertificate
+Folder: _(Payments)
+  View: USER_SubscriptionInstalments
+  View: USER_PaymentSummary
+  View: USER_Payments
+Folder: _(User)
+  View: ChangePassword
+  View: ApplicationInfo
+  View:
+    Controller: Logout

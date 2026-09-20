@@ -1,22 +1,10 @@
 {******************************************************************************}
 {                                                                              }
-{  Neon: Serialization Library for Delphi                                      }
+{  Neon: JSON Serialization Library for Delphi                                 }
 {  Copyright (c) 2018 Paolo Rossi                                              }
 {  https://github.com/paolo-rossi/neon-library                                 }
 {                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
+{  Licensed under the MIT license                                              }
 {                                                                              }
 {******************************************************************************}
 unit Neon.Core.DynamicTypes;
@@ -194,6 +182,7 @@ type
 implementation
 
 uses
+  System.Diagnostics,
   Neon.Core.Types,
   Neon.Core.Utils;
 
@@ -211,36 +200,44 @@ var
   LType: TRttiType;
   LLoadMethod, LSaveMethod: TRttiMethod;
   LParameters: TArray<TRttiParameter>;
+  LStamp: Int64;
 begin
-  if not Assigned(AInstance) then
-    Exit(nil);
-
-  LType := TRttiUtils.Context.GetType(AInstance.ClassType);
-
-  if not Assigned(LType) then
-    Exit(nil);
-
-  LLoadMethod := LType.GetMethod('LoadFromStream');
-  if Assigned(LLoadMethod) then
-  begin
-    LParameters := LLoadMethod.GetParameters;
-    if Length(LParameters) <> 1 then
+  // Called on every tkClass value written/read (not cached per type), so a
+  // plain non-streamable object still pays for this failed guess.
+  LStamp := TNeonLogger.ProfileBegin;
+  try
+    if not Assigned(AInstance) then
       Exit(nil);
-  end
-  else
-    Exit(nil);
 
-  LSaveMethod := LType.GetMethod('SaveToStream');
-  if Assigned(LSaveMethod) then
-  begin
-    LParameters := LSaveMethod.GetParameters;
-    if Length(LParameters) <> 1 then
+    LType := TRttiUtils.Context.GetType(AInstance.ClassType);
+
+    if not Assigned(LType) then
       Exit(nil);
-  end
-  else
-    Exit(nil);
 
-  Result := Self.Create(AInstance, LLoadMethod, LSaveMethod);
+    LLoadMethod := LType.GetMethod('LoadFromStream');
+    if Assigned(LLoadMethod) then
+    begin
+      LParameters := LLoadMethod.GetParameters;
+      if Length(LParameters) <> 1 then
+        Exit(nil);
+    end
+    else
+      Exit(nil);
+
+    LSaveMethod := LType.GetMethod('SaveToStream');
+    if Assigned(LSaveMethod) then
+    begin
+      LParameters := LSaveMethod.GetParameters;
+      if Length(LParameters) <> 1 then
+        Exit(nil);
+    end
+    else
+      Exit(nil);
+
+    Result := Self.Create(AInstance, LLoadMethod, LSaveMethod);
+  finally
+    TNeonLogger.ProfileEnd('Dynamic:GuessStream', LStamp);
+  end;
 end;
 
 procedure TDynamicStream.LoadFromStream(AStream: TStream);
@@ -307,63 +304,79 @@ var
   LEnumInstance: TObject;
   LListType, LItemType, LEnumType: TRttiType;
   LCountProp, LCurrentProp: TRttiProperty;
+  LStamp: Int64;
 begin
-  Result := nil;
+  // Called on every tkClass value written/read (not cached per type); note
+  // this also invokes GetEnumerator on any match, allocating an enumerator
+  // object just to probe it, so even a near-miss isn't free.
+  LStamp := TNeonLogger.ProfileBegin;
+  try
+    Result := nil;
 
-  if not Assigned(AInstance) then
-    Exit;
+    if not Assigned(AInstance) then
+      Exit;
 
-  LListType := TRttiUtils.Context.GetType(AInstance.ClassType);
+    LListType := TRttiUtils.Context.GetType(AInstance.ClassType);
 
-  LMethodGetEnumerator := LListType.GetMethod('GetEnumerator');
-  if not Assigned(LMethodGetEnumerator) or
-     (LMethodGetEnumerator.MethodKind <> mkFunction) or
-     (LMethodGetEnumerator.ReturnType.Handle.Kind <> tkClass)
-  then
-    Exit;
+    LMethodGetEnumerator := LListType.GetMethod('GetEnumerator');
+    if not Assigned(LMethodGetEnumerator) or
+       (LMethodGetEnumerator.MethodKind <> mkFunction) or
+       (LMethodGetEnumerator.ReturnType.Handle.Kind <> tkClass)
+    then
+      Exit;
 
-  LMethodClear := LListType.GetMethod('Clear');
-  if not Assigned(LMethodClear) then
-    Exit;
+    LMethodClear := LListType.GetMethod('Clear');
+    if not Assigned(LMethodClear) then
+      Exit;
 
-  LMethodAdd := LListType.GetMethod('Add');
-  if not Assigned(LMethodAdd) or (Length(LMethodAdd.GetParameters) <> 1) then
-    Exit;
+    LMethodAdd := LListType.GetMethod('Add');
+    if not Assigned(LMethodAdd) or (Length(LMethodAdd.GetParameters) <> 1) then
+      Exit;
 
-  LItemType := LMethodAdd.GetParameters[0].ParamType;
+    LItemType := LMethodAdd.GetParameters[0].ParamType;
 
-  LCountProp := LListType.GetProperty('Count');
-  if not Assigned(LCountProp) then
-    Exit;
+    LCountProp := LListType.GetProperty('Count');
+    if not Assigned(LCountProp) then
+      Exit;
 
-  LEnumInstance := LMethodGetEnumerator.Invoke(AInstance, []).AsObject;
-  if not Assigned(LEnumInstance) then
-    Exit;
+    LEnumInstance := LMethodGetEnumerator.Invoke(AInstance, []).AsObject;
+    if not Assigned(LEnumInstance) then
+      Exit;
 
-  LEnumType := TRttiUtils.Context.GetType(LEnumInstance.ClassType);
+    // The probing enumerator is owned by this method until it is handed to
+    // the adapter below; every failed validation must free it
+    try
+      LEnumType := TRttiUtils.Context.GetType(LEnumInstance.ClassType);
 
-  LCurrentProp := LEnumType.GetProperty('Current');
-  if not Assigned(LCurrentProp) then
-    Exit;
+      LCurrentProp := LEnumType.GetProperty('Current');
+      if not Assigned(LCurrentProp) then
+        Exit;
 
-  LMethodMoveNext := LEnumType.GetMethod('MoveNext');
-  if not Assigned(LMethodMoveNext) or
-     (Length(LMethodMoveNext.GetParameters) <> 0) or
-     (LMethodMoveNext.MethodKind <> mkFunction) or
-     (LMethodMoveNext.ReturnType.Handle <> TypeInfo(Boolean))
-  then
-    Exit;
+      LMethodMoveNext := LEnumType.GetMethod('MoveNext');
+      if not Assigned(LMethodMoveNext) or
+         (Length(LMethodMoveNext.GetParameters) <> 0) or
+         (LMethodMoveNext.MethodKind <> mkFunction) or
+         (LMethodMoveNext.ReturnType.Handle <> TypeInfo(Boolean))
+      then
+        Exit;
 
-  Result := TDynamicList.Create(
-    AInstance,
-    LEnumInstance,
-    LItemType,
-    LMethodAdd,
-    LMethodClear,
-    LMethodMoveNext,
-    LCurrentProp,
-    LCountProp
-  );
+      Result := TDynamicList.Create(
+        AInstance,
+        LEnumInstance,
+        LItemType,
+        LMethodAdd,
+        LMethodClear,
+        LMethodMoveNext,
+        LCurrentProp,
+        LCountProp
+      );
+    finally
+      if not Assigned(Result) then
+        LEnumInstance.Free;
+    end;
+  finally
+    TNeonLogger.ProfileEnd('Dynamic:GuessList', LStamp);
+  end;
 end;
 
 function TDynamicList.MoveNext: Boolean;
@@ -454,7 +467,11 @@ var
   LKeyEnumMethod, LValEnumMethod: TRttiMethod;
   LKeyEnumObject, LValEnumObject: TObject;
   LKeyEnum, LValEnum: TDynamicMap.TEnumerator;
+  LStamp: Int64;
 begin
+  // Called on every tkClass value written/read (not cached per type).
+  LStamp := TNeonLogger.ProfileBegin;
+  try
   Result := nil;
 
   if not Assigned(AInstance) then
@@ -477,49 +494,62 @@ begin
   LKeyEnumMethod := TRttiUtils.Context.GetType(LKeyEnumObject.ClassInfo).GetMethod('GetEnumerator');
   LValEnumMethod := TRttiUtils.Context.GetType(LValEnumObject.ClassInfo).GetMethod('GetEnumerator');
 
+  // The probing enumerators are owned by this method until they are handed
+  // to the adapter below; every failed validation must free them
   LKeyEnum := TDynamicMap.TEnumerator.Create(LKeyEnumMethod, LKeyEnumObject);
-  LValEnum := TDynamicMap.TEnumerator.Create(LValEnumMethod, LValEnumObject);
-  // End Keys & Values Enumerator
+  try
+    LValEnum := TDynamicMap.TEnumerator.Create(LValEnumMethod, LValEnumObject);
+    try
+      LClearMethod := LMapType.GetMethod('Clear');
+      if not Assigned(LClearMethod) then
+        Exit;
 
-  LClearMethod := LMapType.GetMethod('Clear');
-  if not Assigned(LClearMethod) then
-    Exit;
+      LAddMethod := LMapType.GetMethod('Add');
+      if not Assigned(LAddMethod) or (Length(LAddMethod.GetParameters) <> 2) then
+        Exit;
 
-  LAddMethod := LMapType.GetMethod('Add');
-  if not Assigned(LAddMethod) or (Length(LAddMethod.GetParameters) <> 2) then
-    Exit;
+      LKeyType := LAddMethod.GetParameters[0].ParamType;
+      LValType := LAddMethod.GetParameters[1].ParamType;
 
-  LKeyType := LAddMethod.GetParameters[0].ParamType;
-  LValType := LAddMethod.GetParameters[1].ParamType;
+      LCountProp := LMapType.GetProperty('Count');
+      if not Assigned(LCountProp) then
+        Exit;
 
-  LCountProp := LMapType.GetProperty('Count');
-  if not Assigned(LCountProp) then
-    Exit;
+      LToStringMethod := nil;
+      LFromStringMethod := nil;
 
-  LToStringMethod := nil;
-  LFromStringMethod := nil;
+      // Optional methods (on Key object)
+      case LKeyType.TypeKind of
+        tkClass{, tkRecord, tkInterface}:
+        begin
+          LToStringMethod := LKeyType.GetMethod('ToString');
+          LFromStringMethod := LKeyType.GetMethod('FromString');
+        end;
+      end;
 
-  // Optional methods (on Key object)
-  case LKeyType.TypeKind of
-    tkClass{, tkRecord, tkInterface}:
-    begin
-      LToStringMethod := LKeyType.GetMethod('ToString');
-      LFromStringMethod := LKeyType.GetMethod('FromString');
+      Result := TDynamicMap.Create(
+        AInstance,
+        LKeyType,
+        LValType,
+        LAddMethod,
+        LClearMethod,
+        LCountProp,
+        LKeyEnum,
+        LValEnum,
+        LToStringMethod,
+        LFromStringMethod
+      );
+    finally
+      if not Assigned(Result) then
+        LValEnum.Free;
     end;
+  finally
+    if not Assigned(Result) then
+      LKeyEnum.Free;
   end;
-
-  Result := TDynamicMap.Create(
-    AInstance,
-    LKeyType,
-    LValType,
-    LAddMethod,
-    LClearMethod,
-    LCountProp,
-    LKeyEnum,
-    LValEnum,
-    LToStringMethod,
-    LFromStringMethod
-  );
+  finally
+    TNeonLogger.ProfileEnd('Dynamic:GuessMap', LStamp);
+  end;
 end;
 
 function TDynamicMap.MoveNext: Boolean;
@@ -557,13 +587,19 @@ begin
   // Memory creation, must destroy the object
   FInstance := AMethod.Invoke(AInstance, []).AsObject;
 
-  FCurrentProperty := TRttiUtils.Context.GetType(FInstance.ClassInfo).GetProperty(CURRENT_PROP);
-  if not Assigned(FCurrentProperty) then
-    raise ENeonException.CreateFmt('Property [%s] not found', [CURRENT_PROP]);
+  try
+    FCurrentProperty := TRttiUtils.Context.GetType(FInstance.ClassInfo).GetProperty(CURRENT_PROP);
+    if not Assigned(FCurrentProperty) then
+      raise ENeonException.CreateFmt(SNeonErrorPropertyNotFoundF1, [CURRENT_PROP]);
 
-  FMoveNextMethod := TRttiUtils.Context.GetType(FInstance.ClassInfo).GetMethod(MOVENEXT_METH);
-  if not Assigned(FMoveNextMethod) then
-    raise ENeonException.CreateFmt('Method [%s] not found', [MOVENEXT_METH]);
+    FMoveNextMethod := TRttiUtils.Context.GetType(FInstance.ClassInfo).GetMethod(MOVENEXT_METH);
+    if not Assigned(FMoveNextMethod) then
+      raise ENeonException.CreateFmt(SNeonErrorMethodNotFoundF1, [MOVENEXT_METH]);
+  except
+    // The constructor never completed, so the caller cannot free FInstance
+    FInstance.Free;
+    raise;
+  end;
 end;
 
 function TDynamicMap.TEnumerator.Current: TValue;
@@ -600,36 +636,43 @@ var
   LContainedType: PTypeInfo;
   LTypeInfoMethod, LHasValueMethod: TRttiMethod;
   LGetValueMethod, LSetValueMethod: TRttiMethod;
+  LStamp: Int64;
 begin
-  if AInstance.IsEmpty then
-    Exit(nil);
+  // Called on every tkRecord value written/read (not cached per type).
+  LStamp := TNeonLogger.ProfileBegin;
+  try
+    if AInstance.IsEmpty then
+      Exit(nil);
 
-  LType := TRttiUtils.Context.GetType(AInstance.TypeInfo);
+    LType := TRttiUtils.Context.GetType(AInstance.TypeInfo);
 
-  if not Assigned(LType) then
-    Exit(nil);
+    if not Assigned(LType) then
+      Exit(nil);
 
-  LTypeInfoMethod := LType.GetMethod('GetValueType');
-  if not Assigned(LTypeInfoMethod) then
-    Exit(nil);
+    LTypeInfoMethod := LType.GetMethod('GetValueType');
+    if not Assigned(LTypeInfoMethod) then
+      Exit(nil);
 
-  LContainedType := LTypeInfoMethod.Invoke(AInstance, []).AsType<PTypeInfo>;
-  if LContainedType = nil then
-    raise ENeonException.Create('Nullable contains type with no RTTI');
+    LContainedType := LTypeInfoMethod.Invoke(AInstance, []).AsType<PTypeInfo>;
+    if LContainedType = nil then
+      raise ENeonException.Create(SNeonErrorNullableNoRtti);
 
-  LHasValueMethod := LType.GetMethod('GetHasValue');
-  if not Assigned(LHasValueMethod) then
-    Exit(nil);
+    LHasValueMethod := LType.GetMethod('GetHasValue');
+    if not Assigned(LHasValueMethod) then
+      Exit(nil);
 
-  LGetValueMethod := LType.GetMethod('GetValue');
-  if not Assigned(LGetValueMethod) then
-    Exit(nil);
+    LGetValueMethod := LType.GetMethod('GetValue');
+    if not Assigned(LGetValueMethod) then
+      Exit(nil);
 
-  LSetValueMethod := LType.GetMethod('SetValue');
-  if not Assigned(LSetValueMethod) then
-    Exit(nil);
+    LSetValueMethod := LType.GetMethod('SetValue');
+    if not Assigned(LSetValueMethod) then
+      Exit(nil);
 
-  Result := Self.Create(AInstance, LTypeInfoMethod, LHasValueMethod, LGetValueMethod, LSetValueMethod);
+    Result := Self.Create(AInstance, LTypeInfoMethod, LHasValueMethod, LGetValueMethod, LSetValueMethod);
+  finally
+    TNeonLogger.ProfileEnd('Dynamic:GuessNullable', LStamp);
+  end;
 end;
 
 function TDynamicNullable.HasValue: Boolean;

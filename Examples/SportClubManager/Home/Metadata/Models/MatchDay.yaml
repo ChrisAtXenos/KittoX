@@ -1,0 +1,45 @@
+﻿ModelName: MatchDay
+PhysicalName: GIORNATE
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  Number: Integer
+    DisplayLabel: _(Number)
+    PhysicalName: NUMERO
+  Date: Date not null
+    PhysicalName: DATA_STD
+    DisplayWidth: 12
+    DisplayLabel: _(Date)
+  Time: Date
+    PhysicalName: ORA_STD
+    DisplayWidth: 12
+    DisplayLabel: _(Time)
+  DayDescription: String(10)
+    DisplayLabel: _(Day description)
+    PhysicalName: DESCGIORNO
+  SubNumber: Integer
+    DisplayLabel: _(Sub-number)
+    PhysicalName: SUBNUMERO
+  ChampionshipStage: Reference(ChampionshipStage)
+    DisplayLabel: _(Championship Stage)
+    PhysicalName: DT_GIORNATE_OWNERFASE
+    Fields:
+      ChampionshipStageId:
+        PhysicalName: OWNERFASEID
+  MatchDayType: Reference(MatchDayType) not null
+    DisplayLabel: _(Match Day Type)
+    PhysicalName: FK_GIORNATE_TIPOGIORNATA
+    Fields:
+      MatchDayTypeId:
+        PhysicalName: TIPOGIORNATAID
+DetailReferences:
+  MatchPairings: MatchPairing
+    PhysicalName: DT_ACCOPPIAMENTI_OWNERGIORNATA
+    ReferenceField: MatchDay
+PluralDisplayLabel: _(Match days)
+DisplayLabel: _(Match day)
+PluralModelName: MatchDays

@@ -72,8 +72,9 @@ var
 begin
   // Replicates the matching loop of TKUserPermissionStorage.GetAccessGrantValue:
   //  - macro expand patterns containing %
-  //  - StrMatchesPatternOrRegex for pattern (wildcards / REGEX: / negation)
-  //  - mode is in the comma-separated ACCESS_MODES of the row
+  //  - StrMatchesPatternOrRegex for pattern (wildcards / REGEX: / negation),
+  //    case-insensitive so a negated admin rule covers AdminUsers
+  //  - mode matched via TKAccessController.ModeMatches (split + trim)
   //  - last match wins, except for standard modes where ACV_FALSE breaks early
   //    (so an explicit deny dominates an inherited allow).
   Result := Null;
@@ -83,10 +84,8 @@ begin
     if Pos('%', LPattern) > 0 then
       TKConfig.Instance.MacroExpansionEngine.Expand(LPattern);
     LModes := AAcl[I].Modes;
-    if StrMatchesPatternOrRegex(AResourceURI, LPattern)
-      and ((Pos(AMode + ',', LModes) > 0)
-        or (Pos(',' + AMode, LModes) > 0)
-        or (AMode = LModes)) then
+    if StrMatchesPatternOrRegex(AResourceURI, LPattern, True)
+      and TKAccessController.ModeMatches(AMode, LModes) then
     begin
       Result := AAcl[I].GrantValue;
       if TKAccessController.IsStandardMode(AMode) and (Result = ACV_FALSE) then

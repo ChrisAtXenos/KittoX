@@ -8,7 +8,8 @@
 
 /// <summary>
 ///   Attribute-routed handler for chart data requests.
-///   Returns JSON with labels, data arrays, and grid HTML for Chart.js panels.
+///   Returns JSON with the labels and data arrays for Chart.js panels, for the
+///   rows selected by the hosting List's filter panel (f_N fields).
 /// </summary>
 unit Kitto.Web.Handler.Chart;
 
@@ -27,9 +28,10 @@ type
   [TKXPath('/kx/view/{ViewName}')]
   TKXChartHandler = class
   public
-    /// <summary>Loads the view's records and returns JSON with the label and
-    /// data arrays (read from the configured Chart series fields) plus the grid
-    /// HTML for the panel sidebar.</summary>
+    /// <summary>Loads the view's records, filtered by the filter panel's
+    /// current values (f_N fields, as for the grid rows), and returns JSON with
+    /// the label and data arrays read from the configured Chart series
+    /// fields.</summary>
     [TKXPath('/chart-data')]
     [TKXGET]
     procedure HandleChartData(
@@ -45,6 +47,7 @@ uses
   Kitto.Metadata.Views,
   Kitto.Store,
   Kitto.Web.Response,
+  Kitto.Html.DataPanel,
   Kitto.Html.ChartPanel,
   Kitto.Web.Routing.Registry;
 
@@ -58,7 +61,7 @@ var
   I: Integer;
   LRecord: TKViewTableRecord;
   LRecordField: TKViewTableField;
-  LGridHtml, LJson: string;
+  LFilterExpr, LJson: string;
   LFmt: TFormatSettings;
   SBLabels, SBData: TStringBuilder;
 begin
@@ -90,10 +93,12 @@ begin
   LFmt.DecimalSeparator := '.';
   LFmt.ThousandSeparator := #0;
 
-  // Load all records
+  // Load all records (no paging), filtered like the other presenters of the
+  // hosting List: the filter panel's values travel as f_N request fields.
+  LFilterExpr := BuildRequestFilterExpression(LControllerNode);
   LStore := LViewTable.CreateStore;
   try
-    LStore.Load('', '', 0, 0);
+    LStore.Load(LFilterExpr, '', 0, 0);
 
     // Build JSON arrays for labels and data
     SBLabels := TStringBuilder.Create;
@@ -121,13 +126,9 @@ begin
           SBData.Append('0');
       end;
 
-      // Build grid HTML rows for sidebar refresh
-      LGridHtml := TKXChartPanelController.BuildGridRows(LStore, LViewTable);
-      LGridHtml := TKXChartPanelController.JSONStr(LGridHtml);
-
       // Assemble JSON response
       LJson := '{"labels": [' + SBLabels.ToString + '], "data": [' +
-        SBData.ToString + '], "gridHtml": ' + LGridHtml + '}';
+        SBData.ToString + ']}';
     finally
       SBData.Free;
       SBLabels.Free;

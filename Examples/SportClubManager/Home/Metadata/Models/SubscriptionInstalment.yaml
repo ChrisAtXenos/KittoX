@@ -1,0 +1,123 @@
+﻿ModelName: SubscriptionInstalment
+PhysicalName: RATE_ISCRIZIONI
+DefaultSorting: {Q}DATA_SCADENZA
+PluralDisplayLabel: _(Subscription Instalments)
+DisplayLabel: _(Subscription Instalment)
+PluralModelName: SubscriptionInstalments
+CaptionField: InstalmentDescription
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Subscription: Reference(Subscription)
+    DisplayLabel: _(Subscription)
+    PhysicalName: DT_RATE_ISCRIZIONI_ISCRIZIONE
+    Fields:
+      SubscriptionId: String(32)
+        PhysicalName: ISCRIZIONEID
+    DisplayWidth: 50
+    AutoAddFields:
+      PersonId: Subscription_PersonId
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  InstalmentDescription: String(300)
+    Expression: |
+      CASE WHEN CHARINDEX('  ', REVERSE({Q}DX)) > 0 THEN LEFT({Q}DX, LEN({Q}DX) - CHARINDEX('  ', REVERSE({Q}DX)) - 1) ELSE {Q}DX END + '  ' + ISNULL(FORMAT({Q}DATA_SCADENZA, 'dd/MM/yyyy'), '')
+    DisplayLabel: _(Description)
+    IsVisible: False
+  DueDate: Date
+    DisplayLabel: _(Expiry Date)
+    PhysicalName: DATA_SCADENZA
+    DisplayWidth: 12
+  Amount: Currency
+    PhysicalName: IMPORTO
+    DisplayLabel: _(Amount)
+    DisplayWidth: 10
+    IsReadOnly: True
+    DefaultValue: 0
+  DiscountAllowance: Currency
+    PhysicalName: SCONTO_ABBUONO
+    DisplayLabel: _(Discount/Voucher)
+    DisplayWidth: 10
+    DefaultValue: 0
+    Rules:
+      SubscriptionInstalmentSetDiscount:
+  DiscountNotes: Memo
+    PhysicalName: NOTE_ABBUONO
+    DisplayLabel: _(Discount Notes)
+    DisplayWidth: 80
+  TotalAmount: Currency
+    PhysicalName: IMPORTO_TOT
+    DisplayLabel: _(Total Amount)
+    DisplayLabel_Grid: _(Total)
+    DisplayWidth: 10
+    IsReadOnly: True
+    DefaultValue: 0
+  UnapprovedAmount: Currency
+    Expression: |
+      (SELECT IMPORTO_NONAPPROVATO
+      FROM V_RATE_ISCRIZIONI
+      WHERE ID = {Q}ID)
+    DisplayLabel: _(Unapproved Amount)
+    DisplayLabel_Grid: _(Not Approved)
+    DisplayWidth: 10
+  PaidAmount: Currency
+    Expression: |
+      (SELECT IMPORTO_PAGATO
+      FROM V_RATE_ISCRIZIONI
+      WHERE ID = {Q}ID)
+    DisplayLabel: _(Amount Paid)
+    DisplayLabel_Grid: _(Paid)
+    DisplayWidth: 10
+  OutstandingAmount: Currency
+    Expression: |
+      (SELECT IMPORTO_RESIDUO
+      FROM V_RATE_ISCRIZIONI
+      WHERE ID = {Q}ID)
+    DisplayLabel: _(Outstanding Amount)
+    DisplayLabel_Grid: _(Outstanding)
+    DisplayWidth: 10
+  Status: String(10)
+    DisplayLabel: _(Status)
+    Expression: |
+      (SELECT STATUS
+      FROM V_RATE_ISCRIZIONI
+      WHERE ID = {Q}ID)
+    DisplayWidth: 12
+    AllowedValues:
+      inserita: _(Entered)
+      pagata: _(Paid)
+      parziale: _(Partly paid)
+    Colors:
+      f9c820: ^parziale
+      4ab558: ^pagata
+  SubscriptionInstalmentCalc: HTMLMemo
+    Expression: |
+      '<img style="float: left; margin: 0px 15px 15px 0px;" src="'+
+      CASE
+      WHEN CAST((SELECT STATUS FROM V_RATE_ISCRIZIONI WHERE ID = {Q}ID) AS VARCHAR) = 'inserita' OR
+           CAST((SELECT STATUS FROM V_RATE_ISCRIZIONI WHERE ID = {Q}ID) AS VARCHAR) = 'parziale' THEN '%IMAGE(sentiment_neutral_large.svg)%'
+      WHEN CAST((SELECT STATUS FROM V_RATE_ISCRIZIONI WHERE ID = {Q}ID) AS VARCHAR) = 'pagata' THEN '%IMAGE(sentiment_satisfied_large.svg)%'
+      END+'" width="40" />'+
+      '<b>'+DT_RATE_ISCRIZIONI_ISCRIZIONE.DX+'</b><br />'+
+      '_(Due date):<b> '+COALESCE(CONVERT(VARCHAR, {Q}DATA_SCADENZA, 103),'')+'</b><br />' +
+      '_(Amount paid):<b> '+CAST((SELECT IMPORTO_PAGATO FROM V_RATE_ISCRIZIONI WHERE ID = {Q}ID) AS VARCHAR)+'</b><br />' +
+      '_(Unapproved amount):<b> '+CAST((SELECT IMPORTO_NONAPPROVATO FROM V_RATE_ISCRIZIONI WHERE ID = {Q}ID) AS VARCHAR)+'</b><br />' +
+      CASE
+      WHEN CAST((SELECT STATUS FROM V_RATE_ISCRIZIONI WHERE ID = {Q}ID) AS VARCHAR) = 'inserita' THEN '<font color="#B5761A"> <b> _(Entered) </b> <br /> '
+      WHEN CAST((SELECT STATUS FROM V_RATE_ISCRIZIONI WHERE ID = {Q}ID) AS VARCHAR) = 'parziale' THEN '<font color="#B5761A"> <b> _(Partial) </b> <br /> '
+      WHEN CAST((SELECT STATUS FROM V_RATE_ISCRIZIONI WHERE ID = {Q}ID) AS VARCHAR) = 'pagata' THEN '<font color="#388E3C"> <b> _(Paid) </b> <br /> '
+      END+'</font></div>'
+    DisplayLabel: _(Subscription Instalment)
+  SubscriberPaymentSummary: Reference(VSubscriberPaymentSummary)
+    DisplayLabel: _(Subscriber Payment Summary)
+    PhysicalName: DT_RIEP_PAGAMENTO_ISCRITTO
+    isVisible: False
+    Fields:
+      SubscriptionId: String(32)
+        PhysicalName: ISCRIZIONEID
+ImageName: account_balance_wallet
+Rules:
+  SubscriptionInstalmentCheck:

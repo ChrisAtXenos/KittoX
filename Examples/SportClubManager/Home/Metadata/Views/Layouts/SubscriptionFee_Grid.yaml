@@ -1,0 +1,15 @@
+﻿Field: Description
+Field: Campaign
+Field: BirthYearFrom
+Field: BirthYearTo
+Field: Instalment1DueDate
+Field: Instalment1Amount
+Field: Instalment2DueDate
+Field: Instalment2Amount
+Field: Instalment3DueDate
+Field: Instalment3Amount
+Field: Instalment4DueDate
+Field: Instalment4Amount
+Field: Instalment5DueDate
+Field: Instalment5Amount
+Field: TotalFee

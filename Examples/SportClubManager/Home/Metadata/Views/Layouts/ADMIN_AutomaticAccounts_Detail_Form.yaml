@@ -1,0 +1,9 @@
+LabelAlign: Right
+LabelWidth: 140
+FieldSet:
+  Row:
+    Field: Sign
+    Field: LedgerAccount
+  Row:
+    Field: PaymentMethod
+    Field: Bank

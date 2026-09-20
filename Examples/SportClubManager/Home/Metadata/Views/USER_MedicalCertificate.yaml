@@ -1,0 +1,38 @@
+﻿DisplayLabel: _(Medical certificate)
+Type: Data
+Controller: List
+  Filters:
+    LabelWidth: 90
+    DisplayLabel: _(Medical Certificate Filter)
+    Connector: and
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: ({Q}NOMINATIVOID IN (SELECT ID FROM NOMINATIVI WHERE NOMINATIVI.DX like '%{value}%'))
+        AutoSearchAfterChars: 3
+      ButtonList: _(Status)
+        Items:
+          Active: _(Active)
+            Expression: {Q}SCADENZA >= GETDATE() AND COALESCE({Q}IDEONEITA,0) = 1
+            IsDefault: True
+          Booked: _(Booked)
+            Expression: ({Q}SCADENZA IS NULL OR COALESCE({Q}IDEONEITA,0) = 0)
+            IsDefault: True
+          Expired: _(Expired)
+            Expression: {Q}SCADENZA < GETDATE()
+MainTable:
+  Model: MedicalVisit
+  IsLarge: False
+  DisplayLabel: _(Certificate)
+  DefaultFilter: ((({Q}NOMINATIVOID in (SELECT NOMINATIVO_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%'))))
+  Controller:
+    AllowViewing: True
+    PreventAdding: False
+    PreventEditing: False
+    PreventDeleting: True
+    Form:
+      Layout: USER_MedicalCertificate_Form
+    Grid:
+      ForceFit: True
+      Layout: USER_MedicalCertificate_Grid
+  ImageName: description
+ImageName: description

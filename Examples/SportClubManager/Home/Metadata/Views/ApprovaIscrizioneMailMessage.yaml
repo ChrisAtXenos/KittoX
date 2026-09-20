@@ -1,0 +1,15 @@
+﻿From: <%Config:SportsClubEmail%>
+Subject: _(Subscription approved)
+HTMLBody: |
+  <p><b>%Config:SportsClubName%</b>
+  <br/>
+  _(Dear) {FirstName} {LastName},<br/>
+  _(Your subscription to) <b>{SubscriptionFee}</b> _(has been approved for an amount of) <b>&euro; {SubscriptionTotal}</b>.<br/>
+  _(To make the payment, follow these instructions.)<br/>
+  #IstruzioniIscrizione#<br/>
+  <br/>
+  _(If you received this e-mail by mistake or the information does not look correct, please write to us at:) <a href="mailto:%Config:SportsClubEmail%">%Config:SportsClubEmail%</a><br/>
+  <br/>
+  _(Kind regards.)</p>
+  </p>
+  <p><b>_(The staff of) %Config:SportsClubName%</b></p>

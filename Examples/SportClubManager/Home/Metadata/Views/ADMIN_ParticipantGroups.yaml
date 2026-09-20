@@ -1,0 +1,34 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Participant Groups)
+    Items:
+      FreeSearch: _(Group)
+        Width: 40
+        ExpressionTemplate: (GRUPPI_PARTECIPANTI.DX like '%{value}%')
+MainTable:
+  Model: ParticipantGroup
+  Controller:
+    PopupWindow:
+      Width: 1000
+      Height: 650
+    Form:
+      Layout: ADMIN_ParticipantGroups_Form
+    Grid:
+      Layout: ADMIN_ParticipantGroups_Grid
+  DetailTables:
+    Controller:
+      Style: Bottom
+        Height: 500
+    Table:
+      Model: ParticipantDetail
+      Controller:
+        PopUpWindow:
+          Width: 600
+          Height: 150
+        Form:
+          Layout: ADMIN_ParticipantDetails_Form
+        Grid:
+          Layout: ADMIN_ParticipantDetails_Grid
+        Add: _(Add person)
+          Tooltip: _(Add a new person)

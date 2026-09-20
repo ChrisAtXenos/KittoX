@@ -1,0 +1,49 @@
+﻿ModelName: Clinic
+PhysicalName: AMBULATORI
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Identifier)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Name)
+    DisplayWidth: 40
+  Address: String(50)
+    PhysicalName: INDIRIZZO
+    DisplayLabel: _(Address)
+    DisplayWidth: 40
+  Municipality: Reference(Municipality)
+    PhysicalName: FK_AMBULATORI_COMUNE
+    Fields:
+      MunicipalityId:
+        PhysicalName: COMUNEID
+    DisplayLabel: _(Municipality)
+    DisplayWidth: 40
+    LookupFilter: (COMUNI.ESTINTO = 'N')
+  PostalCode: String(5)
+    DisplayLabel: _(Postal Code)
+    PhysicalName: CAP
+  Province: Reference(Province)
+    PhysicalName: FK_AMBULATORI_PROVINCIA
+    Fields:
+      ProvinceId:
+        PhysicalName: PROVINCIAID
+    DisplayLabel: _(Province)
+  LocalHealthAuthority: String(30)
+    PhysicalName: ASL
+    DisplayLabel: _(Local health authority)
+  Phone: String(40)
+    PhysicalName: TELEFONO
+    DisplayLabel: _(Phone)
+    DisplayWidth: 20
+  Email: String(40)
+    PhysicalName: EMAIL
+    DisplayLabel: _(E-mail)
+    DisplayWidth: 40
+  ContactPerson: String(40)
+    PhysicalName: PERSRIF
+    DisplayLabel: _(Person/Contact)
+PluralDisplayLabel: _(Clinics)
+DisplayLabel: _(Clinic)
+PluralModelName: Clinics
+ImageName: local_hospital

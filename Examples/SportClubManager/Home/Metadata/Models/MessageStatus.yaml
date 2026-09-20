@@ -1,0 +1,14 @@
+﻿ModelName: MessageStatus
+PhysicalName: STATUS_MESSAGGI
+PluralDisplayLabel: _(Message Status)
+PluralModelName: MessageStatuses
+DisplayLabel: _(Message Status)
+LookupSorting: Id
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Status)

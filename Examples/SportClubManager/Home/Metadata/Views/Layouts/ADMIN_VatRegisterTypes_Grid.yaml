@@ -1,0 +1,12 @@
+Field: Id
+  DisplayWidth: 10
+Field: Description
+Field: VatRegisterType
+Field: LastProtocolDate
+  DisplayWidth: 20
+Field: LastProtocolNumber
+  DisplayWidth: 25
+Field: LastProtocolDatePrevYear
+  DisplayWidth: 30
+Field: LastProtocolNumberPrevYear
+  DisplayWidth: 30

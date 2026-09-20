@@ -1,0 +1,12 @@
+﻿Field: Payer
+Field: SubscribedPeople
+Field: PaymentMethod
+Field: PaymentDate
+  DisplayWidth: 20
+Field: Amount
+Field: Status
+Field: ApprovalDate
+  DisplayWidth: 18
+Field: RejectionDate
+Field: DepositBank
+  DisplayWidth: 30

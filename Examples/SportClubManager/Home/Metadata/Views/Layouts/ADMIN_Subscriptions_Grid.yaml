@@ -1,0 +1,34 @@
+﻿Field: LastName
+  DisplayWidth: 20
+Field: FirstName
+  DisplayWidth: 20
+Field: ParentLastName
+  DisplayWidth: 20
+Field: ParentFirstName
+  DisplayWidth: 20
+Field: ParentMobile
+  DisplayWidth: 20
+Field: Season
+  DisplayWidth: 20
+Field: SubscriptionFee
+  DisplayWidth: 15
+Field: Status
+  DisplayWidth: 10
+Field: CourseFeeAmount
+  DisplayWidth: 13
+Field: SiblingDiscount
+  DisplayWidth: 14
+Field: SingleInstalmentDiscount
+  DisplayWidth: 10
+Field: SubscriptionTotal
+  DisplayWidth: 16
+Field: SubscriptionDate
+  DisplayLabel: _(Subscription)
+Field: AcceptanceDate
+  DisplayWidth: 12
+  DisplayLabel: _(Acceptance)
+Field: RejectionDate
+  DisplayLabel: _(Rejection)
+Field: VisitExpiry
+  DisplayWidth: 15
+Field: StatusCalc

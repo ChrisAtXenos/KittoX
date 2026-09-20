@@ -1,0 +1,10 @@
+﻿Field: Description
+Field: EmailTemplate
+Field: FromAddress
+Field: Recipient
+Field: Subject
+Field: EntryDateTime
+  DisplayWidth: 20
+Field: EnteredBy
+Field: TransmissionDateTime
+  DisplayWidth: 20

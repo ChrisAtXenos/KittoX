@@ -17,6 +17,13 @@ Fields:
     NotifyChange: True
   Party_Time: Time not null
     DisplayLabel: _(Party Time)
+  # Date + time of the party as one DateTime, for the calendar view
+  # (CalendarStartDate/CalendarEndDate). Hidden: grids and forms keep the
+  # separate Party_Date / Party_Time editors.
+  Party_DateTime: DateTime
+    DisplayLabel: _(Party Date and Time)
+    IsVisible: False
+    Expression: %DB.DATETIME_FROM({Q}PARTY_DATE, {Q}PARTY_TIME)%
   Address: String(256) not null
     DisplayLabel: _(Address)
     DisplayWidth: 80

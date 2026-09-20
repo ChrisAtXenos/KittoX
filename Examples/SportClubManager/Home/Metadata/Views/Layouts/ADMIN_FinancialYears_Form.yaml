@@ -1,0 +1,13 @@
+LabelAlign: Right
+LabelWidth: 135
+FieldSet:
+  Row:
+    Field: Id
+    Field: Description
+  Row:
+    Field: StartDate
+    Field: EndDate
+  Row:
+    Field: Status
+  Row:
+    Field: LastEntryNumber

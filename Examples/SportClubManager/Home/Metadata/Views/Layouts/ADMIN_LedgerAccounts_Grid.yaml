@@ -1,0 +1,14 @@
+Field: Section
+Field: ParentCode
+  DisplayWidth: 20
+Field: LedgerAccountCode
+  DisplayWidth: 20
+Field: Level
+Field: LedgerAccountDescription
+Field: CustomerReference
+Field: SupplierReference
+Field: MemberReference
+Field: BankAccountReference
+Field: TaxesAndDuties
+Field: VatPayable
+Field: Disabled

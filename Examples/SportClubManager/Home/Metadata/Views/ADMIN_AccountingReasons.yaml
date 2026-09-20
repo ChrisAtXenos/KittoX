@@ -1,0 +1,57 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Accounting Reasons)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (CAUSALICONTABILI.DX like '%{value}%') or (CAUSALICONTABILI.ID like '%{value}%')
+      ColumnBreak:
+        LabelWidth: 140
+      List: _(Posting type)
+        Items:
+          AS: _(Simple entry)
+            Expression: {Q}TIPOREG = 'AS'
+          AC: _(Complex entry)
+            Expression: {Q}TIPOREG = 'AC'
+          FF: _(Supplier invoice)
+            Expression: {Q}TIPOREG = 'FF'
+          FC: _(Customer invoice)
+            Expression: {Q}TIPOREG = 'FC'
+          NF: _(Supplier credit note)
+            Expression: {Q}TIPOREG = 'NF'
+          NC: _(Customer credit note)
+            Expression: {Q}TIPOREG = 'NC'
+          MA: _(Opening entries)
+            Expression: {Q}TIPOREG = 'MA'
+          MC: _(Closing entries)
+            Expression: {Q}TIPOREG = 'MC'
+      ColumnBreak:
+      List: _(Reason type)
+        Items:
+          GEN: _(General ledger)
+            Expression: {Q}TIPOCAUSALE = 'GEN'
+          CLI: _(Sales VAT)
+            Expression: {Q}TIPOCAUSALE = 'CLI'
+          FOR: _(Purchase VAT)
+            Expression: {Q}TIPOCAUSALE = 'FOR'
+          INC: _(Collection)
+            Expression: {Q}TIPOCAUSALE = 'INC'
+          PAG: _(Payment)
+            Expression: {Q}TIPOCAUSALE = 'PAG'
+MainTable:
+  Model: AccountingReason
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Width: 600
+      Height: 350
+    Form:
+      Layout: ADMIN_AccountingReasons_Form
+    Grid:
+      Layout: ADMIN_AccountingReasons_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: AccountingReasons.xlsx
+          RequireSelection: False

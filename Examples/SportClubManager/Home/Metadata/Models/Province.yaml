@@ -1,0 +1,23 @@
+﻿ModelName: Province
+PhysicalName: PROVINCE
+IsLarge: True
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Provinces)
+DisplayLabel: _(Province)
+PluralModelName: Provinces
+Fields:
+  Id: String(2) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Province)
+    DisplayWidth: 20
+  Region: Reference(Region)
+    DisplayLabel: _(Region)
+    PhysicalName: FK_PROVINCE_REGIONE
+    Fields:
+      RegionId:
+        PhysicalName: REGIONEID
+ImageName: panorama

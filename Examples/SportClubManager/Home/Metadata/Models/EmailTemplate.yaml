@@ -1,0 +1,84 @@
+﻿ModelName: EmailTemplate
+#the database carries the view V_INDIRIZZI_TESTO_MAIL, which exposes the TO, CC and BCC addresses per operator/profile
+# triggers on each table involved build the queue of mails to send
+PhysicalName: TESTI_EMAIL
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    CanUpdate: False
+    DisplayLabel: _(Code)
+    Rules:
+      ForceUpperCase:
+    DisplayWidth: 32
+  Description: String(100) not null
+    PhysicalName: DX
+    DisplayWidth: 80
+    DisplayLabel: _(Description)
+  Active: Boolean
+    PhysicalName: ATTIVO
+    DisplayLabel: _(Active)
+    DisplayWidth: 10
+  Notes: String(2000)
+    PhysicalName: NOTE
+    DisplayWidth: 80
+    DisplayLabel: _(Notes)
+  FromAddress: String(50) not null
+    PhysicalName: EMAIL_FROM
+    DisplayWidth: 80
+    DisplayLabel: _(From address)
+  Recipient: String(2000)
+    PhysicalName: EMAIL_TO
+    DisplayLabel: _(To addresses)
+    Hint: _(Enter e-mail addresses separated by ;)
+  CcAddresses: String(2000)
+    PhysicalName: EMAIL_CC
+    DisplayLabel: _(Cc addresses)
+    Hint: _(Enter e-mail addresses separated by ;)
+  BccAddresses: String(2000)
+    PhysicalName: EMAIL_BCC
+    DisplayLabel: _(Bcc addresses)
+    Hint: _(Enter e-mail addresses separated by ;)
+  OperatorTo: String(2000)
+    PhysicalName: EMAIL_OPERATOR_TO
+    DisplayLabel: _(To Operators)
+    Hint: _(Enter OPERATOR codes separated by ;)
+  OperatorCc: String(2000)
+    PhysicalName: EMAIL_OPERATOR_CC
+    DisplayLabel: _(Cc Operators)
+    Hint: _(Enter OPERATOR codes separated by ;)
+  OperatorBcc: String(2000)
+    PhysicalName: EMAIL_OPERATOR_BCC
+    DisplayLabel: _(Bcc Operators)
+    Hint: _(Enter OPERATOR codes separated by ;)
+  ProfileTo: String(2000)
+    PhysicalName: EMAIL_PROFILE_TO
+    DisplayLabel: _(To Profiles)
+    Hint: _(Enter user PROFILE codes separated by ;)
+    DisplayWidth: 80
+  AddressesToExclude: String(2000)
+    PhysicalName: NO_EMAIL
+    DisplayLabel: _(Addresses to exclude)
+    Hint: _(Enter e-mail addresses separated by ;)
+  #used to exclude some addresses produced by the PROFILE_TO automation
+  Subject: String(1000) not null
+    PhysicalName: EMAIL_SUBJECT
+    DisplayLabel: _(Subject)
+    DisplayWidth: 80
+  PlainTextBody: Memo
+    PhysicalName: EMAIL_BODY
+    DisplayWidth: 80
+    DisplayLabel: _(Text)
+  HtmlBody: HTMLMemo
+    PhysicalName: EMAIL_BODYHTML
+    DisplayWidth: 80
+    DisplayLabel: _(Text)
+  Attachment: String(200)
+    PhysicalName: EMAIL_ATTACH
+    DisplayLabel: _(Attachment)
+    DisplayWidth: 80
+DisplayLabel: _(E-mail Template)
+PluralDisplayLabel: _(E-mail Templates)
+Rules:
+DefaultSorting: {Q}ID
+PluralModelName: EmailTemplates
+ImageName: mail_outline

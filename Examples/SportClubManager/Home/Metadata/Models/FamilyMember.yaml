@@ -1,0 +1,58 @@
+﻿ModelName: FamilyMember
+PhysicalName: MEMBRI_FAMIGLIE
+IsLarge: True
+PluralDisplayLabel: _(Family members)
+DisplayLabel: _(Family Member)
+PluralModelName: FamilyMembers
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayWidth: 30
+    IsVisible: False
+  Family: Reference(Family)
+    PhysicalName: DT_MEMBRO_FAMIGLIA_FAMIGLIA
+    Fields:
+      FamilyId:
+        PhysicalName: FAMIGLIAID
+    # The label the group header of ADMIN_FamilyMembers uses
+    # (Grouping/ShowName). On the form it stays 'Tax code', because the
+    # FieldSet holding it is already titled 'Family creator'.
+    DisplayLabel: _(Family Creator Tax Code)
+    DisplayLabel_Form: _(Tax Code)
+  CreatorPersonCalc: String(100)
+    Expression: (SELECT COGNOME+' '+NOME FROM NOMINATIVI N WHERE (SELECT DX FROM FAMIGLIE F WHERE F.ID = {Q}FAMIGLIAID) = N.CODFISC)
+    DisplayLabel: _(Person)
+  Person: Reference(Person)
+    DisplayLabel: _(Person)
+    PhysicalName: FK_MEMBRO_FAMIGLIA_NOMINATIVO
+    DisplayWidth: 50
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+    AutoAddFields:
+      LastName: Person_LastName
+      FirstName: Person_FirstName
+      TaxCode: TaxCode
+    Rules:
+      CalcDescription: {Person_LastName} {Person_FirstName}
+  Relationship: Reference(Relationship)
+    DisplayLabel: _(Relationship)
+    PhysicalName: FK_MEMBRO_FAMIGLIA_PARENTELA
+    DisplayWidth: 14
+    Fields:
+      RelationshipId:
+        PhysicalName: PARENTELAID
+  DeductionPercent: Integer
+    PhysicalName: PERC_DETRAZIONI
+    DisplayWidth: 21
+    DisplayLabel: _(Deduction percentage)
+    Rules:
+      CheckPercentage:
+DefaultSorting: MEMBRI_FAMIGLIE.PARENTELAID desc
+ImageName: group

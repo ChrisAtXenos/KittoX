@@ -1,0 +1,11 @@
+﻿From: <%Config:SportsClubEmail%>
+Subject: _(Subscription rejected)
+HTMLBody: |
+  <p><b>%Config:SportsClubName%</b>
+  <br>
+  _(Dear) <b>{FirstName} {LastName}</b>, _(we see that you have requested to subscribe to the course) <b>{SubscriptionFee}</b>.<br>
+  _(Unfortunately we cannot accept your request, which has therefore been rejected.)<br>
+  <br/>
+  _(If you received this e-mail by mistake or the information does not look correct, please write to us at:) <a href="mailto:%Config:SportsClubEmail%">%Config:SportsClubEmail%</a><br/>
+  _(Kind regards.)</p>
+  <p><b>_(The staff of) %Config:SportsClubName%</b>

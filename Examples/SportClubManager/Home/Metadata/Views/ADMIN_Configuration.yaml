@@ -1,0 +1,17 @@
+﻿Type: Data
+Controller: Form
+  Operation: Edit
+  FilterExpression: {Q}ID = 'CONFIG000'
+  #HideLabels: True
+  #CloneButton:
+  #  Hidden: True
+  KeepOpenAfterOperation: False
+MainTable:
+  Model: Configuration
+  Controller:
+    AllowViewing: True
+    AllowDuplicating: False
+    AllowInsert: False
+    AllowDelete: False
+    Form:
+      Layout: ADMIN_Configuration_Form

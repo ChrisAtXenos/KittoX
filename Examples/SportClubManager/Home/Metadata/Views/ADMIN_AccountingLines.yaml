@@ -1,0 +1,67 @@
+﻿Type: Data
+Controller: GroupingList
+  Filters:
+    DisplayLabel: _(Search Accounting Entries)
+    Items:
+      DynaList: _(Financial Year)
+        Width: 20
+        CommandText: |
+          select ID, DX
+          from ESERCIZICONTABILI
+          order by DX
+        ExpressionTemplate: {Q}MOV_ESERCID = '{value}'
+        AutoCompleteMinChars: 3
+      NumericSearch: _(Entry No.)
+        ExpressionTemplate: ({Q}MOV_NR_MOV = {value})
+      ColumnBreak:
+      DynaList: _(Reason)
+        Width: 33
+        CommandText: |
+          select ID, DX
+          from CAUSALICONTABILI
+          order by DX
+        ExpressionTemplate: {Q}MOV_CAUSALEID = '{value}'
+        AutoCompleteMinChars: 3
+      ButtonList: _(Reference)
+        Items:
+          CLI: _(Customer)
+            Expression: {Q}RIG_CONTOID IN  (select ID from CONTICONTABILI where RIF_CLIENTE = 1)
+          FOR: _(Supplier)
+            Expression: {Q}RIG_CONTOID IN  (select ID from CONTICONTABILI where RIF_FORNITORE = 1)
+          SOC: _(Member)
+            Expression: {Q}RIG_CONTOID IN  (select ID from CONTICONTABILI where RIF_SOCIO = 1)
+          BNK: _(Bank)
+            Expression: {Q}RIG_CONTOID IN  (select ID from CONTICONTABILI where RIF_CONTO_CORRENTE = 1)
+      ColumnBreak:
+        LabelWidth: 90
+      DateSearch: _(From date)
+        Width: 15
+        ExpressionTemplate: {Q}MOV_DATA_REG >= '{value}'
+      ColumnBreak:
+        LabelWidth: 80
+      DateSearch: _(To date)
+        Width: 15
+        ExpressionTemplate: {Q}MOV_DATA_REG <= '{value}'
+MainTable:
+  Model: VAccountingLine
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_AccountingLines_Form
+    Grid:
+      Layout: ADMIN_AccountingLines_Grid
+    Grouping:
+      FieldName: Description
+      SortFieldNames: FinancialYear EntryNumber LineNumber
+      EnableMenu: False
+      StartCollapsed: False
+      # In Kitto1 the Template was '{text}', that is the group value alone:
+      # the same as ShowName and ShowCount both switched off.
+      ShowName: False
+      ShowCount: False
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: AccountingLines.xlsx
+          RequireSelection: False

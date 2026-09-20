@@ -1,0 +1,8 @@
+﻿Row:
+  Field: Description
+    CharWidth: 53
+Row:
+  Field: Person
+    CharWidth: 53
+Row:
+  Field: DocumentFile

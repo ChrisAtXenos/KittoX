@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Booked visits)
+ImageName: dash_booked_visits.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiBookedVisits.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

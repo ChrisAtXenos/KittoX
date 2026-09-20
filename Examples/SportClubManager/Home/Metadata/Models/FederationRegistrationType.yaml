@@ -1,0 +1,19 @@
+﻿ModelName: FederationRegistrationType
+PhysicalName: TPTESSERAMENTO
+PluralDisplayLabel: _(Federation registration types)
+PluralModelName: FederationRegistrationTypes
+DisplayLabel: _(Federation registration type)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 100
+  Professional: Boolean not null
+    DisplayLabel: _(Professional)
+    PhysicalName: PROF
+  NonEu: Boolean
+    DisplayLabel: _(Non-EU)
+    PhysicalName: EXTRACOMUN

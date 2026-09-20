@@ -1,0 +1,42 @@
+﻿ModelName: ParticipantDetail
+PhysicalName: DETTAGLIO_PARTECIPANTI
+PluralDisplayLabel: _(Participant Details)
+PluralModelName: ParticipantDetails
+DisplayLabel: _(Participant Details)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    IsVisible: False
+  ParticipantGroup: Reference(ParticipantGroup)
+    PhysicalName: DT_DETTAGLIO_PARTECIPANTI_GRUPPO
+    DisplayLabel: _(Group)
+    IsVisible: False
+    AutoAddFields:
+      Id: ParticipantGroup_Id
+    Fields:
+      GroupId:
+        PhysicalName: GRUPPOID
+  Person: Reference(Person)
+    PhysicalName: FK_DETTAGLIO_PARTECIPANTI_NOMINATIVO
+    DisplayLabel: _(Person)
+    AutoAddFields:
+      Id: Person_Id
+      LastName: Person_LastName
+        IsVisible: False
+      FirstName: Person_FirstName
+        IsVisible: False
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+    LookupFilter: (ID IN (SELECT N.ID FROM NOMINATIVI N LEFT JOIN DETTAGLIO_PARTECIPANTI P ON P.NOMINATIVOCLASS = N.CLASS AND P.NOMINATIVOID = N.ID AND P.GRUPPOID = {Q}GRUPPOID WHERE GRUPPOID IS NULL))
+    Rules:
+      CalcDescription: {Person_LastName} {Person_FirstName}
+Rules:
+  CheckDuplicateParticipants:
+ImageName: group_add

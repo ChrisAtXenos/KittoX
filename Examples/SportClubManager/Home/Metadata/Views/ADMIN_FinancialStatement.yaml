@@ -1,0 +1,46 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Financial Statement)
+    Connector: and
+    Items:
+      DynaList: _(Financial Year)
+        Width: 20
+        CommandText: |
+          select ID, DX
+          from ESERCIZICONTABILI
+          order by DX
+        ExpressionTemplate: {Q}ESERCID = '{value}'
+        AutoCompleteMinChars: 3
+        DefaultValueExpression: SELECT MAX(ID) FROM ESERCIZICONTABILI
+      ColumnBreak:
+      ButtonList: _(Level)
+        Items:
+          A: _(Section)
+            Expression: {Q}LIVELLO = 'A'
+            IsDefault: True
+          M: _(Master account)
+            Expression: {Q}LIVELLO = 'M'
+            IsDefault: True
+          C: _(Account)
+            Expression: {Q}LIVELLO = 'C'
+            IsDefault: True
+          S: _(Sub-account)
+            Expression: {Q}LIVELLO = 'S'
+            IsDefault: True
+MainTable:
+  Model: FinancialStatement
+  Controller:
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: FinancialStatement.xlsx
+          RequireSelection: False
+      CloseAndReopenFinancialYear:
+        DisplayLabel: _(Open/Close financial statement)
+        Hint: _(Open/Close financial statement)
+        Controller: CloseAndReopenFinancialYear
+          RequireSelection: False
+          ConfirmationMessage: _(Close and open the financial statement?)
+          AutoRefresh: All

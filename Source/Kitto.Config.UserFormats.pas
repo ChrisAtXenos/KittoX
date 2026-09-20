@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,6 +70,12 @@ type
 
     [YamlNode('Currency', 'Currency string/symbol (empty = OS locale)')]
     property Currency: string read FCurrency;
+
+    [YamlNode('DecimalSeparator', 'Decimal separator, single char (long alias of Decimal)')]
+    property DecimalSeparator: string read FDecimal;
+
+    [YamlNode('ThousandSeparator', 'Thousand separator, single char (long alias of Thousand)')]
+    property ThousandSeparator: string read FThousand;
   end;
 
 implementation

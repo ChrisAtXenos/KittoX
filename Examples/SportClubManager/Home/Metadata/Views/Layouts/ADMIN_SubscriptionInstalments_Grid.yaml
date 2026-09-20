@@ -1,0 +1,16 @@
+﻿Field: Subscription
+Field: DueDate
+  DisplayWidth: 15
+Field: Amount
+  DisplayWidth: 10
+Field: DiscountAllowance
+  DisplayWidth: 16
+Field: TotalAmount
+  DisplayWidth: 10
+Field: PaidAmount
+  DisplayWidth: 10
+Field: UnapprovedAmount
+  DisplayWidth: 15
+Field: OutstandingAmount
+  DisplayWidth: 10
+Field: Status

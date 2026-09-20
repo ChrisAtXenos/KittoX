@@ -1,0 +1,144 @@
+﻿ModelName: Match
+PhysicalName: PARTITE
+PluralDisplayLabel: _(Matches)
+DisplayLabel: _(Match)
+PluralModelName: Matches
+DefaultSorting: {Q}DX,{Q}DATA_PARTITA
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    IsVisible: False
+  MatchNumber: String(10)
+    PhysicalName: NUMGARA
+    DisplayLabel: _(Match Number)
+    DisplayWidth: 15
+  MatchDayDescription: String(30)
+    PhysicalName: DESGIORNATA
+    DisplayLabel: _(Match day description)
+  MatchDate: Date not null
+    PhysicalName: DATA_PARTITA
+    DisplayWidth: 12
+    DisplayLabel: _(Match date)
+  MatchTime: Time not null
+    DisplayLabel: _(Match Time)
+    PhysicalName: ORA_PARTITA
+    DisplayWidth: 12
+  HomeMatch: Boolean not null
+    DisplayLabel: _(Home match)
+    PhysicalName: CASALINGA
+    DisplayWidth: 12
+  Team: Reference(Team) not null
+    DisplayLabel: _(Team)
+    PhysicalName: FK_PARTITE_SQUADRA
+    Fields:
+      TeamId:
+        PhysicalName: SQUADRAID
+    AutoAddFields:
+      Description: Team_Description
+    Rules:
+      CalcDescription: {Team_Description} - {Opponent_Description}
+  Points: Integer
+    DisplayLabel: _(Points)
+    PhysicalName: PUNTI
+    DisplayWidth: 10
+  OwnSets: Integer
+    PhysicalName: SETSPROPRI
+    DisplayLabel: _(Sets)
+    DisplayWidth: 10
+  Opponent: Reference(Team) not null
+    DisplayLabel: _(Opponent)
+    PhysicalName: FK_PARTITE_AVVERSARIO
+    Fields:
+      OpponentId:
+        PhysicalName: AVVERSARIOID
+    AutoAddFields:
+      Description: Opponent_Description
+    Rules:
+      CalcDescription: {Team_Description} - {Opponent_Description}
+  OpponentPoints: Integer
+    PhysicalName: AVV_PUNTI
+    DisplayLabel: _(Opponent points)
+    DisplayWidth: 17
+  OpponentSets: Integer
+    PhysicalName: AVV_SET
+    DisplayLabel: _(Opponent sets)
+    DisplayWidth: 15
+  MeetingDate: Date
+    PhysicalName: RITROVO
+    DisplayWidth: 12
+    DisplayLabel: _(Meeting date)
+  MeetingPoint: String(100)
+    PhysicalName: LUOGO_RITROVO
+    DisplayLabel: _(Meeting place)
+  Notes: Memo
+    PhysicalName: NOTE
+    DisplayLabel: _(Notes)
+  CoachId: String(32)
+    PhysicalName: ALLENATOREID
+    IsVisible: False
+  TeamEscortId: String(32)
+    PhysicalName: ACCOMPAGNATOREID
+    IsVisible: False
+  DoctorId: String(32)
+    PhysicalName: MEDICOID
+    IsVisible: False
+  AssistantCoachId: String(32)
+    PhysicalName: VICE_ALLENATOREID
+    IsVisible: False
+  PhysiotherapistId: String(32)
+    PhysicalName: FISIOTERAPISTAID
+    IsVisible: False
+  RefereeOfficialId: String(32)
+    PhysicalName: ADDETTO_ARBITRIID
+    IsVisible: False
+  StatisticianId: String(32)
+    PhysicalName: ADDETTO_STATID
+    IsVisible: False
+  MatchPairing: Reference(MatchPairing)
+    PhysicalName: FK_PARTITE_ACCOPPIAMENTO
+    IsVisible: False
+    Fields:
+      MatchPairingId:
+        PhysicalName: ACCOPPIAMENTOID
+  Championship: Reference(Championship) not null
+    DisplayLabel: _(Championship)
+    PhysicalName: FK_PARTITE_CAMPIONATO
+    Fields:
+      ChampionshipId:
+        PhysicalName: CAMPIONATOID
+  ChampionshipStage: Reference(ChampionshipStage)
+    PhysicalName: FK_PARTITE_FASECAMP
+    IsVisible: False
+    Fields:
+      ChampionshipStageId:
+        PhysicalName: FASECAMPID
+  MatchDay: Reference(MatchDay)
+    PhysicalName: FK_PARTITE_GIORNATA
+    IsVisible: False
+    Fields:
+      MatchDayId:
+        PhysicalName: GIORNATAID
+  SportsFacility: Reference(SportsFacility)
+    DisplayLabel: _(Sports Facility)
+    PhysicalName: FK_PARTITE_CAMPO
+    Fields:
+      SportsFacilityId:
+        PhysicalName: CAMPOID
+  Season: Reference(Season) not null
+    DisplayLabel: _(Season)
+    PhysicalName: FK_PARTITE_STAGIONE
+    Fields:
+      SeasonId:
+        PhysicalName: STAGIONEID
+  Status: Reference(MatchStatus)
+    PhysicalName: FK_PARTITE_STATUS
+    IsVisible: False
+    Fields:
+      StatusId:
+        PhysicalName: STATUSID
+ImageName: group_work

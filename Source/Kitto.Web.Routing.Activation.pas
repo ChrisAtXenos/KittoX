@@ -56,7 +56,7 @@ type
     procedure FillMethodParameters;
     function ResolveParamValue(const AParamInfo: TKXParamInfo): TValue;
     function ConvertStringToValue(const AStr: string;
-      AParamType: TRttiType): TValue;
+      AParamType: TRttiType; const AStrict: Boolean = False): TValue;
   public
     /// <summary>Creates a per-request activation for the given URL, app base path
     /// and HTTP method.</summary>
@@ -94,6 +94,13 @@ type
     ///   download opened in a new tab). Call after TryMatch.
     /// </summary>
     function MatchedIsNavigable: Boolean;
+
+    /// <summary>
+    ///   True if the matched handler method is decorated with [TKXNotPublic]
+    ///   (a public view must never exempt it from authentication). Call after
+    ///   TryMatch.
+    /// </summary>
+    function MatchedIsNotPublic: Boolean;
   end;
 
 implementation
@@ -242,13 +249,32 @@ begin
 end;
 
 function TKXActivation.ConvertStringToValue(const AStr: string;
-  AParamType: TRttiType): TValue;
+  AParamType: TRttiType; const AStrict: Boolean = False): TValue;
+
+  // Path integers are indexes (detail table number, ...): a non-numeric or
+  // negative segment is not a valid route, not a silent 0. Without this
+  // 'detail/abc/data' bound to 0 (wrong record, no error) and 'detail/-1/data'
+  // reached DetailTables[-1] and blew up further down. Query/form integers keep
+  // the tolerant StrToIntDef(0) default -- an absent ?start= legitimately is 0.
+  function ParsePathInt(const AValue: string): Int64;
+  begin
+    if not TryStrToInt64(AValue, Result) or (Result < 0) then
+      raise Exception.CreateFmt(
+        'Invalid path segment "%s": a non-negative integer was expected.', [AValue]);
+  end;
+
 begin
   case AParamType.TypeKind of
     tkInteger:
-      Result := TValue.From<Integer>(StrToIntDef(AStr, 0));
+      if AStrict then
+        Result := TValue.From<Integer>(ParsePathInt(AStr))
+      else
+        Result := TValue.From<Integer>(StrToIntDef(AStr, 0));
     tkInt64:
-      Result := TValue.From<Int64>(StrToInt64Def(AStr, 0));
+      if AStrict then
+        Result := TValue.From<Int64>(ParsePathInt(AStr))
+      else
+        Result := TValue.From<Int64>(StrToInt64Def(AStr, 0));
     tkFloat:
       Result := TValue.From<Double>(StrToFloatDef(AStr, 0));
     tkEnumeration:
@@ -269,7 +295,7 @@ begin
     pkPathParam:
     begin
       if FPathParams.TryGetValue(AParamInfo.Name, LStrValue) then
-        Result := ConvertStringToValue(LStrValue, AParamInfo.RttiParam.ParamType)
+        Result := ConvertStringToValue(LStrValue, AParamInfo.RttiParam.ParamType, True)
       else
         Result := TValue.Empty;
     end;
@@ -308,11 +334,22 @@ begin
 end;
 
 procedure TKXActivation.Invoke;
+var
+  LCtx: TRttiContext;
+  LResourceType: TRttiInstanceType;
 begin
   Assert(Assigned(FMatchedResource), 'Assigned(FMatchedResource)');
   Assert(Assigned(FMatchedMethod), 'Assigned(FMatchedMethod)');
 
-  FResourceInstance := FMatchedResource.ResourceClass.Create;
+  // Instantiate through RTTI so a resource that declares its own (overridden)
+  // constructor is honoured. ResourceClass is a bare TClass, so the direct
+  // ResourceClass.Create binds to the static TObject.Create and would skip a
+  // subclass constructor without a word. No handler has one today; this keeps
+  // the RegisterOverride extension point from silently misbehaving if one is
+  // ever added.
+  LResourceType := LCtx.GetType(FMatchedResource.ResourceClass) as TRttiInstanceType;
+  FResourceInstance := LResourceType.GetMethod('Create').Invoke(
+    LResourceType.MetaclassType, []).AsObject;
   try
     FillMethodParameters;
     FMatchedMethod.RttiMethod.Invoke(FResourceInstance, FMethodArgs);
@@ -329,6 +366,11 @@ end;
 function TKXActivation.MatchedIsNavigable: Boolean;
 begin
   Result := Assigned(FMatchedMethod) and FMatchedMethod.IsNavigable;
+end;
+
+function TKXActivation.MatchedIsNotPublic: Boolean;
+begin
+  Result := Assigned(FMatchedMethod) and FMatchedMethod.IsNotPublic;
 end;
 
 end.

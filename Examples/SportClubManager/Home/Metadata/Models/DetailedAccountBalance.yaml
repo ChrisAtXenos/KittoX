@@ -1,0 +1,81 @@
+﻿ModelName: DetailedAccountBalance
+PhysicalName: V_SALDOCONTI_DETT
+PluralDisplayLabel: _(Account Balances)
+PluralModelName: DetailedAccountBalances
+DisplayLabel: _(Account balance)
+IsReadOnly: True
+DefaultSorting: LedgerAccountOrder, {Q}CODCONTO
+ImageName: monetization_on
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    IsVisible: False
+  FinancialYear: String(5) not null primary key
+    PhysicalName: ESERCID
+    DisplayLabel: _(Financial Year)
+    DisplayWidth: 15
+  Section: String(3) not null
+    PhysicalName: SEZIONE
+    DisplayLabel: _(Section)
+    DisplayWidth: 10
+    AllowedValues:
+      A: _(Active)
+      P: _(Liabilities)
+      C: _(Costs)
+      R: _(Revenues)
+  MasterAccountCode: String(10) not null
+    PhysicalName: CODPADRE
+    DisplayLabel: _(Master Account Code)
+    DisplayWidth: 12
+  AccountCode: String(10) not null
+    PhysicalName: CODCONTO
+    DisplayLabel: _(Account Code)
+    DisplayWidth: 12
+  AccountDescription: String(200) not null
+    PhysicalName: DX_CONTO
+    DisplayLabel: _(Description)
+    DisplayWidth: 50
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 50
+  AccountReference: String(200) not null primary key
+    PhysicalName: DETTAGLIO
+    DisplayLabel: _(Account reference)
+    DisplayWidth: 50
+  DebitAmount: Currency
+    PhysicalName: TOT_DARE
+    DisplayLabel: _(Total Debit)
+    DisplayWidth: 10
+  CreditAmount: Currency
+    PhysicalName: TOT_AVERE
+    DisplayLabel: _(Total Credit)
+    DisplayWidth: 10
+  Sign: String(1) not null
+    PhysicalName: SEGNO_SALDO
+    DisplayLabel: _(Sign)
+    DisplayWidth: 10
+    AllowedValues:
+      D: _(Debit)
+      A: _(Credit)
+      0:
+  Balance: Currency
+    PhysicalName: SALDO
+    DisplayLabel: _(Balance)
+    DisplayWidth: 10
+  AbsoluteBalance: Currency
+    PhysicalName: SALDOABS
+    DisplayLabel: _(Balance)
+    DisplayWidth: 10
+  LedgerAccountOrder: Integer
+    Expression: |
+      CASE
+        WHEN SEZIONE = 'A' THEN 1
+        WHEN SEZIONE = 'P' THEN 2
+        WHEN SEZIONE = 'R' THEN 3
+        WHEN SEZIONE = 'C' THEN 4
+      ELSE 0 END
+    IsVisible: False
+DetailReferences:
+  Lines: DetailedAccountBalanceLine

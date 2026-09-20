@@ -1124,3 +1124,44 @@ msgstr "Duplica"
 msgid "View"
 msgstr "Visualizza"
 
+# ===== Kitto.DbUtils =====
+#: Kitto.DbUtils.pas
+msgid "Min. 8 characters with letters and digits"
+msgstr "Min. 8 caratteri con lettere e cifre"
+
+#: Kitto.DbUtils.pas
+msgid "Password validation"
+msgstr "Verifica della password"
+
+# ===== Kitto.Html.Form =====
+#: Kitto.Html.Form.pas
+msgid "No record selected."
+msgstr "Nessun record selezionato."
+
+# ===== Kitto.Metadata.Models =====
+#: Kitto.Metadata.Models.pas
+msgid "Field %s: invalid decimal precision \"%s\" in its field spec."
+msgstr "Campo %s: precisione decimale \"%s\" non valida nella specifica del campo."
+
+#: Kitto.Metadata.Models.pas
+msgid "Field %s: invalid size \"%s\" in its field spec."
+msgstr "Campo %s: dimensione \"%s\" non valida nella specifica del campo."
+
+#: Kitto.Metadata.Models.pas
+msgid "Model %s has no field usable as a caption field."
+msgstr "Il model %s non ha un campo utilizzabile come campo descrittivo."
+
+# ===== Kitto.Web.Handler.Auth =====
+#: Kitto.Web.Handler.Auth.pas
+msgid "If the account exists, a new temporary password was generated and sent to the e-mail address on file."
+msgstr "Se l'account esiste, è stata generata una nuova password provvisoria e inviata all'indirizzo e-mail registrato."
+
+#: Kitto.Web.Handler.Auth.pas
+msgid "You must be logged in to change your password."
+msgstr "Devi aver effettuato l'accesso per cambiare la password."
+
+# ===== Kitto.Web.Handler.View =====
+#: Kitto.Web.Handler.View.pas
+msgid "The view does not host a form."
+msgstr "La vista non ospita una form."
+

@@ -156,7 +156,7 @@ begin
             begin
               // Modal, Wizard, non-DataView: always append to body as overlay
               SB.Append('<a class="kx-tree-leaf" ');
-              SB.Append('hx-get="kx/view/').Append(LViewName).Append('" ');
+              SB.Append(GetMenuActionVerb(LView.ControllerType, LViewName)).Append(' ');
               SB.Append('title="').Append(TNetEncoding.HTML.Encode(LTabLabel)).Append('" ');
               SB.Append('hx-target="body" hx-swap="beforeend">');
               SB.Append(GetIconHTML(LImageName));

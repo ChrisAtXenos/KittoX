@@ -1,0 +1,25 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Federations)
+    LabelWidth: 100
+    Items:
+      FreeSearch: _(Description)
+        ExpressionTemplate: (FEDERAZIONI.DX like '%{value}%')
+  EastController: Form
+    Width: 600
+    Split: True
+MainTable:
+  Model: Federation
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_Federations_Form
+    Grid:
+      Layout: ADMIN_Federations_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Federations.xlsx
+          RequireSelection: False

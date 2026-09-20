@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Number of subscribers)
+ImageName: dash_subscriber_count.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiSubscriberCount.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

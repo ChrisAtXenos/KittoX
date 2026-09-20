@@ -1,0 +1,24 @@
+Type: Data
+DisplayLabel: _(Subscribers by discipline)
+ImageName: bar_chart
+Controller: List
+  CenterController: ChartPanel
+    Chart:
+      Type: Cartesian
+      Axes:
+        Axis:
+          Position: Left
+          Title: _(Subscribers)
+        Axis:
+          Position: Bottom
+      Series:
+        Series:
+          Type: Bar
+          XField: Discipline
+          YField: SubscriberCount
+          DisplayName: _(Subscribers)
+          Label:
+            Field: SubscriberCount
+MainTable:
+  IsReadOnly: True
+  Model: VSubscribersByDiscipline

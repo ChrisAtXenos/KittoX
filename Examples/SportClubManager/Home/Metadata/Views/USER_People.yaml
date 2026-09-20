@@ -1,0 +1,22 @@
+﻿Type: Data
+Controller: List
+MainTable:
+  Model: Person
+  IsLarge: False
+  PluralDisplayLabel: _(Household)
+  PluralModelName: Household
+  DefaultFilter: ({Q}Id in (SELECT NOMINATIVO_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%')) AND (CODFISC <> '%Auth:USER_NAME%')
+  Controller:
+    PopupWindow:
+      Width: 600
+      Height: 800
+    Form:
+      Layout: USER_People_Form
+    Grid:
+      ForceFit: True
+        AutoExpandFieldName: LastName
+      Layout: USER_People_Grid
+    AllowViewing: True
+    PreventDeleting: True
+    PreventAdding: True
+    PreventEditing: True

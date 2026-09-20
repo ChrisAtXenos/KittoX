@@ -1,0 +1,24 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Board Members)
+    Items:
+      FreeSearch: _(First Name)
+        ExpressionTemplate: (CONSIGLIO.DX like '%{value}%')
+MainTable:
+  Model: BoardMember
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Width: 550
+      Height: 200
+    Form:
+      Layout: ADMIN_Board_Form
+    Grid:
+      Layout: ADMIN_Board_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Board.xlsx
+          RequireSelection: False

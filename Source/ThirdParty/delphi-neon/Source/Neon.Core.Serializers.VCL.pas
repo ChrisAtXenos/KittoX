@@ -1,22 +1,10 @@
 {******************************************************************************}
 {                                                                              }
-{  Neon: Serialization Library for Delphi                                      }
+{  Neon: JSON Serialization Library for Delphi                                 }
 {  Copyright (c) 2018 Paolo Rossi                                              }
 {  https://github.com/paolo-rossi/neon-library                                 }
 {                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
+{  Licensed under the MIT license                                              }
 {                                                                              }
 {******************************************************************************}
 unit Neon.Core.Serializers.VCL;
@@ -32,6 +20,15 @@ uses
   Neon.Core.Persistence;
 
 type
+  /// <summary>
+  ///   Custom serializer for the TImage control, which it serializes as the
+  ///   Base64 of its picture
+  /// </summary>
+  /// <remarks>
+  ///   This unit has no Register* helper: register it with
+  ///   Config.RegisterSerializer(TImageSerializer). Like every bundled
+  ///   serializer it is not registered by the library
+  /// </remarks>
   TImageSerializer = class(TCustomSerializer)
   protected
     class function GetTargetInfo: PTypeInfo; override;
@@ -39,6 +36,7 @@ type
   public
     function Serialize(const AValue: TValue; ANeonObject: TNeonRttiObject; AContext: ISerializerContext): TJSONValue; override;
     function Deserialize(AValue: TJSONValue; const AData: TValue; ANeonObject: TNeonRttiObject; AContext: IDeserializerContext): TValue; override;
+    function SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject; override;
   end;
 
 implementation
@@ -90,6 +88,14 @@ begin
     LStream.Free;
   end;
   Result := TJSONString.Create(LBase64);
+end;
+
+function TImageSerializer.SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject;
+begin
+  // The picture is serialized as a Base64 string
+  Result := TJSONObject.Create
+    .AddPair('type', 'string')
+    .AddPair('contentEncoding', 'base64');
 end;
 
 function TImageSerializer.Deserialize(AValue: TJSONValue; const AData: TValue;

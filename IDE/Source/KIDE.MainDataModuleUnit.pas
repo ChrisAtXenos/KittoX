@@ -64,6 +64,7 @@ const
   FOLDER_PICTURE = 'Folder';
   CONFIG_PICTURE = 'Config';
   VIEW_PICTURE = 'View';
+  PREVIEW_PICTURE = 'Preview';
   MODEL_PICTURE = 'Model';
   MODEL_WIZARD_PICTURE = 'Model-wizard';
   LAYOUT_PICTURE = 'Layout';
@@ -145,6 +146,10 @@ const
   CALCULATOR_PICTURE = 'calculator';
   GOOGLEMAPS_PICTURE = 'GoogleMaps';
   ENGINE_PICTURE = 'Engine';
+  EXTERNAL_EDITOR = 'external-editor';
+  MSG_INFO = 'MsgInfo';
+  MSG_WARNING = 'MsgWarning';
+  MSG_ERROR = 'MsgError';
   // Bandiere per lingua: il nome dell'item e' il codice lingua gettext usato da
   // KittoX (vedi TKXLanguageCatalog in Kitto.Html.LanguageSwitcher).
   LANGUAGE_EN_PICTURE = 'en';
@@ -283,10 +288,15 @@ end;
 function EnsureMainDataModule: TMainDataModule;
 begin
   if not Assigned(MainDataModule) then
-    // Proprieta' di Application in entrambi gli host: nell'applicazione
-    // standalone e' quella di KIDEX, nel package design-time e' quella
-    // dell'IDE, che lo libera alla chiusura.
-    MainDataModule := TMainDataModule.Create(Application);
+    // Owner NIL di proposito, in entrambi gli host. Se l'owner fosse Application
+    // (KIDEX standalone o IDE), Application lo libererebbe alla chiusura E la
+    // finalization di questa unit lo libererebbe di nuovo -> double free ->
+    // "Invalid pointer operation" in uscita (era il difetto: MainDataModule
+    // posseduto da Application + FreeAndNil in finalization). Con owner nil
+    // nessun Application lo tocca: l'UNICO punto che lo libera e' la
+    // finalization qui sotto, sicuro sia all'uscita sia alla disinstallazione
+    // del package design-time.
+    MainDataModule := TMainDataModule.Create(nil);
   Result := MainDataModule;
 end;
 
@@ -350,5 +360,14 @@ begin
   else
     Result := FILE_UNKNOWN;
 end;
+
+initialization
+
+finalization
+  // MainDataModule is created with NO owner (see EnsureMainDataModule), so no
+  // Application ever frees it — this finalization is its single, authoritative
+  // free point. Safe both on normal exit (KIDEX or the IDE) and on design-time
+  // package uninstall, with no double free.
+  FreeAndNil(MainDataModule);
 
 end.

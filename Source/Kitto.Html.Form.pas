@@ -30,6 +30,7 @@ uses
   System.SysUtils,
   EF.Tree,
   EF.YAML.Attributes,
+  Kitto.Metadata.Types,
   Kitto.Html.DataPanel,
   Kitto.Html.Controller,
   Kitto.Metadata.DataView,
@@ -42,14 +43,17 @@ const
 
 type
   /// <summary>
-  ///  Modal CRUD form controller. Builds the form fields from the Form layout
+  ///  CRUD form controller. Builds the form fields from the Form layout
   ///  (text/number/date/checkbox editors, reference selects and large-reference
   ///  lookups, picture and file editors), grouped in rows, fieldsets and tabs,
   ///  and renders master-detail tables (Tabs, Bottom or Popup style). Drives
-  ///  the add/edit/view/dup operations.
+  ///  the add/edit/view/dup operations. Modal dialog on its own; hosted in a
+  ///  region of a List (EastController: Form) it is the presenter of the
+  ///  current record: the List keeps it on the selected row, in view mode,
+  ///  and Edit/Save happen in place (see KittoX_KideXPreview.md sez. 20).
   /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
-  TKXFormPanelController = class(TKXDataPanelController)
+  TKXFormPanelController = class(TKXDataPanelLeafController)
   strict private
   const
     // Default scale factors (configurable via Config/Defaults/Layout/Char_Width_Factor|Char_Height_Factor).
@@ -106,6 +110,16 @@ type
       AHeight: Integer): string;
     function GetFieldValue(AField: TKViewTableField;
       AViewField: TKViewField): string;
+    function GetCloneButton: Boolean;
+    function GetKeepOpenAfterOperation: Boolean;
+    function GetHideLabels: Boolean;
+    function GetFilterExpression: string;
+    function GetFormLabelWidth: Integer;
+    function GetExtraHeight: Integer;
+    function GetBorderPanel: string;
+    function GetPopupWindow: string;
+    function GetLayoutName: string;
+    function FindFormLayout(AViewTable: TKViewTable): TKLayout;
   strict protected
     function GetDefaultIsModal: Boolean; override;
     function GetPanelCssClass: string; override;
@@ -113,11 +127,48 @@ type
     function RenderContent: string; override;
   public
     [YamlNode('Operation', 'edit', 'Form operation mode (add/edit/view/dup)')]
+    [YamlEnumType(TypeInfo(TKFormOperation))]
     property Operation: string read FOperation write FOperation;
+    [YamlNode('CloneButton', 'False', 'Show a Clone button that duplicates the current record')]
+    property CloneButton: Boolean read GetCloneButton;
+    [YamlNode('KeepOpenAfterOperation', 'False', 'Keep the form open after Save instead of closing it')]
+    property KeepOpenAfterOperation: Boolean read GetKeepOpenAfterOperation;
+    [YamlNode('HideLabels', 'False', 'Hide field labels in the form layout')]
+    property HideLabels: Boolean read GetHideLabels;
+    [YamlNode('FilterExpression', 'SQL expression restricting which records the form can load/edit')]
+    property FilterExpression: string read GetFilterExpression;
+    [YamlNode('LabelWidth', 'Field label width in pixels for this form')]
+    property FormLabelWidth: Integer read GetFormLabelWidth;
+    [YamlNode('ExtraHeight', '0', 'Extra height in pixels added to the form dialog')]
+    property ExtraHeight: Integer read GetExtraHeight;
+    /// <summary>RTTI carrier for a BorderPanel node wrapping the form (regions
+    /// around it). Read by path.</summary>
+    [YamlNode('BorderPanel', 'Optional border regions around the form')]
+    property BorderPanel: string read GetBorderPanel;
+    /// <summary>RTTI carrier for the PopupWindow node (modal dialog size).</summary>
+    [YamlNode('PopupWindow', 'Modal window size for the form (Width/Height)')]
+    property PopupWindow: string read GetPopupWindow;
+    /// <summary>Name of the form layout to use instead of the view table's
+    /// (MainTable/Controller/Form/Layout or the {View}_Form convention). Meant
+    /// for a form hosted beside the grid, which usually wants a narrower layout;
+    /// the heir of Kitto1's LayoutNamePrefix: Auto, made explicit.</summary>
+    [YamlNode('Layout', 'Form layout name overriding the view table''s Form layout')]
+    property LayoutName: string read GetLayoutName;
     /// <summary>The record shown/edited by the form.</summary>
     property FormRecord: TKViewTableRecord read FRecord write FRecord;
     /// <summary>When opened from a detail grid, the FK field pre-filled from the master key.</summary>
     property FKFieldName: string read FFKFieldName write FFKFieldName;
+    /// <summary>
+    ///  Hosted in a region of a List: renders the stable container the client
+    ///  swaps the current record's form into, plus the script that selects the
+    ///  grid's first row (kxDataPanel.initRecordPanel), so the form and its
+    ///  session store always come from the one /form endpoint. The form's own
+    ///  regions (NorthController: StatusBar) wrap the container.
+    /// </summary>
+    function RenderHosted: string; override;
+    /// <summary>The form of FormRecord alone (no chrome, no regions): what the
+    /// /form endpoint returns for a hosted form (host=1).</summary>
+    function RenderHostedRecord: string;
   end;
 
 implementation
@@ -303,12 +354,89 @@ end;
 
 function TKXFormPanelController.GetDefaultIsModal: Boolean;
 begin
-  Result := True;
+  // A dialog on its own; inline when hosted beside the grid.
+  Result := not IsHosted;
+end;
+
+function TKXFormPanelController.GetLayoutName: string;
+begin
+  Result := Config.GetExpandedString('Layout', '');
+end;
+
+function TKXFormPanelController.FindFormLayout(AViewTable: TKViewTable): TKLayout;
+var
+  LName: string;
+begin
+  Result := nil;
+  LName := GetLayoutName;
+  if (LName <> '') and Assigned(View) then
+    Result := View.Catalog.Layouts.FindLayout(LName);
+  if not Assigned(Result) and Assigned(AViewTable) then
+    Result := AViewTable.FindLayout('Form');
+end;
+
+function TKXFormPanelController.RenderHosted: string;
+begin
+  Result := RenderWithRegions(
+    '<div id="kx-record-panel-' + FViewName + '" class="kx-record-body"' +
+      ' data-empty-text="' + TNetEncoding.HTML.Encode(_('No record selected.')) + '">' +
+      '<div class="kx-record-empty">' + TNetEncoding.HTML.Encode(_('No record selected.')) + '</div>' +
+    '</div>' +
+    '<script>kxDataPanel.initRecordPanel(''' + FViewName + ''');</script>');
+end;
+
+function TKXFormPanelController.RenderHostedRecord: string;
+begin
+  Result := RenderContent;
+end;
+
+function TKXFormPanelController.GetCloneButton: Boolean;
+begin
+  Result := GetConfigBoolean('CloneButton');
+end;
+
+function TKXFormPanelController.GetHideLabels: Boolean;
+begin
+  Result := GetConfigBoolean('HideLabels');
+end;
+
+function TKXFormPanelController.GetFilterExpression: string;
+begin
+  Result := Config.GetString('FilterExpression');
+end;
+
+function TKXFormPanelController.GetFormLabelWidth: Integer;
+begin
+  Result := Config.GetInteger('LabelWidth', 0);
+end;
+
+function TKXFormPanelController.GetExtraHeight: Integer;
+begin
+  Result := Config.GetInteger('ExtraHeight', 0);
+end;
+
+function TKXFormPanelController.GetBorderPanel: string;
+begin
+  Result := '';
+end;
+
+function TKXFormPanelController.GetPopupWindow: string;
+begin
+  Result := '';
+end;
+
+function TKXFormPanelController.GetKeepOpenAfterOperation: Boolean;
+begin
+  Result := GetConfigBoolean('KeepOpenAfterOperation');
 end;
 
 function TKXFormPanelController.GetPanelCssClass: string;
 begin
-  Result := 'kx-form-panel';
+  // Hosted: the region wrapper the host puts around the record panel.
+  if IsHosted then
+    Result := 'kx-record-panel'
+  else
+    Result := 'kx-form-panel';
 end;
 
 procedure TKXFormPanelController.DoDisplay;
@@ -370,7 +498,7 @@ begin
     // Kitto.Ext.Form.pas InitFlags sets FLabelAlign default,
     // then Kitto.Ext.Editors.pas InitLabelAlignAndWidth overrides from layout file.
     // Priority: Layout file > EditController > mobile detection > default ('right')
-    LFormLayout := ViewTable.FindLayout('Form');
+    LFormLayout := FindFormLayout(ViewTable);
     if Assigned(LFormLayout) then
     begin
       FLabelAlign := LFormLayout.GetString('LabelAlign', 'top');
@@ -407,6 +535,11 @@ begin
     FViewName := View.PersistentName;
 
   inherited;
+
+  // Hosted beside the grid the form never closes: the List decides what it
+  // shows.
+  if IsHosted then
+    AllowClose := False;
 
   // Set title based on operation (must be after inherited to override
   // TKXPanelControllerBase.DoDisplay which sets Title from View.DisplayLabel)
@@ -1866,7 +1999,7 @@ begin
     LAddIcon := GetIconHTML('new_record', isMedium);
     Result := Result +
       '<button type="button" class="kx-form-btn kx-btn-viewmode"' + LViewHide +
-      ' onclick="kxForm.cancel(''' + FViewName + ''');' +
+      ' onclick="' + IfThen(IsHosted, '', 'kxForm.cancel(''' + FViewName + ''');') +
       'kxGrid.openForm(''' + FViewName + ''',''add'')">' +
       LAddIcon + ' ' + TNetEncoding.HTML.Encode(_('Add')) +
       '</button>';
@@ -1973,7 +2106,7 @@ begin
 
   // Determine if we need tabs
   LHasPageBreaks := False;
-  LLayout := LViewTable.FindLayout('Form');
+  LLayout := FindFormLayout(LViewTable);
   if Assigned(LLayout) then
     for I := 0 to LLayout.ChildCount - 1 do
       if SameText(LLayout.Children[I].Name, 'PageBreak') then

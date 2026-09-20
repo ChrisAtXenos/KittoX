@@ -1,0 +1,8 @@
+﻿Field: TaxCode
+  DisplayLabel: _(Tax Code)
+Field: LastName
+Field: FirstName
+Field: Email
+Field: Mobile
+Field: PrivacyConsent
+LabelAlign: Right

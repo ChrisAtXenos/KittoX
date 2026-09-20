@@ -4,16 +4,19 @@ title KittoX Examples Builder
 
 :: ============================================================
 :: KittoX Examples Build Script
-:: Builds HelloKitto, TasKitto, KEmployee in multiple deploy modes.
+:: Builds HelloKitto, TasKitto, KEmployee, SportClubManager in multiple
+:: deploy modes.
 ::
 :: INTERACTIVE (no arguments): shows the menus, as before.
 ::
 :: COMMAND LINE:
 ::   build_Examples.cmd <example> [mode] [config] [bdspath]
-::     <example> : All | HelloKitto | TasKitto | KEmployee   (H / T / K accepted)
+::     <example> : All | HelloKitto | TasKitto | KEmployee | SportClubManager
+::                 (H / T / K / S accepted)
 ::     [mode]    : All | Desktop | ISAPI | Apache | Embedded (default: Desktop)
 ::     [config]  : Release | Debug                           (default: Release)
-::     [bdspath] : Delphi BDS path                           (default below)
+::     [bdspath] : Delphi BDS path  (default: the BDS_PATH environment variable,
+::                 else the newest Delphi found in the registry: 13, 12, 11, 10.4)
 ::
 ::   Examples:
 ::     build_Examples.cmd TasKitto                 (TasKitto, Desktop, Release)
@@ -26,7 +29,18 @@ title KittoX Examples Builder
 :: ============================================================
 
 :: --- Delphi BDS path (default) ---
-set DEFAULT_BDS=C:\BDS\Studio\37.0
+:: Every Delphi writes its install folder in the registry at
+:: HK(CU|LM)\Software\Embarcadero\BDS\<version>\RootDir:
+::   37.0 = Delphi 13, 23.0 = Delphi 12, 22.0 = Delphi 11, 21.0 = Delphi 10.4.
+:: Newest first; a BDS_PATH environment variable, when set, wins over the
+:: lookup; the historical C:\BDS\Studio\37.0 is the last resort.
+set DEFAULT_BDS=
+if not "%BDS_PATH%"=="" set "DEFAULT_BDS=%BDS_PATH%"
+if "%DEFAULT_BDS%"=="" call :FindBDS 37.0
+if "%DEFAULT_BDS%"=="" call :FindBDS 23.0
+if "%DEFAULT_BDS%"=="" call :FindBDS 22.0
+if "%DEFAULT_BDS%"=="" call :FindBDS 21.0
+if "%DEFAULT_BDS%"=="" set DEFAULT_BDS=C:\BDS\Studio\37.0
 
 set INTERACTIVE=1
 set CFG=Release
@@ -52,6 +66,8 @@ if /i "%~1"=="TasKitto"   set EXAMPLE_CHOICE=3
 if /i "%~1"=="T"          set EXAMPLE_CHOICE=3
 if /i "%~1"=="KEmployee"  set EXAMPLE_CHOICE=4
 if /i "%~1"=="K"          set EXAMPLE_CHOICE=4
+if /i "%~1"=="SportClubManager" set EXAMPLE_CHOICE=5
+if /i "%~1"=="S"          set EXAMPLE_CHOICE=5
 if %EXAMPLE_CHOICE%==0 (
     echo.
     echo ERROR: unknown example "%~1".
@@ -109,15 +125,16 @@ if "%BDS_PATH%"=="" set BDS_PATH=%DEFAULT_BDS%
 :: --- Select examples to build ---
 echo.
 echo Which examples do you want to build?
-echo   [A] All (HelloKitto, TasKitto, KEmployee)
+echo   [A] All (HelloKitto, TasKitto, KEmployee, SportClubManager)
 echo   [H] HelloKitto only
 echo   [T] TasKitto only
 echo   [K] KEmployee only
+echo   [S] SportClubManager only
 echo   [Q] Quit
 echo.
-choice /c AHTKQ /n /m "Select [A/H/T/K/Q]: "
+choice /c AHTKSQ /n /m "Select [A/H/T/K/S/Q]: "
 set EXAMPLE_CHOICE=%errorlevel%
-if %EXAMPLE_CHOICE%==5 goto :eof
+if %EXAMPLE_CHOICE%==6 goto :eof
 
 :: --- Select deploy modes ---
 echo.
@@ -177,12 +194,14 @@ if %EXAMPLE_CHOICE%==1 goto :BuildAll
 if %EXAMPLE_CHOICE%==2 goto :BuildHelloKitto
 if %EXAMPLE_CHOICE%==3 goto :BuildTasKitto
 if %EXAMPLE_CHOICE%==4 goto :BuildKEmployee
+if %EXAMPLE_CHOICE%==5 goto :BuildSportClubManager
 goto :Done
 
 :BuildAll
 call :BuildHelloKitto
 call :BuildTasKitto
 call :BuildKEmployee
+call :BuildSportClubManager
 goto :Done
 
 :: ============================================================
@@ -282,6 +301,47 @@ cd /d "%START_DIR%"
 goto :eof
 
 :: ============================================================
+:BuildSportClubManager
+:: ============================================================
+echo.
+echo =============================================
+echo   Building SportClubManager...
+echo =============================================
+cd /d "%START_DIR%\SportClubManager\Projects"
+
+:: Optional FlexCel build of the Excel export (see
+:: SportClubManager\Source\SCM.Defines.inc): set the FLEXCEL environment
+:: variable to the folder holding the FlexCel .dcu for the platform being
+:: built, and it is passed on to msbuild. Unset, the export is built on the
+:: framework ADO engine.
+set "FLEXCEL_PROP="
+if not "%FLEXCEL%"=="" set "FLEXCEL_PROP=/p:FLEXCEL=%FLEXCEL%"
+if not "%FLEXCEL%"=="" echo   FlexCel: %FLEXCEL%
+
+if %BUILD_DESKTOP%==1 (
+    echo   [Desktop] SportClubManager.dproj ^(Win64^)...
+    msbuild /t:Build /p:config=%CFG% /p:platform=Win64 /nologo %FLEXCEL_PROP% SportClubManager.dproj /fl /flp:logfile=SportClubManager_Desktop.log;verbosity=diagnostic
+    if errorlevel 1 (echo   *** FAILED *** & set /a ERRORS+=1) else (echo   OK)
+)
+if %BUILD_ISAPI%==1 (
+    echo   [ISAPI] SportClubManagerISAPI.dproj ^(Win64^)...
+    msbuild /t:Build /p:config=%CFG% /p:platform=Win64 /nologo %FLEXCEL_PROP% SportClubManagerISAPI.dproj /fl /flp:logfile=SportClubManager_ISAPI.log;verbosity=diagnostic
+    if errorlevel 1 (echo   *** FAILED *** & set /a ERRORS+=1) else (echo   OK)
+)
+if %BUILD_APACHE%==1 (
+    echo   [Apache] mod_sportclubmanager.dproj ^(Win32^)...
+    msbuild /t:Build /p:config=%CFG% /p:platform=Win32 /nologo %FLEXCEL_PROP% mod_sportclubmanager.dproj /fl /flp:logfile=SportClubManager_Apache.log;verbosity=diagnostic
+    if errorlevel 1 (echo   *** FAILED *** & set /a ERRORS+=1) else (echo   OK)
+)
+if %BUILD_EMBEDDED%==1 (
+    echo   [Embedded] SportClubManagerDesktop.dproj ^(Win64^)...
+    msbuild /t:Build /p:config=%CFG% /p:platform=Win64 /nologo %FLEXCEL_PROP% SportClubManagerDesktop.dproj /fl /flp:logfile=SportClubManager_Embedded.log;verbosity=diagnostic
+    if errorlevel 1 (echo   *** FAILED *** & set /a ERRORS+=1) else (echo   OK)
+)
+cd /d "%START_DIR%"
+goto :eof
+
+:: ============================================================
 :Done
 :: ============================================================
 echo.
@@ -303,7 +363,8 @@ endlocal & exit /b %ERRORS%
 echo.
 echo Usage: build_Examples.cmd ^<example^> [mode] [config] [bdspath]
 echo.
-echo   ^<example^> : All ^| HelloKitto ^| TasKitto ^| KEmployee   (H / T / K accepted)
+echo   ^<example^> : All ^| HelloKitto ^| TasKitto ^| KEmployee ^| SportClubManager
+echo                 (H / T / K / S accepted)
 echo   [mode]    : All ^| Desktop ^| ISAPI ^| Apache ^| Embedded  (default: Desktop)
 echo   [config]  : Release ^| Debug                           (default: Release)
 echo   [bdspath] : Delphi BDS path                           (default: %DEFAULT_BDS%)
@@ -317,3 +378,28 @@ echo.
 echo   Run with no arguments for the interactive menu.
 echo.
 endlocal & exit /b 1
+
+:: ============================================================
+:FindBDS <version>
+::   Sets DEFAULT_BDS to the RootDir of that BDS version (HKCU first, then
+::   HKLM), without the trailing backslash, and only if it holds rsvars.bat.
+:: ============================================================
+call :ReadRootDir HKCU %~1
+if "%DEFAULT_BDS%"=="" call :ReadRootDir HKLM %~1
+:: Delayed expansion here: a %VAR:~-1% substring on an EMPTY variable breaks the
+:: parse of the whole line (the version is not installed), !VAR:~-1! does not.
+if "!DEFAULT_BDS:~-1!"=="\" set "DEFAULT_BDS=!DEFAULT_BDS:~0,-1!"
+if not "%DEFAULT_BDS%"=="" if not exist "%DEFAULT_BDS%\bin\rsvars.bat" set DEFAULT_BDS=
+exit /b 0
+
+:: ============================================================
+:ReadRootDir <hive> <version>
+::   reg query prints "    RootDir    REG_SZ    C:\...\Studio\<version>\";
+::   the line is picked by its first token (no "find": a Unix find.exe on
+::   the PATH, e.g. under Git Bash, would break it) and tokens=1,2,* keeps
+::   the whole path even when it contains spaces.
+:: ============================================================
+for /f "tokens=1,2,*" %%A in ('reg query "%~1\Software\Embarcadero\BDS\%~2" /v RootDir 2^>nul') do (
+  if /i "%%A"=="RootDir" set "DEFAULT_BDS=%%C"
+)
+exit /b 0

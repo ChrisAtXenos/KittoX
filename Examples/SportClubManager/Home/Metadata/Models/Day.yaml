@@ -1,0 +1,21 @@
+﻿ModelName: Day
+DisplayLabel: _(Day)
+PluralDisplayLabel: _(Days)
+PhysicalName: GIORNI
+LookupSorting: |
+  CASE
+    WHEN ID = 'LU' THEN 1
+    WHEN ID = 'MA' THEN 2
+    WHEN ID = 'ME' THEN 3
+    WHEN ID = 'GI' THEN 4
+    WHEN ID = 'VE' THEN 5
+    WHEN ID = 'SA' THEN 6
+    WHEN ID = 'DO' THEN 7
+  ELSE 0 END
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX

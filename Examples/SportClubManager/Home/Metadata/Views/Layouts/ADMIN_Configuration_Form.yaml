@@ -1,0 +1,29 @@
+﻿FieldSet:
+  Row:
+    Field: Id
+    Field: Description
+  Row:
+    Field: ClubName
+  Row:
+    Field: Address
+  Row:
+    Field: PostalCode
+    Field: Town
+    Field: Province
+  Row:
+    Field: TaxCode
+    Field: VatNumber
+  Row:
+    Field: TaxScheme
+  Row:
+    Field: Website
+  Row:
+    Field: SupportEmail
+    Field: InfoEmail
+  Row:
+    Field: ClubLogo
+  Row:
+    Field: Phone
+    Field: Fax
+  Row:
+    Field: ClubColours

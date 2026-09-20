@@ -1,0 +1,19 @@
+﻿Field: LastName
+  DisplayWidth: 20
+Field: FirstName
+  DisplayWidth: 20
+Field: TaxCode
+Field: BirthDate
+Field: ParentLastName
+  DisplayWidth: 20
+Field: ParentFirstName
+  DisplayWidth: 20
+Field: SubscriptionFee
+  DisplayWidth: 20
+Field: SubscriptionFee_BirthYearFrom
+Field: SubscriptionFee_BirthYearTo
+Field: SubscriptionDate
+  DisplayLabel: _(Subscription)
+Field: SubscriptionTotal
+Field: PaidAmount
+Field: OutstandingAmount

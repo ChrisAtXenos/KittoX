@@ -1,0 +1,11 @@
+﻿LabelAlign: Right
+LabelWidth: 150
+FieldSet:
+  Row:
+    Field: VatCode
+  Row:
+    Field: TaxableAmount
+    Field: Tax
+  Row:
+    Field: DeductibleTax
+    Field: NonDeductibleTax

@@ -1,0 +1,22 @@
+﻿ModelName: StaffRole
+PhysicalName: RUOLI_STAFF
+PluralDisplayLabel: _(Role/Duty Types)
+PluralModelName: StaffRoles
+DisplayLabel: _(Role/Duty Type)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 25
+  ManagementStaff: Boolean not null
+    DisplayLabel: _(Management staff)
+    PhysicalName: DIRIGENZA
+  Abbreviation: String(10)
+    PhysicalName: SIGLA
+    DisplayLabel: _(Abbreviation for printouts)
+    DisplayWidth: 20
+ImageName: group

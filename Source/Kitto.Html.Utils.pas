@@ -83,6 +83,15 @@ function GetIconStyle: string;
 /// </summary>
 procedure SetDefaultIconSize(const ASize: string);
 
+/// <summary>
+///  htmx verb+URL for a main-menu entry. A destructive action that must not be
+///  triggerable by a cross-site GET (today only Logout) is emitted as an
+///  hx-post to its canonical endpoint (kx/logout); every other entry stays an
+///  hx-get that renders the view. Centralized here so all menu renderers
+///  (ToolBar, TreePanel, TilePanel) make the same choice.
+/// </summary>
+function GetMenuActionVerb(const AControllerType, AViewName: string): string;
+
 implementation
 
 uses
@@ -104,6 +113,16 @@ var
   _IconMap: TDictionary<string, string>;
   _IconStyle: string;
   _DefaultIconSize: TKXIconSize;
+
+function GetMenuActionVerb(const AControllerType, AViewName: string): string;
+begin
+  if SameText(AControllerType, 'Logout') then
+    // Logout ends the session: it must be a POST so a cross-site GET (a link or
+    // an <img>) cannot trigger it. The canonical POST endpoint is kx/logout.
+    Result := 'hx-post="kx/logout"'
+  else
+    Result := 'hx-get="kx/view/' + AViewName + '"';
+end;
 
 function GetIconStyle: string;
 begin

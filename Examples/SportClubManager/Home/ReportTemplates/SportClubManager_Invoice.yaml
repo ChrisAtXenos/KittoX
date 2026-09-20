@@ -1,0 +1,102 @@
+﻿DefaultFont: TimesRoman
+  Color: Black
+  Size: 12
+
+Information:
+  Author: %Auth:UserName%
+  Title: Fattura
+  Subject: {Description}
+  Creator: KittoSCM
+  Keywords: KittoSCM, {Description}
+  CreationDate: %DATETIME%
+
+Items:
+  Image:
+    FileName: %Config:SportsClubLogo%.png
+    Left: 30
+    Top: 30
+    Width: 250
+    Height: 90
+  Text:
+    Expression: %Config:SportsClubName%
+    Left: 300
+    Top: 40
+    Font: TimesBold
+      Size: 12
+  Text:
+    Expression: Sede sociale - %Auth:COMPANY_ADDRESS% - %Auth:COMPANY_CITY% (%Auth:COMPANY_PROVINCE%)
+    Left: 300
+    Top: 55
+    Font: TimesRoman
+      Size: 11
+  Text:
+    Expression: P.IVA %Auth:COMPANY_VATNUM%
+    Left: 300
+    Top: 70
+    Font: TimesRoman
+      Size: 11
+  Text:
+    Expression: %Auth:COMPANY_CITY%, %DATE%
+    Left: 350
+    Top: 138
+  Text:
+    Expression: Spett.le
+    Left: 350
+    Top: 158
+  Text:
+    Expression: {Customer_Description}
+    Left: 350
+    Top: 172
+  Text:
+    Expression: {Customer_Address}
+    Left: 350
+    Top: 184
+  Text:
+    Expression: {Customer_PostalCode} {CustomerMunicipality} {Customer_ProvinceId}
+    Left: 350
+    Top: 198
+  Text:
+    Expression: Fattura nr. {DocumentNumber} del {DocumentDate}
+    Left: 50
+    Top: 250
+    Font: TimesBold
+      Size: 12
+  Text:
+    Expression: Imponibile
+    Left: 250
+    Top: 400
+    Font: TimesBold
+      Size: 12
+  Text:
+    Expression: {TotalTaxableAmount}
+    Left: 450
+    Top: 400
+    Align: Right
+    Font: TimesBold
+      Size: 12
+  Text:
+    Expression: IVA
+    Left: 250
+    Top: 420
+    Font: TimesBold
+      Size: 12
+  Text:
+    Expression: {TotalTax}
+    Left: 450
+    Top: 420
+    Align: Right
+    Font: TimesBold
+      Size: 12
+  Text:
+    Expression: Totale fattura
+    Left: 250
+    Top: 440
+    Font: TimesBold
+      Size: 12
+  Text:
+    Expression: {Amount}
+    Left: 450
+    Top: 440
+    Align: Right
+    Font: TimesBold
+      Size: 12

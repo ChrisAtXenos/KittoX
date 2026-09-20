@@ -247,3 +247,19 @@ msgstr "Lista de bonecas"
 
 msgid "Peoria Girls and their Dolls"
 msgstr "As meninas de Peoria e as suas bonecas"
+
+#: MainMenu.yaml
+msgid "Party list"
+msgstr "Lista de festas"
+
+#: MainMenu.yaml
+msgid "Party calendar"
+msgstr "Calendário de festas"
+
+#: PartiesCalendar.yaml
+msgid "Parties Calendar"
+msgstr "Calendário de festas"
+
+#: Party.yaml
+msgid "Party Date and Time"
+msgstr "Data e hora da festa"

@@ -1,0 +1,256 @@
+﻿ModelName: VAccountingLine
+PhysicalName: V_RIGHE_CONTABILI
+IsLarge: True
+DefaultSorting: FK_MOVIMENTI_CONTABILI_ESERC.DX desc, {Q}MOV_NR_MOV desc
+PluralDisplayLabel: _(Accounting lines)
+PluralModelName: VAccountingLines
+DisplayLabel: _(Accounting line)
+IsReadOnly: True
+Fields:
+  EntryId: String(32) not null primary key
+    PhysicalName: MOV_ID
+    IsVisible: False
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 50
+  EntryDescription: String(200) not null
+    PhysicalName: MOV_DX
+    DisplayLabel: _(Entry description)
+    DisplayWidth: 40
+  EntryNumber: Integer not null
+    DisplayLabel: _(Entry Number)
+    PhysicalName: MOV_NR_MOV
+    IsReadOnly: True
+  PostingDate: Date not null
+    DisplayLabel: _(Posting Date)
+    PhysicalName: MOV_DATA_REG
+    DisplayWidth: 12
+  #DefaultValue: {date}
+  EntryType: String(2) not null
+    DisplayLabel: _(Entry Type)
+    PhysicalName: MOV_TIPO_MOV
+    DisplayWidth: 40
+    NotifyChange: True
+    AllowedValues:
+      AS: _(Simple entry)
+      AC: _(Complex entry)
+      FC: _(Customer Invoice)
+      FF: _(Supplier Invoice)
+      NC: _(Customer Credit Note)
+      NF: _(Supplier Credit Note)
+      MA: _(Opening entries)
+      MC: _(Closing entries)
+  DocumentDate: Date
+    PhysicalName: MOV_DATA_DOC
+    DisplayLabel: _(Document date)
+    DisplayWidth: 12
+  DocumentNumber: String(50)
+    PhysicalName: MOV_NR_DOC
+    DisplayLabel: _(Document number)
+    DisplayWidth: 20
+  VatProtocolNumber: Integer
+    PhysicalName: MOV_NR_IVA
+    DisplayLabel: _(VAT protocol number)
+    IsReadOnly: True
+  EntryAmount: Currency not null
+    PhysicalName: MOV_IMPORTO
+    DisplayLabel: _(Entry amount)
+    DisplayWidth: 10
+  Notes: memo
+    PhysicalName: MOV_NOTE
+    DisplayLabel: _(Notes)
+  EntryUser: Reference(User)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_UTENTE_INSERIMENTO
+    Fields:
+      EnteredByUserId:
+        PhysicalName: MOV_UTENTE_INSERIMENTOID
+        DefaultValue: %Auth:USER_NAME%
+    IsReadOnly: True
+    IsVisible: False
+  AccountingReason: Reference(AccountingReason) not null
+    PhysicalName: FK_MOVIMENTI_CONTABILI_CAUSALE
+    DisplayLabel: _(Reason)
+    DisplayWidth: 30
+    Fields:
+      ReasonId:
+        PhysicalName: MOV_CAUSALEID
+    LookupFilter: TIPOREG = '{EntryType}'
+  FinancialYear: Reference(FinancialYear) not null
+    PhysicalName: FK_MOVIMENTI_CONTABILI_ESERC
+    DisplayLabel: _(Financial Year)
+    IsReadOnly: True
+    Fields:
+      FinancialYearId:
+        PhysicalName: MOV_ESERCID
+    LookupFilter: STATO = 'A'
+  PaymentMethod: Reference(PaymentMethod)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_MOD_PAGAMENTO
+    DisplayLabel: _(Payment method)
+    DisplayWidth: 40
+    Fields:
+      PaymentMethodId:
+        PhysicalName: MOV_MOD_PAGAMENTOID
+  VatRegister: Reference(VatRegisterType)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_REG_IVA
+    DisplayLabel: _(VAT Register)
+    DisplayWidth: 30
+    Fields:
+      VatRegisterId:
+        PhysicalName: MOV_REG_IVAID
+  EntrySupplier: Reference(Supplier)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_FORNITORE
+    DisplayLabel: _(Supplier)
+    DisplayWidth: 40
+    Fields:
+      SupplierId:
+        PhysicalName: MOV_FORNITOREID
+  EntryCustomer: Reference(Customer)
+    PhysicalName: FK_MOVIMENTI_CONTABILI_CLIENTE
+    DisplayLabel: _(Customer)
+    DisplayWidth: 40
+    Fields:
+      CustomerId:
+        PhysicalName: MOV_CLIENTEID
+  EntryBank: Reference(Bank)
+    PhysicalName: FK_CLIENTI_BANCA
+    DisplayLabel: _(Bank)
+    Fields:
+      BankId:
+        PhysicalName: MOV_BANCAID
+  PdfInvoice: FileReference(50)
+    PhysicalName: MOV_FATTURA_PDF
+    FileNameField: PdfInvoiceFileName
+    DisplayLabel: _(PDF Invoice)
+    MaxUploadSize: 500KB
+    ContentType: application/pdf
+    DisplayWidth: 40
+    AcceptedWildCards: .pdf
+    PreviewWindow: True
+      Width: 900
+      Height: 800
+    Path: %Config:UploadPath%Fatture
+  PdfInvoiceFileName: String(200)
+    PhysicalName: MOV_NOME_FATTURA_PDF
+    DisplayWidth: 40
+    DisplayLabel: _(PDF Invoice File Name)
+    IsReadOnly: True
+    IsVisible: False
+  XmlInvoice: FileReference(50)
+    PhysicalName: MOV_FATTURA_XML
+    FileNameField: XmlInvoiceFileName
+    DisplayLabel: _(XML Invoice)
+    ContentType: application/xml
+    DisplayWidth: 40
+    AcceptedWildCards: *.xml
+    PreviewWindow: True
+      Width: 900
+      Height: 800
+    Path: %Config:UploadPath%Fatture
+  XmlInvoiceFileName: String(200)
+    PhysicalName: MOV_NOME_FATTURA_XML
+    DisplayWidth: 40
+    DisplayLabel: _(XML Invoice File Name)
+    IsReadOnly: True
+    IsVisible: False
+  LineId: String(32) not null primary key
+    PhysicalName: RIG_ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  LineDescription: String(200) not null
+    PhysicalName: RIG_DX
+    DisplayLabel: _(Accounting line description)
+    DisplayWidth: 65
+  LineNumber: Integer not null
+    PhysicalName: RIG_NR_RIGA
+    DisplayLabel: _(Line number)
+  DueDate: Date not null
+    PhysicalName: RIG_DATASCADENZA
+    DisplayWidth: 12
+    DisplayLabel: _(Due date/Value date)
+  Match: String(30)
+    PhysicalName: RIG_PARTITA
+    DisplayWidth: 35
+    DisplayLabel: _(Match)
+  Amount: Currency not null
+    PhysicalName: RIG_IMPORTO
+    DisplayLabel: _(Amount)
+    DisplayWidth: 10
+  DebitAmount: Currency not null
+    PhysicalName: RIG_IMPORTO_DARE
+    DisplayLabel: _(Debit Amount)
+    DisplayWidth: 10
+  CreditAmount: Currency not null
+    PhysicalName: RIG_IMPORTO_AVERE
+    DisplayLabel: _(Credit Amount)
+    DisplayWidth: 10
+  Sign: String(1) not null
+    PhysicalName: RIG_SEGNO
+    DisplayLabel: _(Sign)
+    AllowedValues:
+      D: _(Debit)
+      A: _(Credit)
+  LineUser: Reference(User)
+    PhysicalName: FK_RIGHE_CONTABILI_UTENTE_INSERIMENTO
+    DisplayLabel: _(User)
+    DisplayWidth: 30
+    Fields:
+      EnteredByUserId:
+        PhysicalName: RIG_UTENTE_INSERIMENTOID
+        DefaultValue: %Auth:USER_NAME%
+    IsReadOnly: True
+    IsVisible: False
+  CostCentre: Reference(CostCentre)
+    PhysicalName: FK_RIGHE_CONTABILI_CENTRO_COSTO
+    DisplayLabel: _(Cost centre)
+    DisplayWidth: 30
+    Fields:
+      CostCentreId:
+        PhysicalName: RIG_CENTRO_COSTOID
+  VatCode: Reference(VatCode)
+    PhysicalName: FK_RIGHE_CONTABILI_COD_IVA
+    DisplayLabel: _(VAT)
+    DisplayWidth: 30
+    Fields:
+      VatCodeId:
+        PhysicalName: RIG_COD_IVAID
+    LookupFilter: DISATTIVATO = 0
+  LedgerAccount: Reference(LedgerAccount) not null
+    PhysicalName: FK_RIGHE_CONTABILI_CONTO
+    DisplayLabel: _(Ledger account)
+    DisplayWidth: 40
+    LookupFilter: DISATTIVATO = 0 AND LIVELLO = 'S'
+    NotifyChange: True
+    Fields:
+      AccountId:
+        PhysicalName: RIG_CONTOID
+  LineSupplier: Reference(Supplier)
+    PhysicalName: FK_RIGHE_CONTABILI_FORNITORE
+    DisplayLabel: _(Supplier)
+    DisplayWidth: 40
+    Fields:
+      SupplierId:
+        PhysicalName: RIG_FORNITOREID
+  LineCustomer: Reference(Customer)
+    PhysicalName: FK_RIGHE_CONTABILI_CLIENTE
+    DisplayLabel: _(Customer)
+    DisplayWidth: 40
+    Fields:
+      CustomerId:
+        PhysicalName: RIG_CLIENTEID
+  LineBank: Reference(Bank)
+    PhysicalName: FK_RIGHE_BANCA
+    DisplayLabel: _(Bank)
+    Fields:
+      BankId:
+        PhysicalName: RIG_BANCAID
+  Person: Reference(Person)
+    PhysicalName: FK_RIGHE_CONTABILI_NOMINATIVO
+    DisplayLabel: _(Member)
+    DisplayWidth: 40
+    Fields:
+      PersonId:
+        PhysicalName: RIG_NOMINATIVOID
+ImageName: account_balance

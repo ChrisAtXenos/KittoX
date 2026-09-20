@@ -1,0 +1,72 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Members)
+    Connector: and
+    LabelWidth: 140
+    Items:
+      FreeSearch: _(Full name)
+        Width: 45
+        ExpressionTemplate: (LIBRO_SOCI.NOME like '%{value}%') or (LIBRO_SOCI.COGNOME like '%{value}%')
+      ButtonList: _(Member status)
+        Items:
+          DAPRE: _(To be submitted)
+            Expression: {Q}DATA_PRESENTAZIONE IS NULL
+            IsDefault: True
+          PRE: _(Submitted)
+            Expression: ({Q}DATA_PRESENTAZIONE IS NOT NULL) AND ({Q}DATA_ACCETTAZIONE IS NULL) AND ({Q}DATA_RIFIUTO IS NULL)
+          ACC: _(Accepted)
+            Expression: {Q}DATA_ACCETTAZIONE IS NOT NULL
+          RIF: _(Rejected)
+            Expression: {Q}DATA_RIFIUTO IS NOT NULL
+      ColumnBreak:
+        LabelWidth: 110
+      FreeSearch: _(Tax code)
+        ExpressionTemplate: (LIBRO_SOCI.CODICE_FISCALE like '%{value}%')
+      DateSearch: _(Submitted on)
+        Width: 15
+        ExpressionTemplate: CAST({Q}DATA_PRESENTAZIONE AS DATE) = '{value}'
+        LabelWidth: 80
+      ColumnBreak:
+        LabelWidth: 60
+      FreeSearch: _(Role)
+        ExpressionTemplate: (LIBRO_SOCI.RUOLO like '%{value}%')
+MainTable:
+  Model: MembersRegister
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_MembersRegister_Form
+    Grid:
+      Layout: ADMIN_MembersRegister_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Subscriptions.xlsx
+          RequireSelection: False
+      MembershipRequest:
+        Hint: _(Membership request)
+        DisplayLabel: _(Membership request)
+        Controller: MembershipRequest
+          ClientFileName: MembershipRequests_%DATETIME%.xlsx
+          RequireSelection: False
+          #AutoRefresh: All
+      ApproveMember:
+        DisplayLabel: _(Approve members)
+        Controller: ApproveMember
+          RequireSelection: False
+          #AutoRefresh: All
+          ConfirmationMessage: _(Approve the members?)
+  DetailTables:
+    Controller:
+      # Tabs/Popup/Bottom. Default = Tabs.
+      Style: Bottom
+      Height: 300
+    Table:
+      Model: MembershipFee
+      Controller:
+        Form:
+          Layout: ADMIN_MembershipFees_Detail_Form
+        Grid:
+          Layout: ADMIN_MembershipFees_Detail_Grid

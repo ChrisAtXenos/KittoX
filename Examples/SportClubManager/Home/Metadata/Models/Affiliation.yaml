@@ -1,0 +1,66 @@
+﻿ModelName: Affiliation
+PhysicalName: SOCIETA
+PluralDisplayLabel: _(Affiliations)
+PluralModelName: Affiliations
+DisplayLabel: _(Affiliation)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DefaultValue: %COMPACT_GUID%
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Affiliation Description)
+    DisplayWidth: 50
+  AffiliationDate: Date
+    PhysicalName: DATA_AFFILIAZIONE
+    DisplayLabel: _(Affiliation date)
+    DisplayWidth: 12
+  AffiliationNumber: String(20)
+    PhysicalName: COD_SOC
+    DisplayLabel: _(Affiliation number)
+  FederationLogo: Blob
+    PhysicalName: LOGO_FEDERAZIONE
+    DisplayLabel: _(Federation Logo)
+    MaxUploadSize: 1MB
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
+  AffiliationYear: String(4)
+    PhysicalName: ANNO_AFF
+    DisplayLabel: _(Affiliation year)
+  Federation: Reference(Federation) not null
+    PhysicalName: FK_SOCIETA_FEDERAZIONE
+    DisplayLabel: _(Federation)
+    Fields:
+      FederationId:
+        PhysicalName: FEDERAZIONEID
+    Rules:
+      CalcDescription: {Federation}
+  SportsFacility: Reference(SportsFacility)
+    PhysicalName: FK_SOCIETA_MAIN_CAMPO
+    DisplayLabel: _(Sports Facility)
+    Fields:
+      SportsFacilityId:
+        PhysicalName: MAIN_CAMPOID
+  MainSponsor: Reference(Sponsor)
+    DisplayLabel: _(Main Sponsor)
+    PhysicalName: FK_SOCIETA_MAIN_SPONSOR
+    Fields:
+      MainSponsorId:
+        PhysicalName: MAIN_SPONSORID
+  OtherSponsor: Reference(Sponsor)
+    DisplayLabel: _(Other Sponsor)
+    PhysicalName: FK_SOCIETA_ALTRO_SPONSOR
+    Fields:
+      OtherSponsorId:
+        PhysicalName: ALTRO_SPONSORID
+  SportType: Reference(SportType)
+    DisplayLabel: _(Sport Type)
+    PhysicalName: FK_SOCIETA_TIPOSPORT
+    Fields:
+      SportTypeId:
+        PhysicalName: TIPOSPORTID
+ImageName: security

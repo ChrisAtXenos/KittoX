@@ -1,0 +1,75 @@
+﻿ModelName: MembersRegister
+PhysicalName: LIBRO_SOCI
+PluralDisplayLabel: _(Members Register)
+DisplayLabel: _(Members Register)
+PluralModelName: MembersRegister
+Rules:
+  MembersRegisterCheck:
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Code)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DefaultValue: '-'
+  RequestDate: Date
+    PhysicalName: DATA_RICHIESTA
+    DisplayLabel: _(Request date)
+    DisplayWidth: 12
+  AcceptanceDate: Date
+    PhysicalName: DATA_ACCETTAZIONE
+    DisplayLabel: _(Acceptance date)
+    DisplayWidth: 12
+  RejectionDate: Date
+    PhysicalName: DATA_RIFIUTO
+    DisplayLabel: _(Rejection date)
+    DisplayWidth: 12
+  SubmissionDate: Date
+    PhysicalName: DATA_PRESENTAZIONE
+    DisplayLabel: _(Submission date)
+    DisplayWidth: 12
+  FirstName: String(100)
+    PhysicalName: NOME
+    DisplayLabel: _(First Name)
+    DisplayWidth: 35
+  LastName: String(100)
+    PhysicalName: COGNOME
+    DisplayLabel: _(Last Name)
+    DisplayWidth: 35
+  BirthDate: Date
+    PhysicalName: DATA_NASCITA
+    DisplayLabel: _(Date of birth)
+    DisplayWidth: 12
+  BirthPlace: String(100)
+    PhysicalName: LUOGO_NASCITA
+    DisplayLabel: _(Place of birth)
+    DisplayWidth: 35
+  TaxCode: String(16)
+    DisplayWidth: 20
+    PhysicalName: CODICE_FISCALE
+    DisplayLabel: _(Tax code)
+    Rules:
+      ForceUpperCase:
+      CheckFieldDupValue:
+      CheckTaxCodeFormat:
+      CheckTaxCodeChecksum:
+  Address: String(100)
+    PhysicalName: INDIRIZZO
+    DisplayLabel: _(Address)
+    DisplayWidth: 35
+  Role: String(50)
+    PhysicalName: RUOLO
+    DisplayLabel: _(Role)
+    DisplayWidth: 35
+  RejectionReason: Memo
+    PhysicalName: MOTIVAZIONE
+    DisplayLabel: _(Rejection reason)
+DetailReferences:
+  MembershipFees: MembershipFee
+    DisplayLabel: _(Fees)
+    PhysicalName: DT_LIBRO_SOCI_QUOTE_SOCIO
+    ReferenceField: MembersRegister
+ImageName: people_outline

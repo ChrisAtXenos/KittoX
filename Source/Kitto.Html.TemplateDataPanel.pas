@@ -23,7 +23,7 @@
 ///  {_VIEW} = view name.  These allow HTMX attributes inside templates.
 ///  Legacy <tpl for=".">...</tpl> markers are still supported for
 ///  backward compatibility (prefix/suffix around the repeating section).
-///  Inherits toolbar and filter support from TKXListPanelController.
+///  Inherits toolbar and filter support from TKXDataPanelController.
 ///  No paging (all records loaded at once).
 ///  Replaces TKExtTemplateDataPanel from Kitto.Ext.TemplateDataPanel.
 /// </summary>
@@ -36,7 +36,7 @@ interface
 uses
   EF.Tree,
   EF.YAML.Attributes,
-  Kitto.Html.List,
+  Kitto.Html.DataPanel,
   Kitto.Html.Controller,
   Kitto.Metadata.DataView,
   Kitto.Store;
@@ -46,10 +46,10 @@ type
   ///  List controller that renders each record through a custom HTML template
   ///  (TemplateFileName or inline Template) with {FieldName} placeholder
   ///  substitution, instead of a grid. Inherits toolbar/filter support from
-  ///  TKXListPanelController; loads all records at once (no paging).
+  ///  TKXDataPanelController; loads all records at once (no paging).
   /// </summary>
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
-  TKXTemplateDataPanelController = class(TKXListPanelController)
+  TKXTemplateDataPanelController = class(TKXDataPanelLeafController)
   strict private
     function GetTemplateFileName: string;
     function GetTemplate: string;
@@ -133,8 +133,6 @@ var
 begin
   Result := '';
   LFileName := AConfig.GetExpandedString('TemplateFileName');
-  if LFileName = '' then
-    LFileName := AConfig.GetExpandedString('CenterController/TemplateFileName');
   if LFileName <> '' then
   begin
     LFilePath := TKWebApplication.Current.FindResourcePathName(LFileName);
@@ -468,7 +466,7 @@ begin
   LControllerNode := LViewTable.FindNode('Controller');
 
   // Build filter panel (if Filters/Items defined)
-  LFilterPanelHtml := BuildFilterPanel(LViewName, LViewTable,
+  LFilterPanelHtml := ResolveFilterPanel(LViewName, LViewTable,
     LDefaultFilterExpr);
 
   // Build sort expression from SortFieldNames if specified

@@ -1,0 +1,10 @@
+LabelAlign: Right
+LabelWidth: 170
+FieldSet:
+  Row:
+    Field: Id
+    Field: Description
+  Row:
+    Field: IsNaturalPerson
+    Field: RequiresTaxCode
+    Field: RequiresVatNumber

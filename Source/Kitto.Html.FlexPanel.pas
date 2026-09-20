@@ -46,6 +46,7 @@ type
     function GetMinWidth: Integer;
     function GetMaxWidth: Integer;
     function GetItemHeight: Integer;
+    function GetFooter: string;
   public
     [YamlRequiredNode('View', 'View name or inline view definition')]
     property View: string read GetView;
@@ -57,6 +58,8 @@ type
     property MaxWidth: Integer read GetMaxWidth;
     [YamlNode('Height', 'Fixed height in pixels')]
     property ItemHeight: Integer read GetItemHeight;
+    [YamlNode('Footer', 'Optional footer text shown under the item')]
+    property Footer: string read GetFooter;
   end;
 
   {$RTTI EXPLICIT PROPERTIES([vcPublic])}
@@ -81,16 +84,31 @@ type
     function RenderItems: string; virtual;
   public
     [YamlNode('Direction', 'Row', 'Flex direction: Row, Column, RowReverse, ColumnReverse')]
+    [YamlEnumValue('Row', 'Left to right')]
+    [YamlEnumValue('Column', 'Top to bottom')]
+    [YamlEnumValue('RowReverse', 'Right to left')]
+    [YamlEnumValue('ColumnReverse', 'Bottom to top')]
     property Direction: string read FDirection write FDirection;
-    [YamlNode('Wrap', 'False', 'Enable flex wrapping')]
+    [YamlNode('Wrap', 'True', 'Enable flex wrapping')]
     property Wrap: Boolean read FWrap write FWrap;
     [YamlNode('Gap', 'Flex gap in pixels')]
     property Gap: Integer read FGap write FGap;
     [YamlNode('MaxColumns', 'Maximum items per row (0 = no limit, items wrap by MinWidth only)')]
     property MaxColumns: Integer read FMaxColumns write FMaxColumns;
     [YamlNode('JustifyContent', 'flex-start', 'CSS justify-content value')]
+    [YamlEnumValue('flex-start', '')]
+    [YamlEnumValue('flex-end', '')]
+    [YamlEnumValue('center', '')]
+    [YamlEnumValue('space-between', '')]
+    [YamlEnumValue('space-around', '')]
+    [YamlEnumValue('space-evenly', '')]
     property JustifyContent: string read FJustifyContent write FJustifyContent;
     [YamlNode('AlignItems', 'stretch', 'CSS align-items value')]
+    [YamlEnumValue('stretch', '')]
+    [YamlEnumValue('flex-start', '')]
+    [YamlEnumValue('flex-end', '')]
+    [YamlEnumValue('center', '')]
+    [YamlEnumValue('baseline', '')]
     property AlignItems: string read FAlignItems write FAlignItems;
     [YamlContainer('Items', TKXFlexItemConfig, 'Child views displayed in the flex container')]
     property Items: TEFNode read GetItems;
@@ -105,6 +123,7 @@ uses
   Kitto.Metadata.Views,
   Kitto.Config,
   Kitto.Metadata.DataView,
+  Kitto.Web.Application,
   Kitto.AccessControl;
 
 { TKXFlexItemConfig }
@@ -132,6 +151,11 @@ end;
 function TKXFlexItemConfig.GetItemHeight: Integer;
 begin
   Result := GetInteger('Height', 0);
+end;
+
+function TKXFlexItemConfig.GetFooter: string;
+begin
+  Result := GetString('Footer', '');
 end;
 
 { TKXFlexPanelController }
@@ -206,7 +230,6 @@ var
   LItemHeight: Integer;
   LItemStyle: string;
   LController: IKXController;
-  LControllerNode, LCenterNode: TEFNode;
   LItemHtml: string;
   LTitle, LTitleHtml: string;
   LFooter, LFooterHtml: string;
@@ -266,20 +289,9 @@ begin
     // that can hit thread-safety issues in the macro expansion engine).
     LItemHtml := '';
     try
-      // Check for CenterController interception (same logic as HandleKXViewRequest)
-      LCenterNode := nil;
-      LControllerNode := LView.FindNode('Controller');
-      if Assigned(LControllerNode) then
-      begin
-        LCenterNode := LControllerNode.FindNode('CenterController');
-        if Assigned(LCenterNode) and (LCenterNode.AsString = '') then
-          LCenterNode := nil;
-      end;
-
-      if Assigned(LCenterNode) then
-        LController := TKXControllerFactory.Instance.CreateController(LView, nil, LCenterNode)
-      else
-        LController := TKXControllerFactory.Instance.CreateController(LView);
+      // The one controller resolution every path shares (kx/view route, page,
+      // KIDEX preview): a tile is a view like any other.
+      LController := TKWebApplication.Current.CreateControllerForView(LView);
 
       // Suppress dialog chrome and own header for embedded views
       // (the flex-item-title provides the title)

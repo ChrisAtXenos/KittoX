@@ -1,0 +1,12 @@
+﻿Field: Description
+Field: Season
+Field: StartDate
+Field: EndDate
+Field: MembershipFee
+  DisplayWidth: 20
+Field: SiblingDiscount
+  DisplayWidth: 22
+Field: SiblingDiscountPercent
+  DisplayWidth: 20
+Field: DiscountDeadline
+  DisplayWidth: 18

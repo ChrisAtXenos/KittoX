@@ -327,6 +327,24 @@ begin
   BuildContext(AAuthenticator, LState.Config, LContext);
   Result := TKJWTBuilder.Build(LContext, LState.Config);
   TKJWTCookieHelper.Issue(Result, LState.Config);
+
+  // The token is issued IN-REQUEST: either on the Home GET when default
+  // credentials auto-log the user in (TKWebApplication.Authenticate), or on the
+  // login POST. In the auto-login case the Home is then rendered inline, in this
+  // same request, and the ACL checks that filter the menu run AFTER this point.
+  // They read the kx_acl claim from the per-thread context, which otherwise only
+  // AuthorizeRequest fills -- and that runs on the NEXT request, once the cookie
+  // just set here round-trips. So without seeding the context now, an
+  // AccessControl: JWT application renders the first post-auto-login page
+  // closed-world: every view denied, the menu showing only "log out", until a
+  // manual browser refresh. Seed it here (the context we just built already
+  // carries the ACL snapshot) so this request sees the grants it just issued.
+  // Harmless for the login POST, whose response is an HX-Redirect that renders
+  // no menu. Mirrors the caching AuthorizeRequest does after validation.
+  var LHolder: TKJWTContextHolder := GetThreadContextHolder;
+  LHolder.Context := LContext;
+  LHolder.HasContext := True;
+
   TEFLogger.Instance.LogFmt('JWT issued for user %s, sid %s, app %s',
     [LContext.UserName, LContext.Sid, LState.AppName], TEFLogger.LOG_DETAILED);
 end;
@@ -373,11 +391,55 @@ begin
     TKWebSession.Current.IsAuthenticated := False;
     Exit(False);
   end;
+  // Revoked at logout or password change: the signature is still valid but the
+  // token id is on the denylist, so refuse it immediately.
+  if TKJWTRevocation.Instance.IsRevoked(LContext.Jti) then
+  begin
+    TEFLogger.Instance.LogFmt('JWT rejected: token %s revoked', [LContext.Jti],
+      TEFLogger.LOG_DETAILED);
+    TKJWTCookieHelper.Clear(LState.Config);
+    TKWebSession.Current.IsAuthenticated := False;
+    Exit(False);
+  end;
+  // Absolute session cap reached: sliding stopped renewing it, and now the token
+  // itself is refused so the user must log in afresh.
+  if TKJWTCookieHelper.IsSessionCapReached(LContext, LState.Config) then
+  begin
+    TEFLogger.Instance.LogFmt('JWT rejected: session cap reached for user %s',
+      [LContext.UserName], TEFLogger.LOG_DETAILED);
+    TKJWTCookieHelper.Clear(LState.Config);
+    TKWebSession.Current.IsAuthenticated := False;
+    Exit(False);
+  end;
   // Token verified: this request is authenticated. Hydrate session state from
   // the validated claims, but only fields the server-side session does not
   // already carry.
+  //
+  // Was this session already authenticated before this request? A session that
+  // has served an authenticated request carries the full auth data (login, or a
+  // previous rehydrate); a brand-new one — the token outlived its session and
+  // the engine re-created it empty — does not, and starts with IsAuthenticated
+  // False. Only in that case do we go back to the user record.
+  var LSessionWasAuthenticated: Boolean := TKWebSession.Current.IsAuthenticated;
   TKWebSession.Current.IsAuthenticated := True;
   TKWebSession.Current.AuthData.SetString('UserName', LContext.UserName);
+  if not LSessionWasAuthenticated then
+  begin
+    // Refill the auth data from the user record: the imposed-step gate
+    // (MUST_CHANGE_PASSWORD / MUST_CONFIRM_ACCESS) and any %Auth:field% a view
+    // reads live there and were lost with the old session. RehydrateAuthData
+    // returns False when the user is gone or deactivated, which is also how a
+    // disabled account's still-valid token is turned away — once per session
+    // lifetime, so no per-request database hit.
+    if not AAuthenticator.RehydrateAuthData(LContext.UserName, TKWebSession.Current.AuthData) then
+    begin
+      TEFLogger.Instance.LogFmt('JWT rejected: user %s can no longer be established '
+        + '(unknown or deactivated)', [LContext.UserName], TEFLogger.LOG_DETAILED);
+      TKJWTCookieHelper.Clear(LState.Config);
+      TKWebSession.Current.IsAuthenticated := False;
+      Exit(False);
+    end;
+  end;
   if (TKWebSession.Current.DatabaseName = '') and (LContext.DatabaseName <> '') then
     TKWebSession.Current.DatabaseName := LContext.DatabaseName;
   if (TKWebSession.Current.Language = '') and (LContext.Language <> '') then
@@ -399,7 +461,19 @@ begin
 end;
 
 procedure TKJWTEngine.ClearToken(const AAuthenticator: TKAuthenticator);
+var
+  LContext: TKJWTContext;
 begin
+  // Revoke the current token (logout, and password change which logs out too)
+  // so a copy held elsewhere -- a bearer client, a captured cookie -- cannot be
+  // reused after this point; clearing the cookie alone would not stop that. The
+  // validated context for this request carries the jti and its expiry.
+  if HasContext then
+  begin
+    LContext := CurrentContext;
+    if LContext.Jti <> '' then
+      TKJWTRevocation.Instance.Revoke(LContext.Jti, LContext.Expiration);
+  end;
   TKJWTCookieHelper.Clear(EnsureState(AAuthenticator).Config);
 end;
 

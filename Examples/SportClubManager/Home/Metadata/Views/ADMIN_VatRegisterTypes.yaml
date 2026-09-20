@@ -1,0 +1,31 @@
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search VAT Register Types)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (REGISTRI_IVA.ID like '%{value}%') or (REGISTRI_IVA.DX like '%{value}%')
+      ColumnBreak:
+      List: _(Register type)
+        Items:
+          A: _(Purchase)
+            Expression: {Q}TIPO_REG = 'A'
+          V: _(Sales)
+            Expression: {Q}TIPO_REG = 'V'
+MainTable:
+  Model: VatRegisterType
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Width: 700
+      Height: 320
+    Form:
+      Layout: ADMIN_VatRegisterTypes_Form
+    Grid:
+      Layout: ADMIN_VatRegisterTypes_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: VatRegisterTypes.xlsx
+          RequireSelection: False

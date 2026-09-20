@@ -32,12 +32,20 @@ interface
 ///   or '~REGEX:' (the function returns True if the string DOESN'T match the
 ///   expression) at the beginning of the pattern.
 ///	</summary>
-function StrMatchesPatternOrRegex(const AString, APatternOrRegex: string): Boolean;
+///	<para>
+///	  When AIgnoreCase is True the comparison is case-blind: the wildcard sides
+///	  are folded to upper case (the '~', '*' and '?' metacharacters are not
+///	  affected), and the regex is matched with roIgnoreCase. The default False
+///	  keeps the historical case-sensitive behaviour for existing callers.
+///	</para>
+function StrMatchesPatternOrRegex(const AString, APatternOrRegex: string;
+  const AIgnoreCase: Boolean = False): Boolean;
 
 ///	<summary>
-///	  Simple regex pattern matching.
+///	  Simple regex pattern matching. With AIgnoreCase the match is case-blind.
 ///	</summary>
-function RegExMatches(const AString, APattern: string): Boolean;
+function RegExMatches(const AString, APattern: string;
+  const AIgnoreCase: Boolean = False): Boolean;
 
 implementation
 
@@ -46,7 +54,10 @@ uses
   System.RegularExpressions,
   EF.StrUtils;
 
-function RegExMatches(const AString, APattern: string): Boolean;
+function RegExMatches(const AString, APattern: string;
+  const AIgnoreCase: Boolean = False): Boolean;
+var
+  LOptions: TRegExOptions;
 begin
   // Each call gets its own state on purpose. A single TPerlRegEx instance used
   // to be cached in a unit variable: since the instance carries both the
@@ -56,7 +67,10 @@ begin
   // so pattern syntax and matching semantics are unchanged. Caching bought
   // little anyway: assigning a different pattern recompiles it every time, so
   // only the allocation was saved.
-  Result := TRegEx.IsMatch(AString, APattern);
+  LOptions := [];
+  if AIgnoreCase then
+    Include(LOptions, roIgnoreCase);
+  Result := TRegEx.IsMatch(AString, APattern, LOptions);
 end;
 
 function RegExDoesntMatch(const AString, APattern: string): Boolean;
@@ -64,31 +78,35 @@ begin
   Result := not RegExMatches(AString, APattern);
 end;
 
-function StrMatchesPatternOrRegex(const AString, APatternOrRegex: string): Boolean;
+function StrMatchesPatternOrRegex(const AString, APatternOrRegex: string;
+  const AIgnoreCase: Boolean = False): Boolean;
 const
   REGEX_INTRODUCER = 'REGEX:';
   REGEX_NEGATED_INTRODUCER = '~REGEX:';
 var
   LPattern: string;
-  LMatchFunction: function(const AString, APattern: string): Boolean;
 begin
   LPattern := APatternOrRegex;
   // Regexes are costly to process, so we only support them if explicitly
   // declared.
   if Pos(REGEX_INTRODUCER, LPattern) = 1 then
   begin
-    LMatchFunction := RegExMatches;
     Delete(LPattern, 1, Length(REGEX_INTRODUCER));
+    Result := RegExMatches(AString, LPattern, AIgnoreCase);
   end
   else if Pos(REGEX_NEGATED_INTRODUCER, LPattern) = 1 then
   begin
-    LMatchFunction := RegExDoesntMatch;
     Delete(LPattern, 1, Length(REGEX_NEGATED_INTRODUCER));
+    Result := not RegExMatches(AString, LPattern, AIgnoreCase);
   end
+  // A plain (optionally negated) wildcard pattern. When case is to be ignored
+  // both sides are folded to upper case first: '~', '*' and '?' -- the only
+  // characters StrMatchesEx treats specially -- are unaffected by folding, so
+  // the pattern behaves the same, only case-blind.
+  else if AIgnoreCase then
+    Result := StrMatchesEx(AnsiUpperCase(AString), AnsiUpperCase(LPattern))
   else
-    LMatchFunction := StrMatchesEx;
-
-  Result := LMatchFunction(AString, LPattern);
+    Result := StrMatchesEx(AString, LPattern);
 end;
 
 end.

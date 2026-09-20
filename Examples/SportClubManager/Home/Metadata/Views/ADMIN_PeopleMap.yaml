@@ -1,0 +1,26 @@
+Type: Data
+Controller: GoogleMap
+  GoogleMap:
+    Zoom: 6
+    Center:
+      Latitude: 41.9028
+      Longitude: 12.4964
+    MapTypeId: ROADMAP
+    MapControls:
+      Zoom: True
+      MapType: True
+      FullScreen: True
+      StreetView: False
+    MapView:
+      Traffic: False
+      Bicycling: False
+      Markers: True
+    SidebarPosition: West
+    SidebarWidth: 600
+    AddressFields: Address, PostalCode, Municipality
+    TitleField: Description
+    InfoFields: Description, Address, PostalCode, Municipality, Mobile, Email
+MainTable:
+  Model: Person
+DisplayLabel: _(People Map)
+ImageName: map

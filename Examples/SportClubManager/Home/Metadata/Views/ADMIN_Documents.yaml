@@ -1,0 +1,39 @@
+﻿Type: Data
+Controller: GroupingList
+  Filters:
+    LabelWidth: 120
+    DisplayLabel: _(Search Documents)
+    Items:      
+      DynaList: _(Document type)
+        Width: 50
+        CommandText: SELECT ID, DX FROM TPDOC
+        ExpressionTemplate: {Q}TIPODOCID = '{value}'
+        AutoCompleteMinChars: 3    
+      FreeSearch: _(Free search)
+        ExpressionTemplate: ((DT_DOCUMENTI_NOMINATIVO.DX like '%{value}%') or (DOCUMENTI.ENTE like '%{value}%') or (DOCUMENTI.NUMERO like '%{value}%') or (DOCUMENTI.NOTE like '%{value}%'))
+      ColumnBreak:
+      BooleanSearch: _(Expired)
+        ExpressionTemplate: ({Q}DATASCAD <= CURRENT_TIMESTAMP)
+MainTable:
+  Model: Document
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_Documents_Form
+    Grid:
+      Layout: ADMIN_Documents_Grid
+    Grouping:
+      FieldName: Person
+      SortFieldNames: Person DocumentType IssuedBy IssueDate ExpiryDate Number
+      EnableMenu: False
+      StartCollapsed: False
+      # In Kitto1 the Template was '{text}', that is the group value alone:
+      # the same as ShowName and ShowCount both switched off.
+      ShowName: False
+      ShowCount: False
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Documents.xlsx
+          RequireSelection: False

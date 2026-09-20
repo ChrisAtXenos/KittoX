@@ -1,0 +1,35 @@
+﻿ModelName: Family
+PhysicalName: FAMIGLIE
+IsLarge: True
+PluralDisplayLabel: _(Families)
+DisplayLabel: _(Family)
+PluralModelName: Families
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Tax Code)
+    DisplayWidth: 30
+    IsReadOnly: True
+  CreatorPerson: Reference(Person)
+    PhysicalName: FK_FAMIGLIE_NOMINATIVO_CREATORE
+    DisplayWidth: 50
+    DisplayLabel: _(Family Creator)
+    IsRequired: True
+    Fields:
+      CreatorPersonId:
+        PhysicalName: NOMINATIVO_CREATOREID
+    AutoAddFields:
+      LastName: CreatorLastName
+      FirstName: CreatorFirstName
+    Rules:
+      FamilySetPerson:
+DetailReferences:
+  Members: FamilyMember
+ImageName: home
+DefaultSorting: FK_FAMIGLIE_NOMINATIVO_CREATORE.COGNOME, FK_FAMIGLIE_NOMINATIVO_CREATORE.NOME

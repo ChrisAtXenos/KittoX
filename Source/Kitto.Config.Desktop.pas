@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,16 +46,16 @@ type
   protected
     procedure ReadConfig; override;
   public
-    [YamlNode('biSystemMenu', 'False', 'Show system menu icon')]
+    [YamlNode('biSystemMenu', 'True', 'Show system menu icon')]
     property BiSystemMenu: Boolean read FBiSystemMenu;
 
-    [YamlNode('biMinimize', 'False', 'Show minimize button')]
+    [YamlNode('biMinimize', 'True', 'Show minimize button')]
     property BiMinimize: Boolean read FBiMinimize;
 
-    [YamlNode('biMaximize', 'False', 'Show maximize button')]
+    [YamlNode('biMaximize', 'True', 'Show maximize button')]
     property BiMaximize: Boolean read FBiMaximize;
 
-    [YamlNode('biHelp', 'True', 'Show help button')]
+    [YamlNode('biHelp', 'False', 'Show help button')]
     property BiHelp: Boolean read FBiHelp;
   end;
 
@@ -83,13 +83,21 @@ type
     [YamlNode('ClientHeight', '900', 'Window client height in pixels')]
     property ClientHeight: Integer read FClientHeight;
 
-    [YamlNode('Maximized', 'True', 'Start window maximized')]
+    [YamlNode('Maximized', 'False', 'Start window maximized')]
     property Maximized: Boolean read FMaximized;
 
-    [YamlNode('Resizable', 'False', 'Allow window resizing (False = fixed size)')]
+    [YamlNode('Resizable', 'True', 'Allow window resizing (False = fixed size)')]
     property Resizable: Boolean read FResizable;
 
     [YamlNode('Position', 'poScreenCenter', 'Window position (TPosition value)')]
+    [YamlEnumValue('poDesigned', 'Use the size/position from the form design')]
+    [YamlEnumValue('poDefault', 'Windows default position and size')]
+    [YamlEnumValue('poDefaultPosOnly', 'Windows default position, designed size')]
+    [YamlEnumValue('poDefaultSizeOnly', 'Windows default size, designed position')]
+    [YamlEnumValue('poScreenCenter', 'Centered on the screen')]
+    [YamlEnumValue('poDesktopCenter', 'Centered on the desktop work area')]
+    [YamlEnumValue('poMainFormCenter', 'Centered on the main form')]
+    [YamlEnumValue('poOwnerFormCenter', 'Centered on the owner form')]
     property Position: string read FPosition;
 
     [YamlSubNode('BorderIcons', TKDesktopBorderIconsConfig, 'Window border icons (system menu, minimize, maximize, help)')]

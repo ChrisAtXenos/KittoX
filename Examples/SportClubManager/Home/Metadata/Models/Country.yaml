@@ -1,0 +1,46 @@
+﻿ModelName: Country
+PhysicalName: NAZIONI
+IsLarge: True
+PluralDisplayLabel: _(Countries)
+DisplayLabel: _(Country)
+PluralModelName: Countries
+Fields:
+  Id: String(2) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(ISO 2 Code)
+    DisplayWidth: 13
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 30
+  Abbreviation: String(5) not null
+    PhysicalName: SIGLA
+    DisplayLabel: _(ISO 3 Code)
+    DisplayWidth: 13
+  Language: Reference(Language)
+    PhysicalName: FK_NAZIONI_LINGUA
+    Fields:
+      LanguageId:
+        PhysicalName: LINGUAID
+    IsVisible: False
+  EuMember: Boolean
+    PhysicalName: FLCEE
+    DisplayLabel: _(EU member)
+    DisplayWidth: 10
+  IstatCode: String(3) not null
+    PhysicalName: CODICEISTAT
+    DisplayLabel: _(ISTAT Code)
+    DisplayWidth: 15
+  AtCode: String(4) not null
+    PhysicalName: CODICEAT
+    DisplayLabel: _(AT Code)
+    DisplayWidth: 10
+  Continent: String(20) not null
+    PhysicalName: CONTINENTE
+    DisplayLabel: _(Continent)
+    DisplayWidth: 10
+  AreaCode: String(3) not null
+    PhysicalName: CODICEAREA
+    DisplayLabel: _(Area Code)
+    DisplayWidth: 13
+ImageName: flag

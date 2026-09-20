@@ -65,7 +65,19 @@ type
     function GetMaximized: Boolean;
     function GetWidth: Integer;
     function GetHeight: Integer;
+    function GetSplit: Boolean;
+    function GetFrame: Boolean;
     function BuildStyleAttr: string;
+    function GetNorthView: string;
+    function GetSouthView: string;
+    function GetEastView: string;
+    function GetWestView: string;
+    function GetCenterView: string;
+    function GetNorthController: string;
+    function GetSouthController: string;
+    function GetEastController: string;
+    function GetWestController: string;
+    function GetCenterController: string;
   strict protected
     function GetDefaultIsModal: Boolean; virtual;
     function GetDefaultWidth: Integer; virtual;
@@ -96,6 +108,14 @@ type
     ///  center content unchanged. Uses the same CSS grid layout as BorderPanel.
     /// </summary>
     function RenderWithRegions(const ACenterHtml: string): string; virtual;
+
+    /// <summary>
+    ///  Hook handed to RenderNamedRegion for every region this panel renders.
+    ///  nil by default (region controllers display and render themselves); a
+    ///  host that owns its region controllers (TKXDataPanelCompositeController)
+    ///  returns one to attach them to its data context and render them bare.
+    /// </summary>
+    function GetRegionRenderHook: TKXRegionRenderHook; virtual;
   public
     /// <summary>Prepares the panel for rendering (reads config, applies context).</summary>
     procedure Display; override;
@@ -107,24 +127,53 @@ type
     property Width: Integer read GetWidth write FWidth;
     [YamlNode('Height', 'Panel height in pixels (0 = auto)')]
     property Height: Integer read GetHeight write FHeight;
-    [YamlNode('IsModal', 'True', 'Show as dialog overlay (True for forms, False for lists)')]
+    [YamlNode('IsModal', 'False', 'Show as dialog overlay (True for forms, False for lists)')]
     property IsModal: Boolean read GetIsModal write FIsModal;
-    [YamlNode('Maximized', 'True', 'Dialog fills the entire viewport (default True on mobile)')]
+    [YamlNode('Maximized', 'False', 'Dialog fills the entire viewport (default True on mobile)')]
     property Maximized: Boolean read GetMaximized write FMaximized;
-    [YamlNode('AllowClose', 'False', 'Show close button in dialog and Close button in forms')]
+    [YamlNode('AllowClose', 'True', 'Show close button in dialog and Close button in forms')]
     property AllowClose: Boolean read FAllowClose write FAllowClose;
-    [YamlNode('Autoscroll', 'True', 'Enable scrollbars when content overflows')]
+    [YamlNode('Autoscroll', 'False', 'Enable scrollbars when content overflows')]
     property Autoscroll: Boolean read FAutoscroll write FAutoscroll;
-    [YamlNode('Resizable', 'False', 'Allow dialog resizing (when IsModal is True)')]
+    [YamlNode('Resizable', 'True', 'Allow dialog resizing (when IsModal is True)')]
     property Resizable: Boolean read FResizable write FResizable;
-    [YamlNode('Border', 'True', 'Show panel border')]
+    [YamlNode('Border', 'False', 'Show panel border')]
     property Border: Boolean read FBorder write FBorder;
-    [YamlNode('Header', 'True', 'Show panel header bar')]
+    [YamlNode('Header', 'False', 'Show panel header bar')]
     property Header: Boolean read FHeader write FHeader;
-    [YamlNode('Collapsible', 'True', 'Allow panel to be collapsed')]
+    [YamlNode('Collapsible', 'False', 'Allow panel to be collapsed')]
     property Collapsible: Boolean read FCollapsible write FCollapsible;
-    [YamlNode('Collapsed', 'True', 'Panel starts in collapsed state')]
+    [YamlNode('Collapsed', 'False', 'Panel starts in collapsed state')]
     property Collapsed: Boolean read FCollapsed write FCollapsed;
+    [YamlNode('Split', 'False', 'Show a draggable splitter between this region and the center (border layout)')]
+    property Split: Boolean read GetSplit;
+    [YamlNode('Frame', 'False', 'Draw a framed border around the panel')]
+    property Frame: Boolean read GetFrame;
+
+    // Border-layout regions. Each *View node is a view (a name reference or an
+    // inline view definition); each *Controller node is a nested controller
+    // whose own type is carried in the node value (the validator descends into
+    // it and resolves it to its own runtime controller class).
+    [YamlViewNode('NorthView', 'North region view (a view name or an inline view definition)')]
+    property NorthView: string read GetNorthView;
+    [YamlViewNode('SouthView', 'South region view (a view name or an inline view definition)')]
+    property SouthView: string read GetSouthView;
+    [YamlViewNode('EastView', 'East region view (a view name or an inline view definition)')]
+    property EastView: string read GetEastView;
+    [YamlViewNode('WestView', 'West region view (a view name or an inline view definition)')]
+    property WestView: string read GetWestView;
+    [YamlViewNode('CenterView', 'Center region view (a view name or an inline view definition)')]
+    property CenterView: string read GetCenterView;
+    [YamlNode('NorthController', 'North region controller (a nested controller; type in its value)')]
+    property NorthController: string read GetNorthController;
+    [YamlNode('SouthController', 'South region controller (a nested controller; type in its value)')]
+    property SouthController: string read GetSouthController;
+    [YamlNode('EastController', 'East region controller (a nested controller; type in its value)')]
+    property EastController: string read GetEastController;
+    [YamlNode('WestController', 'West region controller (a nested controller; type in its value)')]
+    property WestController: string read GetWestController;
+    [YamlNode('CenterController', 'Center region controller (a nested controller; type in its value)')]
+    property CenterController: string read GetCenterController;
   end;
 
 implementation
@@ -172,6 +221,16 @@ begin
     Result := FHeight;
 end;
 
+function TKXPanelControllerBase.GetSplit: Boolean;
+begin
+  Result := Config.GetBoolean('Split', False);
+end;
+
+function TKXPanelControllerBase.GetFrame: Boolean;
+begin
+  Result := Config.GetBoolean('Frame', False);
+end;
+
 function TKXPanelControllerBase.GetDefaultWidth: Integer;
 begin
   Result := TKWebApplication.Current.Config.Config.GetInteger(
@@ -187,6 +246,56 @@ end;
 function TKXPanelControllerBase.GetPanelCssClass: string;
 begin
   Result := '';
+end;
+
+function TKXPanelControllerBase.GetNorthView: string;
+begin
+  Result := Config.GetString('NorthView');
+end;
+
+function TKXPanelControllerBase.GetSouthView: string;
+begin
+  Result := Config.GetString('SouthView');
+end;
+
+function TKXPanelControllerBase.GetEastView: string;
+begin
+  Result := Config.GetString('EastView');
+end;
+
+function TKXPanelControllerBase.GetWestView: string;
+begin
+  Result := Config.GetString('WestView');
+end;
+
+function TKXPanelControllerBase.GetCenterView: string;
+begin
+  Result := Config.GetString('CenterView');
+end;
+
+function TKXPanelControllerBase.GetNorthController: string;
+begin
+  Result := Config.GetString('NorthController');
+end;
+
+function TKXPanelControllerBase.GetSouthController: string;
+begin
+  Result := Config.GetString('SouthController');
+end;
+
+function TKXPanelControllerBase.GetEastController: string;
+begin
+  Result := Config.GetString('EastController');
+end;
+
+function TKXPanelControllerBase.GetWestController: string;
+begin
+  Result := Config.GetString('WestController');
+end;
+
+function TKXPanelControllerBase.GetCenterController: string;
+begin
+  Result := Config.GetString('CenterController');
 end;
 
 procedure TKXPanelControllerBase.Display;
@@ -242,10 +351,16 @@ begin
     Result := ' style="' + Result + '"';
 end;
 
+function TKXPanelControllerBase.GetRegionRenderHook: TKXRegionRenderHook;
+begin
+  Result := nil;
+end;
+
 function TKXPanelControllerBase.RenderWithRegions(const ACenterHtml: string): string;
 var
   LNorthHtml, LWestHtml, LEastHtml, LSouthHtml: string;
   LHasRegions: Boolean;
+  LHook: TKXRegionRenderHook;
 begin
   // Dialog panels (Form, etc.) never render regions è the Config may contain
   // region nodes inherited from the parent List view which are not relevant.
@@ -263,10 +378,11 @@ begin
     Exit(ACenterHtml);
 
   // Render each region using the standalone functions from Kitto.Html.BorderPanel
-  LNorthHtml := RenderNamedRegion(Config, View, 'North', 'kx-region-north');
-  LWestHtml := RenderNamedRegion(Config, View, 'West', 'kx-region-west');
-  LEastHtml := RenderNamedRegion(Config, View, 'East', 'kx-region-east');
-  LSouthHtml := RenderNamedRegion(Config, View, 'South', 'kx-region-south');
+  LHook := GetRegionRenderHook();
+  LNorthHtml := RenderNamedRegion(Config, View, 'North', 'kx-region-north', False, LHook);
+  LWestHtml := RenderNamedRegion(Config, View, 'West', 'kx-region-west', False, LHook);
+  LEastHtml := RenderNamedRegion(Config, View, 'East', 'kx-region-east', False, LHook);
+  LSouthHtml := RenderNamedRegion(Config, View, 'South', 'kx-region-south', False, LHook);
 
   // Wrap with border panel layout: the center content is the panel's own content
   Result := Format(

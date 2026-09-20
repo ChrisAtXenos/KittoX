@@ -1,0 +1,23 @@
+Type: Data
+IsLookup: True
+Controller: List
+  Width: 900
+  Height: 600
+  Filters:
+    DisplayLabel: _(Search Instalment)
+    Items:
+      FreeSearch: _(Description)
+        ExpressionTemplate: >
+          upper(RATE_ISCRIZIONI.DX) like upper('%{value}%')
+MainTable:
+  Model: SubscriptionInstalment
+  Fields:
+    Id:
+      IsVisible: False
+    InstalmentDescription:
+      IsVisible: True
+      DisplayLabel: _(Description)
+    Amount:
+      DisplayLabel: _(Amount)
+  Controller:
+    AutoOpen: True

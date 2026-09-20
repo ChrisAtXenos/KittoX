@@ -29,6 +29,7 @@ interface
 uses
   System.SysUtils,
   System.Classes,
+  System.SyncObjs,
   System.DateUtils,
   System.Generics.Collections,
   System.JSON,
@@ -82,6 +83,10 @@ type
     Jti: string;
     IssuedAt: TDateTime;
     Expiration: TDateTime;
+    /// Session start (jti's original login time). Fixed at login and carried
+    /// unchanged across every slide, so the absolute session cap measures from
+    /// the original login rather than from the last renewal.
+    SessionStart: TDateTime;
     NotBefore: TDateTime;
     Issuer: string;
     Audience: string;
@@ -164,6 +169,7 @@ type
     FAudience: string;
     FTokenLifetimeSeconds: Integer;
     FSlidingThresholdSeconds: Integer;
+    FMaxSessionLifetimeSeconds: Integer;
     FClockSkewSeconds: Integer;
     FCookieName: string;
     FCookiePath: string;
@@ -196,6 +202,10 @@ type
     property TokenLifetimeSeconds: Integer read FTokenLifetimeSeconds;
     /// <summary>Remaining-lifetime threshold (seconds) below which the cookie is slid/refreshed.</summary>
     property SlidingThresholdSeconds: Integer read FSlidingThresholdSeconds;
+    /// <summary>Absolute cap (seconds) on the total session length: past this,
+    /// sliding stops renewing the token and a fresh login is required. 0 = no
+    /// cap. Default DEFAULT_MAX_SESSION_LIFETIME (12h).</summary>
+    property MaxSessionLifetimeSeconds: Integer read FMaxSessionLifetimeSeconds;
     /// <summary>Allowed clock skew (seconds) when validating exp/nbf.</summary>
     property ClockSkewSeconds: Integer read FClockSkewSeconds;
     /// <summary>Name of the cookie carrying the token (default 'kx_token').</summary>
@@ -260,6 +270,39 @@ type
     /// <summary>True if the token is close enough to expiry that the cookie should be re-issued (slid).</summary>
     class function ShouldSlide(const AContext: TKJWTContext;
       const AConfig: TKJWTConfig): Boolean;
+    /// <summary>True when the absolute session cap is configured (>0) and the
+    /// time since SessionStart has reached it: the token must no longer be slid,
+    /// and is refused, so a fresh login is required.</summary>
+    class function IsSessionCapReached(const AContext: TKJWTContext;
+      const AConfig: TKJWTConfig): Boolean;
+  end;
+
+  /// <summary>
+  ///  Process-wide denylist of revoked token ids (jti). Logout and password
+  ///  change add the current token's jti; the validator refuses a token whose
+  ///  jti is listed. Each entry carries the token's own expiry and is purged
+  ///  lazily, so the list never grows past the set of still-valid revoked
+  ///  tokens. v1 is single-instance: the list lives in this process only, so
+  ///  behind a load balancer a revocation does not propagate to other nodes.
+  /// </summary>
+  TKJWTRevocation = class
+  strict private
+    class var FInstance: TKJWTRevocation;
+    FLock: TCriticalSection;
+    FRevoked: TDictionary<string, TDateTime>;
+    procedure PurgeExpired;
+  public
+    class constructor Create;
+    class destructor Destroy;
+    /// <summary>The process-wide singleton.</summary>
+    class function Instance: TKJWTRevocation;
+    constructor Create;
+    destructor Destroy; override;
+    /// <summary>Revokes AJti until AExpiry (the token's own exp), after which the
+    /// entry is dropped because a token that old would be rejected anyway.</summary>
+    procedure Revoke(const AJti: string; const AExpiry: TDateTime);
+    /// <summary>True if AJti is currently revoked (and not yet past its expiry).</summary>
+    function IsRevoked(const AJti: string): Boolean;
   end;
 
 /// <summary>Maps an algorithm name (e.g. 'HS256') to its TJOSEAlgorithmId.</summary>
@@ -299,6 +342,9 @@ uses
 const
   DEFAULT_TOKEN_LIFETIME = 3600;
   DEFAULT_SLIDING_THRESHOLD = 600;
+  // Absolute cap on the total session length: past this, sliding no longer
+  // renews the token and a fresh login is required. 12 hours by default.
+  DEFAULT_MAX_SESSION_LIFETIME = 43200;
   DEFAULT_CLOCK_SKEW = 60;
   // Single definition, in the unit that declares the Auth/JWT/Cookie schema:
   // the web engine defaults to the same name when it reads the cookie back.
@@ -310,6 +356,7 @@ const
   CLAIM_ROLES = 'roles';
   CLAIM_LANG = 'lang';
   CLAIM_ACL = 'kx_acl';
+  CLAIM_SST = 'sst';
 
 { Helpers — declared at the top so they are visible to all class methods below. }
 
@@ -334,6 +381,68 @@ function IsSymmetricAlgorithm(const A: TJOSEAlgorithmId): Boolean;
 begin
   Result := A in [TJOSEAlgorithmId.HS256, TJOSEAlgorithmId.HS384, TJOSEAlgorithmId.HS512];
 end;
+
+{$IFDEF KITTOX_PREVIEW_MODE}
+// ---- Preview-mode fallback (KIDEX only) -------------------------------------
+// Compiled ONLY under KITTOX_PREVIEW_MODE, a define set exclusively by KIDEX and
+// never by an application build. It exists so the design-time live preview can
+// run an app whose real JWT signing key is provided by app code that KIDEX does
+// not link (a TKJWTSigningKeyRegistry provider in the app's UseKitto.pas) or by
+// an environment variable not set on the design machine. In that case, instead
+// of refusing to start, the preview signs its own throwaway session tokens with
+// an in-process ephemeral key. NEVER a security shortcut for a real deployment:
+// the code is simply absent there.
+var
+  GPreviewEphemeralKey: TBytes;
+
+function PreviewEphemeralKey: TBytes;
+var
+  I: Integer;
+begin
+  if Length(GPreviewEphemeralKey) = 0 then
+  begin
+    Randomize;
+    SetLength(GPreviewEphemeralKey, 32);
+    for I := 0 to High(GPreviewEphemeralKey) do
+      GPreviewEphemeralKey[I] := Byte(Random(256));
+    TEFLogger.Instance.Log('[PREVIEW MODE] JWT signing key not resolvable ' +
+      '(app-provided key/provider not linked into KIDEX); using an ephemeral ' +
+      'in-process key for the preview session.');
+  end;
+  Result := GPreviewEphemeralKey;
+end;
+
+function ResolvePreviewKey(const ASpec: string): TBytes;
+var
+  LSpec: string;
+begin
+  // Resolve the real spec WITHOUT raising, then fall back to the process-stable
+  // ephemeral key. We check that the source is actually available before reading
+  // it (instead of catching EKJWTError) precisely so the debugger is NOT stopped
+  // by a first-chance exception on every token issue -- that noise buries the
+  // real exceptions one is trying to find while debugging the preview.
+  Result := nil;
+  LSpec := Trim(ASpec);
+  if LSpec = '' then
+    // no spec configured -> ephemeral
+  else if StartsText('env:', LSpec) then
+  begin
+    // read it only if the variable is set (ResolveKeySpec would raise otherwise)
+    if GetEnvironmentVariable(Copy(LSpec, 5, MaxInt)) <> '' then
+      Result := ResolveKeySpec(LSpec);
+  end
+  else if StartsText('file:', LSpec) then
+  begin
+    if TFile.Exists(Copy(LSpec, 6, MaxInt)) then
+      Result := ResolveKeySpec(LSpec);
+  end
+  else
+    // inline literal -- ResolveKeySpec never raises for this
+    Result := ResolveKeySpec(LSpec);
+  if Length(Result) = 0 then
+    Result := PreviewEphemeralKey;
+end;
+{$ENDIF}
 
 function ResolveKeySpec(const ASpec: string): TBytes;
 var
@@ -531,6 +640,7 @@ begin
   Jti := '';
   IssuedAt := 0;
   Expiration := 0;
+  SessionStart := 0;
   NotBefore := 0;
   Issuer := '';
   Audience := '';
@@ -657,6 +767,7 @@ begin
   FAudience := FAuthNode.GetString('Audience', 'kx-app');
   FTokenLifetimeSeconds := FAuthNode.GetInteger('TokenLifetime', DEFAULT_TOKEN_LIFETIME);
   FSlidingThresholdSeconds := FAuthNode.GetInteger('SlidingThreshold', DEFAULT_SLIDING_THRESHOLD);
+  FMaxSessionLifetimeSeconds := FAuthNode.GetInteger('MaxSessionLifetime', DEFAULT_MAX_SESSION_LIFETIME);
   FClockSkewSeconds := FAuthNode.GetInteger('ClockSkew', DEFAULT_CLOCK_SKEW);
 
   FCookieName := FAuthNode.GetString('Cookie/Name', DEFAULT_COOKIE_NAME);
@@ -710,6 +821,11 @@ begin
   end
   else
   begin
+{$IFDEF KITTOX_PREVIEW_MODE}
+    // Preview (KIDEX): never refuse to start for a missing key — sign the
+    // preview's own throwaway tokens with an ephemeral in-process key.
+    LBytes := ResolvePreviewKey(FKeySpec);
+{$ELSE}
     if FKeySpec = '' then
       raise EKJWTError.Create(
         'JWT signing key not configured. Set Auth/JWT/SigningKey in YAML (env: file: or inline)' +
@@ -717,6 +833,7 @@ begin
     LBytes := ResolveKeySpec(FKeySpec);
     if Length(LBytes) = 0 then
       raise EKJWTError.Create('JWT signing key resolved to empty bytes');
+{$ENDIF}
     FResolvedKey.Algorithm := FAlgorithm;
     FResolvedKey.PrivateKey := LBytes;
     if not IsSymmetricAlgorithm(FAlgorithm) then
@@ -769,6 +886,17 @@ begin
     LBuilder := LBuilder.SetJWTId(AContext.Jti)
   else
     LBuilder := LBuilder.SetJWTId(CreateCompactGuidStr);
+
+  // Session start: set once at login (SessionStart = 0 in the context) and then
+  // echoed back by every slide (which passes the validated context, whose
+  // SessionStart was read from the previous token). This is what the absolute
+  // cap measures against, unlike iat/nbf which each slide moves forward.
+  if AContext.SessionStart > 0 then
+    LBuilder := LBuilder.SetCustomClaim(CLAIM_SST,
+      IntToStr(DateTimeToUnix(AContext.SessionStart, False)))
+  else
+    LBuilder := LBuilder.SetCustomClaim(CLAIM_SST,
+      IntToStr(DateTimeToUnix(LNow, False)));
 
   if AContext.Sid <> '' then
     LBuilder := LBuilder.SetCustomClaim(CLAIM_SID, AContext.Sid);
@@ -843,7 +971,18 @@ begin
     LConsumer := TJOSEConsumerBuilder.NewConsumer
       .SetClaimsClass(TJWTClaims)
       .SetVerificationKey(LVerifyKey)
-      .SetSkipVerificationKeyValidation
+      // Pin the algorithm to the configured one. Without this the accepted set
+      // is the library's default (every HS*/RS*/ES*/PS*), and the algorithm is
+      // taken from the token's OWN header: an app configured for RS* holds a
+      // PUBLIC key, which is public by definition, and an attacker can send an
+      // HS256 token HMAC-signed with that public key's bytes — the verifier
+      // then computes HMAC with the same bytes and finds it valid, forging any
+      // identity. Restricting to the single configured algorithm closes the
+      // classic RS256->HS256 key-confusion swap. Removed SetSkipVerificationKeyValidation
+      // for the same reason: it also disabled the library's PEM-as-HMAC-secret
+      // guard. The producer (TKJWTBuilder) validates the key when signing, so
+      // any key that can currently issue a token still verifies.
+      .SetExpectedAlgorithms([AConfig.Algorithm])
       .SetExpectedIssuer(True, AConfig.Issuer)
       .SetExpectedAudience(True, [AConfig.Audience])
       .SetRequireExpirationTime
@@ -867,6 +1006,12 @@ begin
 
       if Assigned(LClaims.JSON) then
       begin
+        // Session start: fall back to iat for tokens minted before this claim
+        // existed, so an old token still gets a sensible cap origin.
+        if LClaims.JSON.TryGetValue<string>(CLAIM_SST, LStr) then
+          AContext.SessionStart := UnixToDateTime(StrToInt64Def(LStr, 0), False)
+        else
+          AContext.SessionStart := AContext.IssuedAt;
         if LClaims.JSON.TryGetValue<string>(CLAIM_SID, LStr) then
           AContext.Sid := LStr;
         if LClaims.JSON.TryGetValue<string>(CLAIM_NAME, LStr) then
@@ -945,7 +1090,93 @@ class function TKJWTCookieHelper.ShouldSlide(const AContext: TKJWTContext;
   const AConfig: TKJWTConfig): Boolean;
 begin
   Result := AContext.IsValid and
-    (SecondsBetween(AContext.Expiration, Now) < AConfig.SlidingThresholdSeconds);
+    (SecondsBetween(AContext.Expiration, Now) < AConfig.SlidingThresholdSeconds) and
+    // Do not renew once the absolute cap is reached: let the token expire so a
+    // fresh login is required.
+    not IsSessionCapReached(AContext, AConfig);
+end;
+
+class function TKJWTCookieHelper.IsSessionCapReached(const AContext: TKJWTContext;
+  const AConfig: TKJWTConfig): Boolean;
+begin
+  Result := (AConfig.MaxSessionLifetimeSeconds > 0)
+    and (AContext.SessionStart > 0)
+    and (SecondsBetween(Now, AContext.SessionStart) >= AConfig.MaxSessionLifetimeSeconds);
+end;
+
+{ TKJWTRevocation }
+
+class constructor TKJWTRevocation.Create;
+begin
+  FInstance := TKJWTRevocation.Create;
+end;
+
+class destructor TKJWTRevocation.Destroy;
+begin
+  FreeAndNil(FInstance);
+end;
+
+class function TKJWTRevocation.Instance: TKJWTRevocation;
+begin
+  Result := FInstance;
+end;
+
+constructor TKJWTRevocation.Create;
+begin
+  inherited Create;
+  FLock := TCriticalSection.Create;
+  FRevoked := TDictionary<string, TDateTime>.Create;
+end;
+
+destructor TKJWTRevocation.Destroy;
+begin
+  FRevoked.Free;
+  FLock.Free;
+  inherited;
+end;
+
+procedure TKJWTRevocation.PurgeExpired;
+var
+  LNow: TDateTime;
+  LPair: TPair<string, TDateTime>;
+  LDead: TArray<string>;
+  LJti: string;
+begin
+  // Caller holds the lock. Drop entries whose token would already be refused on
+  // expiry, so the list stays bounded by the live revoked tokens.
+  LNow := Now;
+  LDead := nil;
+  for LPair in FRevoked do
+    if LPair.Value <= LNow then
+      LDead := LDead + [LPair.Key];
+  for LJti in LDead do
+    FRevoked.Remove(LJti);
+end;
+
+procedure TKJWTRevocation.Revoke(const AJti: string; const AExpiry: TDateTime);
+begin
+  if AJti = '' then
+    Exit;
+  FLock.Enter;
+  try
+    PurgeExpired;
+    FRevoked.AddOrSetValue(AJti, AExpiry);
+  finally
+    FLock.Leave;
+  end;
+end;
+
+function TKJWTRevocation.IsRevoked(const AJti: string): Boolean;
+begin
+  if AJti = '' then
+    Exit(False);
+  FLock.Enter;
+  try
+    PurgeExpired;
+    Result := FRevoked.ContainsKey(AJti);
+  finally
+    FLock.Leave;
+  end;
 end;
 
 end.

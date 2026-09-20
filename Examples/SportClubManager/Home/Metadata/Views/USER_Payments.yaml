@@ -1,0 +1,32 @@
+﻿DisplayLabel: _(Enter payment)
+Type: Data
+Controller: Form
+  Operation: Add
+  #FilterExpression: {Q}CODFISC = '%Auth:USER_NAME%'
+  #HideLabels: True
+  CloneButton:
+    Hidden: True
+  KeepOpenAfterOperation: False
+MainTable:
+  Model: Payment
+  IsLarge: False
+  Rules:
+    EnterPayment:
+  Controller:
+    AllowDuplicating: False
+    AllowEdit: False
+    AllowDelete: False
+    Form:
+      Layout: USER_PaymentSummary_Form
+  DetailTables:
+    Controller:
+      Style: Bottom
+        Height: 400
+    Table:
+      Model: PaymentDetail
+      Controller:
+        Add: _(Add payment)
+        Form:
+          Layout: USER_PaymentDetails_Form
+        Grid:
+          Layout: USER_PaymentDetails_Grid

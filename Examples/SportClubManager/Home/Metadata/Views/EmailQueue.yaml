@@ -1,0 +1,28 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search in E-mail Queue)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (CODA_EMAIL.EMAIL_FROM like '%{value}%') or (CODA_EMAIL.EMAIL_TO like '%{value}%') or (CODA_EMAIL.EMAIL_CC like '%{value}%') or (CODA_EMAIL.EMAIL_BCC like '%{value}%') or (CODA_EMAIL.EMAIL_SUBJECT like '%{value}%') or (CODA_EMAIL.EMAIL_BODY like '%{value}%') or (CODA_EMAIL.EMAIL_ATTACH like '%{value}%') or (CODA_EMAIL.TABELLA_ORIGINE like '%{value}%') or (CODA_EMAIL.OGGETTO_ORIGINE like '%{value}%')
+      ButtonList: _(Sending)
+        Items:
+          NO: _(Not Sent)
+            Expression: {Q}DATA_ORA_TRASMISSIONE IS NULL
+            IsDefault: True
+          SI: _(Sent)
+            Expression: {Q}DATA_ORA_TRASMISSIONE IS NOT NULL
+      ColumnBreak:
+      DynaList: _(E-mail type)
+        Width: 50
+        CommandText: SELECT ID, DX FROM TESTI_EMAIL
+        ExpressionTemplate: {Q}TESTO_EMAILID = '{value}'
+        AutoCompleteMinChars: 3
+MainTable:
+  Model: EmailQueue
+  Controller:
+    AllowViewing: True
+    PreventAdding: True
+    PopupWindow:
+      Width: 800
+      Height: 650

@@ -1,0 +1,53 @@
+﻿FieldSet:
+  Title: _(Parent)
+  Row:
+    Field: Person
+  Row:
+    Field: LastName
+    Field: FirstName
+  Row:
+    Field: TaxCode
+  Row:
+    Field: Address
+    Field: PostalCode
+    Field: Municipality
+    Field: ProvinceId
+    Field: Province
+  Row:
+    Field: DeductionPercent
+FieldSet:
+  Title: _(Subscriber)
+  Row:
+    Field: SubscriberLastName
+    Field: SubscriberFirstName
+  Row:
+    Field: SubscriberBirthDate
+    Field: SubscriberBirthMunicipality
+    Field: SubscriberBirthProvinceId
+    Field: SubscriberBirthProvince
+  Row:
+    Field: SubscriberTaxCode
+FieldSet:
+  Title: _(Data)
+  Row:
+    Field: PaymentMethod
+    Field: PaidAmount
+    Field: AmountPercent
+  Row:
+    Field: Number
+    Field: Year
+    Field: PaymentDate
+  Row:
+    Field: CampaignDescription
+  Row:
+    Field: PrintDate
+FieldSet:
+  Title: _(Chairperson)
+  Row:
+    Field: PresidentLastName
+    Field: PresidentFirstName
+FieldSet:
+  Title: _(Document)
+  Row:
+    Field: DocumentFile
+LabelAlign: Right

@@ -1,0 +1,30 @@
+﻿ModelName: Region
+PhysicalName: REGIONI
+DefaultSorting: {Q}ID
+PluralDisplayLabel: _(Regions)
+DisplayLabel: _(Region)
+PluralModelName: Regions
+Fields:
+  Id: String(2) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Region)
+    DisplayWidth: 40
+  GeographicArea: String(1)
+    DisplayLabel: _(Geographic Area)
+    PhysicalName: AREAGEOID
+    DisplayWidth: 15
+    AllowedValues:
+      N: _(North)
+      C: _(Central)
+      S: _(South)
+      E: _(Abroad)
+DetailReferences:
+  Provinces: Province
+    DisplayLabel: _(Provinces)
+    PhysicalName: DT_PROVINCE_REGIONE
+    ReferenceField: Region
+ImageName: panorama

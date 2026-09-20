@@ -37,11 +37,14 @@ type
   TKXStatusBarController = class(TKXComponent, IKXController)
   strict private
     function GetText: string;
+    function GetImageName: string;
   public
     /// <summary>Renders the status bar with its text.</summary>
     function Render: string; override;
     [YamlNode('Text', 'Ready', 'Status bar text')]
     property Text: string read GetText;
+    [YamlNode('ImageName', 'Icon shown at the left of the status bar (falls back to the view''s ImageName)')]
+    property ImageName: string read GetImageName;
   end;
 
 implementation
@@ -58,6 +61,11 @@ uses
 function TKXStatusBarController.GetText: string;
 begin
   Result := Config.GetExpandedString('Text', 'Ready');
+end;
+
+function TKXStatusBarController.GetImageName: string;
+begin
+  Result := Config.GetString('ImageName', '');
 end;
 
 function TKXStatusBarController.Render: string;

@@ -1,0 +1,12 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Regions)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (REGIONI.CLASS like '%{value}%') or (REGIONI.ID like '%{value}%') or (REGIONI.DX like '%{value}%')
+MainTable:
+  Model: Region
+  DetailTables:
+    Table:
+      Model: Province

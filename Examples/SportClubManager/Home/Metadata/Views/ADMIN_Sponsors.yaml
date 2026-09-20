@@ -1,0 +1,27 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Sponsors)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (SPONSORS.DX like '%{value}%') or (SPONSORS.CODICE_FISCALE like '%{value}%') or (SPONSORS.PARTITA_IVA like '%{value}%')
+  EastController: Form
+    Width: 600
+    Split: True
+MainTable:
+  Model: Sponsor
+  Controller:
+    PopUpWindow:
+      Width: 1100
+      Height: 620
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_Sponsors_Form
+    Grid:
+      Layout: ADMIN_Sponsors_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Excel export)
+        Controller: SCMExcelExport
+          ClientFileName: Sponsors.xlsx
+          RequireSelection: False

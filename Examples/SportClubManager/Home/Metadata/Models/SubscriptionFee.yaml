@@ -1,0 +1,170 @@
+﻿ModelName: SubscriptionFee
+PhysicalName: QUOTE_ISCRIZIONI
+DefaultSorting: {Q}CAMPAGNAID, {Q}DX
+DisplayLabel: _(Subscription group/fee)
+PluralDisplayLabel: _(Subscription fees)
+PluralModelName: SubscriptionFees
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 40
+  Campaign: Reference(SubscriptionCampaign) not null
+    PhysicalName: FK_ISCRIZIONI_CAMPAGNA
+    DisplayLabel: _(Subscription campaign)
+    DisplayWidth: 40
+    Fields:
+      CampaignId:
+        PhysicalName: CAMPAGNAID
+  BirthYearFrom: Integer
+    PhysicalName: ANNO_DAL
+    UseSpeedButtons: True
+    DisplayLabel: _(Birth year (from))
+    DisplayWidth: 6
+    DisplayFormat: 0
+    EditFormat: 0
+    NotifyChange: True
+    Rules:
+      LowerOrEqualThan: BirthYearTo
+  BirthYearTo: Integer
+    PhysicalName: ANNO_AL
+    UseSpeedButtons: True
+    DisplayLabel: _(Birth year (to))
+    DisplayWidth: 6
+    DisplayFormat: 0
+    EditFormat: 0
+    NotifyChange: True
+    Rules:
+      GreaterOrEqualThan: BirthYearFrom
+  Instalment1DueDate: Date
+    PhysicalName: DATASCADENZA1
+    DisplayLabel: _(Instalment 1 due date)
+    DisplayWidth: 12
+  Instalment1Amount: Currency
+    PhysicalName: QUOTA1
+    DisplayLabel: _(Instalment 1 amount)
+    DisplayWidth: 10
+    Rules:
+      SubscriptionFeeSetInstalment:
+    DefaultValue: 0
+  Instalment2DueDate: Date
+    PhysicalName: DATASCADENZA2
+    DisplayLabel: _(Instalment 2 due date)
+    DisplayWidth: 12
+  Instalment2Amount: Currency
+    PhysicalName: QUOTA2
+    DisplayLabel: _(Instalment 2 amount)
+    DisplayWidth: 10
+    DefaultValue: 0
+    Rules:
+      SubscriptionFeeSetInstalment:
+  Instalment3DueDate: Date
+    PhysicalName: DATASCADENZA3
+    DisplayLabel: _(Instalment 3 due date)
+    DisplayWidth: 12
+  Instalment3Amount: Currency
+    PhysicalName: QUOTA3
+    DisplayLabel: _(Instalment 3 amount)
+    DisplayWidth: 10
+    DefaultValue: 0
+    Rules:
+      SubscriptionFeeSetInstalment:
+  Instalment4DueDate: Date
+    PhysicalName: DATASCADENZA4
+    DisplayLabel: _(Instalment 4 due date)
+    DisplayWidth: 12
+  Instalment4Amount: Currency
+    PhysicalName: QUOTA4
+    DisplayLabel: _(Instalment 4 amount)
+    DisplayWidth: 10
+    DefaultValue: 0
+    Rules:
+      SubscriptionFeeSetInstalment:
+  Instalment5DueDate: Date
+    PhysicalName: DATASCADENZA5
+    DisplayLabel: _(Instalment 5 due date)
+    DisplayWidth: 12
+  Instalment5Amount: Currency
+    PhysicalName: QUOTA5
+    DisplayLabel: _(Instalment 5 amount)
+    DisplayWidth: 10
+    DefaultValue: 0
+    Rules:
+      SubscriptionFeeSetInstalment:
+  TotalFee: Currency
+    PhysicalName: TOTALE_QUOTA
+    DisplayLabel: _(Total fee)
+    DisplayWidth: 10
+    IsReadOnly: True
+    DefaultValue: 0
+  Day1: Reference(Day)
+    DisplayLabel: _(Day 1)
+    PhysicalName: QUOTA_ISCRIZIONI_GIORNO1
+    Fields:
+      Day1Id:
+        PhysicalName: GIORNO1ID
+  StartTime1: Time
+    PhysicalName: ORA_INIZIO1
+    DisplayLabel: _(Start time 1)
+    DisplayWidth: 8
+    Rules:
+      LowerThan: EndTime1
+  EndTime1: Time
+    PhysicalName: ORA_FINE1
+    DisplayLabel: _(End time 1)
+    DisplayWidth: 8
+    Rules:
+      GreaterThan: StartTime1
+  Day2: Reference(Day)
+    DisplayLabel: _(Day 2)
+    PhysicalName: QUOTA_ISCRIZIONI_GIORNO2
+    Fields:
+      Day2Id:
+        PhysicalName: GIORNO2ID
+  StartTime2: Time
+    PhysicalName: ORA_INIZIO2
+    DisplayLabel: _(Start time 2)
+    DisplayWidth: 8
+    Rules:
+      LowerThan: EndTime2
+  EndTime2: Time
+    PhysicalName: ORA_FINE2
+    DisplayLabel: _(End time 2)
+    DisplayWidth: 8
+    Rules:
+      GreaterThan: StartTime2
+  Day3: Reference(Day)
+    DisplayLabel: _(Day 3)
+    PhysicalName: QUOTA_ISCRIZIONI_GIORNO3
+    Fields:
+      Day3Id:
+        PhysicalName: GIORNO3ID
+  StartTime3: Time
+    PhysicalName: ORA_INIZIO3
+    DisplayLabel: _(Start time 3)
+    DisplayWidth: 8
+    Rules:
+      LowerThan: EndTime3
+  EndTime3: Time
+    PhysicalName: ORA_FINE3
+    DisplayLabel: _(End time 3)
+    DisplayWidth: 8
+    Rules:
+      GreaterThan: StartTime3
+  Venue: String(200)
+    PhysicalName: LUOGO
+    DisplayLabel: _(Venue)
+    DisplayWidth: 32
+  CourseComplete: Boolean
+    PhysicalName: CORSO_COMPLETO
+    DisplayLabel: _(Complete)
+  SingleInstalmentDiscount: Currency
+    PhysicalName: SC_RATA_UNICA
+    DisplayLabel: _(Single instalment discount)
+    DisplayWidth: 10
+    DefaultValue: 0
+ImageName: local_atm

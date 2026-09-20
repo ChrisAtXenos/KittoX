@@ -1,0 +1,13 @@
+﻿FieldSet:
+  Row:
+    Field: Person
+      CharWidth: 53
+  Row:
+    Field: MedicalVisitType
+      CharWidth: 53
+  Row:
+    Field: VisitDate
+    Field: VisitTime
+  Row:
+    Field: Notes
+      CharWidth: 59

@@ -66,6 +66,7 @@ implementation
 uses
   System.SysUtils,
   System.IOUtils,
+  System.NetEncoding,
   EF.Tree,
   EF.Logger,
   EF.Logger.TextFile,
@@ -221,12 +222,14 @@ begin
         '<h1>500 &mdash; KittoX Configuration Error</h1>' +
         '<p>The request was not handled by any route.</p>' +
         '<ul>' +
-        '<li><b>PathInfo:</b> ' + ARequest.PathInfo + '</li>' +
-        '<li><b>URL:</b> ' + ARequest.URL + '</li>' +
-        '<li><b>ScriptName:</b> ' + ARequest.ScriptName + '</li>' +
-        '<li><b>AppHomePath:</b> ' + TKConfig.AppHomePath + '</li>' +
-        '<li><b>SystemHomePath:</b> ' + TKConfig.SystemHomePath + '</li>' +
-        '<li><b>Config file:</b> ' + TKConfig.AppHomePath + 'Metadata\' + TKConfig.BaseConfigFileName + '</li>' +
+        // PathInfo/URL/ScriptName are attacker-controlled and were reflected
+        // verbatim: a crafted request path executed as script in the browser.
+        '<li><b>PathInfo:</b> ' + TNetEncoding.HTML.Encode(ARequest.PathInfo) + '</li>' +
+        '<li><b>URL:</b> ' + TNetEncoding.HTML.Encode(ARequest.URL) + '</li>' +
+        '<li><b>ScriptName:</b> ' + TNetEncoding.HTML.Encode(ARequest.ScriptName) + '</li>' +
+        '<li><b>AppHomePath:</b> ' + TNetEncoding.HTML.Encode(TKConfig.AppHomePath) + '</li>' +
+        '<li><b>SystemHomePath:</b> ' + TNetEncoding.HTML.Encode(TKConfig.SystemHomePath) + '</li>' +
+        '<li><b>Config file:</b> ' + TNetEncoding.HTML.Encode(TKConfig.AppHomePath + 'Metadata\' + TKConfig.BaseConfigFileName) + '</li>' +
         '</ul>' +
         '<p>Check that Config.yaml exists and AppPath matches the web server application alias (IIS virtual directory or Apache Location).</p>' +
         '</body></html>';
@@ -242,10 +245,11 @@ begin
       AResponse.Content :=
         '<html><head><meta charset="utf-8"><title>KittoX Error</title></head><body>' +
         '<h1>500 &mdash; KittoX Internal Error</h1>' +
-        '<p><b>Error:</b> ' + E.Message + '</p>' +
+        // E.Message can carry reflected request data; encode it too.
+        '<p><b>Error:</b> ' + TNetEncoding.HTML.Encode(E.Message) + '</p>' +
         '<ul>' +
-        '<li><b>AppHomePath:</b> ' + TKConfig.AppHomePath + '</li>' +
-        '<li><b>SystemHomePath:</b> ' + TKConfig.SystemHomePath + '</li>' +
+        '<li><b>AppHomePath:</b> ' + TNetEncoding.HTML.Encode(TKConfig.AppHomePath) + '</li>' +
+        '<li><b>SystemHomePath:</b> ' + TNetEncoding.HTML.Encode(TKConfig.SystemHomePath) + '</li>' +
         '</ul>' +
         '</body></html>';
       AResponse.SendResponse;

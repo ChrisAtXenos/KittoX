@@ -1,0 +1,18 @@
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Legal Forms)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (FORMA_GIURIDICA.ID like '%{value}%') or (FORMA_GIURIDICA.DX like '%{value}%')
+MainTable:
+  Model: LegalForm
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Width: 650
+      Height: 270
+    Form:
+      Layout: ADMIN_LegalForms_Form
+    Grid:
+      Layout: ADMIN_LegalForms_Grid 

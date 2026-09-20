@@ -39,7 +39,7 @@ Fields:
     NotifyChange: True
     Hint: _(Start)
     Rules:
-      ActivityRules:    
+      ActivityRules:
   END_TIME: Time
     DisplayLabel: _(End Time)
     Hint: _(End)

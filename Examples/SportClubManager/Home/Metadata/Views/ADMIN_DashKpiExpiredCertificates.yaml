@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Expired certificates)
+ImageName: dash_expired_certificates.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiExpiredCertificates.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

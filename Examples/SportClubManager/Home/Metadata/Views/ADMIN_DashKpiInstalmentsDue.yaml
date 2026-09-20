@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Instalments to be paid)
+ImageName: dash_instalments_due.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiInstalmentsDue.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

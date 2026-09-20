@@ -1,0 +1,14 @@
+﻿ModelName: ConversationStatus
+PhysicalName: STATUS_CONVERSAZIONI
+PluralDisplayLabel: _(Conversation status)
+PluralModelName: ConversationStatuses
+DisplayLabel: _(Conversation status)
+LookupSorting: Id
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Status)

@@ -1,0 +1,7 @@
+﻿Field: VatCode
+Field: TaxableAmount
+Field: Tax
+Field: DeductibleTax
+  DisplayWidth: 20
+Field: NonDeductibleTax
+  DisplayWidth: 20

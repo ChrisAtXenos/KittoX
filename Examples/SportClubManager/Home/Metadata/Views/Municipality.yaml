@@ -1,0 +1,10 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Cities/Municipalities)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (COMUNI.ID like '%{value}%') or (COMUNI.DX like '%{value}%') or (COMUNI.ESTINTO like '%{value}%') or (COMUNI.CAP like '%{value}%')
+MainTable:
+  Model: Municipality
+  Controller:

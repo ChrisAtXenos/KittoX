@@ -2,7 +2,7 @@
     <PropertyGroup>
         <ProjectGuid>{6F1B4C2A-7D93-4E58-9C41-2B8A5E7D0F36}</ProjectGuid>
         <MainSource>KittoXTests.dpr</MainSource>
-        <ProjectVersion>20.4</ProjectVersion>
+        <ProjectVersion>20.5</ProjectVersion>
         <FrameworkType>None</FrameworkType>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
@@ -38,7 +38,7 @@
         <DCC_AssertionsAtRuntime>true</DCC_AssertionsAtRuntime>
         <DCC_DcuOutput>..\..\Lib\D13\$(Platform)\$(Config)</DCC_DcuOutput>
         <DCC_ExeOutput>..\..\Bin\$(Platform)\$(Config)</DCC_ExeOutput>
-        <DCC_UnitSearchPath>..\..\Source;..\..\..\Source;..\..\..\Source\EF;..\..\..\Source\ThirdParty;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\Source;..\..\..\Source;..\..\..\Source\EF;..\..\..\Source\ThirdParty;..\..\..\Source\ThirdParty\delphi-jose-jwt\Source\Common;..\..\..\Source\ThirdParty\delphi-jose-jwt\Source\JOSE;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <DCC_E>false</DCC_E>
         <DCC_N>false</DCC_N>
@@ -89,6 +89,11 @@
         <DCCReference Include="..\..\Source\EF.DBIntegrationTests.pas"/>
         <DCCReference Include="..\..\Source\EF.LoggerTests.pas"/>
         <DCCReference Include="..\..\Source\EF.SysTests.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.JWTTests.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.WebRoutesTests.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.AuthTests.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.SessionTests.pas"/>
+        <DCCReference Include="..\..\Source\Kitto.DBUtilsTests.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

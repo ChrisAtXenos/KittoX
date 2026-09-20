@@ -1,0 +1,27 @@
+﻿DisplayLabel: _(Medical visit appointment)
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Medical Visit Filter)
+    Connector: and
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: ({Q}NOMINATIVOID IN (SELECT ID FROM NOMINATIVI WHERE NOMINATIVI.DX like '%{value}%'))
+        AutoSearchAfterChars: 3
+MainTable:
+  Model: MedicalVisit
+  IsLarge: False
+  DisplayLabel: _(Appointment)
+  DefaultFilter: (({Q}NOMINATIVOID in (SELECT NOMINATIVO_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%')))
+  Controller:
+    AllowViewing: True
+    PreventAdding: False
+    PreventEditing: False
+    PreventDeleting: True
+    Grid:
+      ForceFit: True
+      Layout: USER_MedicalVisits_Grid
+    Form:
+      Layout: USER_MedicalVisits_Form
+  ImageName: enhanced_encryption
+ImageName: enhanced_encryption

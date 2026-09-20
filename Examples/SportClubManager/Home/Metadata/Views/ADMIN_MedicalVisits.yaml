@@ -1,0 +1,73 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    LabelWidth: 120
+    DisplayLabel: _(Search Medical Visits)
+    Connector: and
+    Items:
+      ButtonList: _(Season)
+        Items:
+          Current: _(Current)
+            Expression: {Q}NOMINATIVOID IN (select NOMINATIVOID FROM ISCRIZIONI i JOIN STAGIONE s on i.STAGIONEID = s.ID where s.DATAINI < CURRENT_TIMESTAMP AND s.DATAFINE >= CURRENT_TIMESTAMP)
+            IsDefault: True
+          Last: _(Last)
+            Expression: {Q}NOMINATIVOID IN (select NOMINATIVOID FROM ISCRIZIONI i JOIN STAGIONE s on i.STAGIONEID = s.ID where s.DATAINI < CURRENT_TIMESTAMP - 365 AND s.DATAFINE >= CURRENT_TIMESTAMP - 365)
+            IsDefault: True
+          Past: _(Past)
+            Expression: {Q}NOMINATIVOID IN (select NOMINATIVOID FROM ISCRIZIONI i JOIN STAGIONE s on i.STAGIONEID = s.ID where s.DATAFINE < CURRENT_TIMESTAMP )
+      ButtonList: _(Visit Status)
+        Items:
+          Active: _(Active)
+            Expression: {Q}SCADENZA >= GETDATE() AND COALESCE({Q}IDEONEITA,0) = 1
+            IsDefault: True
+          Booked: _(Booked)
+            Expression: ({Q}SCADENZA IS NULL OR COALESCE({Q}IDEONEITA,0) = 0)
+          Expired: _(Expired)
+            Expression: {Q}SCADENZA < GETDATE()
+      FreeSearch: _(Person)
+        Width: 40
+        ExpressionTemplate: {Q}NOMINATIVOID IN (SELECT ID FROM NOMINATIVI WHERE NOMINATIVI.DX like '%{value}%')
+        AutoSearchAfterChars: 3
+      ColumnBreak:
+      DynaList: _(Active Courses)
+        Width: 60
+        CommandText: |
+          select ID, DX
+          from QUOTE_ISCRIZIONI
+          where
+          (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where INIZIO < CURRENT_TIMESTAMP and FINE >= CURRENT_TIMESTAMP))
+          order by DX
+        ExpressionTemplate: {Q}NOMINATIVOID IN (SELECT NOMINATIVOID FROM ISCRIZIONI where QUOTA_ISCRIZIONEID = '{value}' and (STATUS <> 'ANN' and STATUS <> 'ANN'))
+        AutoCompleteMinChars: 3
+      ButtonList: _(Visit Expiry)
+        Items:
+          ThisMonth: _(This month)
+            Expression: {Q}SCADENZA BETWEEN dbo.DataInizioMese(CURRENT_TIMESTAMP) and dbo.DataFineMese(CURRENT_TIMESTAMP)
+          NextMonth: _(Month + 1)
+            Expression: {Q}SCADENZA BETWEEN dbo.DataInizioMeseSuccessivo(CURRENT_TIMESTAMP) and dbo.DataFineMeseSuccessivo(CURRENT_TIMESTAMP)
+          MonthAfterNext: _(Month + 2)
+            Expression: {Q}SCADENZA BETWEEN dbo.DataInizioMeseSuccessivo(dbo.DataInizioMeseSuccessivo(CURRENT_TIMESTAMP)) and dbo.DataFineMeseSuccessivo(dbo.DataFineMeseSuccessivo(CURRENT_TIMESTAMP))
+MainTable:
+  Model: MedicalVisit
+  Controller:
+    AllowViewing: True
+    DefaultAction: Edit
+    PopupWindow:
+      Width: 1000
+      Height: 730
+    Form:
+      Layout: ADMIN_MedicalVisits_Form
+    Grid:
+      Layout: ADMIN_MedicalVisits_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Excel export)
+        Controller: SCMExcelExport
+          ClientFileName: MedicalVisits.xlsx
+          RequireSelection: False
+      NotifyMedicalVisit:
+        DisplayLabel: _(Appointment notification)
+        Controller: NotifyMedicalVisit
+          RequireSelection: True
+          AutoRefresh: All
+          ConfirmationMessage: _(Send the medical visit notification for {Person}?)

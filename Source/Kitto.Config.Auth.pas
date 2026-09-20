@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -96,6 +96,9 @@ type
     property Secure: Boolean read FSecure;
 
     [YamlNode('SameSite', 'Lax', 'SameSite attribute. Strict | Lax | None | empty (omit attribute)')]
+    [YamlEnumValue('Strict', 'Cookie sent only for same-site requests')]
+    [YamlEnumValue('Lax', 'Cookie sent on top-level navigations (default)')]
+    [YamlEnumValue('None', 'Cookie sent cross-site (requires Secure)')]
     property SameSite: string read FSameSite;
   end;
 
@@ -118,10 +121,10 @@ type
     [YamlNode('IncludeDB', 'True', 'Embed the active environment / database name as the db claim')]
     property IncludeDB: Boolean read FIncludeDB;
 
-    [YamlNode('IncludeDisplayName', 'False', 'Embed the user display name as the name claim')]
+    [YamlNode('IncludeDisplayName', 'True', 'Embed the user display name as the name claim')]
     property IncludeDisplayName: Boolean read FIncludeDisplayName;
 
-    [YamlNode('IncludeLanguage', 'False', 'Embed the active language as the lang claim')]
+    [YamlNode('IncludeLanguage', 'True', 'Embed the active language as the lang claim')]
     property IncludeLanguage: Boolean read FIncludeLanguage;
 
     // IncludeACL intentionally not exposed here: it is auto-derived in
@@ -147,6 +150,7 @@ type
     FAudience: string;
     FTokenLifetime: Integer;
     FSlidingThreshold: Integer;
+    FMaxSessionLifetime: Integer;
     FClockSkew: Integer;
     FCookie: TKAuthCookieConfig;
     FClaims: TKAuthClaimsConfig;
@@ -156,6 +160,15 @@ type
     destructor Destroy; override;
 
     [YamlNode('SigningAlgorithm', 'HS256', 'JWT signing algorithm. HS256 / HS384 / HS512 (HMAC, no OpenSSL) or RS256 / RS384 / RS512 / ES256 / ES384 / ES512 (asymmetric, requires OpenSSL DLLs)')]
+    [YamlEnumValue('HS256', 'HMAC-SHA256 (symmetric, no OpenSSL)')]
+    [YamlEnumValue('HS384', 'HMAC-SHA384 (symmetric)')]
+    [YamlEnumValue('HS512', 'HMAC-SHA512 (symmetric)')]
+    [YamlEnumValue('RS256', 'RSA-SHA256 (asymmetric, needs OpenSSL)')]
+    [YamlEnumValue('RS384', 'RSA-SHA384 (asymmetric)')]
+    [YamlEnumValue('RS512', 'RSA-SHA512 (asymmetric)')]
+    [YamlEnumValue('ES256', 'ECDSA-SHA256 (asymmetric)')]
+    [YamlEnumValue('ES384', 'ECDSA-SHA384 (asymmetric)')]
+    [YamlEnumValue('ES512', 'ECDSA-SHA512 (asymmetric)')]
     property SigningAlgorithm: string read FSigningAlgorithm;
 
     [YamlNode('SigningKey', 'JWT signing key. Accepts env:VAR_NAME (env var), file:/path (raw bytes from a file), or any other value as inline literal (DEV ONLY). A TKJWTSigningKeyRegistry provider registered from UseKitto.pas takes precedence.')]
@@ -176,6 +189,9 @@ type
     [YamlNode('SlidingThreshold', '600', 'When (exp - now) drops below this many seconds, the auth gate re-issues the cookie with a fresh exp on the current response. 0 = disable sliding.')]
     property SlidingThreshold: Integer read FSlidingThreshold;
 
+    [YamlNode('MaxSessionLifetime', '43200', 'Absolute cap in seconds on the total session length, measured from login (the sst claim): past this, sliding stops renewing the token and a fresh login is required. Default 12 hours. 0 = no cap.')]
+    property MaxSessionLifetime: Integer read FMaxSessionLifetime;
+
     [YamlNode('ClockSkew', '60', 'Allowance in seconds for clock skew between client and server during exp/nbf/iat validation.')]
     property ClockSkew: Integer read FClockSkew;
 
@@ -184,6 +200,87 @@ type
 
     [YamlSubNode('Claims', TKAuthClaimsConfig, 'Optional profile claims embedded in the JWT (roles, db, language, ACL, ...)')]
     property Claims: TKAuthClaimsConfig read FClaims;
+  end;
+
+  /// <summary>
+  ///  Optional password-strength policy enforced when a user sets a password.
+  ///  YAML path: Auth/ValidatePassword
+  /// </summary>
+  TKAuthValidatePasswordConfig = class(TKConfigReader)
+  private
+    FRegEx: string;
+    FMessage: string;
+  protected
+    procedure ReadConfig; override;
+  public
+    [YamlNode('RegEx', '^[ -~]{8,63}$', 'Regular expression a new password must match')]
+    property RegEx: string read FRegEx;
+
+    [YamlNode('Message', 'Minimun 8 characters', 'Message shown when the password does not match RegEx')]
+    property Message: string read FMessage;
+  end;
+
+  /// <summary>
+  ///  A templated e-mail message (From/Subject/Body/HTMLBody) used by the
+  ///  authentication flows. YAML paths: Auth/ResetMailMessage and
+  ///  Auth/NewUserMailMessage. Bodies may contain #Placeholders# (e.g.
+  ///  #UserName#, #TempPassword#) and %Config:...% macros.
+  /// </summary>
+  TKAuthMailMessageConfig = class(TKConfigReader)
+  private
+    FFrom: string;
+    FSubject: string;
+    FBody: string;
+    FHTMLBody: string;
+  protected
+    procedure ReadConfig; override;
+  public
+    [YamlNode('From', 'Sender address for the message')]
+    property From: string read FFrom;
+
+    [YamlNode('Subject', 'Message subject (may contain %Config:...% macros)', True)]
+    property Subject: string read FSubject;
+
+    [YamlNode('Body', 'Plain-text body (#Placeholders# + %macros%)', True)]
+    property Body: string read FBody;
+
+    [YamlNode('HTMLBody', 'HTML body (#Placeholders# + %macros%)', True)]
+    property HTMLBody: string read FHTMLBody;
+  end;
+
+  /// <summary>
+  ///  LDAP attribute-name mapping for the LDAP authenticator (Kitto.Auth.LDAP):
+  ///  maps each logical user attribute to the LDAP attribute read after the bind.
+  ///  YAML path: Auth/Attributes
+  /// </summary>
+  TKAuthLDAPAttributesConfig = class(TKConfigReader)
+  private
+    FSamAccountName: string;
+    FEmail: string;
+    FFirstName: string;
+    FLastName: string;
+    FFullName: string;
+    FGroups: string;
+  protected
+    procedure ReadConfig; override;
+  public
+    [YamlNode('SamAccountName', 'sAMAccountName', 'LDAP attribute holding the login/account name')]
+    property SamAccountName: string read FSamAccountName;
+
+    [YamlNode('Email', 'mail', 'LDAP attribute mapped to the user e-mail')]
+    property Email: string read FEmail;
+
+    [YamlNode('FirstName', 'givenName', 'LDAP attribute mapped to the first name')]
+    property FirstName: string read FFirstName;
+
+    [YamlNode('LastName', 'sn', 'LDAP attribute mapped to the last name')]
+    property LastName: string read FLastName;
+
+    [YamlNode('FullName', 'displayName', 'LDAP attribute mapped to the full/display name')]
+    property FullName: string read FFullName;
+
+    [YamlNode('Groups', 'memberOf', 'LDAP attribute mapped to the user groups')]
+    property Groups: string read FGroups;
   end;
 
   /// <summary>
@@ -198,10 +295,24 @@ type
     FReadUserCommandText: string;
     FSetPasswordCommandText: string;
     FAfterAuthenticateCommandText: string;
+    FResetPasswordCommandText: string;
+    FRegisterNewUserCommandText: string;
+    FLoginType: string;
     FFileName: string;
     FDatabaseChoices: string;
+    FHost: string;
+    FPort: Integer;
+    FUseSSL: Boolean;
+    FBindDNTemplate: string;
+    FDefaultDomain: string;
+    FSearchBase: string;
+    FSearchFilter: string;
     FDefaults: TKAuthDefaultsConfig;
     FJWT: TKAuthJWTConfig;
+    FValidatePassword: TKAuthValidatePasswordConfig;
+    FResetMailMessage: TKAuthMailMessageConfig;
+    FNewUserMailMessage: TKAuthMailMessageConfig;
+    FLDAPAttributes: TKAuthLDAPAttributesConfig;
   protected
     procedure ReadConfig; override;
   public
@@ -225,6 +336,15 @@ type
     [YamlNode('AfterAuthenticateCommandText', 'SQL command executed after authentication')]
     property AfterAuthenticateCommandText: string read FAfterAuthenticateCommandText;
 
+    [YamlNode('ResetPasswordCommandText', 'SQL command to reset a user password')]
+    property ResetPasswordCommandText: string read FResetPasswordCommandText;
+
+    [YamlNode('RegisterNewUserCommandText', 'SQL command to register a new user')]
+    property RegisterNewUserCommandText: string read FRegisterNewUserCommandText;
+
+    [YamlNode('LoginType', 'Login form variant / behaviour selector')]
+    property LoginType: string read FLoginType;
+
     [YamlNode('FileName', 'Text file path for text-file authentication')]
     property FileName: string read FFileName;
 
@@ -236,6 +356,40 @@ type
 
     [YamlSubNode('JWT', TKAuthJWTConfig, 'Optional JWT envelope. Present = issue/validate a signed self-contained token cookie (kx_token) instead of a plain session cookie. Requires the Kitto.Auth.JWT unit in UseKitto.pas.')]
     property JWT: TKAuthJWTConfig read FJWT;
+
+    [YamlSubNode('ValidatePassword', TKAuthValidatePasswordConfig, 'Optional password-strength policy (RegEx + Message) enforced when a user sets a password')]
+    property ValidatePassword: TKAuthValidatePasswordConfig read FValidatePassword;
+
+    [YamlSubNode('ResetMailMessage', TKAuthMailMessageConfig, 'E-mail sent when a user resets their password (carries the temporary password)')]
+    property ResetMailMessage: TKAuthMailMessageConfig read FResetMailMessage;
+
+    [YamlSubNode('NewUserMailMessage', TKAuthMailMessageConfig, 'E-mail sent when a new user registers (carries the temporary password)')]
+    property NewUserMailMessage: TKAuthMailMessageConfig read FNewUserMailMessage;
+
+    // --- LDAP authenticator (Auth: LDAP, unit Kitto.Auth.LDAP) ---
+    [YamlNode('Host', 'LDAP server host name (LDAP authenticator)')]
+    property Host: string read FHost;
+
+    [YamlNode('Port', '389', 'LDAP server port (389 plain, 636 with SSL)')]
+    property Port: Integer read FPort;
+
+    [YamlNode('UseSSL', 'False', 'Connect to the LDAP server over SSL/LDAPS')]
+    property UseSSL: Boolean read FUseSSL;
+
+    [YamlNode('BindDNTemplate', 'Template building the full bind DN from the short user name (e.g. uid=%s,dc=example,dc=com)')]
+    property BindDNTemplate: string read FBindDNTemplate;
+
+    [YamlNode('DefaultDomain', 'Default Active Directory domain prefixed to the user name when none is given')]
+    property DefaultDomain: string read FDefaultDomain;
+
+    [YamlNode('SearchBase', 'Base DN under which the user entry is searched after the bind')]
+    property SearchBase: string read FSearchBase;
+
+    [YamlNode('SearchFilter', '(sAMAccountName=%s)', 'LDAP search filter locating the user entry (%s = user name)')]
+    property SearchFilter: string read FSearchFilter;
+
+    [YamlSubNode('Attributes', TKAuthLDAPAttributesConfig, 'Mapping of user attributes to LDAP attribute names')]
+    property LDAPAttributes: TKAuthLDAPAttributesConfig read FLDAPAttributes;
   end;
 
 implementation
@@ -280,6 +434,7 @@ begin
   FAudience := GetString('Audience', 'kx-app');
   FTokenLifetime := GetInteger('TokenLifetime', 3600);
   FSlidingThreshold := GetInteger('SlidingThreshold', 600);
+  FMaxSessionLifetime := GetInteger('MaxSessionLifetime', 43200);
   FClockSkew := GetInteger('ClockSkew', 60);
   // Nested readers: bound to the Cookie/Claims subtrees (nil-safe when absent).
   if FCookie = nil then
@@ -299,6 +454,36 @@ begin
   inherited;
 end;
 
+{ TKAuthValidatePasswordConfig }
+
+procedure TKAuthValidatePasswordConfig.ReadConfig;
+begin
+  FRegEx := GetString('RegEx', '^[ -~]{8,63}$');
+  FMessage := GetString('Message', 'Minimun 8 characters');
+end;
+
+{ TKAuthMailMessageConfig }
+
+procedure TKAuthMailMessageConfig.ReadConfig;
+begin
+  FFrom := GetString('From');
+  FSubject := GetString('Subject');
+  FBody := GetString('Body');
+  FHTMLBody := GetString('HTMLBody');
+end;
+
+{ TKAuthLDAPAttributesConfig }
+
+procedure TKAuthLDAPAttributesConfig.ReadConfig;
+begin
+  FSamAccountName := GetString('SamAccountName', 'sAMAccountName');
+  FEmail := GetString('Email', 'mail');
+  FFirstName := GetString('FirstName', 'givenName');
+  FLastName := GetString('LastName', 'sn');
+  FFullName := GetString('FullName', 'displayName');
+  FGroups := GetString('Groups', 'memberOf');
+end;
+
 { TKAuthConfig }
 
 procedure TKAuthConfig.ReadConfig;
@@ -309,9 +494,21 @@ begin
   FReadUserCommandText := GetString('ReadUserCommandText');
   FSetPasswordCommandText := GetString('SetPasswordCommandText');
   FAfterAuthenticateCommandText := GetString('AfterAuthenticateCommandText');
+  FResetPasswordCommandText := GetString('ResetPasswordCommandText');
+  FRegisterNewUserCommandText := GetString('RegisterNewUserCommandText');
+  FLoginType := GetString('LoginType');
   FFileName := GetString('FileName');
   FDatabaseChoices := GetString('DatabaseChoices');
-  // Nested readers: bound to the Defaults/JWT subtrees (nil-safe when absent).
+  // LDAP authenticator settings (present when Auth: LDAP).
+  FHost := GetString('Host');
+  FPort := GetInteger('Port', 389);
+  FUseSSL := GetBoolean('UseSSL', False);
+  FBindDNTemplate := GetString('BindDNTemplate');
+  FDefaultDomain := GetString('DefaultDomain');
+  FSearchBase := GetString('SearchBase');
+  FSearchFilter := GetString('SearchFilter', '(sAMAccountName=%s)');
+  // Nested readers: bound to the Defaults/JWT/ValidatePassword subtrees
+  // (nil-safe when absent).
   if FDefaults = nil then
     FDefaults := TKAuthDefaultsConfig.Create(SubNode('Defaults'))
   else
@@ -320,12 +517,32 @@ begin
     FJWT := TKAuthJWTConfig.Create(SubNode('JWT'))
   else
     FJWT.Refresh(SubNode('JWT'));
+  if FValidatePassword = nil then
+    FValidatePassword := TKAuthValidatePasswordConfig.Create(SubNode('ValidatePassword'))
+  else
+    FValidatePassword.Refresh(SubNode('ValidatePassword'));
+  if FResetMailMessage = nil then
+    FResetMailMessage := TKAuthMailMessageConfig.Create(SubNode('ResetMailMessage'))
+  else
+    FResetMailMessage.Refresh(SubNode('ResetMailMessage'));
+  if FNewUserMailMessage = nil then
+    FNewUserMailMessage := TKAuthMailMessageConfig.Create(SubNode('NewUserMailMessage'))
+  else
+    FNewUserMailMessage.Refresh(SubNode('NewUserMailMessage'));
+  if FLDAPAttributes = nil then
+    FLDAPAttributes := TKAuthLDAPAttributesConfig.Create(SubNode('Attributes'))
+  else
+    FLDAPAttributes.Refresh(SubNode('Attributes'));
 end;
 
 destructor TKAuthConfig.Destroy;
 begin
   FDefaults.Free;
   FJWT.Free;
+  FValidatePassword.Free;
+  FResetMailMessage.Free;
+  FNewUserMailMessage.Free;
+  FLDAPAttributes.Free;
   inherited;
 end;
 

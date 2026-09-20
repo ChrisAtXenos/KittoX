@@ -1,0 +1,15 @@
+Field: FinancialYear
+Field: VatRegister
+Field: DocumentDate
+Field: PostingDate
+  DisplayWidth: 20
+Field: Tax
+Field: DeductibleAmount
+  DisplayWidth: 25
+Field: NonDeductibleAmount
+  DisplayWidth: 25
+Field: Period
+Field: Year
+Field: EntryType
+Field: Supplier
+Field: Customer

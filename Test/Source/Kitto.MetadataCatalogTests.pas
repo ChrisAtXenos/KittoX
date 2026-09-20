@@ -68,6 +68,7 @@ type
     [TestCase('TasKitto', 'TasKitto')]
     [TestCase('HelloKitto', 'HelloKitto')]
     [TestCase('KEmployee', 'KEmployee')]
+    [TestCase('SportClubManager', 'SportClubManager')]
     procedure EveryObjectOfTheCatalogueLoads(const AExampleName: string);
 
     /// <summary>
@@ -93,6 +94,7 @@ type
     [TestCase('TasKitto', 'TasKitto')]
     [TestCase('HelloKitto', 'HelloKitto')]
     [TestCase('KEmployee', 'KEmployee')]
+    [TestCase('SportClubManager', 'SportClubManager')]
     procedure EveryModelFieldHasAUsableDecimalPrecision(const AExampleName: string);
 
     /// <summary>
@@ -125,6 +127,7 @@ type
     [TestCase('TasKitto', 'TasKitto')]
     [TestCase('HelloKitto', 'HelloKitto')]
     [TestCase('KEmployee', 'KEmployee')]
+    [TestCase('SportClubManager', 'SportClubManager')]
     procedure NoPropertyOfAnyViewRaises(const AExampleName: string);
 
     /// <summary>

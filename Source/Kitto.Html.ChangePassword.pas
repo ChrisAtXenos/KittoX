@@ -42,6 +42,7 @@ type
   TKXChangePasswordController = class(TKXFormController)
   strict private
     function GetLabelWidth: Integer;
+    function GetDisplayLabel: string;
     /// <summary>False when the change is imposed on the user
     /// (MustChangePassword): the old password is not asked for, because the
     /// user has never chosen one.</summary>
@@ -61,6 +62,8 @@ type
     class function GetDefaultImageName: string;
     [YamlNode('LabelWidth', '100', 'Label width in pixels for form fields')]
     property LabelWidth: Integer read GetLabelWidth;
+    [YamlNode('DisplayLabel', 'Title shown on the change-password dialog', True)]
+    property DisplayLabel: string read GetDisplayLabel;
   end;
 
 implementation
@@ -79,6 +82,11 @@ uses
 function TKXChangePasswordController.GetLabelWidth: Integer;
 begin
   Result := Config.GetInteger('LabelWidth', 100);
+end;
+
+function TKXChangePasswordController.GetDisplayLabel: string;
+begin
+  Result := Config.GetString('DisplayLabel');
 end;
 
 procedure TKXChangePasswordController.DoDisplay;

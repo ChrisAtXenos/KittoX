@@ -1,0 +1,29 @@
+LabelAlign: Right
+LabelWidth: 180
+FieldSet:
+  Row:
+    Field: Description
+  Row:
+    Field: TaxCode
+    Field: VatNumber
+  Row:
+    Field: Address
+  Row:
+    Field: PostalCode
+    Field: Municipality
+      CharWidth: 50
+    Field: Province
+      CharWidth: 30
+  Row:
+    Field: Logo
+  Row:
+    Field: TradeMark
+  Row:
+    Field: Season
+    Field: SponsorshipStart
+    Field: SponsorshipEnd
+  Row:
+    Field: LegalRepTitle
+    Field: Person
+  Row:
+    Field: WebsiteUrl

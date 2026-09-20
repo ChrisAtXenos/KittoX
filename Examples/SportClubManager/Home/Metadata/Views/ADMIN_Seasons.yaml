@@ -1,0 +1,36 @@
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Seasons)
+    LabelWidth: 140
+    Items:
+      List: _(Show campaigns)
+        Items:
+          #Active campaigns: the preset value
+          Active: _(Active)
+            Expression: {Q}DATAINI <= CURRENT_TIMESTAMP AND {Q}DATAFINE >= CURRENT_TIMESTAMP
+            IsDefault: True
+          #Future campaigns
+          Future: _(Future)
+            Expression: {Q}DATAINI > CURRENT_TIMESTAMP
+          #Past campaigns
+          History: _(History)
+            Expression: {Q}DATAFINE < CURRENT_TIMESTAMP
+          #All campaigns
+          All: _(All)
+            Expression:
+MainTable:
+  Model: Season
+  Controller:
+    AllowViewing: True
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Seasons.xlsx
+          RequireSelection: False
+      DuplicateCampaign:
+        DisplayLabel: _(Duplicate campaigns)
+        Hint: _(Duplicate the previous season's subscription campaigns)
+        Controller: DuplicateCampaign
+          RequireSelection: True

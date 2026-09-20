@@ -45,6 +45,9 @@ type
     FChildren: TList<IKXController>;
     function GetTabIconsVisible: Boolean;
     function GetTabsVisible: Boolean;
+    function GetBorder: Boolean;
+    function GetDisplayMode: string;
+    function GetSubViews: string;
     procedure BuildTabContent(const ATabIconsVisible: Boolean;
       out ATabHeaders, ATabBodies: string);
   public
@@ -58,10 +61,18 @@ type
     /// <summary>Renders the tab panel (tab headers + bodies).</summary>
     function Render: string; override;
 
-    [YamlNode('TabIconsVisible', 'False', 'Show icons on tab buttons')]
+    [YamlNode('TabIconsVisible', 'True', 'Show icons on tab buttons')]
     property TabIconsVisible: Boolean read GetTabIconsVisible;
-    [YamlNode('TabsVisible', 'False', 'Show tab bar (False renders only the first tab)')]
+    [YamlNode('TabsVisible', 'True', 'Show tab bar (False renders only the first tab)')]
     property TabsVisible: Boolean read GetTabsVisible;
+    [YamlNode('Border', 'False', 'Show a border around the tab panel')]
+    property Border: Boolean read GetBorder;
+    [YamlNode('DisplayMode', 'Container display mode (e.g. FullScreen). Not yet honored by the HTMX layer')]
+    property DisplayMode: string read GetDisplayMode;
+    /// <summary>RTTI carrier for the SubViews node: the list of views auto-opened
+    /// as tabs (each child is a View). Read node by node at render time.</summary>
+    [YamlNode('SubViews', 'Views auto-opened as tabs (each child is a View)')]
+    property SubViews: string read GetSubViews;
   end;
 
 implementation
@@ -87,6 +98,22 @@ end;
 function TKXTabPanelController.GetTabsVisible: Boolean;
 begin
   Result := Config.GetBoolean('TabsVisible', True);
+end;
+
+function TKXTabPanelController.GetBorder: Boolean;
+begin
+  Result := Config.GetBoolean('Border', False);
+end;
+
+function TKXTabPanelController.GetDisplayMode: string;
+begin
+  Result := Config.GetString('DisplayMode');
+end;
+
+function TKXTabPanelController.GetSubViews: string;
+begin
+  // RTTI carrier only: the SubViews list is read node by node at render time.
+  Result := '';
 end;
 
 procedure TKXTabPanelController.AfterConstruction;

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +49,7 @@ type
   private
     FReadPermissionsCommandText: string;
     FReadRolesCommandText: string;
+    FFallbackToDB: Boolean;
   protected
     procedure ReadConfig; override;
   public
@@ -57,6 +58,9 @@ type
 
     [YamlNode('ReadRolesCommandText', 'SQL command to read roles. Used by AccessControl: DB at runtime and by Auth: JWT at login when AccessControl: JWT is configured.')]
     property ReadRolesCommandText: string read FReadRolesCommandText;
+
+    [YamlNode('FallbackToDB', 'False', 'Fall back to DB-driven access control evaluation when the primary source has no answer')]
+    property FallbackToDB: Boolean read FFallbackToDB;
 
     // AccessControl: JWT has no user-tunable keys: it is closed-world
     // (claim is authoritative). For DB-driven evaluation, configure
@@ -72,6 +76,7 @@ procedure TKAccessControlConfig.ReadConfig;
 begin
   FReadPermissionsCommandText := GetString('ReadPermissionsCommandText');
   FReadRolesCommandText := GetString('ReadRolesCommandText');
+  FFallbackToDB := GetBoolean('FallbackToDB', False);
 end;
 
 end.

@@ -165,9 +165,32 @@ uses
 function TKBaseStaticWebRoute.ComputeLocalFileName(const ALocalPath, AURLPath, AURLDocument: string): string;
 var
   LURLPath: string;
+  LBaseDir: string;
+  LFull: string;
 begin
   LURLPath := AURLPath.Replace('/', PathDelim);
   Result := TPath.Combine(TPath.Combine(ALocalPath, LURLPath), AURLDocument);
+
+  // Containment check: the resolved file must stay under ALocalPath. Without it
+  // a URL such as  /<app>/res/../Metadata/Config.yaml  (Config.yaml carries the
+  // database credentials and the JWT signing key), or an absolute
+  // /<app>/res/C:/Windows/win.ini, escapes the resource directory and serves any
+  // file the server process can read — and the static routes are matched BEFORE
+  // any authentication filter, so this is reachable unauthenticated. The HTTP
+  // layer URL-decodes the path before it reaches here, and neither TIdURI nor
+  // TPath.Combine removes '..' segments, so the only reliable test is on the
+  // fully resolved, canonical path. TPath.GetFullPath also raises on a path with
+  // characters illegal for the file system (e.g. a decoded control byte); such a
+  // request cannot name a real resource, so it is treated as not found.
+  try
+    LBaseDir := IncludeTrailingPathDelimiter(TPath.GetFullPath(ALocalPath));
+    LFull := TPath.GetFullPath(Result);
+  except
+    on E: Exception do
+      Exit('');
+  end;
+  if not LFull.StartsWith(LBaseDir, True {case-insensitive: Windows file system}) then
+    Result := '';
 end;
 
 function TKBaseStaticWebRoute.ServeLocalFile(const AFileName: string; const AResponse: TKWebResponse): Boolean;

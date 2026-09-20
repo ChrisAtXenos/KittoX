@@ -1,0 +1,13 @@
+﻿LabelAlign: Right
+LabelWidth: 150
+Row:
+  Field: SubscriptionInstalment
+    CharWidth: 80
+Row:
+  Field: InstalmentAmount
+  Field: InstalmentPaidAmount
+  Field: InstalmentOutstandingAmount
+Spacer:
+Row:
+  Field: PaidAmount
+

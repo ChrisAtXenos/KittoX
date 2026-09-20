@@ -1,0 +1,21 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Customers)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (CLIENTI.DX like '%{value}%') or (CLIENTI.COGNOME like '%{value}%') or (CLIENTI.NOME like '%{value}%') or (CLIENTI.PARTIVA like '%{value}%') or (CLIENTI.CODFISCALE like '%{value}%')
+MainTable:
+  Model: Customer
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_Customers_Form
+    Grid:
+      Layout: ADMIN_Customers_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Customers.xlsx
+          RequireSelection: False

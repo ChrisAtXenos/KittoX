@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,6 +38,7 @@ uses
   EF.Types,
   EF.Intf,
   EF.YAML.Attributes,
+  Kitto.Metadata.Types,
   Kitto.Metadata,
   Kitto.Metadata.SubNodes;
 
@@ -93,28 +94,28 @@ type
     function GetEnableLists: Boolean;
     function GetEnableSourceEdit: Boolean;
   public
-    [YamlNode('EnableFont', 'False', 'Show font family selector in toolbar')]
+    [YamlNode('EnableFont', 'True', 'Show font family selector in toolbar')]
     property EnableFont: Boolean read GetEnableFont;
 
-    [YamlNode('EnableFontSize', 'False', 'Show font size selector in toolbar')]
+    [YamlNode('EnableFontSize', 'True', 'Show font size selector in toolbar')]
     property EnableFontSize: Boolean read GetEnableFontSize;
 
-    [YamlNode('EnableFormat', 'False', 'Show bold/italic/underline/strike buttons')]
+    [YamlNode('EnableFormat', 'True', 'Show bold/italic/underline/strike buttons')]
     property EnableFormat: Boolean read GetEnableFormat;
 
-    [YamlNode('EnableColors', 'False', 'Show font color and highlight color pickers')]
+    [YamlNode('EnableColors', 'True', 'Show font color and highlight color pickers')]
     property EnableColors: Boolean read GetEnableColors;
 
-    [YamlNode('EnableAlignments', 'False', 'Show text alignment buttons')]
+    [YamlNode('EnableAlignments', 'True', 'Show text alignment buttons')]
     property EnableAlignments: Boolean read GetEnableAlignments;
 
-    [YamlNode('EnableLinks', 'False', 'Show insert/edit hyperlink button')]
+    [YamlNode('EnableLinks', 'True', 'Show insert/edit hyperlink button')]
     property EnableLinks: Boolean read GetEnableLinks;
 
-    [YamlNode('EnableLists', 'False', 'Show bulleted and numbered list buttons')]
+    [YamlNode('EnableLists', 'True', 'Show bulleted and numbered list buttons')]
     property EnableLists: Boolean read GetEnableLists;
 
-    [YamlNode('EnableSourceEdit', 'False', 'Show view/edit HTML source button')]
+    [YamlNode('EnableSourceEdit', 'True', 'Show view/edit HTML source button')]
     property EnableSourceEdit: Boolean read GetEnableSourceEdit;
   end;
 
@@ -238,6 +239,19 @@ type
     function GetDefaultEmptyAsNull: Boolean;
     function GetExpression: string;
     function GetAllowedValues: TEFPairs;
+    function GetNotifyChange: Boolean;
+    function GetColors: string;
+    function GetAutoAddFields: string;
+    function GetMaxUploadSize: string;
+    function GetFilePath: string;
+    function GetDisplayName: string;
+    function GetContentType: string;
+    function GetAcceptedWildCards: string;
+    function GetLines: Integer;
+    function GetEditLines: Integer;
+    function GetUseSpeedButtons: Boolean;
+    function GetFieldReadOnly: Boolean;
+    function GetURL: string;
     function GetRules: TKRules;
     function GetDecimalPrecision: Integer;
     function GetCanUpdate: Boolean;
@@ -370,6 +384,7 @@ type
     ///   is 'or'.
     /// </summary>
     [YamlNode('DefaultFilterConnector', 'and', 'Logical connector (and/or) for DefaultFilter')]
+    [YamlEnumType(TypeInfo(TKFilterConnector))]
     property DefaultFilterConnector: string read GetDefaultFilterConnector;
 
     /// <summary>If the field is part of a reference field, returns the number
@@ -424,32 +439,32 @@ type
     /// <summary>
     ///   Default visibility status of this field in views. Defaults to True.
     /// </summary>
-    [YamlNode('IsVisible', 'False', 'Field visibility in views')]
+    [YamlNode('IsVisible', 'True', 'Field visibility in views')]
     property IsVisible: Boolean read GetIsVisible;
 
     /// <summary>
     ///   Default read-only status of this field in views. Defaults to False.
     /// </summary>
-    [YamlNode('IsReadOnly', 'True', 'Field is not editable')]
+    [YamlNode('IsReadOnly', 'False', 'Field is not editable')]
     property IsReadOnly: Boolean read GetIsReadOnly;
 
     /// <summary>
     ///   A field computed on server side. At client side is not editable. Defaults to False.
     /// </summary
-    [YamlNode('IsComputed', 'True', 'Server-side computed field (not editable)')]
+    [YamlNode('IsComputed', 'False', 'Server-side computed field (not editable)')]
     property IsComputed: Boolean read GetIsComputed;
 
     /// <summary>
     ///   Returns True if the field is auto-generated at the database level,
     ///   such as an auto-increment field. Default is False.
     /// </summary>
-    [YamlNode('IsGenerated', 'True', 'Auto-generated at DB level (e.g. auto-increment)')]
+    [YamlNode('IsGenerated', 'False', 'Auto-generated at DB level (e.g. auto-increment)')]
     property IsGenerated: Boolean read GetIsGenerated;
 
-    [YamlNode('IsPassword', 'True', 'Mask input and enable hashed storage')]
+    [YamlNode('IsPassword', 'False', 'Mask input and enable hashed storage')]
     property IsPassword: Boolean read GetIsPassword;
 
-    [YamlNode('IsPicture', 'True', 'Blob field contains image data')]
+    [YamlNode('IsPicture', 'False', 'Blob field contains image data')]
     property IsPicture: Boolean read GetIsPicture;
 
     /// <summary>A field that is not a physical field but rather computed by a
@@ -464,7 +479,7 @@ type
     /// adding 'CanInsert: False' to its definition.</summary>
     /// <remarks>You can't make editable a field that is naturally non
     /// editable, such as an expression field.</remarks>
-    [YamlNode('CanInsert', 'False', 'Field is editable when inserting a new record')]
+    [YamlNode('CanInsert', 'True', 'Field is editable when inserting a new record')]
     property CanInsert: Boolean read GetCanInsert;
 
     /// <summary>Returns True if the field can be modified when editing an
@@ -473,7 +488,7 @@ type
     /// during update by adding 'CanUpdate: False' to its definition.</summary>
     /// <remarks>You can't make editable a field that is naturally non
     /// editable, such as an expression field.</remarks>
-    [YamlNode('CanUpdate', 'False', 'Field is editable when updating an existing record')]
+    [YamlNode('CanUpdate', 'True', 'Field is editable when updating an existing record')]
     property CanUpdate: Boolean read GetCanUpdate;
 
     /// <summary>Returns True if a field is natually editable. All fields
@@ -503,7 +518,47 @@ type
     /// <summary>If the field has a fixed list of allowed values, it is stored
     /// here. Each value has as an associated label.</summary>
     /// <remarks>Only string fields are currently supported.</remarks>
+    [YamlNode('AllowedValues', 'Enumerated value:label pairs restricting this field (each child is <value>: <label>)')]
     property AllowedValues: TEFPairs read GetAllowedValues;
+
+    /// <summary>When True, editing this field triggers the server-side change
+    /// cascade (onchange notification). Read from the model field or overridden
+    /// on the view field.</summary>
+    [YamlNode('NotifyChange', 'False', 'Fire the server-side change cascade when this field is edited')]
+    property NotifyChange: Boolean read GetNotifyChange;
+
+    /// <summary>Conditional cell colouring: each child is <hex-color>: <regexp>;
+    /// the value is coloured with the first colour whose regexp matches it.</summary>
+    [YamlNode('Colors', 'Conditional colouring rules (each child is <hex-color>: <regexp matched against the value>)')]
+    property Colors: string read GetColors;
+
+    /// <summary>RTTI carrier for the AutoAddFields node: extra fields pulled in
+    /// automatically when this reference field is selected. Read by path.</summary>
+    [YamlNode('AutoAddFields', 'Extra fields auto-added when this reference field is chosen')]
+    property AutoAddFields: string read GetAutoAddFields;
+
+    [YamlNode('MaxUploadSize', 'Maximum upload size for this file/BLOB field (bytes, or with a unit e.g. 100KB)')]
+    property MaxUploadSize: string read GetMaxUploadSize;
+
+    // File/BLOB and rich-text field knobs.
+    [YamlNode('Path', 'Server directory where this file field''s content is stored')]
+    property FilePath: string read GetFilePath;
+    [YamlNode('DisplayName', 'Alternative display name for this field')]
+    property DisplayName: string read GetDisplayName;
+    [YamlNode('ContentType', 'MIME content type for this file/BLOB field')]
+    property ContentType: string read GetContentType;
+    [YamlNode('AcceptedWildCards', 'Accepted file patterns for this upload field (space-separated wildcards)')]
+    property AcceptedWildCards: string read GetAcceptedWildCards;
+    [YamlNode('Lines', 'Number of visible lines for a memo field')]
+    property Lines: Integer read GetLines;
+    [YamlNode('EditLines', 'Number of visible lines for a memo field in edit mode')]
+    property EditLines: Integer read GetEditLines;
+    [YamlNode('UseSpeedButtons', 'False', 'Show speed buttons next to this field')]
+    property UseSpeedButtons: Boolean read GetUseSpeedButtons;
+    [YamlNode('ReadOnly', 'False', 'Field is read-only (legacy alias of IsReadOnly)')]
+    property FieldReadOnly: Boolean read GetFieldReadOnly;
+    [YamlNode('URL', 'URL associated with this field (e.g. for a hyperlink field)')]
+    property URL: string read GetURL;
 
     /// <summary>
     ///   Default label for this field in views. Defaults to a beautified field
@@ -553,7 +608,7 @@ type
     ///   (otherwise both image and value are shown).
     ///   If no image is displayed, this property is ignored.
     /// </summary>
-    [YamlNode('BlankValue', 'True', 'Hide field value when an image is displayed')]
+    [YamlNode('BlankValue', 'False', 'Hide field value when an image is displayed')]
     property BlankValue: Boolean read GetBlankValue;
 
     /// <summary>
@@ -585,7 +640,7 @@ type
     /// </summary>
     property DefaultEmptyAsNull: Boolean read GetDefaultEmptyAsNull;
 
-    [YamlNode('IsKey', 'True', 'Field is part of the primary key')]
+    [YamlNode('IsKey', 'False', 'Field is part of the primary key')]
     property IsKey: Boolean read GetIsKey;
 
     [YamlContainer('Rules', TKRule, 'Business rules applied to this field')]
@@ -802,6 +857,7 @@ type
     function GetPreventDeleting: Boolean;
     function GetDefaultDefaultSorting: string;
     function GetDefaultSorting: string;
+    function GetLookupSearchModel: string;
     function GetIsLarge: Boolean;
     function GetDefaultFilter: string;
     function GetRules: TKRules;
@@ -987,23 +1043,23 @@ type
     /// <remarks>Not all reference fields have a ForeignKeyName set.</remarks>
     function FindReferenceField(const AForeignKeyName: string): TKModelField; overload;
 
-    [YamlNode('IsReadOnly', 'True', 'Model data is read-only')]
+    [YamlNode('IsReadOnly', 'False', 'Model data is read-only')]
     property IsReadOnly: Boolean read GetIsReadOnly;
 
     /// <summary>Model-level default that prevents adding records. The REST API
     /// honors it (POST -> 405); a view Controller/PreventAdding overrides it for
     /// the GUI only (view-if-specified else this model default).</summary>
-    [YamlNode('PreventAdding', 'True', 'Prevent adding records (Model default; REST-enforced)')]
+    [YamlNode('PreventAdding', 'False', 'Prevent adding records (Model default; REST-enforced)')]
     property PreventAdding: Boolean read GetPreventAdding;
     /// <summary>Model-level default that prevents editing records. The REST API
     /// honors it (PUT/PATCH -> 405); a view Controller/PreventEditing overrides
     /// it for the GUI only.</summary>
-    [YamlNode('PreventEditing', 'True', 'Prevent editing records (Model default; REST-enforced)')]
+    [YamlNode('PreventEditing', 'False', 'Prevent editing records (Model default; REST-enforced)')]
     property PreventEditing: Boolean read GetPreventEditing;
     /// <summary>Model-level default that prevents deleting records. The REST API
     /// honors it (DELETE -> 405); a view Controller/PreventDeleting overrides it
     /// for the GUI only.</summary>
-    [YamlNode('PreventDeleting', 'True', 'Prevent deleting records (Model default; REST-enforced)')]
+    [YamlNode('PreventDeleting', 'False', 'Prevent deleting records (Model default; REST-enforced)')]
     property PreventDeleting: Boolean read GetPreventDeleting;
 
     [YamlNode('DefaultFilter', 'SQL WHERE clause applied by default')]
@@ -1014,7 +1070,7 @@ type
     /// the cardinality of the underlying database table exceeds what you are
     /// comfortable to put in an Ajax response (typically a few hundred records,
     /// depending on the number and size of columns).</summary>
-    [YamlNode('IsLarge', 'True', 'Large dataset: use autocomplete instead of full combo')]
+    [YamlNode('IsLarge', 'False', 'Large dataset: use autocomplete instead of full combo')]
     property IsLarge: Boolean read GetIsLarge;
 
     /// <summary>
@@ -1024,6 +1080,9 @@ type
     /// </summary>
     [YamlNode('DefaultSorting', 'Default ORDER BY expression (qualified field names)')]
     property DefaultSorting: string read GetDefaultSorting;
+
+    [YamlNode('LookupSearchModel', 'Model used to resolve lookups/searches against this model')]
+    property LookupSearchModel: string read GetLookupSearchModel;
     /// <summary>The fallback sort expression (the key fields) when DefaultSorting is not set.</summary>
     property DefaultDefaultSorting: string read GetDefaultDefaultSorting;
 
@@ -1737,7 +1796,11 @@ end;
 function TKModel.GetCaptionField: TKModelField;
 begin
   Result := FindCaptionField;
-  Assert(Result <> nil, 'Result <> nil');
+  // Assertions are on in Release: a model with no field usable as a caption
+  // (no CaptionField set, no visible non-key field) would have raised
+  // EAssertionFailed with the useless text 'Result <> nil'. Name the model.
+  if Result = nil then
+    raise EKError.CreateFmt(_('Model %s has no field usable as a caption field.'), [ModelName]);
 end;
 
 function TKModel.GetCaptionFieldName: string;
@@ -1778,6 +1841,11 @@ begin
   Result := GetString('DefaultSorting');
   if Result = '' then
     Result := GetDefaultDefaultSorting;
+end;
+
+function TKModel.GetLookupSearchModel: string;
+begin
+  Result := GetString('LookupSearchModel');
 end;
 
 function TKModel.GetLookupSorting: string;
@@ -1887,9 +1955,18 @@ begin
     end
     else
     begin
-      ASize := StrToInt(Trim(LStrings[1]));
+      // A malformed spec (e.g. String(abc)) used to surface as a bare
+      // EConvertError 'abc is not a valid integer' with no clue which field or
+      // model it came from. Name the field.
+      if not TryStrToInt(Trim(LStrings[1]), ASize) then
+        raise EKError.CreateFmt(_('Field %s: invalid size "%s" in its field spec.'),
+          [FieldName, Trim(LStrings[1])]);
       if Length(LStrings) > 2 then
-        ADecimalPrecision := StrToInt(Trim(LStrings[2]))
+      begin
+        if not TryStrToInt(Trim(LStrings[2]), ADecimalPrecision) then
+          raise EKError.CreateFmt(_('Field %s: invalid decimal precision "%s" in its field spec.'),
+            [FieldName, Trim(LStrings[2])]);
+      end
       else
         ADecimalPrecision := 0;
 
@@ -2165,6 +2242,75 @@ end;
 function TKModelField.GetAllowedValues: TEFPairs;
 begin
   Result := GetChildrenAsPairs('AllowedValues');
+end;
+
+function TKModelField.GetNotifyChange: Boolean;
+begin
+  Result := GetBoolean('NotifyChange', False);
+end;
+
+function TKModelField.GetColors: string;
+begin
+  // RTTI carrier only: the <hex-color>: <regexp> pairs are read as pairs
+  // (GetChildrenAsPairs('Colors')) at render time, not through this accessor.
+  Result := '';
+end;
+
+function TKModelField.GetAutoAddFields: string;
+begin
+  // RTTI carrier only: the field list is read via FindNode('AutoAddFields').
+  Result := '';
+end;
+
+function TKModelField.GetMaxUploadSize: string;
+begin
+  // String (not integer): the value may carry a unit, e.g. "100KB".
+  Result := GetString('MaxUploadSize');
+end;
+
+function TKModelField.GetFilePath: string;
+begin
+  Result := GetString('Path');
+end;
+
+function TKModelField.GetDisplayName: string;
+begin
+  Result := GetString('DisplayName');
+end;
+
+function TKModelField.GetContentType: string;
+begin
+  Result := GetString('ContentType');
+end;
+
+function TKModelField.GetAcceptedWildCards: string;
+begin
+  Result := GetString('AcceptedWildCards');
+end;
+
+function TKModelField.GetLines: Integer;
+begin
+  Result := GetInteger('Lines', 0);
+end;
+
+function TKModelField.GetEditLines: Integer;
+begin
+  Result := GetInteger('EditLines', 0);
+end;
+
+function TKModelField.GetUseSpeedButtons: Boolean;
+begin
+  Result := GetBoolean('UseSpeedButtons', False);
+end;
+
+function TKModelField.GetFieldReadOnly: Boolean;
+begin
+  Result := GetBoolean('ReadOnly', False);
+end;
+
+function TKModelField.GetURL: string;
+begin
+  Result := GetString('URL');
 end;
 
 function TKModelField.GetBlankValue: Boolean;
@@ -2606,8 +2752,14 @@ var
   LParent: TEFTree;
 begin
   LParent := Parent;
+  // Walk UP the parent chain to the owning model (a TKModel is a TEFTree, not a
+  // TEFNode, so it ends the loop). The step must advance LParent: it used to
+  // read TEFNode(Parent).Parent -- Parent is fixed, so every iteration recomputed
+  // the same grandparent. That is an infinite loop whenever the grandparent is
+  // itself a TEFNode (a subobject nested more than one level down); it only ever
+  // terminated because the cases in play had the model as the grandparent.
   while Assigned(LParent) and (LParent is TEFNode) do
-    LParent := TEFNode(Parent).Parent;
+    LParent := TEFNode(LParent).Parent;
 
   Result := LParent as TKModel;
 

@@ -1,0 +1,15 @@
+﻿ModelName: DocumentType
+PhysicalName: TPDOC
+PluralDisplayLabel: _(Document types)
+PluralModelName: DocumentTypes
+DisplayLabel: _(Document type)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 100
+ImageName: group

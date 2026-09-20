@@ -1,0 +1,56 @@
+﻿ModelName: VatCode
+PhysicalName: CODICIIVA
+PluralDisplayLabel: _(VAT Codes)
+DisplayLabel: _(VAT Code)
+PluralModelName: VatCodes
+DefaultSorting: {Q}DX
+ImageName: account_balance
+Fields:
+  Id: String(4) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 40
+  RatePercent: Integer
+    PhysicalName: ALIQUOTA
+    DisplayLabel: _(Rate %)
+    DisplayWidth: 12
+  NonDeductiblePercent: Integer
+    PhysicalName: PERC_INDETR
+    DisplayLabel: _(% Non-deductible)
+    DisplayWidth: 14
+  DeductibleCode: String(4)
+    PhysicalName: COD_DETR
+    DisplayLabel: _(Deductible code)
+    DisplayWidth: 15
+  NonDeductibleCode: String(4)
+    PhysicalName: COD_INDETR
+    DisplayLabel: _(Non-deductible code)
+    DisplayWidth: 17
+  StampDutyAmount: Currency
+    PhysicalName: IMP_BOLLO
+    DisplayLabel: _(Stamp duty amount)
+    DisplayWidth: 10
+  BracketLimit: Currency
+    PhysicalName: LIMITE_SCAGLIONE
+    DisplayLabel: _(Bracket limit)
+    DisplayWidth: 10
+  Title: String(50)
+    PhysicalName: TITOLO
+    DisplayLabel: _(Title)
+    DisplayWidth: 40
+  Nature: String(2)
+    PhysicalName: NATURA
+    DisplayLabel: _(Nature)
+    DisplayWidth: 8
+  ExcludeFromVatSettlement: Boolean
+    PhysicalName: ESCLUDIDACOMLIQIVA
+    DisplayLabel: _(Exclude from VAT settlement)
+    DisplayWidth: 20
+  Disabled: Boolean
+    PhysicalName: DISATTIVATO
+    DisplayLabel: _(Disabled)
+    DisplayWidth: 15

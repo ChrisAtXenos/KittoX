@@ -1,22 +1,10 @@
 {******************************************************************************}
 {                                                                              }
-{  Neon: Serialization Library for Delphi                                      }
+{  Neon: JSON Serialization Library for Delphi                                 }
 {  Copyright (c) 2018 Paolo Rossi                                              }
 {  https://github.com/paolo-rossi/neon-library                                 }
 {                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
+{  Licensed under the MIT license                                              }
 {                                                                              }
 {******************************************************************************}
 unit Neon.Core.Serializers.RTL;
@@ -43,6 +31,7 @@ type
   public
     function Serialize(const AValue: TValue; ANeonObject: TNeonRttiObject; AContext: ISerializerContext): TJSONValue; override;
     function Deserialize(AValue: TJSONValue; const AData: TValue; ANeonObject: TNeonRttiObject; AContext: IDeserializerContext): TValue; override;
+    function SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject; override;
   end;
 
   /// <summary>
@@ -67,6 +56,12 @@ type
     class function GetTargetInfo: PTypeInfo; override;
     class function CanHandle(AType: PTypeInfo): Boolean; override;
   public
+    /// <summary>
+    ///   Deserialize returns a clone of the JSON it is given, so it does not
+    ///   need an instance to read into and a TJSONValue member works without
+    ///   AutoCreate or [NeonAutoCreate]
+    /// </summary>
+    class function NeedsInstance: Boolean; override;
     function Serialize(const AValue: TValue; ANeonObject: TNeonRttiObject; AContext: ISerializerContext): TJSONValue; override;
     function Deserialize(AValue: TJSONValue; const AData: TValue; ANeonObject: TNeonRttiObject; AContext: IDeserializerContext): TValue; override;
   end;
@@ -81,6 +76,7 @@ type
   public
     function Serialize(const AValue: TValue; ANeonObject: TNeonRttiObject; AContext: ISerializerContext): TJSONValue; override;
     function Deserialize(AValue: TJSONValue; const AData: TValue; ANeonObject: TNeonRttiObject; AContext: IDeserializerContext): TValue; override;
+    function SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject; override;
   end;
 
   /// <summary>
@@ -98,6 +94,7 @@ type
   public
     function Serialize(const AValue: TValue; ANeonObject: TNeonRttiObject; AContext: ISerializerContext): TJSONValue; override;
     function Deserialize(AValue: TJSONValue; const AData: TValue; ANeonObject: TNeonRttiObject; AContext: IDeserializerContext): TValue; override;
+    function SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject; override;
   end;
 
   /// <summary>
@@ -112,9 +109,23 @@ type
     class procedure ChangeConfig(AConfig: INeonConfiguration); override;
     function Serialize(const AValue: TValue; ANeonObject: TNeonRttiObject; AContext: ISerializerContext): TJSONValue; override;
     function Deserialize(AValue: TJSONValue; const AData: TValue; ANeonObject: TNeonRttiObject; AContext: IDeserializerContext): TValue; override;
+    function SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject; override;
   end;
 
 
+/// <summary>
+///   Registers every serializer in this unit. <b>Nothing in the library calls
+///   it</b>: a configuration starts with an empty registry, so this is the
+///   consumer's call to make - see the "Custom Serializers" section of the
+///   README for what each type serializes as when it is not registered
+/// </summary>
+/// <remarks>
+///   Neon.Core.Serializers.DB declares a procedure with the same name, so
+///   qualify the call with the unit name when both units are in scope.
+///   Registering into the registry skips TCustomSerializer.ChangeConfig, which
+///   TCollectionSerializer needs: register that one (or all of them) through
+///   INeonConfiguration.RegisterSerializer instead
+/// </remarks>
 procedure RegisterDefaultSerializers(ARegistry: TNeonSerializerRegistry);
 
 implementation
@@ -156,6 +167,17 @@ begin
     Result := True
   else
     Result := False;
+end;
+
+function TGUIDSerializer.SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject;
+begin
+  // The serializer writes the canonical textual form of the GUID, so without
+  // this hook the generator would describe the record as an object of its D1/
+  // D2/D3/D4 fields. "uuid" is the de-facto format for it (annotation-only in
+  // 2020-12, harmless in older drafts)
+  Result := TJSONObject.Create
+    .AddPair('type', 'string')
+    .AddPair('format', 'uuid');
 end;
 
 function TGUIDSerializer.Deserialize(AValue: TJSONValue; const AData: TValue;
@@ -220,6 +242,11 @@ begin
   Result := TypeInfoIs(AType);
 end;
 
+class function TJSONValueSerializer.NeedsInstance: Boolean;
+begin
+  Result := False;
+end;
+
 function TJSONValueSerializer.Deserialize(AValue: TJSONValue;
   const AData: TValue; ANeonObject: TNeonRttiObject;
   AContext: IDeserializerContext): TValue;
@@ -227,39 +254,67 @@ var
   LJSONData: TJSONValue;
   LPair: TJSONPair;
   LValue: TJSONValue;
+  LTargetClass: TClass;
+  LMemberType: TRttiType;
 begin
   Result := AData;
-  LJSONData := Result.AsObject as TJSONValue;
 
-  // Check the TypeInfo of AData as TJSONValue and AValue
-  if not (LJSONData.ClassType = AValue.ClassType) then
+  LJSONData := nil;
+  if AData.IsObject then
+    LJSONData := AData.AsObject as TJSONValue;
+
+  // The instance the caller passed to JSONToObject cannot be replaced: there is
+  // no reference to update and the entry point discards the result, so the JSON
+  // is merged into it - the only thing this serializer used to do, for every
+  // target. Note that the merge appends: reading two documents into the same
+  // instance keeps the pairs of both
+  if Assigned(LJSONData) and AContext.IsOriginalInstance(AData) then
   begin
-    AContext.LogError(Format('TJSONValueSerializer: %s and %s not compatible',
-      [LJSONData.ClassName, AValue.ClassName]));
+    if LJSONData.ClassType <> AValue.ClassType then
+    begin
+      AContext.LogError(Format(SNeonErrorSerializerIncompatibleF2, [LJSONData.ClassName, AValue.ClassName]));
+      Exit;
+    end;
+
+    if LJSONData is TJSONObject then
+      for LPair in (AValue as TJSONObject) do
+        (LJSONData as TJSONObject).AddPair(LPair.Clone as TJSONPair)
+
+    else if LJSONData is TJSONArray then
+      for LValue in (AValue as TJSONArray) do
+        (LJSONData as TJSONArray).AddElement(LValue.Clone as TJSONValue);
+
     Exit;
   end;
 
-  if LJSONData is TJSONObject then
-    for LPair in (AValue as TJSONObject) do
-      (LJSONData as TJSONObject).AddPair(LPair.Clone as TJSONPair)
+  // Everywhere else the target simply takes a clone of the JSON it is read
+  // from, whatever its kind: the mirror image of Serialize, which clones
+  // whatever it is given. Merging into the instance could only ever work for an
+  // object or an array of the exact same class, left a nil member untouched,
+  // and appended the same pairs again on a second read
+  LTargetClass := TJSONValue;
+  if ANeonObject is TNeonRttiMember then
+  begin
+    LMemberType := TNeonRttiMember(ANeonObject).RttiType;
+    if LMemberType is TRttiInstanceType then
+      LTargetClass := TRttiInstanceType(LMemberType).MetaclassType;
+  end
+  else if Assigned(LJSONData) then
+    LTargetClass := LJSONData.ClassType;
 
-  else if LJSONData is TJSONArray then
-    for LValue in (AValue as TJSONArray) do
-      (LJSONData as TJSONArray).AddElement(LValue.Clone as TJSONValue)
+  // A TJSONString cannot be stored in a TJSONObject member: say so instead of
+  // letting the assignment fail with an unrelated cast error
+  if not AValue.InheritsFrom(LTargetClass) then
+  begin
+    AContext.LogError(Format(SNeonErrorSerializerIncompatibleF2, [LTargetClass.ClassName, AValue.ClassName]));
+    Exit;
+  end;
 
-  {
-  else if LJSONData is TJSONString then
-    (LJSONData as TJSONString). Value := (AValue as TJSONString).Value
+  Result := AValue.Clone as TJSONValue;
 
-  else if LJSONData is TJSONNumber then
-    (LJSONData as TJSONNumber).Value := (AValue as TJSONNumber).Value
-
-  else if LJSONData is TJSONBool then
-    (LJSONData as TJSONString).Value := (AValue as TJSONString).Value
-
-  else if LJSONData is TJSONNull then
-    (LJSONData as TJSONString).Value := (AValue as TJSONString).Value
-  }
+  // Neon is replacing the value the target holds, so it disposes of the
+  // instance it replaces: leaving it behind would leak it
+  LJSONData.Free;
 end;
 
 class function TJSONValueSerializer.GetTargetInfo: PTypeInfo;
@@ -355,6 +410,13 @@ begin
   end;
 end;
 
+function TTValueSerializer.SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject;
+begin
+  // A TValue member is written as whatever its inner value serializes to,
+  // which is unknowable from the declared type: the empty schema admits it all
+  Result := TJSONObject.Create;
+end;
+
 { TBytesSerializer }
 
 class function TBytesSerializer.CanHandle(AType: PTypeInfo): Boolean;
@@ -417,12 +479,32 @@ begin
   Exit(TJSONString.Create(TBase64.Encode(LVal)));
 end;
 
+function TBytesSerializer.SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject;
+var
+  LFormat: NeonFormatAttribute;
+begin
+  // Mirror Serialize: with [NeonFormat('native')] the byte array is written
+  // as-is, otherwise as a Base64 string (like a stream)
+  LFormat := ANeonObject.GetAttribute<NeonFormatAttribute>;
+  if IsFormatValue(LFormat, 'native') then
+    Result := TJSONObject.Create
+      .AddPair('type', 'array')
+      .AddPair('items', TJSONObject.Create
+        .AddPair('type', 'integer')
+        .AddPair('minimum', TJSONNumber.Create(0))
+        .AddPair('maximum', TJSONNumber.Create(255)))
+  else
+    Result := TJSONObject.Create
+      .AddPair('type', 'string')
+      .AddPair('contentEncoding', 'base64');
+end;
+
 function TBytesSerializer.ValueAsBase64(const AValue: TJSONValue): TValue;
 var
   LVal: TBytes;
 begin
   if not (AValue is TJSONString) then
-    raise ENeonException.Create('JSONValue must be a string');
+    raise ENeonException.Create(SNeonErrorJSONNotString);
 
   LVal := TBase64.Decode(AValue.Value);
   Result := TValue.From<TBytes>(LVal);
@@ -452,7 +534,7 @@ var
   LItem: TJSONValue;
 begin
   if not (AValue is TJSONArray) then
-    raise ENeonException.Create('The JSON must be an array');
+    raise ENeonException.Create(SNeonErrorJSONNotArray);
 
   LArray := AValue as TJSONArray;
   LColl := AData.AsType<TCollection>;
@@ -464,7 +546,7 @@ begin
       Continue;
 
     if not (LItem is TJSONObject) then
-      ENeonException.Create('The item must be an object');
+      raise ENeonException.Create(SNeonErrorJSONItemNotObject);
 
     LItemColl := LColl.Add;
     AContext.ReadDataMember(LItem, LType, LItemColl);
@@ -506,6 +588,15 @@ begin
       Exit(nil);
     Result := TJSONArray.Create;
   end;
+end;
+
+function TCollectionSerializer.SerializeSchema(AType: TRttiType; ANeonObject: TNeonRttiObject): TJSONObject;
+begin
+  // The serializer writes one object per item; the item class is dynamic
+  // (TCollection.ItemClass), so the row itself is left unconstrained
+  Result := TJSONObject.Create
+    .AddPair('type', 'array')
+    .AddPair('items', TJSONObject.Create.AddPair('type', 'object'));
 end;
 
 end.

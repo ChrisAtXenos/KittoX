@@ -1,0 +1,36 @@
+﻿ModelName: Scorer
+PhysicalName: MARCATORI
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  Minute: Integer
+    DisplayLabel: _(Minute)
+    PhysicalName: MINUTO
+  Scorer: String(40) not null
+    DisplayLabel: _(Scorer)
+    PhysicalName: MARCATORE
+  MatchPairing: Reference(MatchPairing) not null
+    DisplayLabel: _(Match pairing)
+    PhysicalName: DT_MARCATORI_ACCOPPIAMENTO
+    Fields:
+      MatchPairingId:
+        PhysicalName: ACCOPPIAMENTOID
+  Team: Reference(Team)
+    DisplayLabel: _(Team)
+    PhysicalName: FK_MARCATORI_SQUADRA
+    Fields:
+      TeamId:
+        PhysicalName: SQUADRAID
+  ScoringType: Reference(ScoringType) not null
+    DisplayLabel: _(Scoring Type)
+    PhysicalName: FK_MARCATORI_TIPOMARCATURA
+    Fields:
+      ScoringTypeId:
+        PhysicalName: TIPOMARCATURAID
+PluralDisplayLabel: _(Scorers)
+DisplayLabel: _(Scorer)
+PluralModelName: Scorers

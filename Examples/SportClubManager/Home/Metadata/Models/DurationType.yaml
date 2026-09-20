@@ -1,0 +1,14 @@
+﻿ModelName: DurationType
+PhysicalName: TPDURATE
+PluralDisplayLabel: _(Duration types)
+PluralModelName: DurationTypes
+DisplayLabel: _(Duration type)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 1
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 100

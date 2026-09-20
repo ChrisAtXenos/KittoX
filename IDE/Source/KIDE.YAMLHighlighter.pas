@@ -373,7 +373,24 @@ procedure UnregisterYAMLHighlighter;
 var
   I: Integer;
   OTAHighlightServices: IOTAHighlightServices;
+  EditOps: IOTAEditOptions;
 begin
+  // The persistent 'YAML' IOTAEditOptions the constructor added keeps an
+  // IOTAHighlighter reference to our TYAMLHighlighter (EditOps.SyntaxHighlighter
+  // := Self). It survives RemoveHighlighter and outlives this bpl, so on the
+  // next YAML tokenize/repaint the IDE would call through a dead VMT -> AV on
+  // design-package unload. Drop that reference first, while our code is mapped.
+  with (BorlandIDEServices as IOTAEditorServices) do
+    for I := 0 to EditOptionsCount - 1 do
+    begin
+      EditOps := EditorOptions[I];
+      if EditOps.IDString = YAML_ID_STRING then
+      begin
+        EditOps.SyntaxHighlighter := nil;
+        Break;
+      end;
+    end;
+
   OTAHighlightServices := (BorlandIDEServices As IOTAHighlightServices);
   for I := 0 to OTAHighlightServices.HighlighterCount -1 do
   begin

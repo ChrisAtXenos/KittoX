@@ -50,6 +50,9 @@ type
   TKXToolController = class(TKXComponent)
   strict protected
     function GetDisplayLabel: string;
+    function GetRequireSelection: Boolean;
+    function GetConfirmationMessage: string;
+    function GetAutoRefresh: string;
     procedure ExecuteTool; virtual;
     procedure DoAfterExecuteTool; virtual;
     procedure AfterExecuteTool; virtual;
@@ -60,6 +63,14 @@ type
     function IsSynchronous: Boolean; override;
     [YamlNode('DisplayLabel', 'Tool display label (defaults to View DisplayLabel)')]
     property DisplayLabel: string read GetDisplayLabel;
+    [YamlNode('RequireSelection', 'True', 'Require at least one selected record to run the tool')]
+    property RequireSelection: Boolean read GetRequireSelection;
+    [YamlNode('ConfirmationMessage', 'Confirmation prompt shown before running the tool (empty = no prompt)', True)]
+    property ConfirmationMessage: string read GetConfirmationMessage;
+    [YamlNode('AutoRefresh', 'Refresh data after the tool runs: empty / current / all')]
+    [YamlEnumValue('current', 'Refresh the current record only')]
+    [YamlEnumValue('all', 'Refresh all records')]
+    property AutoRefresh: string read GetAutoRefresh;
     /// <summary>Executes the tool (a tool produces no HTML; it acts server-side).</summary>
     procedure Display; override;
     /// <summary>Tools produce no HTML output; returns an empty string.</summary>
@@ -79,6 +90,7 @@ type
     function GetServerRecord: TKViewTableRecord;
     function GetServerStore: TKViewTableStore;
     function GetViewTable: TKViewTable;
+    function GetRequireDetails: Boolean;
   strict protected
     procedure AfterExecuteTool; override;
     procedure ExecuteTool; override;
@@ -90,6 +102,9 @@ type
     procedure ExecuteInTransaction(const AProc: TProc);
     procedure EnumSelectedRecords(const AProc: TProc<TKViewTableRecord>);
     function ExpandServerRecordValues(const AString: string): string;
+  public
+    [YamlNode('RequireDetails', 'False', 'Require detail records to be loaded before running the tool')]
+    property RequireDetails: Boolean read GetRequireDetails;
   end;
 
   /// <summary>
@@ -138,6 +153,21 @@ begin
     Result := Config.GetExpandedString('Title', View.DisplayLabel)
   else
     Result := '';
+end;
+
+function TKXToolController.GetRequireSelection: Boolean;
+begin
+  Result := Config.GetBoolean('RequireSelection', True);
+end;
+
+function TKXToolController.GetConfirmationMessage: string;
+begin
+  Result := Config.GetExpandedString('ConfirmationMessage');
+end;
+
+function TKXToolController.GetAutoRefresh: string;
+begin
+  Result := Config.GetString('AutoRefresh');
 end;
 
 function TKXToolController.IsSynchronous: Boolean;
@@ -253,6 +283,11 @@ end;
 function TKXDataToolController.GetViewTable: TKViewTable;
 begin
   Result := Config.GetObject('Sys/ViewTable') as TKViewTable;
+end;
+
+function TKXDataToolController.GetRequireDetails: Boolean;
+begin
+  Result := Config.GetBoolean('RequireDetails');
 end;
 
 procedure TKXDataToolController.RefreshData(const AAllRecords: Boolean);

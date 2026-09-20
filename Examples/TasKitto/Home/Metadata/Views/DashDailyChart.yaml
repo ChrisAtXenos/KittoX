@@ -9,7 +9,6 @@ Controller: List
           Position: Left
           Title: _(Hours)
         Axis:
-          Type: Category
           Position: Bottom
       Series:
         Series:

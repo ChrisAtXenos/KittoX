@@ -1,0 +1,9 @@
+LabelAlign: Right
+LabelWidth: 120
+FieldSet:
+  Row:
+    Field: Id
+  Row:
+    Field: Description
+  Row:
+    Field: AccountingReason

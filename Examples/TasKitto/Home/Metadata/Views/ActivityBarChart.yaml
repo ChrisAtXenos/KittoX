@@ -1,4 +1,4 @@
-﻿Type: Data
+Type: Data
 DisplayLabel: _(Bar Chart)
 Controller: List
 
@@ -10,7 +10,6 @@ Controller: List
           Position: Left
           Title: _(Duration in hours)
         Axis:
-          Type: Category
           Position: Bottom
       Series:
         Series:
@@ -20,14 +19,11 @@ Controller: List
           .DisplayName: _(Duration in hours)
           .Style:
             Color: 6709248
-          Highlight:
-            StrokeStyle: black
-            FillStyle: gold
           Label:
             Field: DURATION
-            Display: insideEnd
   WestController: GridPanel
     Width: 500
+    Split: True
 
 MainTable:
   IsReadOnly: True

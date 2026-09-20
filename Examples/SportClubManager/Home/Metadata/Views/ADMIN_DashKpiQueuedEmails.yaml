@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Queued e-mails)
+ImageName: dash_queued_emails.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiQueuedEmails.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

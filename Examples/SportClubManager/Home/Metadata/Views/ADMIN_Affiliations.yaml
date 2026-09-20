@@ -1,0 +1,21 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Clubs)
+    Items:
+      FreeSearch: _(Description)
+        ExpressionTemplate: (SOCIETA.DX like '%{value}%')
+MainTable:
+  Model: Affiliation
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_Affiliations_Form
+    Grid:
+      Layout: ADMIN_Affiliations_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Affiliations.xlsx
+          RequireSelection: False

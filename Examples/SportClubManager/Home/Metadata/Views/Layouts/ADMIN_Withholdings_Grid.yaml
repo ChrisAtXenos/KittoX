@@ -1,0 +1,26 @@
+Field: FinancialYear
+Field: TaxLevyCode
+  DisplayWidth: 20
+Field: WithholdingType
+  DisplayWidth: 20
+Field: Supplier
+Field: Description
+Field: PostingDate
+Field: FeePaymentDate
+  DisplayWidth: 30
+Field: FeeAmount
+  DisplayWidth: 20
+Field: TaxableAmount
+Field: AmountNotSubjectToWithholding
+  DisplayWidth: 30
+Field: AmountSubjectToWithholding
+  DisplayWidth: 25
+Field: DueDate
+  DisplayWidth: 25
+Field: DepositDate
+  DisplayWidth: 20
+Field: PaymentMethod
+Field: Bank
+Field: SocialSecurityActivityCode
+  DisplayWidth: 20
+Field: Status

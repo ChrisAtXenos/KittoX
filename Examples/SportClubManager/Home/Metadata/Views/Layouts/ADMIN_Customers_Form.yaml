@@ -1,0 +1,53 @@
+﻿LabelAlign: Right
+FieldSet:
+  Title: _(Personal details)
+  Row:
+    Field: Id
+    Field: Description
+  Row:
+    Field: LastName
+    Field: FirstName
+  Row:
+    Field: LegalForm
+      CharWidth: 40
+  Row:
+    Field: TaxCode
+    Field: VatNumber
+FieldSet:
+  Title: _(Registered address/residence)
+  Row:
+    Field: Address
+  Row:
+    Field: PostalCode
+    Field: Municipality
+    Field: Province
+FieldSet:
+  Title: _(Administrative address/domicile)
+  Row:
+    Field: AdminAddressSameAsRegistered
+    Field: AdminAddress
+  Row:
+    Field: AdminPostalCode
+    Field: AdminMunicipality
+    Field: AdminProvince
+FieldSet:
+  Title: _(Contacts)
+  Row:
+    Field: Phone
+    Field: Mobile
+  Row:
+    Field: Email
+  Row:
+    Field: ContactPersonName
+FieldSet:
+  Title: _(Billing details)
+  Row:
+    Field: EInvoiceCode
+  Row:
+    Field: CertifiedEmail
+FieldSet:
+  Title: _(Bank details)
+  Row:
+    Field: Bank
+  Row:
+    Field: Iban

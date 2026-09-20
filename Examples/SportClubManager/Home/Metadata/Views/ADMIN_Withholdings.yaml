@@ -1,0 +1,54 @@
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Withholding Taxes)
+    Items:
+      DynaList: _(Financial Year)
+        Width: 20
+        CommandText: |
+          select ID, DX
+          from ESERCIZICONTABILI
+          order by DX
+        ExpressionTemplate: FK_DETTAGLI_RITENUTE_MOVIMENTO.ESERCID = '{value}'
+        AutoCompleteMinChars: 3
+      ColumnBreak:
+      List: _(Month)
+        Items:
+          January: _(January)
+            Expression: MONTH({Q}DT_SCAD) = 1
+          February: _(February)
+            Expression: MONTH({Q}DT_SCAD) = 2
+          March: _(March)
+            Expression: MONTH({Q}DT_SCAD) = 3
+          April: _(April)
+            Expression: MONTH({Q}DT_SCAD) = 4
+          May: _(May)
+            Expression: MONTH({Q}DT_SCAD) = 5
+          June: _(June)
+            Expression: MONTH({Q}DT_SCAD) = 6
+          July: _(July)
+            Expression: MONTH({Q}DT_SCAD) = 7
+          August: _(August)
+            Expression: MONTH({Q}DT_SCAD) = 8
+          September: _(September)
+            Expression: MONTH({Q}DT_SCAD) = 9
+          October: _(October)
+            Expression: MONTH({Q}DT_SCAD) = 10
+          November: _(November)
+            Expression: MONTH({Q}DT_SCAD) = 11
+          December: _(December)
+            Expression: MONTH({Q}DT_SCAD) = 12
+MainTable:
+  Model: WithholdingDetail
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_Withholdings_Form
+    Grid:
+      Layout: ADMIN_Withholdings_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Withholdings.xlsx
+          RequireSelection: False

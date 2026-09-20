@@ -1,0 +1,32 @@
+﻿FieldSet:
+  Title: _(Booking Data)
+  Row:
+    Field: Clinic
+    Field: MedicalVisitType
+  Row:
+    Field: RequestDate
+    Field: VisitDate
+    Field: VisitTime
+  Row:
+    Field: Status
+FieldSet:
+  Title: _(Notification Data)
+  Row:
+    Field: Person
+    Field: NotificationDate
+FieldSet:
+  Title: _(Visit Outcome)
+  Row:
+    Field: Performed
+    Field: Fitness
+    Field: HealthCard
+FieldSet:
+  Title: _(Certificate)
+  Row:
+    Field: DocumentFile
+    Field: ExpiryDate
+LabelAlign: Right
+FieldSet:
+  Title: _(Notes)
+  Row:
+    Field: Notes

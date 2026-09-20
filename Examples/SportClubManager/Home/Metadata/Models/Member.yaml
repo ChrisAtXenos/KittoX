@@ -1,0 +1,24 @@
+﻿ModelName: Member
+PhysicalName: SOCI
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  Membership: Date
+    DisplayLabel: _(Membership)
+    PhysicalName: ADESIONE
+  Termination: Date
+    DisplayLabel: _(Termination)
+    PhysicalName: CESSAZIONE
+  Person: Reference(Person)
+    DisplayLabel: _(Person)
+    PhysicalName: FK_SOCI_NOMINATIVO
+    Fields:
+      PersonId:
+        PhysicalName: Nominativoid
+PluralDisplayLabel: _(Members)
+DisplayLabel: _(Member)
+PluralModelName: Members

@@ -1,0 +1,51 @@
+﻿ModelName: AccountingReason
+PhysicalName: CAUSALICONTABILI
+PluralDisplayLabel: _(Accounting Reasons)
+DisplayLabel: _(Accounting Reason)
+PluralModelName: AccountingReasons
+DefaultSorting: {Q}DX
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Reason code)
+    DisplayWidth: 20
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 40
+  PostingType: String(2) not null
+    PhysicalName: TIPOREG
+    DisplayLabel: _(Posting type)
+    DisplayWidth: 30
+    AllowedValues:
+      AS: _(Simple entry)
+      AC: _(Complex entry)
+      FF: _(Supplier invoice)
+      FC: _(Customer invoice)
+      NF: _(Supplier credit note)
+      NC: _(Customer credit note)
+      MA: _(Opening entries)
+      MC: _(Closing entries)
+  ReasonType: String(3) not null
+    PhysicalName: TIPOCAUSALE
+    DisplayLabel: _(Reason type)
+    DisplayWidth: 30
+    AllowedValues:
+      GEN: _(General ledger)
+      CLI: _(Sales VAT)
+      FOR: _(Purchase VAT)
+      INC: _(Collection)
+      PAG: _(Payment)
+  DocumentDateRef: Boolean not null
+    PhysicalName: RIFDTDOC
+    DisplayLabel: _(Document date ref.)
+    DisplayWidth: 20
+  DocumentNumberRef: Boolean not null
+    PhysicalName: RIFNRDOC
+    DisplayLabel: _(Document number ref.)
+    DisplayWidth: 20
+  DueDateRef: Boolean not null
+    PhysicalName: RIFDTSCAD
+    DisplayLabel: _(Due date ref.)
+    DisplayWidth: 20
+ImageName: account_balance

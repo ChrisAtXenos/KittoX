@@ -1,0 +1,57 @@
+DisplayLabel: %Config:AppTitle%
+Controller: BorderPanel
+  .NorthView:
+    Controller: ToolBar
+      TreeView: %Auth:PROFILEID%_TopMenu
+
+  WestView:
+    DisplayLabel: _(Menu - Version %APP_VERSION_FULL%)
+    Controller: BorderPanel
+      Width: 250
+      Collapsible: True
+      Border: True
+      Split: True
+      Header: True
+      Height: 60
+      NorthView:
+        Controller: HtmlPanel
+          Split: False
+          Html: <img src="%IMAGE(%Config:SportsClubLogo%)%" style="width: 100%; height: auto; display: block">
+      CenterView:
+        Controller: TreePanel
+          #Tree Menu
+          TreeView: %Auth:PROFILEID%_TreeMenu
+      # SCM logo with the user-selectable theme switcher (Light / Auto / Dark)
+      # docked at the very bottom of the menu, like TasKitto. The switcher
+      # renders only when Theme: Auto / UserSelection: True; otherwise its
+      # band collapses.
+      SouthView:
+        Controller: BorderPanel
+          NorthView:
+            Controller: HtmlPanel
+              Split: False
+              Html: <img src="%IMAGE(SCMLogo)%" style="width: 100%; height: auto; display: block">
+          SouthView:
+            Height: 44
+            Controller: BorderPanel
+              Border: False
+              Header: False
+              Split: False
+              WestView:
+                Width: 112
+                Controller: ThemeSwitcher
+              CenterView:
+                Controller: LanguageSwitcher
+
+  CenterView:
+    #Panel with tabs hosting the views
+    Controller: TabPanel
+      Border: True
+      # List of views to be auto-opened in tabs at startup
+      SubViews:
+        View: ADMIN_Dashboard
+
+  SouthView:
+    Controller: StatusBar
+      Text: <span>_(Signed in as:)</span> %Auth:User_FullName% | <a target="_blank" href="https://sportclubmanager.it/docs/scm/contents" style="color:orange; font-size: medium">_(Guide index...)</a>
+    ImageName: user

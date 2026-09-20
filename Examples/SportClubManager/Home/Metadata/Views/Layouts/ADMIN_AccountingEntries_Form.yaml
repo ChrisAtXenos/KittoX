@@ -1,0 +1,38 @@
+﻿LabelAlign: Right
+LabelWidth: 150
+FieldSet:
+  Row:
+    Field: PostingDate
+    Field: FinancialYear
+    Field: EntryNumber
+  Row:
+    Field: EntryType
+    Field: AccountingReason
+  Row:
+    Field: Description
+  Row:
+    Field: DocumentDate
+    Field: DocumentNumber
+  Row:
+    Field: VatRegister
+    Field: VatProtocolNumber
+  Row:
+    Field: Amount
+    Field: PaymentMethod
+    Field: Bank
+FieldSet:
+  Row:
+    Field: Supplier
+FieldSet:
+  Row:
+    Field: Customer
+FieldSet:
+  Title: _(Documents)
+  Row:
+    Field: PdfInvoice
+  Row:
+    Field: XmlInvoice
+FieldSet:
+  Row:
+    Field: Notes
+      CharWidth: 90

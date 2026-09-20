@@ -1,0 +1,333 @@
+﻿ModelName: Subscription
+PhysicalName: ISCRIZIONI
+DefaultSorting: {Q}DX,{Q}DATA_ISCRIZIONE
+PluralDisplayLabel: _(Subscriptions)
+DisplayLabel: _(Subscription)
+PluralModelName: Subscriptions
+Rules:
+  SubscriptionCheck:
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200)
+    PhysicalName: DX
+    IsVisible: False
+    IsReadOnly: True
+  SubscriptionDate: Date not null
+    PhysicalName: DATA_ISCRIZIONE
+    DefaultValue: {Date}
+    DisplayWidth: 12
+    DisplayLabel: _(Subscription Date)
+  Season: Reference(Season) not null
+    DisplayLabel: _(Season)
+    PhysicalName: FK_STAGIONE
+    DisplayWidth: 40
+    Fields:
+      SeasonId:
+        PhysicalName: STAGIONEID
+    LookupFilter: (DATAFINE > CURRENT_TIMESTAMP and DATAINI <= CURRENT_TIMESTAMP)
+  Campaign: Reference(SubscriptionCampaign) not null
+    DisplayLabel: _(Campaign)
+    PhysicalName: FK_ISCRIZIONI_CAMPAGNA
+    DisplayWidth: 40
+    Fields:
+      CampaignId:
+        PhysicalName: CAMPAGNAID
+    AutoAddFields:
+      Description: Campaign_Description
+      #SingleInstalmentDiscount: Campaign_SingleInstalmentDiscount
+      SiblingDiscount: Campaign_SiblingDiscount
+      SiblingDiscountPercent: Campaign_SiblingDiscountPercent
+      DiscountDeadline: Campaign_DiscountDeadline
+      SportsActivityFlag: Campaign_SportsActivityFlag
+      MembershipFee: Campaign_MembershipFee
+  SubscriptionFee: Reference(SubscriptionFee) not null
+    PhysicalName: FK_ISCRIZIONI_QUOTA_ISCRIZIONE
+    DisplayLabel: _(Subscription Course)
+    Fields:
+      SubscriptionFeeId:
+        PhysicalName: QUOTA_ISCRIZIONEID
+    AutoAddFields:
+      BirthYearFrom: SubscriptionFee_BirthYearFrom
+        PhysicalName: ANNO_DAL
+      BirthYearTo: SubscriptionFee_BirthYearTo
+        PhysicalName: ANNO_AL
+      SingleInstalmentDiscount: SubscriptionFee_SingleInstalmentDiscount
+    Rules:
+      SubscriptionSetFee:
+      CalcDescription: {LastName} {FirstName} - {Campaign_Description}
+      SubscriptionCheck:
+    LookupFilter: |
+      (CAMPAGNAID IN (SELECT ID FROM CAMPAGNE_ISCRIZIONI WHERE INIZIO < CURRENT_TIMESTAMP AND FINE >= CURRENT_TIMESTAMP) AND COALESCE(CORSO_COMPLETO, 0) <> 1)
+      AND ((ANNO_AL >= (SELECT MAX(DATEPART(YEAR,DATANASC)) FROM NOMINATIVI WHERE NOMINATIVI.CODFISC = '{TaxCode}'))
+      AND (ANNO_DAL <= (SELECT MAX(DATEPART(YEAR,DATANASC)) FROM NOMINATIVI WHERE NOMINATIVI.CODFISC = '{TaxCode}'))
+      OR (NOT EXISTS (SELECT ID FROM NOMINATIVI WHERE NOMINATIVI.CODFISC = '{TaxCode}')))
+    DisplayWidth: 40
+  Person: Reference(Person)
+    DisplayLabel: _(Person)
+    PhysicalName: FK_ISCRIZIONI_NOMINATIVO
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+    LookupFilter: (NOMINATIVI.ID in (SELECT NOMINATIVO_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%' and PARENTELA_ID = 'F')) OR  '%Auth:PROFILEID%' = 'ADMIN'
+    Rules:
+      SubscriptionSetPerson:
+    CanUpdate: True
+    DisplayWidth: 50
+  LastName: String(100) not null
+    DisplayLabel: _(Last Name)
+    PhysicalName: COGNOME
+    DisplayWidth: 30
+    Rules:
+      CalcDescription: {LastName} {FirstName} - {Campaign_Description}
+  FirstName: String(100) not null
+    DisplayLabel: _(First Name)
+    PhysicalName: NOME
+    DisplayWidth: 30
+    Rules:
+      CalcDescription: {LastName} {FirstName} - {Campaign_Description}
+  TaxCode: String(16) not null
+    DisplayLabel: _(Tax Code)
+    PhysicalName: CODFISC
+    DisplayWidth: 30
+    Rules:
+      ForceUpperCase:
+      #CheckFieldDupValue: removed! two subscriptions with the same tax code are allowed
+      CheckTaxCodeFormat:
+      CheckTaxCodeChecksum:
+      SetRegistryDataFromTaxCode:
+  Gender: String(1) not null
+    DisplayLabel: _(Gender)
+    PhysicalName: SESSO
+    AllowedValues:
+      M: _(Male)
+      F: _(Female)
+    DisplayWidth: 15
+  BirthDate: Date not null
+    PhysicalName: DATANASC
+    DisplayWidth: 12
+    DisplayLabel: _(Birth Date)
+    IsReadOnly: True
+    Rules:
+      SubscriptionApplyFee:
+  BirthPlace: Reference(Municipality)
+    PhysicalName: FK_ISCRIZIONI_LUOGONASC
+    Fields:
+      BirthPlaceId:
+        PhysicalName: LUOGONASCID
+    DisplayLabel: _(Place of Birth)
+    DisplayWidth: 40
+    Rules:
+      CalcProvince:
+  BirthProvince: Reference(Province)
+    PhysicalName: FK_ISCRIZIONI_PROVNASC
+    DisplayLabel: _(Province of Birth)
+    Fields:
+      BirthProvinceId:
+        PhysicalName: PROVNASCID
+    Rules:
+      CalcCountry:
+  BirthCountry: Reference(Country)
+    DisplayLabel: _(Country of Birth)
+    PhysicalName: FK_ISCRIZIONI_NAZIONALITA
+    Fields:
+      BirthCountryId:
+        PhysicalName: NAZIONALITAID
+    DisplayWidth: 40
+  Address: String(50) not null
+    PhysicalName: INDIRIZZO
+    DisplayLabel: _(Home Address)
+    DisplayWidth: 40
+  Municipality: Reference(Municipality)
+    DisplayLabel: _(Municipality)
+    PhysicalName: FK_NOMINATIVI_COMUNE
+    Fields:
+      MunicipalityId:
+        PhysicalName: COMUNEID
+    DisplayWidth: 40
+    LookupFilter: (COMUNI.ESTINTO = 'N')
+    Rules:
+      CalcProvince:
+  PostalCode: String(5)
+    DisplayLabel: _(Postal Code)
+    PhysicalName: CAP
+    DisplayWidth: 10
+  Province: Reference(Province)
+    DisplayLabel: _(Province)
+    PhysicalName: FK_ISCRIZIONI_PROVINCIA
+    Fields:
+      ProvinceId:
+        PhysicalName: PROVINCIAID
+    Rules:
+      CalcCountry:
+  Mobile: String(40)
+    DisplayLabel: _(Mobile)
+    PhysicalName: CELLULARE
+    DisplayWidth: 20
+  Email: String(40)
+    PhysicalName: EMAIL
+    DisplayLabel: _(E-mail)
+    DisplayWidth: 30
+  VisitExpiry: Date
+    DisplayLabel: _(Visit Expiry)
+    DisplayWidth: 12
+    Expression: |
+      (SELECT MAX(SCADENZA) FROM VISITEMEDICHE WHERE NOMINATIVOID = {Q}NOMINATIVOID)
+  ParentLastName: String(100)
+    DisplayLabel: _(Parent Last Name)
+    PhysicalName: COGNOME_GENITORE
+    DisplayWidth: 30
+    NotifyChange: True
+  ParentFirstName: String(100)
+    DisplayLabel: _(Parent First Name)
+    PhysicalName: NOME_GENITORE
+    DisplayWidth: 30
+    NotifyChange: True
+  ParentTaxCode: String(16)
+    DisplayLabel: _(Parent Tax Code)
+    PhysicalName: COD_FISCALE_GENITORE
+    DisplayWidth: 30
+    Rules:
+      SubscriptionSetParent:
+      ForceUpperCase:
+      CheckTaxCodeFormat:
+      CheckTaxCodeChecksum:
+    NotifyChange: True
+  ParentMobile: String(20)
+    DisplayLabel: _(Parent Mobile)
+    PhysicalName: CELLULARE_GENITORE
+    NotifyChange: True
+    DisplayWidth: 20
+  ParentEmail: String(50)
+    PhysicalName: EMAIL_GENITORE
+    DisplayLabel: _(Parent E-mail)
+    DisplayWidth: 30
+    NotifyChange: True
+  AcceptanceDate: Date
+    PhysicalName: DATA_ACCETTAZIONE
+    DisplayLabel: _(Approval date)
+  RejectionDate: Date
+    PhysicalName: DATA_RIFIUTO
+    DisplayLabel: _(Rejection date)
+  SubscriberNotes: Memo
+    PhysicalName: NOTE
+    DisplayLabel: _(Subscriber Notes)
+  ClubNotes: Memo
+    PhysicalName: NOTE_ADMIN
+    DisplayLabel: _(Club Notes)
+  CourseFeeAmount: Currency
+    PhysicalName: IMPORTO_QUOTA
+    DisplayLabel: _(Course Fee)
+    IsReadOnly: True
+    DisplayWidth: 10
+    DefaultValue: 0
+  SiblingDiscount: Boolean
+    PhysicalName: SC_FRATELLI
+    DisplayLabel: _(Apply Sibling Discount)
+    DisplayLabel_Grid: _(Sibling Discount)
+    Rules:
+      SubscriptionSetSiblingDiscount:
+  SiblingDiscountAmount: Currency
+    PhysicalName: IMP_SC_FRATELLI
+    DisplayLabel: _(Sibling Discount)
+    DisplayWidth: 10
+    DefaultValue: 0
+    Rules:
+      SubscriptionSetSiblingDiscount:
+  SingleInstalmentDiscount: Boolean
+    PhysicalName: SC_RATA_UNICA
+    DisplayLabel: _(Apply Single Instalment Discount)
+    DisplayLabel_Grid: _(Single instalment)
+    Rules:
+      SubscriptionSetSingleInstalmentDiscount:
+  SingleInstalmentDiscountAmount: Currency
+    PhysicalName: IMP_SC_RATA_UNICA
+    DisplayLabel: _(Single instalment discount)
+    DisplayWidth: 10
+    DefaultValue: 0
+    Rules:
+      SubscriptionSetSingleInstalmentDiscount:
+  InstalmentsDiscountAllowance: Currency
+    PhysicalName: SC_ABBUONO_RATE
+    IsReadOnly: True
+    DisplayWidth: 10
+    DefaultValue: 0
+    DisplayLabel: _(Discount/Voucher)
+  SubscriptionTotal: Currency
+    PhysicalName: TOTALE_IMPORTO
+    DisplayLabel: _(Subscription Total)
+    IsReadOnly: True
+    DisplayWidth: 10
+    DefaultValue: 0
+  EntryDateTime: DateTime
+    DisplayLabel: _(Entry Date/Time)
+    PhysicalName: UPDTIMESTAMP
+    IsReadOnly: True
+    DefaultValue: {NOW}
+  EnteredByUser: Reference(User)
+    PhysicalName: FK_ISCRIZIONE_APPUSER
+    Fields:
+      EnteredByUserId:
+        PhysicalName: UTENTE_INSERIMENTOID
+        DefaultValue: %Auth:USER_NAME%
+    IsReadOnly: True
+    IsVisible: False
+    Rules:
+      SubscriptionSetParent:
+  IpAddress: String(30)
+    DisplayLabel: _(IP Address)
+    PhysicalName: INDIRIZZO_IP
+    IsReadOnly: True
+    DisplayWidth: 10
+    DefaultValue: %SESSION_HOST%
+  Status: String(3)
+    DisplayLabel: _(Status)
+    PhysicalName: STATUS
+    DisplayWidth: 20
+    AllowedValues:
+      INS: _(Entered)
+      ATT: _(Approved)
+      ANN: _(Cancelled)
+      RIF: _(Rejected)
+    IsReadOnly: True
+    DefaultValue: INS
+  StatusCalc: String(15)
+    Expression: |
+        COALESCE((SELECT CASE
+            WHEN V1.SCADENZA IS NULL OR COALESCE(V1.IDEONEITA,0) = 0 THEN '_(Booked)'
+            WHEN V1.SCADENZA >= GETDATE() AND COALESCE(V1.IDEONEITA,0) = 1 THEN '_(Active)'
+            WHEN V1.SCADENZA < GETDATE() THEN '_(Expired)'
+          END
+        FROM VISITEMEDICHE V1 WHERE NOMINATIVOID = {Q}NOMINATIVOID AND UPDTIMESTAMP = (SELECT MAX(UPDTIMESTAMP) FROM VISITEMEDICHE V2 WHERE V2.NOMINATIVOID = V1.NOMINATIVOID)),'_(Not Present)')
+    DisplayLabel: _(Visit Status)
+  SubscriptionCalc: HTMLMemo
+    Expression: |
+      '<img style="float: left; margin: 0px 15px 15px 0px;" src="'+
+      CASE
+        WHEN {Q}STATUS = 'ATT' THEN '%IMAGE(sentiment_satisfied_large.svg)%'
+        WHEN {Q}STATUS = 'ANN' or {Q}STATUS = 'RIF' THEN '%IMAGE(sentiment_dissatisfied_large.svg)%'
+        WHEN {Q}STATUS = 'INS' THEN '%IMAGE(sentiment_neutral_large.svg)%'
+      END+'" width="40" />'+
+      '<b> '+{Q}COGNOME+' '+{Q}NOME+'</b> <br /> '+
+      '_(Course):<b>'+FK_ISCRIZIONI_QUOTA_ISCRIZIONE.DX+'</b> <br /> '+
+      '_(Amount):<b> '+COALESCE(CAST({Q}TOTALE_IMPORTO AS VARCHAR),'')+'</b> <br /> '+
+      CASE WHEN {Q}SC_FRATELLI = 1 THEN '<b> _(with Sibling Discount) </b> <br /> ' else '' END+
+      CASE WHEN {Q}SC_RATA_UNICA = 1 THEN '<b> _(with Single Instalment Discount) </b> <br /> ' else '' END+
+      '_(Subscription):<b> '+COALESCE(CONVERT(VARCHAR, {Q}DATA_ISCRIZIONE, 103),'')+'</b> <br /> '+
+      CASE
+        WHEN {Q}STATUS = 'ATT' THEN '<font color="#388E3C"> <b> _(Approved) </b> <br /> '
+        WHEN {Q}STATUS = 'ANN' THEN '<font color="#E04B4B"> <b> _(Cancelled) </b> <br /> '
+        WHEN {Q}STATUS = 'INS' THEN '<font color="#B5761A"> <b> _(Entered) </b> <br /> '
+        WHEN {Q}STATUS = 'RIF' THEN '<font color="#E04B4B"> <b> _(Rejected) </b> <br /> '
+      END+'</font></div>'
+    DisplayLabel: _(Subscription summary)
+DetailReferences:
+  SubscriptionInstalments: SubscriptionInstalment
+    DisplayLabel: _(Subscription instalments)
+    PhysicalName: DT_RATE_ISCRIZIONI_ISCRIZIONE
+    ReferenceField: Subscription
+CaptionField: Description
+ImageName: building_edit

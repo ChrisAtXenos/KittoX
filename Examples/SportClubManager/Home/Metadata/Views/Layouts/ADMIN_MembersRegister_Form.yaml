@@ -1,0 +1,26 @@
+﻿LabelAlign: Right
+LabelWidth: 160
+FieldSet:
+  Row:
+    Field: RequestDate
+    Field: SubmissionDate
+  Row:
+    Field: AcceptanceDate
+    Field: RejectionDate
+  Row:
+    Field: RejectionReason
+      CharWidth: 100
+FieldSet:
+  Title: _(Member data)
+  Row:
+    Field: FirstName
+    Field: LastName
+  Row:
+    Field: TaxCode
+  Row:
+    Field: BirthDate
+    Field: BirthPlace
+  Row:
+    Field: Address
+  Row:
+    Field: Role

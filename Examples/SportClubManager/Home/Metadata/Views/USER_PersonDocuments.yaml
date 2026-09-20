@@ -1,0 +1,26 @@
+﻿DisplayLabel: _(Document Summary)
+Type: Data
+Controller: List
+  .Filters:
+    DisplayLabel: _(Document filter)
+    Connector: and
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: (DT_DOCUMENTI_NOMINATIVO.COGNOME like '%{value}%') or (DT_DOCUMENTI_NOMINATIVO.NOME like '%{value}%')
+MainTable:
+  Model: VPersonDocument
+  IsLarge: False
+  DefaultFilter: {Q}NOMINATIVOID in (SELECT NOMINATIVO_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%')
+  Controller:
+    PopupWindow:
+      Width: 500
+      Height: 300
+    Form:
+      Layout: USER_PersonDocuments_Form
+    Grid:
+      ForceFit: True
+      Layout: USER_PersonDocuments_Grid
+    AllowViewing: True
+    PreventDeleting: True
+    PreventAdding: True
+    PreventEditing: True

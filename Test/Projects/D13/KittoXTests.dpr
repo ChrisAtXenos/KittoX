@@ -10,6 +10,7 @@ uses
   DUnitX.TestFramework,
   // Registers the FireDAC adapter, which the integration tests ask for by id...
   EF.DB.FD,
+  EF.DB.ADO,
   // ...and the physical drivers it dispatches to. Without these the DriverID of
   // a connection resolves to nothing and FireDAC reports a missing object
   // factory, so every integration test would be skipped for the wrong reason.
@@ -41,7 +42,12 @@ uses
   Kitto.TestDB in '..\..\Source\Kitto.TestDB.pas',
   EF.DBIntegrationTests in '..\..\Source\EF.DBIntegrationTests.pas',
   EF.LoggerTests in '..\..\Source\EF.LoggerTests.pas',
-  EF.SysTests in '..\..\Source\EF.SysTests.pas';
+  EF.SysTests in '..\..\Source\EF.SysTests.pas',
+  Kitto.JWTTests in '..\..\Source\Kitto.JWTTests.pas',
+  Kitto.WebRoutesTests in '..\..\Source\Kitto.WebRoutesTests.pas',
+  Kitto.AuthTests in '..\..\Source\Kitto.AuthTests.pas',
+  Kitto.SessionTests in '..\..\Source\Kitto.SessionTests.pas',
+  Kitto.DBUtilsTests in '..\..\Source\Kitto.DBUtilsTests.pas';
 
 var
   LRunner: ITestRunner;

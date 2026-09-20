@@ -1,0 +1,49 @@
+﻿ModelName: Policy
+PhysicalName: POLIZZE
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+    IsVisible: False
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+    DisplayWidth: 40
+  Company: String(30) not null
+    DisplayLabel: _(Company)
+    PhysicalName: COMPAGNIA
+    DisplayWidth: 40
+  PolicyNumber: String(20) not null
+    DisplayLabel: _(Policy Number)
+    PhysicalName: NUMERO_POLIZZA
+  SigningDate: Date not null
+    PhysicalName: DATA_STIPULA
+    DisplayWidth: 12
+    DisplayLabel: _(Signing date)
+  Cost: Currency
+    DisplayLabel: _(Cost)
+    PhysicalName: COSTO
+    DisplayWidth: 10
+    DefaultValue: 0
+  EffectiveDate: Date not null
+    PhysicalName: DATA_EFFETTO
+    DisplayWidth: 12
+    DisplayLabel: _(Effective date)
+  ExpiryDate: Date not null
+    DisplayLabel: _(Expiry Date)
+    PhysicalName: DATA_SCADENZA
+    DisplayWidth: 12
+  Notes: String(200)
+    DisplayLabel: _(Notes)
+    PhysicalName: NOTE
+  DurationType: Reference(DurationType) not null
+    DisplayLabel: _(Duration Type)
+    PhysicalName: FK_POLIZZE_DURATA
+    Fields:
+      DurationTypeId:
+        PhysicalName: DURATAID
+PluralDisplayLabel: _(Policies)
+DisplayLabel: _(Policy)
+PluralModelName: Policies

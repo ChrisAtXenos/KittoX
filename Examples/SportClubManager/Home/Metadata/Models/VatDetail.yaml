@@ -1,0 +1,61 @@
+﻿ModelName: VatDetail
+PhysicalName: DETTAGLI_IVA
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(VAT Details)
+DisplayLabel: _(VAT Detail)
+PluralModelName: VatDetails
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    IsVisible: False
+    DefaultValue: '-'
+  TaxableAmount: Currency
+    PhysicalName: IMPONIBILE
+    DisplayLabel: _(Taxable amount)
+    DisplayWidth: 10
+    NotifyChange: True
+    Rules:
+      VatDetailCalcTax:
+  Tax: Currency
+    PhysicalName: IMPOSTA
+    DisplayLabel: _(Tax)
+    DisplayWidth: 10
+    IsReadOnly: True
+  DeductibleTax: Currency
+    PhysicalName: IMP_DETR
+    DisplayLabel: _(Deductible tax)
+    DisplayWidth: 10
+    IsReadOnly: True
+  NonDeductibleTax: Currency
+    PhysicalName: IMP_INDETR
+    DisplayLabel: _(Non-deductible tax)
+    DisplayWidth: 10
+    IsReadOnly: True
+  VatCode: Reference(VatCode)
+    PhysicalName: FK_DETTAGLI_IVA_CODICE_IVA
+    DisplayLabel: _(VAT)
+    DisplayWidth: 40
+    NotifyChange: True
+    Fields:
+      VatCodeId:
+        PhysicalName: CODICE_IVAID
+    AutoAddFields:
+      RatePercent: VatCode_RatePercent
+      Nature: VatCode_Nature
+      Title: VatCode_Title
+      NonDeductiblePercent: VatCode_NonDeductiblePercent
+    Rules:
+      VatDetailCalcTax:
+  AccountingEntry: Reference(AccountingEntry)
+    PhysicalName: FK_DETTAGLI_IVA_MOVIMENTO
+    DisplayLabel: _(Entry)
+    DisplayWidth: 40
+    Fields:
+      AccountingEntryId:
+        PhysicalName: MOVIMENTOID
+ImageName: account_balance

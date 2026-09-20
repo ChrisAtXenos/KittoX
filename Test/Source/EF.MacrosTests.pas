@@ -65,6 +65,23 @@ type
     procedure FileMacro_NestedThreeDeep_ExpandsThemAll;
 
     /// <summary>
+    ///  The same stack-exhaustion trap, one level up. A macro whose VALUE is
+    ///  another macro re-enters Expand through TEFNode.AsExpandedString, so a
+    ///  node value that refers back to itself recursed without bound. This is
+    ///  not hypothetical: the authenticators put the supplied user name into the
+    ///  session AuthData that the %Auth:% expander reads, so a login POST with
+    ///  UserName '%Auth:UserName%' reached exactly this recursion — an
+    ///  unauthenticated way to take a worker thread, and with a full pool the
+    ///  application, down. Now Expand stops at a fixed re-entrant depth.
+    ///
+    ///  Not run against the old code, for the same reason the file-recursion
+    ///  cases are not: a test that exhausts the stack of the process running it
+    ///  proves nothing worth the risk.
+    /// </summary>
+    [Test]
+    procedure Expand_WithSelfReferentialMacroValue_Raises;
+
+    /// <summary>
     ///  The macro was registered as '%SPACE' without its closing per cent, so
     ///  the pattern matched the first six characters of its own name: the
     ///  documented '%SPACE%' expanded to a space followed by a stray '%', and
@@ -125,6 +142,7 @@ uses
   System.SysUtils,
   System.IOUtils,
   EF.Types,
+  EF.Tree,
   EF.Macros,
   Kitto.TestUtils;
 
@@ -206,6 +224,40 @@ begin
       TEFMacroExpansionEngine.Instance.Expand(LValue);
     end,
     EEFError);
+end;
+
+procedure TEFMacroExpanderTests.Expand_WithSelfReferentialMacroValue_Raises;
+var
+  LTree: TEFTree;
+begin
+  // A node 'Loop' whose value is the macro that expands 'Loop': expanding it
+  // re-enters Expand through the node's AsExpandedString, forever.
+  LTree := TEFTree.Create;
+  try
+    LTree.SetString('Loop', '%Tst:Loop%');
+    // The engine takes ownership; RemoveExpanders frees it. No other
+    // TEFTreeMacroExpander lives on the singleton in the test process, so
+    // removing by class removes exactly this one.
+    TEFMacroExpansionEngine.Instance.AddExpander(
+      TEFTreeMacroExpander.Create(LTree, 'Tst'));
+    try
+      Assert.WillRaise(
+        procedure
+        var
+          LValue: string;
+        begin
+          LValue := '%Tst:Loop%';
+          TEFMacroExpansionEngine.Instance.Expand(LValue);
+        end,
+        EEFError,
+        'A macro whose value refers back to itself must be reported, not run ' +
+        'until the stack gives out.');
+    finally
+      TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFTreeMacroExpander);
+    end;
+  finally
+    LTree.Free;
+  end;
 end;
 
 procedure TEFMacroExpanderTests.FileMacro_NestedThreeDeep_ExpandsThemAll;

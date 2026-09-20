@@ -1,0 +1,143 @@
+﻿ModelName: MedicalVisit
+PhysicalName: VISITEMEDICHE
+DefaultSorting: {Q}DATA_VISITA
+PluralDisplayLabel: _(Medical visits)
+PluralModelName: MedicalVisits
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+    IsVisible: False
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Medical visit)
+    DisplayWidth: 100
+    DefaultValue: '-'
+    IsVisible: False
+  Person: Reference(Person) not null
+    DisplayLabel: _(Person)
+    PhysicalName: DT_VISITEMEDICHE_NOMINATIVO
+    LookupFilter: (NOMINATIVI.ID in (SELECT NOMINATIVO_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%')) OR  '%Auth:PROFILEID%' = 'ADMIN'
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+    AutoAddFields:
+      LastName: Person_LastName
+      FirstName: Person_FirstName
+      Email: Person_Email
+    DisplayWidth: 45
+  MedicalVisitType: Reference(MedicalVisitType) not null
+    DisplayLabel: _(Medical Visit Type)
+    PhysicalName: FK_VISITEMEDICHE_TPVISITA
+    Fields:
+      MedicalVisitTypeId:
+        PhysicalName: TPVISITAID
+    DisplayWidth: 45
+  HealthCard: String(8)
+    PhysicalName: TESSERASANIT
+    DisplayLabel: _(Health card no.)
+    DisplayWidth: 10
+    IsVisible: False
+  RequestDate: Date
+    DisplayLabel: _(Request Date)
+    PhysicalName: DATA_RICHIESTA
+    DisplayWidth: 12
+    DefaultValue: {date}
+    IsReadOnly: True
+  VisitDate: Date not null
+    DisplayLabel: _(Visit Date)
+    PhysicalName: DATA_VISITA
+    DisplayWidth: 12
+    NotifyChange: True
+    Rules:
+      MedicalVisitSetPerformed:
+  VisitTime: Time not null
+    PhysicalName: ORA_VISITA
+    DisplayWidth: 12
+    DisplayLabel: _(Time)
+  ExpiryDate: Date
+    DisplayLabel: _(Expiry)
+    PhysicalName: SCADENZA
+    DisplayWidth: 12
+    IsReadOnly: True
+  Clinic: Reference(Clinic)
+    DisplayLabel: _(Clinic)
+    PhysicalName: FK_VISITEMEDICHE_AMBULATORIO
+    Fields:
+      ClinicId:
+        PhysicalName: AMBULATORIOID
+    AutoAddFields:
+      Description: Clinic_Description
+      Address: Clinic_Address
+      MunicipalityId: ClinicMunicipalityId
+  ClinicMunicipality: String(200)
+    DisplayLabel: _(Clinic Municipality)
+    Expression: (SELECT C.DX FROM COMUNI C JOIN AMBULATORI A ON A.COMUNEID = C.ID WHERE A.ID = {Q}AMBULATORIOID)
+  NotificationDate: DateTime
+    PhysicalName: DATA_NOTIFICA
+    IsReadOnly: True
+    DisplayLabel: _(Notified on)
+  Performed: Boolean
+    DisplayLabel: _(Carried out)
+    PhysicalName: EFFETTUATA
+    Rules:
+      MedicalVisitSetPerformed:
+  Notes: Memo
+    DisplayLabel: _(Notes)
+    PhysicalName: NOTE
+    DisplayWidth: 55
+  Fitness: Boolean
+    PhysicalName: IDEONEITA
+    DisplayLabel: _(Fitness)
+  DocumentFile: FileReference(50)
+    PhysicalName: FILE_DOCUMENTO
+    FileNameField: OriginalFileName
+    DisplayLabel: _(Medical Certificate)
+    MaxUploadSize: 1MB
+    PreviewWindow: True
+      Width: 226
+      Height: 320
+    Path: %Config:UploadPath%VisiteMediche
+    DisplayWidth: 35
+  OriginalFileName: String(200)
+    PhysicalName: NOME_FILE_ORIGINALE
+    DisplayWidth: 40
+    DisplayLabel: _(Original File Name)
+    IsReadOnly: True
+    IsVisible: False
+  Status: String(15)
+    DisplayLabel: _(Status)
+    Expression: |
+      CASE
+        WHEN {Q}SCADENZA IS NULL OR COALESCE({Q}IDEONEITA,0) = 0 THEN '_(Booked)'
+        WHEN {Q}SCADENZA >= GETDATE() AND COALESCE({Q}IDEONEITA,0) = 1 THEN '_(Active)'
+        WHEN {Q}SCADENZA < GETDATE() THEN '_(Expired)'
+      END
+  MedicalVisitCalc: HTMLMemo
+    DisplayLabel: _(Certificates)
+    Expression: |
+      '<img style="float: left; margin: 0px 15px 15px 0px;" src="'+
+      CASE
+      WHEN COALESCE({Q}EFFETTUATA,0) = 1 and COALESCE({Q}IDEONEITA,0) = 1 THEN '%IMAGE(sentiment_satisfied_large.svg)%'
+      WHEN COALESCE({Q}EFFETTUATA,0) = 1 and COALESCE({Q}IDEONEITA,0) = 0 THEN '%IMAGE(sentiment_dissatisfied_large.svg)%'
+      WHEN COALESCE({Q}EFFETTUATA,0) = 0 THEN '%IMAGE(sentiment_neutral_large.svg)%'
+      END+'" width="40" />'+
+      '<b> '+DT_VISITEMEDICHE_NOMINATIVO.COGNOME+' '+DT_VISITEMEDICHE_NOMINATIVO.NOME+'</b> <br /> '+
+      '_(Visit date):<b> '+COALESCE(CONVERT(VARCHAR, {Q}DATA_VISITA, 103),'')+'</b> - '+
+      '_(Visit time):<b>'+COALESCE(CONVERT(VARCHAR, {Q}ORA_VISITA, 8), '')+'</b> <br /> '+
+      '_(Clinic):<b>'+COALESCE(FK_VISITEMEDICHE_AMBULATORIO.DX, '')+'</b> <br /> '+
+      '_(Certificate):<b> '+COALESCE({Q}NOME_FILE_ORIGINALE, '')+'</b> - '+
+      '_(Expiry date):<b> '+COALESCE(CONVERT(VARCHAR, {Q}SCADENZA, 103),'')+'</b> <br /> '+
+      CASE
+      WHEN {Q}DATA_VISITA > GETDATE() or COALESCE({Q}EFFETTUATA,0) = 0 THEN '<font color="#B5761A"> <b> _(Medical visit to be carried out) </b> <br /> '
+      WHEN {Q}NOME_FILE_ORIGINALE is NULL THEN '<font color="#B5761A"> <b> _(Certificate to be uploaded) </b> <br /> '
+      WHEN {Q}SCADENZA <=  GETDATE() THEN '<font color="#E04B4B"> <b> _(Certificate expired) </b> <br /> '
+      WHEN COALESCE({Q}EFFETTUATA,0) = 1 and COALESCE({Q}IDEONEITA,0) = 1 THEN '<font color="#388E3C"> <b> _(Certificate valid) </b> <br /> '
+      WHEN COALESCE({Q}EFFETTUATA,0) = 1 and COALESCE({Q}IDEONEITA,0) = 0 THEN '<font color="#E04B4B"> <b> _(Certificate not valid) </b> <br /> '
+      END+'</font></div>'
+DisplayLabel: _(Medical Visit)
+Rules:
+  MedicalVisitCheck:
+ImageName: enhanced_encryption

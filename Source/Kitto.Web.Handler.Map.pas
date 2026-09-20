@@ -54,7 +54,7 @@ procedure TKXMapHandler.HandleMapData(const AViewName: string;
 var
   LViewTable: TKViewTable;
   LStore: TKViewTableStore;
-  LControllerNode, LMapNode, LCenterNode: TEFNode;
+  LControllerNode, LMapNode: TEFNode;
   LAddressFields, LTitleField, LInfoFields: string;
   LMarkersJson, LGridHtml, LJson: string;
 begin
@@ -68,12 +68,6 @@ begin
     Exit;
 
   LMapNode := LControllerNode.FindNode('GoogleMap');
-  if not Assigned(LMapNode) then
-  begin
-    LCenterNode := LControllerNode.FindNode('CenterController');
-    if Assigned(LCenterNode) then
-      LMapNode := LCenterNode.FindNode('GoogleMap');
-  end;
   if not Assigned(LMapNode) then
     Exit;
 

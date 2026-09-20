@@ -74,8 +74,6 @@ type
   ///	  </list>
   ///	</summary>
   TKTextFileAuthenticator = class(TKClassicAuthenticator)
-  private
-    FUserList: TStrings;
   protected
     function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
   protected
@@ -105,11 +103,6 @@ type
     /// SupportsPasswordChange before it gets here.</summary>
     function IsPasswordMatching(const ASuppliedPasswordHash: string;
       const AStoredPasswordHash: string): Boolean; override;
-  public
-    ///	<summary>Creates the in-memory user list.</summary>
-    procedure AfterConstruction; override;
-    ///	<summary>Frees the in-memory user list.</summary>
-    destructor Destroy; override;
   end;
 
 implementation
@@ -126,18 +119,6 @@ uses
 
 { TKTextFileAuthenticator }
 
-procedure TKTextFileAuthenticator.AfterConstruction;
-begin
-  inherited;
-  FUserList := TStringList.Create;
-end;
-
-destructor TKTextFileAuthenticator.Destroy;
-begin
-  FreeAndNil(FUserList);
-  inherited;
-end;
-
 function TKTextFileAuthenticator.GetUserListFileName: string;
 begin
   Result := Config.GetExpandedString('FileName', DEFAULT_USERLIST_FILENAME);
@@ -153,9 +134,12 @@ var
   LSuppliedPassword: string;
   LStoredPasswordHash: string;
   LUserName: string;
+  LUserList: TStringList;
 begin
+  // The typed credentials are compared verbatim and never macro-expanded: see
+  // TKDBAuthenticator.GetSuppliedPasswordHash. Config-default macros are
+  // expanded in TKAuthenticator.ApplyConfigDefaults.
   LSuppliedPasswordHash := AAuthData.GetString('Password');
-  TKConfig.Instance.MacroExpansionEngine.Expand(LSuppliedPasswordHash);
 
   LIsClearPassword := Config.GetBoolean('IsClearPassword', False);
   LIsPassepartoutEnabled := Config.GetBoolean('IsPassepartoutEnabled', False);
@@ -165,7 +149,6 @@ begin
     LSuppliedPasswordHash := GetStringHash(LSuppliedPasswordHash);
 
   LUserName := AAuthData.GetString('UserName');
-  TKConfig.Instance.MacroExpansionEngine.Expand(LUserName);
 
   if LUserName = '' then
     Exit(False);
@@ -181,21 +164,32 @@ begin
     Exit(False);
   end;
 
-  RefreshUserList(FUserList);
+  // A LOCAL list, not a shared field: RefreshUserList calls LoadFromFile, which
+  // clears and repopulates. A single shared instance mutated here meant that two
+  // concurrent logins raced — one clearing the list while the other read
+  // IndexOfName/Values — for an index error, an access violation, or a spurious
+  // refusal. The file is re-read every login anyway, so a per-call list costs
+  // nothing over the shared one.
+  LUserList := TStringList.Create;
+  try
+    RefreshUserList(LUserList);
 
-  // TStrings.Values returns '' both for a name that is not in the file and for a line
-  // carrying no value ('user='), and those two cases must be told apart: the first is
-  // an unknown user, the second is a listed user who cannot be authenticated BY
-  // PASSWORD - but who the passepartout may still legitimately impersonate, exactly as
-  // TKDBAuthenticator does for a user row whose password column is empty.
-  if FUserList.IndexOfName(LUserName) < 0 then
-  begin
-    TEFLogger.Instance.LogFmt('Authentication refused: user %s is not in the user list file.',
-      [LUserName], TEFLogger.LOG_DETAILED);
-    Exit(False);
+    // TStrings.Values returns '' both for a name that is not in the file and for a line
+    // carrying no value ('user='), and those two cases must be told apart: the first is
+    // an unknown user, the second is a listed user who cannot be authenticated BY
+    // PASSWORD - but who the passepartout may still legitimately impersonate, exactly as
+    // TKDBAuthenticator does for a user row whose password column is empty.
+    if LUserList.IndexOfName(LUserName) < 0 then
+    begin
+      TEFLogger.Instance.LogFmt('Authentication refused: user %s is not in the user list file.',
+        [LUserName], TEFLogger.LOG_DETAILED);
+      Exit(False);
+    end;
+
+    LStoredPasswordHash := LUserList.Values[LUserName];
+  finally
+    LUserList.Free;
   end;
-
-  LStoredPasswordHash := FUserList.Values[LUserName];
   if LStoredPasswordHash = '' then
     // The name IS in the file, with nothing after the '='. That is a broken user list:
     // say so out loud. No Exit: only the password comparison is off the table.

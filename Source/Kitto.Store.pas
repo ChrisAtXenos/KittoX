@@ -293,6 +293,11 @@ type
     procedure Backup;
     /// <summary>Restores the values saved by the last Backup.</summary>
     procedure Restore;
+    /// <summary>Frees the copy taken by Backup. Called on the success path of a
+    /// Backup/try/except-Restore block: Restore only ever runs in that same
+    /// except, so once the block completes the backup - a full copy of the
+    /// record - would otherwise stay in memory for the record's whole life.</summary>
+    procedure ClearBackup;
 
     /// <summary>True if the record (or any detail store) has unsaved changes.</summary>
     function ChangesPending: Boolean;
@@ -1281,6 +1286,11 @@ begin
   FBackup.Assign(Self);
 end;
 
+procedure TKRecord.ClearBackup;
+begin
+  FreeAndNil(FBackup);
+end;
+
 function TKRecord.ChangesPending: Boolean;
 var
   I: Integer;
@@ -1583,6 +1593,8 @@ begin
     Restore;
     raise;
   end;
+  // Load succeeded: the backup is only a rollback for the block above.
+  ClearBackup;
 end;
 
 procedure TKRecord.ReadFromNode(const ANode: TEFNode);
@@ -1611,6 +1623,8 @@ begin
       end);
     raise;
   end;
+  // Read succeeded: the backup is only a rollback for the block above.
+  ClearBackup;
 end;
 
 procedure TKRecord.InternalAfterReadFromNode;

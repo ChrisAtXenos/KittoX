@@ -21,11 +21,15 @@
 // limitations under the License.
 //
 // *************************************************************************** }
+
+// ***************************************************************************
 //
-// NOTE: This is a namespace-prefixed copy of the original ExprEvaluator
-// unit, created to avoid design-time package conflicts when both KittoX
-// and DMVCFramework are installed in the same Delphi IDE (both include
-// TemplatePro units). The code is unchanged from the upstream version.
+// NOTE: This is a namespace-prefixed copy of the original ExprEvaluator unit,
+// taken from the DMVCFramework sources (commit a690158f, 2026-09-14,
+// TemplatePro 1.1), created to avoid design-time package conflicts when both
+// KittoX and DMVCFramework are installed in the same Delphi IDE. Apart from
+// the unit names in "unit" and "uses" and the compiler-define block that
+// replaces {$I dmvcframework.inc}, the code is unchanged.
 //
 // ***************************************************************************
 
@@ -33,17 +37,14 @@ unit Kitto.ExprEvaluator;
 
 interface
 
-
+// KittoX: the DMVCFramework include file is not available here; the only
+// define this unit needs from it is FLORENCEORBETTER (Delphi 13 and later).
 {$IF CompilerVersion >= 37} // 13 Florence
-{$DEFINE DELPHI_FLORENCE}
+{$DEFINE FLORENCEORBETTER}
 {$ENDIF}
 
-
 uses
-  System.SysUtils,
-  System.Variants,
-  System.Math,
-  System.Generics.Collections,
+  System.SysUtils, System.Variants, System.Math, System.Generics.Collections,
   System.Masks;
 
 type
@@ -138,11 +139,11 @@ type
 /// <summary>
 /// Create a new expression evaluator instance
 /// </summary>
-function CreateExprEvaluator: TExprEvaluator;
+function CreateExprEvaluator: IExprEvaluator;
 
 implementation
 
-function CreateExprEvaluator: TExprEvaluator;
+function CreateExprEvaluator: IExprEvaluator;
 begin
   Result := TExprEvaluator.Create;
 end;
@@ -235,7 +236,7 @@ begin
         raise Exception.Create('Contains requires 2 arguments');
       if VarIsNull(Args[0]) or VarIsNull(Args[1]) then
         raise Exception.Create('Contains requires non-null arguments');
-      {$IF Defined(DELPHI_FLORENCE)}
+      {$IF Defined(FLORENCEORBETTER)}
       Result := String(Args[1]).Contains(String(Args[0]), True);
       {$ELSE}
       Result := String(Args[1]).ToLower.Contains(String(Args[0]).ToLower);
@@ -732,19 +733,29 @@ begin
   OldInput := FInput;
   OldPos := FPos;
 
-  // Split by semicolon to support multiple expressions
-  Exprs := Expr.Split([';']);
-  Result := Unassigned;
-  for I := 0 to High(Exprs) do
-  begin
-    FInput := Trim(Exprs[I]);
-    FPos := 1;
-    Result := ParseAssignment;
+  try
+    // Split by semicolon to support multiple expressions
+    Exprs := Expr.Split([';']);
+    Result := Unassigned;
+    for I := 0 to High(Exprs) do
+    begin
+      FInput := Trim(Exprs[I]);
+      FPos := 1;
+      Result := ParseAssignment;
+      // Strict parse: reject unconsumed trailing tokens so typos like
+      // `var|filter,"x"` or `1 + 2 foo` surface as errors instead of silently
+      // returning the partial left-hand value.
+      SkipWhitespace;
+      if FPos <= Length(FInput) then
+        raise Exception.CreateFmt(
+          'Unexpected characters at position %d: "%s"',
+          [FPos, Copy(FInput, FPos, MaxInt)]);
+    end;
+  finally
+    // Restore original state
+    FInput := OldInput;
+    FPos := OldPos;
   end;
-
-  // Restore original state
-  FInput := OldInput;
-  FPos := OldPos;
 end;
 
 function TExprEvaluator.ParseAssignment: Variant;

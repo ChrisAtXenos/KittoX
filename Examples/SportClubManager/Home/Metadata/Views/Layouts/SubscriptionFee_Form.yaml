@@ -1,0 +1,25 @@
+﻿FieldSet:
+  Row:
+    Field: Description
+  Row:
+    Field: Campaign
+  Row:
+    Field: BirthYearFrom
+    Field: BirthYearTo
+  Row:
+    Field: Instalment1DueDate
+    Field: Instalment1Amount
+  Row:
+    Field: Instalment2DueDate
+    Field: Instalment2Amount
+  Row:
+    Field: Instalment3DueDate
+    Field: Instalment3Amount
+  Row:
+    Field: Instalment4DueDate
+    Field: Instalment4Amount
+  Row:
+    Field: Instalment5DueDate
+    Field: Instalment5Amount
+  Row:
+    Field: TotalFee

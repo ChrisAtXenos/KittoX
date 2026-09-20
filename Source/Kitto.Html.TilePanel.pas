@@ -55,6 +55,8 @@ type
     function GetTreeView: string;
     function GetBorderVisible: Boolean;
     function GetBorderColor: string;
+    function GetHeader: Boolean;
+    function GetSplit: Boolean;
     function NextColor: string;
     procedure InitColorSet(const AColorSetName: string);
     procedure RenderSections(const ANodes: IKTreeViewNodes;
@@ -73,16 +75,27 @@ type
     property TileWidth: string read GetTileWidth;
     [YamlNode('TileHeight', '50', 'Tile height in pixels or CSS units')]
     property TileHeight: string read GetTileHeight;
-    [YamlNode('ShowImage', 'True', 'Show icon images on tiles')]
+    [YamlNode('ShowImage', 'False', 'Show icon images on tiles')]
     property ShowImage: Boolean read GetShowImage;
     [YamlNode('ColorSet', 'Color set name (Blue/Red/Gold/Violet/Green/Metro/Theme)')]
+    [YamlEnumValue('Blue', '')]
+    [YamlEnumValue('Red', '')]
+    [YamlEnumValue('Gold', '')]
+    [YamlEnumValue('Violet', '')]
+    [YamlEnumValue('Green', '')]
+    [YamlEnumValue('Metro', '')]
+    [YamlEnumValue('Theme', 'Use the application theme colors')]
     property ColorSet: string read GetColorSet;
     [YamlNode('TreeView', 'MainMenu', 'Name of the tree view to render as tiles')]
     property TreeViewName: string read GetTreeView;
-    [YamlNode('Border', 'True', 'Show border around tiles')]
+    [YamlNode('Border', 'False', 'Show border around tiles')]
     property BorderVisible: Boolean read GetBorderVisible;
     [YamlNode('BorderColor', '', 'Border color for individual tiles (e.g. #e18325)')]
     property BorderColor: string read GetBorderColor;
+    [YamlNode('Header', 'False', 'Show a header bar above the tile panel')]
+    property Header: Boolean read GetHeader;
+    [YamlNode('Split', 'False', 'Show a draggable splitter (border layout)')]
+    property Split: Boolean read GetSplit;
   end;
 
 implementation
@@ -127,6 +140,16 @@ end;
 function TKXTilePanelController.GetBorderVisible: Boolean;
 begin
   Result := Config.GetBoolean('Border', False);
+end;
+
+function TKXTilePanelController.GetHeader: Boolean;
+begin
+  Result := Config.GetBoolean('Header', False);
+end;
+
+function TKXTilePanelController.GetSplit: Boolean;
+begin
+  Result := Config.GetBoolean('Split', False);
 end;
 
 function TKXTilePanelController.GetBorderColor: string;
@@ -343,8 +366,8 @@ begin
   begin
     // Modal, Wizard, non-DataView: always append to body as overlay
     ASB.Append(' role="button" tabindex="0"')
-      .Append(' hx-get="kx/view/').Append(LViewName)
-      .Append('" hx-target="body" hx-swap="beforeend"');
+      .Append(' ').Append(GetMenuActionVerb(AView.ControllerType, LViewName))
+      .Append(' hx-target="body" hx-swap="beforeend"');
   end;
   ASB.Append('>');
 

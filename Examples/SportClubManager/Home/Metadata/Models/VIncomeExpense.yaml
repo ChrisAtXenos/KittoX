@@ -1,0 +1,15 @@
+DisplayLabel: _(Income vs Expenses)
+PluralDisplayLabel: _(Income vs Expenses)
+Fields:
+  FlowType: String(10) primary key
+    PhysicalName: TIPO
+    DisplayLabel: _(Type)
+    IsVisible: False
+  FlowTypeLabel: String(20)
+    DisplayLabel: _(Type)
+    Expression: CASE {Q}TIPO WHEN 'Entrate' THEN '_(Income)' WHEN 'Uscite' THEN '_(Expenses)' ELSE {Q}TIPO END
+  Amount: Currency
+    PhysicalName: IMPORTO
+    DisplayLabel: _(Amount)
+PhysicalName: VW_FLUSSO_ECONOMICO
+ImageName: bar_chart

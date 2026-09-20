@@ -1,0 +1,20 @@
+﻿DisplayLabel: _(Enrol child)
+Type: Data
+Controller: Form
+  Operation: Add
+  #FilterExpression: {Q}CODFISC = '%Auth:USER_NAME%'
+  #HideLabels: True
+  CloneButton:
+    Hidden: True
+  KeepOpenAfterOperation: False
+MainTable:
+  Model: Subscription
+  IsLarge: False
+  Rules:
+    SubscribeChild:
+  Controller:
+    AllowDuplicating: False
+    AllowEdit: False
+    AllowDelete: False
+    Form:
+      Layout: USER_SubscribeChild_Form

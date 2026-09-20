@@ -347,8 +347,15 @@ begin
 
   LChain := TKXFilterChain.Create(AContext);
   try
-    LChain.RunBefore;
+    // RunBefore is INSIDE the try: a filter's BeforeInvoke is entitled to raise
+    // (the authorization filter raises "Session lost or expired" on a stale
+    // session), and that exception must reach HandleException like any other,
+    // or it escapes to the raw server 500 with no dialog and no reload — which
+    // is exactly what happened when RunBefore sat before the try. FRan is set
+    // before each BeforeInvoke, so the walk in HandleException includes the
+    // filter that raised and always reaches the error filter (registered first).
     try
+      LChain.RunBefore;
       if AContext.Handled then
         Result := True
       else

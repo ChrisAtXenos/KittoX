@@ -1,0 +1,20 @@
+﻿ModelName: ParticipantGroup
+PhysicalName: GRUPPI_PARTECIPANTI
+PluralDisplayLabel: _(Participant Groups)
+PluralModelName: ParticipantGroups
+DisplayLabel: _(Participant Group)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Group Name)
+    DisplayLabel_Grid: _(Group)
+DetailReferences:
+  ParticipantDetails: ParticipantDetail
+    PhysicalName: DT_DETTAGLIO_PARTECIPANTI_GRUPPO
+    ReferenceField: Group
+ImageName: group

@@ -1,0 +1,94 @@
+﻿ModelName: EmailQueue
+PhysicalName: CODA_EMAIL
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsReadOnly: True
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+    IsComputed: True
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(100) not null
+    PhysicalName: DX
+    DisplayWidth: 80
+    DisplayLabel: _(Description)
+    IsVisible: False
+    DefaultValue: '-'
+  EmailTemplate: Reference(EmailTemplate) not null
+    PhysicalName: FK_CODA_EMAIL_TESTO_EMAIL
+    IsReadOnly: True
+    DisplayWidth: 50
+    Fields:
+      EmailTemplateId:
+        PhysicalName: TESTO_EMAILID
+    DisplayLabel: _(E-mail Type)
+    AutoCompleteMinChars: 2
+  FromAddress: String(50) not null
+    PhysicalName: EMAIL_FROM
+    IsReadOnly: True
+    DisplayWidth: 50
+    DisplayLabel: _(Sender)
+  Recipient: String(2000)
+    PhysicalName: EMAIL_TO
+    DisplayWidth: 50
+    DisplayLabel: _(Recipient)
+  CcAddresses: String(2000)
+    PhysicalName: EMAIL_CC
+    DisplayWidth: 30
+    DisplayLabel: _(Cc)
+  BccAddresses: String(2000)
+    PhysicalName: EMAIL_BCC
+    DisplayWidth: 30
+    DisplayLabel: _(Bcc)
+  Subject: String(1000) not null
+    PhysicalName: EMAIL_SUBJECT
+    DisplayLabel: _(Subject)
+    DisplayWidth: 60
+  PlainTextBody: Memo
+    PhysicalName: EMAIL_BODY
+    DisplayWidth: 60
+    DisplayLabel: _(Plain text)
+    IsReadOnly: True
+  HtmlBody: HTMLMemo
+    PhysicalName: EMAIL_BODYHTML
+    DisplayWidth: 80
+    DisplayLabel: _(E-mail content)
+    EditLines: 30
+  Attachment: String(200)
+    PhysicalName: EMAIL_ATTACH
+    DisplayLabel: _(Attachment)
+    DisplayWidth: 60
+  EntryDateTime: DateTime
+    DisplayLabel: _(Entry Date/Time)
+    PhysicalName: DATA_ORA_INSERIMENTO
+    IsReadOnly: True
+    DisplayWidth: 18
+  EnteredBy: Reference(User)
+    DisplayLabel: _(Entered By)
+    PhysicalName: FK_CLIENTE_OPERATOREI
+    Fields:
+      EnteredById:
+        PhysicalName: OPERATORE_INSERIMENTOID
+        DefaultValue: %Auth:USER_NAME%
+    IsReadOnly: True
+  EarliestTransmissionDateTime: DateTime
+    DisplayLabel: _(Earliest Transmission Date/Time)
+    PhysicalName: MINIMA_DATA_ORA_TRASMISSIONE
+    IsReadOnly: True
+    DisplayWidth: 18
+  TransmissionDateTime: DateTime
+    DisplayLabel: _(Transmission Date/Time)
+    PhysicalName: DATA_ORA_TRASMISSIONE
+    DisplayWidth: 18
+  SourceTable: String(100)
+    PhysicalName: TABELLA_ORIGINE
+    DisplayLabel: _(Source Table)
+    DisplayWidth: 30
+  SourceObject: String(32)
+    PhysicalName: OGGETTO_ORIGINE
+    DisplayLabel: _(Source Object)
+DisplayLabel: _(E-mail Queue)
+PluralDisplayLabel: _(E-mail Queue)
+DefaultSorting: {Q}DATA_ORA_INSERIMENTO DESC
+ImageName: markunread_mailbox

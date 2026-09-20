@@ -611,6 +611,8 @@ var kxGrid = {
     row.classList.add('kx-row-selected');
     document.getElementById('kx-selected-key-' + viewName).value = row.dataset.key;
     kxGrid.updateButtons(viewName, true);
+    // A form hosted beside the grid follows the selection
+    kxDataPanel.recordChanged(viewName, row.dataset.key);
   },
 
   /**
@@ -780,6 +782,7 @@ var kxGrid = {
     if (!key) return;
 
     kxGrid.showConfirm(title, confirmMsg, yesLabel, noLabel, function() {
+      kxDataPanel.requestRefresh(viewName);
       var values = kxGrid.collectValues(viewName, { key: key, start: '0' });
       htmx.ajax('POST', 'kx/view/' + viewName + '/delete', {
         target: '#kx-list-body-' + viewName,
@@ -806,6 +809,13 @@ var kxGrid = {
     } else if (op !== 'add') {
       key = kxGrid.getSelectedKey(viewName);
       if (!key) return;
+    }
+    // The view hosts the form of the current record beside the grid: every
+    // form operation happens there, never in a dialog (the two would share
+    // their element ids).
+    if (kxDataPanel.hasRecordPanel(viewName)) {
+      kxDataPanel.loadRecord(viewName, op, key);
+      return;
     }
     var url = 'kx/view/' + viewName + '/form?op=' + op;
     if (key) url += '&key=' + encodeURIComponent(key);
@@ -856,6 +866,7 @@ var kxGrid = {
    * Sends current filter and state values; resets to first page.
    */
   refreshData: function(viewName) {
+    kxDataPanel.requestRefresh(viewName);
     var values = kxGrid.collectValues(viewName, { start: '0' });
     htmx.ajax('POST', 'kx/view/' + viewName + '/data', {
       target: '#kx-list-body-' + viewName,
@@ -1359,9 +1370,23 @@ var kxForm = {
   },
 
   /**
-   * Closes the form dialog without saving.
+   * The form of viewName when it is hosted beside the grid (record panel),
+   * null when it is a dialog, a tab or absent.
+   */
+  _hostedForm: function(viewName) {
+    var form = document.getElementById('kx-form-' + viewName);
+    return (form && form.closest('.kx-record-body')) ? form : null;
+  },
+
+  /**
+   * Closes the form dialog without saving. A form hosted beside the grid is
+   * not closed: it goes back to the current record in view mode.
    */
   cancel: function(viewName) {
+    if (kxForm._hostedForm(viewName)) {
+      kxDataPanel.recordChanged(viewName, kxGrid.getSelectedKey(viewName), true);
+      return;
+    }
     kxForm.destroyHtmlEditors(viewName);
     // Modal form overlay has priority (grid and modal share the same viewName)
     var overlay = document.getElementById('kx-form-overlay-' + viewName);
@@ -1388,6 +1413,15 @@ var kxForm = {
    * Closes form dialog and refreshes the grid.
    */
   onSaveSuccess: function(viewName) {
+    if (kxForm._hostedForm(viewName)) {
+      // Hosted beside the grid: the grid reloads and, once swapped, the panel
+      // shows the saved record again in view mode (or the first row).
+      kxForm.destroyHtmlEditors(viewName);
+      kxGrid.showToast(window.KX_STRINGS.appTitle || '', window.KX_STRINGS.dataSaved || 'Data saved');
+      kxDataPanel._forceRecord[viewName] = true;
+      kxDataPanel.refresh(viewName);
+      return;
+    }
     kxForm.destroyHtmlEditors(viewName);
     // Modal form overlay has priority (grid and modal share the same viewName)
     var overlay = document.getElementById('kx-form-overlay-' + viewName);
@@ -1539,6 +1573,11 @@ var kxForm = {
    * newKey is the copy's key as "name=value&..." (URL-encoded values).
    */
   onCloneSuccess: function(viewName, newKey) {
+    // Hosted beside the grid: the form stays on the copy, the panel is left alone
+    if (kxForm._hostedForm(viewName)) {
+      kxDataPanel._skipSync[viewName] = true;
+      kxDataPanel._currentKey[viewName] = newKey || '';
+    }
     // Refresh underlying grid/calendar
     if (typeof kxCalendar !== 'undefined' && kxCalendar._instances[viewName]) {
       kxCalendar.refresh(viewName);
@@ -1578,6 +1617,8 @@ var kxForm = {
    * Refreshes grid, clears ALL form fields, resets to add mode for next entry.
    */
   onSaveKeepOpen: function(viewName) {
+    // Hosted beside the grid: the cleared add form stays, the panel is left alone
+    if (kxForm._hostedForm(viewName)) kxDataPanel._skipSync[viewName] = true;
     // Refresh underlying grid/calendar
     if (typeof kxCalendar !== 'undefined' && kxCalendar._instances[viewName]) {
       kxCalendar.refresh(viewName);
@@ -1751,6 +1792,11 @@ var kxForm = {
   cancelEdit: function(viewName) {
     var form = document.getElementById('kx-form-' + viewName);
     if (!form) { kxForm.cancel(viewName); return; }
+    // Hosted beside the grid: reload the current record, discarding the edits
+    if (kxForm._hostedForm(viewName)) {
+      kxDataPanel.recordChanged(viewName, kxGrid.getSelectedKey(viewName), true);
+      return;
+    }
 
     var hasDetails = form.dataset.hasDetails === 'true';
     var hasPending = form.dataset.hasPending === 'true';
@@ -1784,6 +1830,7 @@ var kxForm = {
     var key = form ? form.querySelector('input[name="_key"]').value : '';
     if (!key) return;
     kxGrid.showConfirm(title, confirmMsg, yesLabel, noLabel, function() {
+      kxDataPanel.requestRefresh(viewName);
       var values = kxGrid.collectValues(viewName, { key: key, start: '0' });
       htmx.ajax('POST', 'kx/view/' + viewName + '/delete', {
         target: '#kx-list-body-' + viewName,
@@ -1791,7 +1838,9 @@ var kxForm = {
         values: values,
         headers: { 'X-KittoX': 'true' }
       });
-      kxForm.cancel(viewName);
+      // Hosted beside the grid: the grid swap re-aligns the panel (first row)
+      if (kxForm._hostedForm(viewName)) kxDataPanel._forceRecord[viewName] = true;
+      else kxForm.cancel(viewName);
     });
   },
 
@@ -2816,6 +2865,156 @@ var kxForm = {
  * kxChart — Chart.js integration for KittoX ChartPanel controller.
  * Manages Chart.js instances, initialization, refresh, and cleanup.
  */
+/**
+ * kxDataPanel - the data-list host (Controller: List) and its presenters.
+ * A List can show the same filtered data through several presenters at once:
+ * a grid in the Center, a chart in a side region, a calendar... Each presenter
+ * loads from its own endpoint (grid rows via HTMX, chart-data and
+ * calendar-data as JSON) with the filter panel's current values (f_N), so
+ * whoever reloads one of them lets the others follow: the grid reloads through
+ * HTMX and afterGridSwap fans out to the chart and the calendar of the same
+ * view when the filter changed or a reload was asked for (refresh, delete).
+ */
+var kxDataPanel = {
+  _pending: {},      // viewName -> true when the next grid swap must fan out
+  _lastFilter: {},   // viewName -> filter query the other presenters last used
+
+  /** Current values of the view's filter panel, as {f_0: ..., f_1: ...}. */
+  filterValues: function(viewName) {
+    var values = {};
+    var form = document.getElementById('kx-filter-form-' + viewName);
+    if (!form) return values;
+    form.querySelectorAll('input, select').forEach(function(inp) {
+      if (!inp.name) return;
+      if (inp.type === 'checkbox') values[inp.name] = inp.checked ? inp.value : '';
+      else values[inp.name] = inp.value;
+    });
+    return values;
+  },
+
+  /** The filter values as a query string ('' when there are none). */
+  filterQuery: function(viewName) {
+    var s = new URLSearchParams(kxDataPanel.filterValues(viewName)).toString();
+    return s ? '?' + s : '';
+  },
+
+  /** Remembers the filter a presenter was rendered with (called by the presenters' init). */
+  track: function(viewName) {
+    kxDataPanel._lastFilter[viewName] = kxDataPanel.filterQuery(viewName);
+  },
+
+  /** Asks that the next grid swap of the view reloads the other presenters too. */
+  requestRefresh: function(viewName) {
+    kxDataPanel._pending[viewName] = true;
+  },
+
+  /** Reloads the presenters of the view other than the grid, from their JSON endpoints. */
+  refreshPresenters: function(viewName) {
+    kxDataPanel._lastFilter[viewName] = kxDataPanel.filterQuery(viewName);
+    if (typeof kxChart !== 'undefined' && kxChart._instances[viewName]) kxChart.refresh(viewName);
+    if (typeof kxCalendar !== 'undefined' && kxCalendar._instances[viewName]) kxCalendar.refresh(viewName);
+  },
+
+  /** Called after the grid body of the view was swapped by HTMX. */
+  afterGridSwap: function(viewName) {
+    var pending = kxDataPanel._pending[viewName];
+    delete kxDataPanel._pending[viewName];
+    var q = kxDataPanel.filterQuery(viewName);
+    var changed = (viewName in kxDataPanel._lastFilter) && kxDataPanel._lastFilter[viewName] !== q;
+    if (pending || changed) kxDataPanel.refreshPresenters(viewName);
+    // The record panel follows the rows, unless the form asked to be left alone
+    if (kxDataPanel._skipSync[viewName]) {
+      delete kxDataPanel._skipSync[viewName];
+    } else {
+      var force = !!kxDataPanel._forceRecord[viewName];
+      delete kxDataPanel._forceRecord[viewName];
+      kxDataPanel.syncRecordPanel(viewName, force);
+    }
+  },
+
+  /** Reloads every presenter of the view: the grid via HTMX (which fans out), the others directly. */
+  refresh: function(viewName) {
+    if (document.getElementById('kx-list-body-' + viewName)) {
+      kxDataPanel.requestRefresh(viewName);
+      kxGrid.refreshData(viewName);
+    } else {
+      kxDataPanel.refreshPresenters(viewName);
+    }
+  },
+
+  // ---- The form of the current record hosted beside the grid
+  // (EastController: Form). The List owns the current record: the grid's
+  // selection drives which record the panel shows; after every grid swap the
+  // panel is re-aligned (same key if still there, else the first row).
+  _currentKey: {},    // viewName -> key the record panel shows
+  _forceRecord: {},   // viewName -> reload the record on the next grid swap even if the key is unchanged
+  _skipSync: {},      // viewName -> leave the panel alone on the next grid swap (keep-open, clone)
+
+  hasRecordPanel: function(viewName) {
+    return !!document.getElementById('kx-record-panel-' + viewName);
+  },
+
+  /** Loads the form of a record (op view/edit/dup, or add) into the record panel. */
+  loadRecord: function(viewName, op, key) {
+    var panel = document.getElementById('kx-record-panel-' + viewName);
+    if (!panel) return;
+    kxForm.destroyHtmlEditors(viewName);
+    var url = 'kx/view/' + viewName + '/form?op=' + op + '&host=1';
+    if (key) url += '&key=' + encodeURIComponent(key);
+    htmx.ajax('GET', url, {
+      target: '#kx-record-panel-' + viewName,
+      swap: 'innerHTML',
+      headers: { 'X-KittoX': 'true' }
+    }).then(function() {
+      kxForm.initHtmlEditors(viewName);
+    });
+  },
+
+  showEmptyRecord: function(viewName) {
+    var panel = document.getElementById('kx-record-panel-' + viewName);
+    if (!panel) return;
+    kxForm.destroyHtmlEditors(viewName);
+    var empty = document.createElement('div');
+    empty.className = 'kx-record-empty';
+    empty.textContent = panel.dataset.emptyText || '';
+    panel.innerHTML = '';
+    panel.appendChild(empty);
+  },
+
+  /** The grid's current record changed: show it in the record panel (view mode). */
+  recordChanged: function(viewName, key, force) {
+    if (!kxDataPanel.hasRecordPanel(viewName)) return;
+    if (!force && kxDataPanel._currentKey[viewName] === key) return;
+    kxDataPanel._currentKey[viewName] = key;
+    if (key) kxDataPanel.loadRecord(viewName, 'view', key);
+    else kxDataPanel.showEmptyRecord(viewName);
+  },
+
+  /** Emitted by the hosted form at first render: selects the grid's first row. */
+  initRecordPanel: function(viewName) {
+    delete kxDataPanel._currentKey[viewName];
+    kxDataPanel.syncRecordPanel(viewName, false);
+  },
+
+  /** Re-aligns the record panel with the grid rows: the current key if still there, else the first row, else empty. */
+  syncRecordPanel: function(viewName, force) {
+    if (!kxDataPanel.hasRecordPanel(viewName)) return;
+    var body = document.getElementById('kx-list-body-' + viewName);
+    if (!body) return;
+    var key = kxDataPanel._currentKey[viewName];
+    var row = null;
+    if (key) {
+      body.querySelectorAll('tr[data-key]').forEach(function(tr) {
+        if (!row && tr.dataset.key === key) row = tr;
+      });
+    }
+    if (!row) row = body.querySelector('tr[data-key]');
+    if (force) delete kxDataPanel._currentKey[viewName];
+    if (row) kxGrid.select(row, viewName);
+    else kxDataPanel.recordChanged(viewName, '', true);
+  }
+};
+
 var kxChart = {
   _instances: {},  // viewName -> Chart instance
 
@@ -2849,6 +3048,7 @@ var kxChart = {
     }
     var chart = new Chart(canvas.getContext('2d'), config);
     kxChart._instances[viewName] = chart;
+    kxDataPanel.track(viewName);
     // Forza la ri-misurazione dopo che il flex layout della dashboard si e' stabilizzato,
     // altrimenti il canvas mantiene dimensioni interne sbagliate dal primo paint
     requestAnimationFrame(function() { chart.resize(); });
@@ -2856,13 +3056,13 @@ var kxChart = {
 
   /**
    * Refreshes chart data from the server.
-   * Fetches updated labels/data via JSON endpoint, updates chart with animation,
-   * and refreshes the sidebar grid.
+   * Fetches updated labels/data via the JSON endpoint, with the current
+   * values of the view's filter panel, and updates the chart with animation.
    */
   refresh: function(viewName) {
     var loadingEl = document.getElementById('kx-loading');
     if (loadingEl) loadingEl.classList.add('kx-busy');
-    kxFetchWithTimeout('kx/view/' + viewName + '/chart-data', {
+    kxFetchWithTimeout('kx/view/' + viewName + '/chart-data' + kxDataPanel.filterQuery(viewName), {
       headers: { 'X-KittoX': 'true' }
     })
     .then(function(r) { return r.json(); })
@@ -2873,9 +3073,6 @@ var kxChart = {
         chart.data.datasets[0].data = data.data;
         chart.update();  // animated transition
       }
-      // Update grid sidebar
-      var grid = document.getElementById('kx-chart-grid-' + viewName);
-      if (grid && data.gridHtml) grid.innerHTML = data.gridHtml;
     })
     .catch(function(err) {
       kxReportRequestError(err);
@@ -3002,7 +3199,7 @@ var kxDashboard = {
 
   _refreshOneChart: function(dashViewName, chartViewName) {
     var key = dashViewName + '/' + chartViewName;
-    return kxDashboard._silentFetch('kx/view/' + chartViewName + '/chart-data')
+    return kxDashboard._silentFetch('kx/view/' + chartViewName + '/chart-data' + kxDataPanel.filterQuery(chartViewName))
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (typeof kxChart === 'undefined' || !kxChart._instances) return;
@@ -3042,6 +3239,7 @@ var kxCalendar = {
       EventCalendar.destroy(kxCalendar._instances[viewName]);
     }
     kxCalendar._selectedKey[viewName] = '';
+    kxDataPanel.track(viewName);
 
     var dataUrl = options.dataUrl || '';
     var eventTypes = options.eventTypes || {};
@@ -3061,26 +3259,32 @@ var kxCalendar = {
       selectable: false,
       eventSources: [{
         url: dataUrl,
+        // The hosting List's filter panel applies to the calendar too.
         extraParams: function() {
-          return {};
+          return kxDataPanel.filterValues(viewName);
         }
       }],
       eventContent: function(info) {
         var event = info.event;
         var nodes = [];
-        // Time
-        var timeEl = document.createElement('div');
-        timeEl.className = 'ec-event-time';
-        timeEl.textContent = info.timeText || '';
-        nodes.push(timeEl);
-        // Title
+        // What an event shows depends on the view. In the month grid there is
+        // one line per event, so it carries the time and the title. In the
+        // week/day time grids the block's position already tells the time, so
+        // the space goes to the title and the notes (e.g. the address).
+        var viewType = (info.view && info.view.type) || options.view || '';
+        var isTimeGrid = /^timeGrid/.test(viewType);
+        if (!isTimeGrid) {
+          var timeEl = document.createElement('div');
+          timeEl.className = 'ec-event-time';
+          timeEl.textContent = info.timeText || '';
+          nodes.push(timeEl);
+        }
         var titleEl = document.createElement('div');
         titleEl.className = 'ec-event-title';
         titleEl.textContent = event.title || '';
         nodes.push(titleEl);
-        // Notes (if present)
         var notes = event.extendedProps && event.extendedProps.notes;
-        if (notes) {
+        if (isTimeGrid && notes) {
           var notesEl = document.createElement('div');
           notesEl.className = 'ec-event-notes';
           notesEl.textContent = notes;
@@ -3314,6 +3518,7 @@ var kxCalendar = {
     kxGrid.applyRowClasses(viewName);
     kxGrid.syncCellTitles(target);
     htmx.process(target);
+    kxDataPanel.afterGridSwap(viewName);
   } else if (target) {
     // Initial render: target is tab pane containing the grid; find tbodys inside
     target.querySelectorAll('tbody[data-row-class-provider]').forEach(function(tbody) {

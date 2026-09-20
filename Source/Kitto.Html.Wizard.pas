@@ -45,12 +45,17 @@ type
   private
     function GetLayout: string;
     function GetHtml: string;
+    function GetFields: string;
   public
     [YamlNode('Layout', '', 'Layout file reference for this step')]
     property Layout: string read GetLayout;
     [YamlNode('Html', '', 'Static HTML content for informational/review steps')]
     property Html: string read GetHtml;
-    // Fields subnode is a dynamic list of model field names — no typed property needed
+    /// <summary>RTTI carrier for the Fields node: a dynamic list of model field
+    /// names shown on this wizard step (each child is a field name). The getter
+    /// is unused; the list is read node by node at render time.</summary>
+    [YamlNode('Fields', 'Model field names shown on this step (a list of field-name nodes)')]
+    property Fields: string read GetFields;
   end;
 
   /// <summary>
@@ -208,6 +213,12 @@ end;
 function TKXWizardStepConfig.GetHtml: string;
 begin
   Result := GetString('Html', '');
+end;
+
+function TKXWizardStepConfig.GetFields: string;
+begin
+  // RTTI carrier only: the field-name list is read node by node at render time.
+  Result := '';
 end;
 
 procedure TKXWizardController.DoDisplay;

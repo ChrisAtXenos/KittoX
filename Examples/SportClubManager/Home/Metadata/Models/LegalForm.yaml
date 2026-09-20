@@ -1,0 +1,28 @@
+﻿ModelName: LegalForm
+PhysicalName: FORMA_GIURIDICA
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Legal forms)
+DisplayLabel: _(Legal form)
+PluralModelName: LegalForms
+Fields:
+  Id: String(3) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 50
+  RequiresTaxCode: Boolean
+    PhysicalName: FLAGCF
+    DisplayLabel: _(Requires the tax code)
+    DisplayWidth: 25
+  RequiresVatNumber: Boolean
+    PhysicalName: FLAGPI
+    DisplayLabel: _(Requires the VAT number)
+    DisplayWidth: 25
+  IsNaturalPerson: Boolean
+    PhysicalName: FLAGPF
+    DisplayLabel: _(Natural person)
+    DisplayWidth: 25
+ImageName: person

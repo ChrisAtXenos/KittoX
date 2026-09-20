@@ -160,6 +160,7 @@ type
     function GetContentType: string;
     function GetPath: string;
     function GetMaxUploadSize: Integer;
+    function GetWildCard: string;
   strict protected
     procedure ExecuteTool; override;
     function GetAcceptedWildcards: string; virtual;
@@ -181,6 +182,8 @@ type
     property Path: string read GetPath;
     [YamlNode('AcceptedWildcards', 'Accepted file patterns (space-separated wildcards)')]
     property AcceptedWildcards: string read GetAcceptedWildcards;
+    [YamlNode('WildCard', 'File filter applied when this upload tool is embedded on a grid/form toolbar')]
+    property WildCard: string read GetWildCard;
     [YamlNode('ContentType', 'Expected content type')]
     property ContentType: string read GetContentType;
     [YamlNode('MaxUploadSize', 'Maximum file size in bytes')]
@@ -516,6 +519,11 @@ end;
 function TKXUploadFileController.GetAcceptedWildcards: string;
 begin
   Result := Config.GetString('AcceptedWildcards');
+end;
+
+function TKXUploadFileController.GetWildCard: string;
+begin
+  Result := Config.GetString('WildCard');
 end;
 
 procedure TKXUploadFileController.ProcessUploadedFile(const AFile: TAbstractWebRequestFile);

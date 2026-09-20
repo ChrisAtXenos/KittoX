@@ -1,22 +1,10 @@
 {******************************************************************************}
 {                                                                              }
-{  Neon: Serialization Library for Delphi                                      }
+{  Neon: JSON Serialization Library for Delphi                                 }
 {  Copyright (c) 2018 Paolo Rossi                                              }
 {  https://github.com/paolo-rossi/neon-library                                 }
 {                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
+{  Licensed under the MIT license                                              }
 {                                                                              }
 {******************************************************************************}
 unit Neon.Core.Serializers.DB;
@@ -41,6 +29,16 @@ type
     function Deserialize(AValue: TJSONValue; const AData: TValue; ANeonObject: TNeonRttiObject; AContext: IDeserializerContext): TValue; override;
   end;
 
+/// <summary>
+///   Registers TDataSetSerializer. <b>Nothing in the library calls it</b>: a
+///   configuration starts with an empty registry, and a TDataSet member that
+///   has no serializer is not written as its array of rows - the engine walks
+///   the dataset's own published properties instead
+/// </summary>
+/// <remarks>
+///   Neon.Core.Serializers.RTL declares a procedure with the same name, so
+///   qualify the call with the unit name when both units are in scope
+/// </remarks>
 procedure RegisterDefaultSerializers(ARegistry: TNeonSerializerRegistry);
 
 implementation

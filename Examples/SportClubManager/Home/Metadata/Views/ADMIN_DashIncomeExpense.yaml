@@ -1,0 +1,25 @@
+Type: Data
+DisplayLabel: _(Income vs Expenses)
+ImageName: bar_chart
+Controller: List
+  CenterController: ChartPanel
+    Chart:
+      Type: Cartesian
+      Axes:
+        Axis:
+          Position: Left
+          Title: _(Amount (€))
+        Axis:
+          Position: Bottom
+      Series:
+        Series:
+          Type: Bar
+          XField: FlowTypeLabel
+          YField: Amount
+          DisplayName: _(Amount)
+          Label:
+            Field: Amount
+MainTable:
+  IsReadOnly: True
+  Model: VIncomeExpense
+  DefaultSorting: TIPO

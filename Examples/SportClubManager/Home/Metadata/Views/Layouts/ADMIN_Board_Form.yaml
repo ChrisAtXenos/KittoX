@@ -1,0 +1,9 @@
+﻿LabelAlign: Right
+Row:
+  Field: Person
+    CharWidth: 50
+  Field: StaffRole
+    CharWidth: 30
+Row:
+  Field: JoiningDate
+  Field: LeavingDate

@@ -2,6 +2,7 @@ inherited BaseWizardForm: TBaseWizardForm
   Left = 271
   Top = 194
   Caption = 'BaseWizardForm'
+  Position = poMainFormCenter
   ClientHeight = 408
   ClientWidth = 684
   StyleElements = [seFont, seClient, seBorder]

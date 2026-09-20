@@ -1,0 +1,44 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Chart of Accounts)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (CONTICONTABILI.DX like '%{value}%') or (CONTICONTABILI.CODPADRE like '%{value}%') or (CONTICONTABILI.CODCONTO like '%{value}%')
+      ColumnBreak:
+      List: _(Section)
+        Items:
+          ATT: _(Active)
+            Expression: {Q}SEZIONE = 'A'
+          PAS: _(Liabilities)
+            Expression: {Q}SEZIONE = 'P'
+          COS: _(Costs)
+            Expression: {Q}SEZIONE = 'C'
+          RIC: _(Revenues)
+            Expression: {Q}SEZIONE = 'R'
+      ColumnBreak:
+      List: _(Level)
+        Items:
+          MasterAccount: _(Master account)
+            Expression: {Q}LIVELLO = 'M'
+          Account: _(Account)
+            Expression: {Q}LIVELLO = 'C'
+          SubAccount: _(Sub-account)
+            Expression: {Q}LIVELLO = 'S'
+MainTable:
+  Model: LedgerAccount
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Width: 600
+      Height: 350
+    Form:
+      Layout: ADMIN_LedgerAccounts_Form
+    Grid:
+      Layout: ADMIN_LedgerAccounts_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: LedgerAccounts.xlsx
+          RequireSelection: False

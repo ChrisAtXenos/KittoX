@@ -1,22 +1,10 @@
 {******************************************************************************}
 {                                                                              }
-{  Neon: Serialization Library for Delphi                                      }
+{  Neon: JSON Serialization Library for Delphi                                 }
 {  Copyright (c) 2018 Paolo Rossi                                              }
 {  https://github.com/paolo-rossi/neon-library                                 }
 {                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
+{  Licensed under the MIT license                                              }
 {                                                                              }
 {******************************************************************************}
 unit Neon.Core.Utils;
@@ -32,6 +20,7 @@ uses
   {$ELSE}
   IdCoder, IdCoderMIME, IdGlobal,
   {$ENDIF}
+  System.Diagnostics,
   System.Generics.Collections;
 
 type
@@ -71,6 +60,10 @@ type
     class function JSONToDate(const ADate: string): TDate; static;
     class function JSONToTime(const ATime: string): TTime; static;
     class function JSONToDateTime(const ADateTime: string; AReturnUTC: Boolean = True): TDateTime; static;
+
+    class function TryJSONToDate(const ADate: string; out AValue: TDate): Boolean; static;
+    class function TryJSONToTime(const ATime: string; out AValue: TTime): Boolean; static;
+    class function TryJSONToDateTime(const ADateTime: string; out AValue: TDateTime; AReturnUTC: Boolean = True): Boolean; static;
 
     class procedure Prettify(const AJSONString: string; AWriter: TTextWriter);
   end;
@@ -120,16 +113,28 @@ type
     class procedure FreeArrayItems(const AData: TValue); static;
 
     /// <summary>
+    ///   Raises when there is no type to create an instance of, so the
+    ///   CreateInstance overloads report it instead of dereferencing nil
+    /// </summary>
+    class procedure CheckType(AType: TRttiType); static;
+
+    /// <summary>
     ///   Create new value data
     /// </summary>
     class function CreateNewValue(AType: TRttiType): TValue; static;
 
     /// <summary>
-    ///   Create instance of class with parameterless constructor
+    ///   Creates an instance of a class through its parameterless constructor,
+    ///   and returns an empty value when the class has none
     /// </summary>
+    /// <remarks>
+    ///   The no-raise primitive the TryCreateInstance overloads are built on
+    /// </remarks>
     class function CreateInstanceValue(AType: TRttiType): TValue; overload;
 
-    // Create instance of class with parameterless constructor
+    // Create instance of class with parameterless constructor. Raises
+    // ENeonException (SNeonErrorCreateInstanceF1) when the class has no such
+    // constructor - see TryCreateInstance for the overloads that return nil
     class function CreateInstance<T: class, constructor>: TObject;  overload;
     class function CreateInstance(AClass: TClass): TObject;  overload;
     class function CreateInstance(AType: TRttiType): TObject; overload;
@@ -144,6 +149,29 @@ type
     class function CreateInstance(AClass: TClass; const Args: array of TValue): TObject;  overload;
     class function CreateInstance(AType: TRttiType;  const Args: array of TValue): TObject; overload;
     class function CreateInstance(const ATypeName: string; const Args: array of TValue): TObject; overload;
+
+    /// <summary>
+    ///   The CreateInstance overloads for callers that treat "cannot create" as
+    ///   a normal outcome: they return nil where CreateInstance raises
+    /// </summary>
+    /// <remarks>
+    ///   The engine uses these where a member that cannot be built is logged and
+    ///   skipped (no AutoCreate, no factory, an abstract class); everything that
+    ///   cannot continue without the instance calls CreateInstance and lets the
+    ///   exception out
+    /// </remarks>
+    class function TryCreateInstance<T: class, constructor>: TObject;  overload;
+    class function TryCreateInstance(AClass: TClass): TObject;  overload;
+    class function TryCreateInstance(AType: TRttiType): TObject; overload;
+    class function TryCreateInstance(const ATypeName: string): TObject; overload;
+
+    class function TryCreateInstance(AClass: TClass; const AValue: string): TObject;  overload;
+    class function TryCreateInstance(AType: TRttiType; const AValue: string): TObject; overload;
+    class function TryCreateInstance(const ATypeName, AValue: string): TObject; overload;
+
+    class function TryCreateInstance(AClass: TClass; const Args: array of TValue): TObject;  overload;
+    class function TryCreateInstance(AType: TRttiType; const Args: array of TValue): TObject; overload;
+    class function TryCreateInstance(const ATypeName: string; const Args: array of TValue): TObject; overload;
 
     // Rtti general helper functions
     class function IfHasAttribute<T: TCustomAttribute>(AInstance: TObject): Boolean; overload;
@@ -194,10 +222,35 @@ type
     class procedure Base64ToBlobField(const ABase64: string; ABlobField: TBlobField);
   end;
 
+  TNeonLogger = class
+  private
+    class var FProfileEnabled: Boolean;
+    class var FProfileData: TDictionary<string, TPair<Int64, Int64>>;
+  public
+    class procedure Console(const AMessage: string); static; inline;
+    class procedure ConsoleWatch(const AMessage: string; var AWatch: TStopwatch); static; inline;
+    class procedure Debug(const AMessage: string); static; inline;
+    class procedure DebugWatch(const AMessage: string; var AWatch: TStopwatch); static; inline;
+
+    /// <summary>
+    ///   Lightweight, opt-in profiler: accumulates total elapsed time and
+    ///   call count per named section (e.g. "Serialize:Object"). Disabled
+    ///   by default, in which case ProfileBegin/ProfileEnd cost only a
+    ///   boolean check, so it is safe to leave the calls in shipped code.
+    /// </summary>
+    class property ProfileEnabled: Boolean read FProfileEnabled write FProfileEnabled;
+    class procedure ProfileReset; static;
+    class function ProfileBegin: Int64; static; inline;
+    class procedure ProfileEnd(const ASection: string; AStartStamp: Int64); static;
+    class function ProfileReport: string; static;
+  end;
+
 implementation
 
 uses
   System.StrUtils, System.DateUtils, System.Math, System.Variants,
+  System.Generics.Defaults,
+  {$IFDEF MSWINDOWS}Winapi.Windows,{$ENDIF}
   Neon.Core.Types;
 
 class function TRttiUtils.ClassDistanceFromRoot(AClass: TClass): Integer;
@@ -241,6 +294,12 @@ begin
   end;
 end;
 
+class procedure TRttiUtils.CheckType(AType: TRttiType);
+begin
+  if not Assigned(AType) then
+    raise ENeonException.Create(SNeonErrorObjectNoType);
+end;
+
 class function TRttiUtils.CreateNewValue(AType: TRttiType): TValue;
 var
   LAllocatedMem: Pointer;
@@ -262,7 +321,10 @@ begin
     tkUString:     Result := TValue.From<string>('');
     tkVariant:     Result := TValue.From<Variant>(Null);
 
-    tkClass:       Result := CreateInstance(AType);
+    // A class with no parameterless constructor is left as a nil object here:
+    // the caller (a list/array/map item, a member) logs and skips it, which is
+    // why this is the Try overload and not CreateInstance
+    tkClass:       Result := TryCreateInstance(AType);
 
     {$IFDEF HAS_MRECORDS}tkMRecord,{$ENDIF}
     tkRecord, tkDynArray:
@@ -275,11 +337,11 @@ begin
       end;
     end;
   else
-    raise Exception.CreateFmt('Error creating type [%s]', [AType.Name]);
+    raise ENeonException.CreateFmt(SNeonErrorCreateTypeF1, [AType.Name]);
   end;
 end;
 
-class function TRttiUtils.CreateInstance(AClass: TClass): TObject;
+class function TRttiUtils.TryCreateInstance(AClass: TClass): TObject;
 var
   LType: TRttiType;
 begin
@@ -287,12 +349,12 @@ begin
   Result := CreateInstanceValue(LType).AsObject;
 end;
 
-class function TRttiUtils.CreateInstance(AType: TRttiType): TObject;
+class function TRttiUtils.TryCreateInstance(AType: TRttiType): TObject;
 begin
   Result := CreateInstanceValue(AType).AsObject;
 end;
 
-class function TRttiUtils.CreateInstance(const ATypeName: string): TObject;
+class function TRttiUtils.TryCreateInstance(const ATypeName: string): TObject;
 var
   LType: TRttiType;
 begin
@@ -300,15 +362,40 @@ begin
   Result := CreateInstanceValue(LType).AsObject;
 end;
 
-class function TRttiUtils.CreateInstance(AClass: TClass; const AValue: string): TObject;
+class function TRttiUtils.CreateInstance(AClass: TClass): TObject;
+begin
+  Result := CreateInstance(FContext.GetType(AClass));
+end;
+
+class function TRttiUtils.CreateInstance(AType: TRttiType): TObject;
+begin
+  CheckType(AType);
+  Result := CreateInstanceValue(AType).AsObject;
+  if not Assigned(Result) then
+    raise ENeonException.CreateFmt(SNeonErrorCreateInstanceF1, [AType.Name]);
+end;
+
+class function TRttiUtils.CreateInstance(const ATypeName: string): TObject;
 var
   LType: TRttiType;
 begin
-  LType := FContext.GetType(AClass);
-  Result := CreateInstance(LType, AValue);
+  LType := Context.FindType(ATypeName);
+  if not Assigned(LType) then
+    raise ENeonException.CreateFmt(SNeonErrorCreateInstanceF1, [ATypeName]);
+  Result := CreateInstance(LType);
 end;
 
-class function TRttiUtils.CreateInstance(AType: TRttiType; const AValue: string): TObject;
+class function TRttiUtils.TryCreateInstance(AClass: TClass; const AValue: string): TObject;
+begin
+  Result := TryCreateInstance(FContext.GetType(AClass), AValue);
+end;
+
+class function TRttiUtils.CreateInstance(AClass: TClass; const AValue: string): TObject;
+begin
+  Result := CreateInstance(FContext.GetType(AClass), AValue);
+end;
+
+class function TRttiUtils.TryCreateInstance(AType: TRttiType; const AValue: string): TObject;
 var
   LMethod: TRttiMethod;
   LMetaClass: TClass;
@@ -333,11 +420,26 @@ begin
   end;
 end;
 
+class function TRttiUtils.CreateInstance(AType: TRttiType; const AValue: string): TObject;
+begin
+  CheckType(AType);
+  Result := TryCreateInstance(AType, AValue);
+  if not Assigned(Result) then
+    raise ENeonException.CreateFmt(SNeonErrorCreateInstanceF1, [AType.Name]);
+end;
+
+class function TRttiUtils.TryCreateInstance(const ATypeName, AValue: string): TObject;
+begin
+  Result := TryCreateInstance(Context.FindType(ATypeName), AValue);
+end;
+
 class function TRttiUtils.CreateInstance(const ATypeName, AValue: string): TObject;
 var
   LType: TRttiType;
 begin
   LType := Context.FindType(ATypeName);
+  if not Assigned(LType) then
+    raise ENeonException.CreateFmt(SNeonErrorCreateInstanceF1, [ATypeName]);
   Result := CreateInstance(LType, AValue);
 end;
 
@@ -593,7 +695,7 @@ begin
   else if AObject is TRttiManagedField then
     Result := TRttiManagedField(AObject).FieldType
   else
-    raise Exception.Create('Object doesn''t have a type');
+    raise Exception.Create(SNeonErrorObjectNoType);
 end;
 
 class function TRttiUtils.HasAttribute<T>(AClass: TClass): Boolean;
@@ -650,15 +752,17 @@ begin
   end;
 end;
 
-class function TRttiUtils.CreateInstance(AClass: TClass; const Args: array of TValue): TObject;
-var
-  LType: TRttiType;
+class function TRttiUtils.TryCreateInstance(AClass: TClass; const Args: array of TValue): TObject;
 begin
-  LType := FContext.GetType(AClass);
-  Result := CreateInstance(LType, Args);
+  Result := TryCreateInstance(FContext.GetType(AClass), Args);
 end;
 
-class function TRttiUtils.CreateInstance(AType: TRttiType; const Args: array of TValue): TObject;
+class function TRttiUtils.CreateInstance(AClass: TClass; const Args: array of TValue): TObject;
+begin
+  Result := CreateInstance(FContext.GetType(AClass), Args);
+end;
+
+class function TRttiUtils.TryCreateInstance(AType: TRttiType; const Args: array of TValue): TObject;
 var
   LMethod: TRttiMethod;
   LMetaClass: TClass;
@@ -678,8 +782,19 @@ begin
       end;
     end;
   end;
+end;
+
+class function TRttiUtils.CreateInstance(AType: TRttiType; const Args: array of TValue): TObject;
+begin
+  CheckType(AType);
+  Result := TryCreateInstance(AType, Args);
   if not Assigned(Result) then
-    raise Exception.CreateFmt('TRttiUtils.CreateInstance: can''t create object [%s]', [AType.Name]);
+    raise ENeonException.CreateFmt(SNeonErrorCreateInstanceF1, [AType.Name]);
+end;
+
+class function TRttiUtils.TryCreateInstance(const ATypeName: string; const Args: array of TValue): TObject;
+begin
+  Result := TryCreateInstance(Context.FindType(ATypeName), Args);
 end;
 
 class function TRttiUtils.CreateInstance(const ATypeName: string; const Args: array of TValue): TObject;
@@ -687,7 +802,14 @@ var
   LType: TRttiType;
 begin
   LType := Context.FindType(ATypeName);
+  if not Assigned(LType) then
+    raise ENeonException.CreateFmt(SNeonErrorCreateInstanceF1, [ATypeName]);
   Result := CreateInstance(LType, Args);
+end;
+
+class function TRttiUtils.TryCreateInstance<T>: TObject;
+begin
+  Result := TryCreateInstance(TRttiUtils.Context.GetType(TClass(T)));
 end;
 
 class function TRttiUtils.CreateInstance<T>: TObject;
@@ -716,10 +838,20 @@ begin
 end;
 
 class function TJSONUtils.TimeToJSON(ATime: TTime): string;
+var
+  LHour, LMin, LSec, LMSec: Word;
 begin
   Result := '';
-  if ATime <> 0 then
-  Result := FormatDateTime('hh:nn:ss', ATime);
+  if ATime = 0 then
+    Exit;
+
+  { Milliseconds are emitted only when they carry information, so whole-second
+    times keep the plain hh:nn:ss form and no sub-second data is ever lost }
+  DecodeTime(ATime, LHour, LMin, LSec, LMSec);
+  if LMSec = 0 then
+    Result := Format('%.2d:%.2d:%.2d', [LHour, LMin, LSec])
+  else
+    Result := Format('%.2d:%.2d:%.2d.%.3d', [LHour, LMin, LSec, LMSec]);
 end;
 
 class function TJSONUtils.TimeToJSONValue(ATime: TTime): TJSONValue;
@@ -822,14 +954,14 @@ begin
   if AJSON is TJSONBool then
     Result := (AJSON as TJSONBool).AsBoolean
   else
-    raise ENeonException.Create('The JSON value is not boolean');
+    raise ENeonException.Create(SNeonErrorJSONNotBoolean);
 {$ELSE}
   if AJSON is TJSONTrue then
     Result := True
   else if AJSON is TJSONFalse then
     Result := False
   else
-    raise ENeonException.Create('The JSON value is not boolean');
+    raise ENeonException.Create(SNeonErrorJSONNotBoolean);
 {$ENDIF}
 end;
 
@@ -925,25 +1057,150 @@ begin
   end;
 end;
 
+class function TJSONUtils.TryJSONToDate(const ADate: string; out AValue: TDate): Boolean;
+
+  {YYYY-MM-DD} // Possible RegEx => ^(?:\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01]))$
+  function TryParsePlainDate(const AText: string; out ADateTime: TDateTime): Boolean;
+  var
+    LYear, LMonth, LDay: Integer;
+  begin
+    Result := False;
+
+    if (Length(AText) <> 10) or (AText[5] <> '-') or (AText[8] <> '-') then
+      Exit;
+
+    if not TryStrToInt(Copy(AText, 1, 4), LYear) then
+      Exit;
+    if not TryStrToInt(Copy(AText, 6, 2), LMonth) then
+      Exit;
+    if not TryStrToInt(Copy(AText, 9, 2), LDay) then
+      Exit;
+
+    { Explicit range check: TryEncodeDate takes Word parameters }
+    if (LYear < 1) or (LYear > 9999) or (LMonth < 1) or (LMonth > 12) or
+       (LDay < 1) or (LDay > 31) then
+      Exit;
+
+    Result := TryEncodeDate(LYear, LMonth, LDay, ADateTime);
+  end;
+
+var
+  LDateTime: TDateTime;
+begin
+  AValue := 0.0;
+  if ADate.IsEmpty then
+    Exit(True);
+
+  if TryParsePlainDate(ADate, LDateTime) then
+  begin
+    AValue := LDateTime;
+    Exit(True);
+  end;
+
+  { Anything else is handed to the RTL parser, so a full ISO-8601 date/time is
+    accepted for a TDate as well (the time part is dropped) }
+  Result := TryISO8601ToDate(ADate, LDateTime, True);
+  if Result then
+    AValue := DateOf(LDateTime);
+end;
+
+class function TJSONUtils.TryJSONToTime(const ATime: string; out AValue: TTime): Boolean;
+
+  {hh:nn[:ss[.zzz]][Z]} // Possible RegEx => ^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:[.,]\d+)?)?Z?$
+  function TryParsePlainTime(const AText: string; out ADateTime: TDateTime): Boolean;
+  var
+    LTime, LFraction: string;
+    LParts: TArray<string>;
+    LHour, LMin, LSec, LMSec, LSepIndex: Integer;
+  begin
+    Result := False;
+
+    LTime := AText;
+    if LTime.EndsWith('Z', True) then
+      LTime := LTime.Substring(0, LTime.Length - 1);
+
+    LMSec := 0;
+    LSepIndex := LTime.IndexOfAny(['.', ',']);
+    if LSepIndex >= 0 then
+    begin
+      { Normalize the fractional part to exactly 3 digits (milliseconds) }
+      LFraction := LTime.Substring(LSepIndex + 1);
+      LTime := LTime.Substring(0, LSepIndex);
+      if LFraction.IsEmpty then
+        Exit;
+      LFraction := Copy(LFraction + '000', 1, 3);
+      if not TryStrToInt(LFraction, LMSec) then
+        Exit;
+    end;
+
+    LParts := LTime.Split([':']);
+    if (Length(LParts) < 2) or (Length(LParts) > 3) then
+      Exit;
+
+    LSec := 0;
+    if not TryStrToInt(LParts[0], LHour) then
+      Exit;
+    if not TryStrToInt(LParts[1], LMin) then
+      Exit;
+    if (Length(LParts) = 3) and not TryStrToInt(LParts[2], LSec) then
+      Exit;
+
+    { Explicit range check: TryEncodeTime takes Word parameters }
+    if (LHour < 0) or (LHour > 23) or (LMin < 0) or (LMin > 59) or
+       (LSec < 0) or (LSec > 59) or (LMSec < 0) or (LMSec > 999) then
+      Exit;
+
+    Result := TryEncodeTime(LHour, LMin, LSec, LMSec, ADateTime);
+  end;
+
+var
+  LDateTime: TDateTime;
+begin
+  AValue := 0.0;
+  if ATime.IsEmpty then
+    Exit(True);
+
+  if not ATime.Contains('-') and TryParsePlainTime(ATime, LDateTime) then
+  begin
+    AValue := LDateTime;
+    Exit(True);
+  end;
+
+  { Anything else is handed to the RTL parser, so a full ISO-8601 date/time is
+    accepted for a TTime as well (the date part is dropped) }
+  Result := TryISO8601ToDate(ATime, LDateTime, True);
+  if Result then
+    AValue := TimeOf(LDateTime);
+end;
+
+class function TJSONUtils.TryJSONToDateTime(const ADateTime: string; out AValue: TDateTime;
+  AReturnUTC: Boolean): Boolean;
+begin
+  AValue := 0.0;
+  if ADateTime.IsEmpty then
+    Exit(True);
+
+  Result := TryISO8601ToDate(ADateTime, AValue, AReturnUTC);
+end;
+
 class function TJSONUtils.JSONToDate(const ADate: string): TDate;
 begin
-  Result := 0.0;
-  if Length(ADate) = 10 then  {YYYY-MM-DD} // Possible RegEx => ^(?:\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01]))$
-    Result := EncodeDate(StrToInt(Copy(ADate, 1, 4)), StrToInt(Copy(ADate, 6, 2)), StrToInt(Copy(ADate, 9, 2)));
+  if not TryJSONToDate(ADate, Result) then
+    raise ENeonException.CreateFmt(SNeonErrorDateInvalidF1, [ADate]);
 end;
 
 class function TJSONUtils.JSONToTime(const ATime: string): TTime;
 begin
-  Result := 0.0;
-  if Length(ATime) = 8 then {hh:nn:ss} // Possible RegEx => ^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$
-    Result := EncodeTime(StrToInt(Copy(ATime, 1, 2)), StrToInt(Copy(ATime, 4, 2)), StrToInt(Copy(ATime, 7, 2)), 0);
+  if not TryJSONToTime(ATime, Result) then
+    raise ENeonException.CreateFmt(SNeonErrorTimeInvalidF1, [ATime]);
 end;
 
 class procedure TJSONUtils.Prettify(const AJSONString: string; AWriter: TTextWriter);
 var
-  LChar, LPrev: Char;
+  LChar: Char;
   LOffset: Integer;
   LIndex: Integer;
+  LBackslashes: Integer;
   LOutsideString: Boolean;
 
   function Spaces(AOffset: Integer): string; inline;
@@ -955,13 +1212,21 @@ begin
   LOffset := 0;
   LOutsideString := True;
 
-  LPrev := #0;
+  LBackslashes := 0;
   for LIndex := 0 to Length(AJSONString) - 1 do
   begin
     LChar := AJSONString.Chars[LIndex];
 
-    if (LChar = '"') and not (LPrev = '\') then
+    // A quote ends the string only when it is not escaped, and it is escaped
+    // only after an odd number of backslashes: in "C:\\" the two backslashes
+    // escape each other, so the quote that follows them is the terminator
+    if (LChar = '"') and not Odd(LBackslashes) then
       LOutsideString := not LOutsideString;
+
+    if LChar = '\' then
+      Inc(LBackslashes)
+    else
+      LBackslashes := 0;
 
     if LOutsideString and (LChar = '{') then
     begin
@@ -1004,17 +1269,14 @@ begin
     end
     else
       AWriter.Write(LChar);
-
-    LPrev := LChar;
   end;
 
 end;
 
 class function TJSONUtils.JSONToDateTime(const ADateTime: string; AReturnUTC: Boolean = True): TDateTime;
 begin
-  Result := 0.0;
-  if ADateTime <> '' then
-    Result := ISO8601ToDate(ADateTime, AReturnUTC);
+  if not TryJSONToDateTime(ADateTime, Result, AReturnUTC) then
+    raise ENeonException.CreateFmt(SNeonErrorDateTimeInvalidF1, [ADateTime]);
 end;
 
 class function TJSONUtils.ToJSON(AJSONValue: TJSONValue): string;
@@ -1512,7 +1774,7 @@ var
   LIndex: Integer;
 begin
   if not (AJSONValue is TJSONArray) then
-    raise ENeonException.Create('JSONToDataSet: The JSON must be an array');
+    raise ENeonException.Create(SNeonErrorDataSetJSONNotArray);
 
   LJSONArray := AJSONValue as TJSONArray;
 
@@ -1586,5 +1848,124 @@ begin
     LBlobStream.Free;
   end;
 end;
+
+{ TNeonLogger }
+
+class procedure TNeonLogger.Console(const AMessage: string);
+begin
+  WriteLn(AMessage);
+end;
+
+class procedure TNeonLogger.ConsoleWatch(const AMessage: string; var AWatch: TStopWatch);
+begin
+  AWatch.Stop;
+  WriteLn(AMessage + ' - msec: ' + AWatch.ElapsedMilliseconds.ToString);
+end;
+
+class procedure TNeonLogger.Debug(const AMessage: string);
+begin
+  {$IFDEF MSWINDOWS}
+  OutputDebugString(PChar(AMessage));
+  {$ENDIF}
+end;
+
+class procedure TNeonLogger.DebugWatch(const AMessage: string; var AWatch: TStopwatch);
+begin
+  AWatch.Stop;
+  {$IFDEF MSWINDOWS}
+  OutputDebugString(PChar(AMessage + ' - msec: ' + AWatch.ElapsedMilliseconds.ToString));
+  {$ENDIF}
+end;
+
+class procedure TNeonLogger.ProfileReset;
+begin
+  if not Assigned(FProfileData) then
+    FProfileData := TDictionary<string, TPair<Int64, Int64>>.Create
+  else
+    FProfileData.Clear;
+end;
+
+class function TNeonLogger.ProfileBegin: Int64;
+begin
+  if FProfileEnabled then
+    Result := TStopwatch.GetTimeStamp
+  else
+    Result := 0;
+end;
+
+class procedure TNeonLogger.ProfileEnd(const ASection: string; AStartStamp: Int64);
+var
+  LElapsed: Int64;
+  LEntry: TPair<Int64, Int64>;
+begin
+  if not FProfileEnabled then
+    Exit;
+
+  LElapsed := TStopwatch.GetTimeStamp - AStartStamp;
+
+  if not Assigned(FProfileData) then
+    FProfileData := TDictionary<string, TPair<Int64, Int64>>.Create;
+
+  if FProfileData.TryGetValue(ASection, LEntry) then
+    FProfileData[ASection] := TPair<Int64, Int64>.Create(LEntry.Key + LElapsed, LEntry.Value + 1)
+  else
+    FProfileData.Add(ASection, TPair<Int64, Int64>.Create(LElapsed, 1));
+end;
+
+class function TNeonLogger.ProfileReport: string;
+type
+  TSectionStat = TPair<string, TPair<Int64, Int64>>;
+var
+  LStats: TList<TSectionStat>;
+  LStat: TSectionStat;
+  LPair: TPair<string, TPair<Int64, Int64>>;
+  LFreq: Int64;
+  LTotalMs, LGrandTotalMs: Double;
+  LSB: TStringBuilder;
+begin
+  if not Assigned(FProfileData) or (FProfileData.Count = 0) then
+    Exit('(no profiling data - TNeonLogger.ProfileEnabled was False during the run)');
+
+  LFreq := TStopwatch.Frequency;
+  LStats := TList<TSectionStat>.Create;
+  try
+    for LPair in FProfileData do
+      LStats.Add(LPair);
+
+    LStats.Sort(TComparer<TSectionStat>.Construct(
+      function(const L, R: TSectionStat): Integer
+      begin
+        Result := TComparer<Int64>.Default.Compare(R.Value.Key, L.Value.Key);
+      end));
+
+    LGrandTotalMs := 0;
+    for LStat in LStats do
+      LGrandTotalMs := LGrandTotalMs + (LStat.Value.Key / LFreq) * 1000;
+
+    LSB := TStringBuilder.Create;
+    try
+      LSB.AppendLine(Format('  %-26s %10s %14s %12s %9s',
+        ['Section', 'Calls', 'Total (ms)', 'Avg (us)', '% ']));
+      LSB.Append('  ').AppendLine(StringOfChar('-', 74));
+      for LStat in LStats do
+      begin
+        LTotalMs := (LStat.Value.Key / LFreq) * 1000;
+        LSB.AppendLine(Format('  %-26s %10d %14.3f %12.3f %7.1f%%',
+          [LStat.Key, LStat.Value.Value, LTotalMs, (LTotalMs * 1000) / LStat.Value.Value,
+           IfThen(LGrandTotalMs > 0, LTotalMs / LGrandTotalMs * 100, 0)]));
+      end;
+      Result := LSB.ToString;
+    finally
+      LSB.Free;
+    end;
+  finally
+    LStats.Free;
+  end;
+end;
+
+initialization
+
+finalization
+  FreeAndNil(TNeonLogger.FProfileData);
 
 end.

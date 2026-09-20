@@ -1,0 +1,27 @@
+﻿LabelAlign: Right
+LabelWidth: 160
+FieldSet:
+  Title: _(Affiliation Data)
+  Row:
+    Field: AffiliationDate
+    Field: Federation
+      CharWidth: 60
+  Row:
+    Field: AffiliationYear
+    Field: AffiliationNumber
+  Row:
+    Field: Description
+      CharWidth: 100
+  Row:
+    Field: FederationLogo
+  Row:
+    Field: SportsFacility
+      CharWidth: 40
+  Row:
+    Field: MainSponsor
+      CharWidth: 40
+    Field: OtherSponsor
+      CharWidth: 40
+  Row:
+    Field: SportType
+      CharWidth: 40

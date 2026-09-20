@@ -1,0 +1,21 @@
+LabelAlign: Right
+LabelWidth: 130
+FieldSet:
+  Title: _(Accounting entry data)
+  Row:
+    Field: FinancialYear
+    Field: EntryNumber
+    Field: PostingDate
+  Row:
+    Field: EntryDescription
+FieldSet:
+  Title: _(Accounting line data)
+  Row:
+    Field: LineDescription
+  Row:
+    Field: Description
+  Row:
+    Field: Sign
+    Field: Amount
+  Row:
+    Field: AccountReference

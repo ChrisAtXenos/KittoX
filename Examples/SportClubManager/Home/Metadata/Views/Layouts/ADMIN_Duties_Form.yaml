@@ -1,0 +1,5 @@
+﻿Field: Person
+Field: RoleType
+Field: FromDate
+Field: ToDate
+LabelAlign: Right

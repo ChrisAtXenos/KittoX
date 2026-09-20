@@ -174,4 +174,17 @@ initialization
   //activation for memory leaks
   ReportMemoryLeaksOnShutdown := DebugHook <> 0;
 
+finalization
+  // KittoXCore is a runtime package and stays loaded when this design-time
+  // package (KittoXIDE) is uninstalled. The initialization above left two
+  // references to THIS bpl inside Core: the metaclass Kitto.Config.FConfigClass
+  // (= TKideConfig) and, once anything read TKConfig.Instance, a cached
+  // TKideConfig object in Kitto.Config.FInstance — both with a VMT that is
+  // about to be unmapped. Retract them here, while this code is still mapped:
+  // free the cached instance now, then restore the base config class so Core
+  // never re-creates a TKideConfig nor frees one through a dead VMT (which was
+  // the design-package uninstall crash).
+  TKConfig.DestroyInstance;
+  TKConfig.SetConfigClass(TKConfig);
+
 end.

@@ -1,0 +1,40 @@
+﻿ModelName: MedicalVisitBooking
+PhysicalName: GESTVISITE
+DisplayLabel: _(Medical visit booking)
+PluralDisplayLabel: _(Medical visit bookings)
+PluralModelName: MedicalVisitBookings
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  RequestDate: Date not null
+    PhysicalName: DATARICHIESTA
+    DisplayWidth: 12
+    DisplayLabel: _(Request date)
+  VisitDate: Date not null
+    DisplayLabel: _(Visit date)
+    PhysicalName: DATAVISITA
+  PeopleCount: Integer not null
+    DisplayLabel: _(Number of people)
+    PhysicalName: NUMPERSONE
+  Clinic: Reference(Clinic) not null
+    DisplayLabel: _(Clinic)
+    PhysicalName: DT_GESTVISITE_AMBULATORIO
+    Fields:
+      ClinicId:
+        PhysicalName: AMBULATORIOID
+  Affiliation: Reference(Affiliation)
+    PhysicalName: FK_GESTVISITE_SOCIETA
+    DisplayLabel: _(Affiliation)
+    Fields:
+      ClubNameId:
+        PhysicalName: SOCIETAID
+  MedicalVisitType: Reference(MedicalVisitType) not null
+    DisplayLabel: _(Medical Visit Type)
+    PhysicalName: FK_GESTVISITE_TIPOVISITA
+    Fields:
+      MedicalVisitTypeId:
+        PhysicalName: TIPOVISITAID

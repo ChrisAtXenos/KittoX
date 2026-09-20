@@ -1,0 +1,14 @@
+﻿From: <%Config:SportsClubEmail%>
+Subject: _(Sports medical examination)
+HTMLBody: |
+  <p><b>%Config:SportsClubName%</b>
+  <br/>
+  _(Dear) {Person_FirstName} {Person_LastName},<br/>
+  _(This is a reminder of the medical visit to be carried out on) <b>{VisitDate}</b> _(at) <b>{VisitTime}</b>, <br/>
+  _(at the clinic) <b>{Clinic_Description}</b>, _(in) <b>{Clinic_Address} - {ClinicMunicipality}</b>  <br/>
+  <br/>
+  _(If you received this e-mail by mistake or the information does not look correct, please write to us at:) <a href="mailto:%Config:SportsClubEmail%">%Config:SportsClubEmail%</a><br/>
+  <br/>
+  _(Kind regards.)</p>
+  </p>
+  <p><b>_(The staff of) %Config:SportsClubName%</b></p>

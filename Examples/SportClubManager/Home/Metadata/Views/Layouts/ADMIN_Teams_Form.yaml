@@ -1,0 +1,44 @@
+﻿LabelAlign: Right
+LabelWidth: 200
+FieldSet:
+  Row:
+    Field: Description
+  Row:
+    Field: Abbreviation
+    Field: ScoreboardAbbreviation
+    Field: FederationCode
+  Row:
+    Field: Coach
+    Field: TeamEscort
+  Row:
+    Field: OwnTeam
+    Field: ShirtColour
+    Field: SecondaryColour
+  Row:
+    Field: MatchDayOfWeek
+    Field: UsualMatchTime
+    Field: BallBrand
+  Row:
+    Field: MeetingPoint
+FieldSet:
+  Row:
+    Field: Photo
+    Field: Logo
+  Row:
+    Field: Season
+      CharWidth: 40
+  Row:
+    Field: Category
+      CharWidth: 40
+    Field: Affiliation
+      CharWidth: 40
+  Row:
+    Field: SportsFacility
+      CharWidth: 40
+  Row:
+    Field: Sponsor
+      CharWidth: 40
+  Row:
+    Field: SportType
+      CharWidth: 40
+    Field: TeamNumber

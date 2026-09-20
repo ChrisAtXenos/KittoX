@@ -1,0 +1,7 @@
+Row:
+  Field: Message
+    CharWidth: 80
+    Lines: 20
+Row:
+  Field: Status
+LabelAlign: Right

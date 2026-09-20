@@ -73,6 +73,26 @@ type
     [Test]
     procedure Read_AttachesCommentsToTheNodeBelow;
 
+    /// <summary>
+    ///  A comment indented under a block, but followed by a node at a shallower
+    ///  level (the comment belongs to the block above, the node dedents past
+    ///  it), must keep its own indentation on write. The annotation is attached
+    ///  to the following node, so re-indenting it to that node's column moved
+    ///  the comment out to column 0 - the defect a KIDE save exposed on
+    ///  TasKitto's Config.yaml.
+    /// </summary>
+    [Test]
+    procedure WriteIndentedCommentBeforeADedentedNode_KeepsItsIndentation;
+
+    /// <summary>
+    ///  A blank line INSIDE a '|' block scalar is an empty line of the value,
+    ///  not the end of the block. It used to be pulled out of the value and
+    ///  re-emitted as an annotation of the next node, so a save moved it past
+    ///  the following lines of the block.
+    /// </summary>
+    [Test]
+    procedure WriteBlankLineInsideABlockScalar_KeepsItInPlace;
+
     /// <summary>Reading then writing must give back the very same file: the
     /// metadata editors rewrite files that a human also edits by hand, so any
     /// reformatting shows up as spurious changes.</summary>
@@ -311,7 +331,53 @@ begin
     LSubNode2 := LTree.Children[0].Children[1];
     Assert.AreEqual(2, LSubNode2.AnnotationCount,
       'Both comment lines above the node should be attached to it.');
-    Assert.AreEqual('# Here comes the second subnode.', LSubNode2.Annotations[1]);
+    // The stored annotation keeps the comment's original indentation (two
+    // spaces here), so that the writer can put it back where it was.
+    Assert.AreEqual('  # Here comes the second subnode.', LSubNode2.Annotations[1]);
+  finally
+    LTree.Free;
+  end;
+end;
+
+procedure TEFYAMLTests.WriteIndentedCommentBeforeADedentedNode_KeepsItsIndentation;
+var
+  LTree: TEFTree;
+  LYaml: string;
+begin
+  // The comment sits at the indentation of Block's children (2 spaces), but the
+  // node that follows it - Next - is at column 0. Read then write must give the
+  // file back byte for byte, comment indentation included.
+  LYaml :=
+    'Block:'#13#10 +
+    '  Child: 1'#13#10 +
+    '  # a comment that belongs to Block, indented under it'#13#10 +
+    'Next: 2'#13#10;
+  LTree := TEFYAMLReader.LoadTreeFromString(LYaml);
+  try
+    Assert.AreEqual(LYaml, TEFYAMLWriter.TreeAsString(LTree));
+  finally
+    LTree.Free;
+  end;
+end;
+
+procedure TEFYAMLTests.WriteBlankLineInsideABlockScalar_KeepsItInPlace;
+var
+  LTree: TEFTree;
+  LYaml: string;
+begin
+  // The blank line is between two content lines of the block: it is part of the
+  // value and must round-trip in place, not migrate after the block.
+  LYaml :=
+    'Body: |'#13#10 +
+    '  first line'#13#10 +
+    ''#13#10 +
+    '  last line'#13#10;
+  LTree := TEFYAMLReader.LoadTreeFromString(LYaml);
+  try
+    Assert.AreEqual('first line'#13#10#13#10'last line',
+      LTree.GetString('Body'),
+      'The empty line must be kept as an empty line of the value.');
+    Assert.AreEqual(LYaml, TEFYAMLWriter.TreeAsString(LTree));
   finally
     LTree.Free;
   end;

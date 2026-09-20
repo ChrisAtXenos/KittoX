@@ -1,0 +1,112 @@
+﻿ModelName: User
+PhysicalName: APPUSER
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Users)
+DisplayLabel: _(User)
+PluralModelName: Users
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(User account Id)
+    DisplayWidth: 20
+    Rules:
+      ForceUpperCase:
+    CanUpdate: False
+  TaxCode: String(16) not null
+    DisplayLabel: _(Tax Code)
+    PhysicalName: FISCAL_ID
+    DisplayWidth: 20
+    Rules:
+      UserCheck:
+      ForceUpperCase:
+      CheckTaxCodeFormat:
+      CheckTaxCodeChecksum:
+    CanUpdate: False
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+    DisplayWidth: 20
+    IsVisible: True
+  LastName: String(100) not null
+    DisplayLabel: _(Last Name)
+    PhysicalName: LAST_NAME
+    DisplayWidth: 40
+    Rules:
+      ForceCamelCaps:
+      CalcDescription: {LastName} {FirstName}
+  FirstName: String(100) not null
+    DisplayLabel: _(First Name)
+    PhysicalName: FIRST_NAME
+    DisplayWidth: 40
+    Rules:
+      ForceCamelCaps:
+      CalcDescription: {LastName} {FirstName}
+  Email: String(100) not null
+    PhysicalName: EMAIL_ADDRESS
+    DisplayLabel: _(E-mail)
+    DisplayWidth: 40
+  Mobile: String(15)
+    PhysicalName: PHONE_NUMBER
+    DisplayLabel: _(Mobile no.)
+    DisplayWidth: 20
+    Rules:
+      UserCheck:
+  Password: String(40)
+    PhysicalName: PASSWD
+    IsPassword: True
+    IsVisible: False
+    Rules:
+      CheckPasswordStrength:
+  Profile: Reference(Profile) not null
+    DisplayLabel: _(Profile)
+    PhysicalName: FK_APPUSER_PROFILE
+    Fields:
+      ProfileId:
+        PhysicalName: PROFILEID
+    DisplayWidth: 38
+    IsReadOnly: True
+  Language: Reference(Language)
+    PhysicalName: FK_APPUSER_LANGUAGE
+    Fields:
+      LanguageId:
+        PhysicalName: LANGUAGEID
+        DefaultValue: IT
+    IsVisible: False
+  Administrator: Boolean
+    DisplayLabel: _(Administrator)
+    DefaultValue: False
+    PhysicalName: ADMINISTRATOR
+  IsSystem: Boolean
+    DisplayLabel: _(System)
+    DefaultValue: False
+    PhysicalName: IS_SYSTEM
+  AccessBlocked: Boolean
+    DefaultValue: False
+    PhysicalName: ACCESS_DENIED
+    DisplayLabel: _(Access blocked)
+  PasswordMustBeChanged: Boolean
+    DisplayLabel: _(Password Must Be Changed)
+    DefaultValue: True
+    IsReadOnly: True
+    PhysicalName: MUST_CHANGE_PASSWORD
+  PrivacyConsent: Boolean not null
+    DefaultValue: False
+    PhysicalName: PRIVACY_CONFIRM
+    DisplayLabel: _(Privacy consent)
+    CanUpdate: False
+  CreationDateTime: DateTime
+    DefaultValue: {DateTime}
+    PhysicalName: CREATION_DATE
+    DisplayLabel: _(Creation date/time)
+    IsReadOnly: True
+  IpAddress: String(50) not null
+    DefaultValue: %SESSION_REMOTE_ADDR%
+    PhysicalName: IP_ADDRESS
+    DisplayLabel: _(IP Address)
+    IsVisible: False
+    IsReadOnly: True
+ImageName: user
+CaptionField: Description
+Rules:
+  CheckRegistryDataAgainstTaxCode:
+  UserCheck:

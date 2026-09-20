@@ -1,0 +1,8 @@
+Type: Data
+DisplayLabel: _(Expiring federation registrations)
+ImageName: dash_expiring_registrations.svg
+Controller: TemplateDataPanel
+  TemplateFileName: DashKpiExpiringRegistrations.html
+MainTable:
+  IsReadOnly: True
+  Model: Kpi

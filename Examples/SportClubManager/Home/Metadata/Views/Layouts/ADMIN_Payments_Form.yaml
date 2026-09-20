@@ -1,0 +1,37 @@
+﻿LabelAlign: Right
+LabelWidth: 200
+FieldSet:
+  Row:
+    Field: Payer
+      CharWidth: 80
+  Row:
+    Field: PaymentMethod
+    Field: PaymentDate
+    Field: PostingDate
+  Row:
+    Field: Amount
+      CharWidth: 20
+  Row:
+    Field: DepositBank
+FieldSet:
+  Title: _(Payment Status)
+  Row:
+    Field: Status
+  Row:
+    Field: ApprovalDate
+    Field: RejectionDate
+FieldSet:
+  Title: _(Cheque details)
+  Row:
+    Field: ChequeBank
+    Field: ChequeNumber
+FieldSet:
+  Title: _(Bank transfer details)
+  Row:
+    Field: TransferReference
+    Field: ValueDate
+FieldSet:
+  Title: _(Detail data)
+  Row:
+    Field: LinesTotalAmount
+      CharWidth: 20

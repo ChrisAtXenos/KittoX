@@ -1,0 +1,17 @@
+Field: Person
+  CharWidth: 40
+Field: DocumentType
+  CharWidth: 20
+Field: Description
+  CharWidth: 40
+Field: IssueDate
+  CharWidth: 15
+Field: ExpiryDate
+  CharWidth: 15
+Field: IssuedBy
+  CharWidth: 40
+Field: Number
+  CharWidth: 40
+Field: Notes
+  CharWidth: 40
+Field: DocumentFile

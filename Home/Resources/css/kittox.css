@@ -219,6 +219,27 @@ html, body {
   background: var(--kx-bg);
 }
 
+/* KIDEX live preview: the view is served as the page body with no Home chrome.
+   Give it the same box a view gets inside the deployed app's content region: the
+   body is a full-height flex column, and kx-preview-host is an OPAQUE, full-height
+   flex container that stands in for the app's content area ("a real Home with
+   nothing in it but the view"). This makes the previewed view render exactly as
+   in the app -- panels and chart canvases get a flex-sized host and fill it, and
+   nothing transparent lets the page background show through. Set only by the
+   preview; no effect on a normally deployed app. */
+body.kx-preview {
+  display: flex;
+  flex-direction: column;
+}
+body.kx-preview .kx-preview-host {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--kx-bg);
+}
+
 /* ===== Border Panel (CSS Grid Layout) ===== */
 .kx-border-panel {
   display: grid;
@@ -2017,6 +2038,9 @@ body.kx-mobile .kx-login-dialog {
   overflow: auto;
   flex: 1;
   min-height: 0; /* allow flex shrinking below content height */
+  /* Opaque surface so the area below the rows (when the grid has few records)
+     shows the grid's own background, not whatever is behind the page. */
+  background: var(--kx-surface);
 }
 
 .kx-grid-table {
@@ -2082,7 +2106,15 @@ body.kx-col-resize-active * {
   max-width: 300px;
 }
 
-/* Zebra striping (exclude group header rows and custom-colored rows) */
+/* Zebra striping (exclude group header rows and custom-colored rows).
+   BOTH parities carry an explicit background so the grid is fully opaque and
+   never lets whatever is behind the table show through: the odd rows used to be
+   left transparent, relying on an opaque container behind them, which showed the
+   page background where there is none (e.g. the KIDEX live preview renders the
+   view directly on the body). */
+.kx-grid-table tbody tr:not(.kx-group-row):not(.kx-custom-row):nth-child(odd) {
+  background: var(--kx-surface);
+}
 .kx-grid-table tbody tr:not(.kx-group-row):not(.kx-custom-row):nth-child(even) {
   background: var(--kx-surface-alt);
 }
@@ -3262,6 +3294,58 @@ input[type="time"]::-moz-datetime-edit-fields-wrapper {
 .kx-chart-grid {
   flex: 1;
   overflow: auto;
+}
+
+/* A List hosting a chart or a calendar with side regions (WestController:
+   GridPanel beside the chart): the nested border panel fills the flex parent
+   instead of using 100vh, and the center region lays the chart area out as a
+   column so it can grow. The side grid renders bare in its region, wrapped in
+   .kx-list-panel, which the region's flex column already sizes. */
+.kx-chart-panel > .kx-border-panel,
+.kx-calendar-panel > .kx-border-panel {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+.kx-region-center:has(> .kx-chart-area) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* The form of the current record hosted in a region of a List
+   (EastController: Form): the region wrapper (.kx-record-panel) and the swap
+   target (.kx-record-body) are flex columns so the form body scrolls and its
+   buttons stay at the bottom; a NorthController (StatusBar) above it goes
+   through the nested border panel. */
+.kx-record-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.kx-record-panel > .kx-border-panel {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+.kx-record-body,
+.kx-region-center:has(> .kx-record-body) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.kx-record-empty {
+  padding: 16px;
+  color: var(--kx-text-muted);
+  font-style: italic;
 }
 
 /* ===== Google Map Panel ===== */

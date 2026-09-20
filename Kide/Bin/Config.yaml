@@ -1,3 +1,8 @@
+LicenseServer:
+  # Base URL of the EFOnGuard trial-license REST service. During development the
+  # server runs locally (see ReleaseCodeGenRESTServer). In production point this
+  # to the published endpoint, e.g. https://licenses.ethea.it/licenses
+  URL: https://license.ethea.it:9091
 Localization:
   dxgettext:
     Path: %APP_PATH%dxgettexttools

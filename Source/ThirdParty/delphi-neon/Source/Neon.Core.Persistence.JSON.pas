@@ -1,22 +1,10 @@
 {******************************************************************************}
 {                                                                              }
-{  Neon: Serialization Library for Delphi                                      }
+{  Neon: JSON Serialization Library for Delphi                                 }
 {  Copyright (c) 2018 Paolo Rossi                                              }
 {  https://github.com/paolo-rossi/neon-library                                 }
 {                                                                              }
-{******************************************************************************}
-{                                                                              }
-{  Licensed under the Apache License, Version 2.0 (the "License");             }
-{  you may not use this file except in compliance with the License.            }
-{  You may obtain a copy of the License at                                     }
-{                                                                              }
-{      http://www.apache.org/licenses/LICENSE-2.0                              }
-{                                                                              }
-{  Unless required by applicable law or agreed to in writing, software         }
-{  distributed under the License is distributed on an "AS IS" BASIS,           }
-{  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    }
-{  See the License for the specific language governing permissions and         }
-{  limitations under the License.                                              }
+{  Licensed under the MIT license                                              }
 {                                                                              }
 {******************************************************************************}
 unit Neon.Core.Persistence.JSON;
@@ -27,7 +15,8 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.Rtti, System.SyncObjs,
-  System.TypInfo, System.Generics.Collections, System.JSON,
+  System.TypInfo, System.Generics.Collections, System.Generics.Defaults,
+  System.JSON,
 
   Neon.Core.Types,
   Neon.Core.Attributes,
@@ -49,6 +38,11 @@ type
     /// <summary>
     ///   Writer for string types
     /// </summary>
+    /// <remarks>
+    ///   Under [NeonRawValue] the string is JSON text spliced into the document
+    ///   instead of a value to quote, so it has to parse: see the attribute for
+    ///   the contract that puts on both directions
+    /// </remarks>
     function WriteString(const AValue: TValue; ANeonObject: TNeonRttiObject): TJSONValue;
 
     /// <summary>
@@ -108,6 +102,15 @@ type
     function WriteVariant(const AValue: TValue; ANeonObject: TNeonRttiObject): TJSONValue;
 
     /// <summary>
+    ///   Writer for the date carried by a varDate variant
+    /// </summary>
+    /// <remarks>
+    ///   A varDate holds a full TDateTime, so it is written as a plain date only
+    ///   when there is no time to lose
+    /// </remarks>
+    function WriteVariantDate(const AValue: TDateTime; ANeonObject: TNeonRttiObject): TJSONValue;
+
+    /// <summary>
     ///   Writer for static and dynamic arrays
     /// </summary>
     function WriteArray(const AValue: TValue; ANeonObject: TNeonRttiObject): TJSONValue;
@@ -156,6 +159,13 @@ type
     /// </summary>
     /// <remarks>
     ///   Objects must have Keys, Values, GetEnumerator, Clear, Add methods
+    /// </remarks>
+    /// <remarks>
+    ///   A JSON name is always a string, so the key type must have an
+    ///   unambiguous text form: strings and chars, integers and floats,
+    ///   booleans and enums, anything with a custom serializer that writes a
+    ///   scalar, and classes exposing both ToString and FromString. Every other
+    ///   key type raises SNeonErrorDictKeyInvalid, in both directions
     /// </remarks>
     function WriteEnumerableMap(const AValue: TValue; ANeonObject: TNeonRttiObject; AMap: IDynamicMap): TJSONValue;
     function IsEnumerableMap(const AValue: TValue; out AMap: IDynamicMap): Boolean;
@@ -232,10 +242,26 @@ type
     ///   Manages the creation of an Item of a collection (array, list, dictionary)
     /// </summary>
     function CreateItem(ANeonRtti: TNeonRttiObject; AValue: TJSONValue; var AType: TRttiType): TValue;
+
+    /// <summary>
+    ///   Builds the object that implements an interface member through its
+    ///   [NeonFactory], and returns it as a value of the interface type
+    /// </summary>
+    /// <remarks>
+    ///   Returns an empty value (and AObject nil) when the member has no
+    ///   factory - the one case that is logged and skipped instead of raising,
+    ///   since it means the member was simply not configured for reading
+    /// </remarks>
+    function CreateInterface(const AParam: TNeonDeserializerParam; out AObject: TObject): TValue;
   private
     /// <summary>
     ///   reader for string types
     /// </summary>
+    /// <remarks>
+    ///   Under [NeonRawValue] the member is given the JSON text of the value,
+    ///   which is what the writer expects back: a scalar therefore arrives
+    ///   JSON-encoded ("abc", quotes included). See the attribute
+    /// </remarks>
     function ReadString(const AParam: TNeonDeserializerParam): TValue;
 
     /// <summary>
@@ -290,6 +316,12 @@ type
     /// <summary>
     ///   Reader for an Interface type
     /// </summary>
+    /// <remarks>
+    ///   The object behind the interface is read, the same object
+    ///   WriteInterface writes: an interface that already points at one is
+    ///   filled in place, otherwise the member's [NeonFactory] builds it (see
+    ///   CreateInterface). Interfaces without a GUID cannot be built
+    /// </remarks>
     function ReadInterface(const AParam: TNeonDeserializerParam; const AData: TValue): TValue;
 
     /// <summary>
@@ -322,7 +354,33 @@ type
     /// <remarks>
     ///   Objects must have Keys, Values, GetEnumerator, Clear, Add methods
     /// </remarks>
+    /// <remarks>
+    ///   See WriteEnumerableMap for the key types a map supports: this reader
+    ///   refuses the same ones with the same error
+    /// </remarks>
     function ReadEnumerableMap(const AParam: TNeonDeserializerParam; const AData: TValue): Boolean;
+
+    /// <summary>
+    ///   Reader for a JSON null: an explicit "no value" for the target type
+    /// </summary>
+    /// <remarks>
+    ///   Simple types go back to their default, a Nullable loses its value, and
+    ///   an object or interface reference is left alone: Neon does not own what
+    ///   a member points to, so clearing the reference here would leak it
+    /// </remarks>
+    function ReadNull(const AParam: TNeonDeserializerParam; const AData: TValue): TValue;
+
+    /// <summary>
+    ///   Tells whether a map key of this type can be read back from a JSON name
+    /// </summary>
+    function IsSupportedMapKeyType(AType: TRttiType; AMap: IDynamicMap): Boolean;
+
+    /// <summary>
+    ///   Builds the JSON value a key reader expects from the (always string)
+    ///   name of a JSON pair. Returns nil when the name itself is what the
+    ///   reader wants, and a value the caller must free otherwise
+    /// </summary>
+    function MapKeyToJSON(AType: TRttiType; const AName: string): TJSONValue;
 
     /// <summary>
     ///   Reader for "Nullable" records
@@ -552,6 +610,7 @@ implementation
 
 uses
   System.Math,
+  System.Diagnostics,
   System.DateUtils,
   System.Variants;
 
@@ -607,6 +666,7 @@ function TNeonSerializerJSON.WriteArray(const AValue: TValue; ANeonObject: TNeon
 var
   LIndex, LCount: Integer;
   LArray: TJSONArray;
+  LJSONValue: TJSONValue;
 begin
   LCount := AValue.GetArrayLength;
   if ANeonObject.NeonInclude.Value = IncludeIf.NotEmpty then
@@ -615,7 +675,15 @@ begin
 
   LArray := TJSONArray.Create;
   for LIndex := 0 to LCount - 1 do
-    LArray.AddElement(WriteDataMember(AValue.GetArrayElement(LIndex)));
+  begin
+    LJSONValue := WriteDataMember(AValue.GetArrayElement(LIndex));
+    // A nil element (e.g. a nil object under IncludeIf.NotNull) must become
+    // JSON null: adding a nil TJSONValue corrupts the array (and raises on
+    // newer RTLs), and skipping it would shift every following index
+    if not Assigned(LJSONValue) then
+      LJSONValue := TJSONNull.Create;
+    LArray.AddElement(LJSONValue);
+  end;
 
   Result := LArray;
 end;
@@ -647,17 +715,17 @@ end;
 function TNeonSerializerJSON.WriteDataMember(const AValue: TValue; ACustomProcess: Boolean): TJSONValue;
 var
   LNeonObject: TNeonRttiObject;
-  LRttiType: TRttiType;
+  LStamp: Int64;
 begin
-  LRttiType := TRttiUtils.Context.GetType(AValue.TypeInfo);
+  // This overload is called per-element for arrays/lists/map keys+values, so it
+  // takes the RTTI type and its parsed attributes from the per-type cache: only
+  // the first element of a given type pays for resolving them, and the cached
+  // object is owned by the registry, not by this call
+  LStamp := TNeonLogger.ProfileBegin;
+  LNeonObject := GetNeonObject(AValue.TypeInfo);
+  TNeonLogger.ProfileEnd('Serialize:RttiResolve', LStamp);
 
-  LNeonObject := TNeonRttiObject.Create(LRttiType, FOperation);
-  LNeonObject.ParseAttributes;
-  try
-    Result := WriteDataMember(AValue, ACustomProcess, LNeonObject);
-  finally
-    LNeonObject.Free;
-  end;
+  Result := WriteDataMember(AValue, ACustomProcess, LNeonObject);
 end;
 
 function TNeonSerializerJSON.WriteDataMember(const AValue: TValue; ACustomProcess: Boolean; ANeonObject: TNeonRttiObject): TJSONValue;
@@ -677,6 +745,19 @@ begin
     LCustomSer := FConfig.Serializers.GetSerializer(AValue.TypeInfo);
     if Assigned(LCustomSer) then
     begin
+      // A nil object is governed by the member's IncludeIf semantics and must
+      // never reach a custom serializer, which would dereference it
+      // The tkClass branch below applies the same rules for values that have no custom serializer
+      if (AValue.Kind = tkClass) and (AValue.AsObject = nil) then
+      begin
+        case ANeonObject.NeonInclude.Value of
+          IncludeIf.Always, IncludeIf.CustomFunction:
+            Exit(TJSONNull.Create);
+        else
+          Exit(nil);
+        end;
+      end;
+
       Result := LCustomSer.Serialize(AValue, ANeonObject, Self);
       Exit(Result);
     end;
@@ -738,14 +819,25 @@ begin
           Exit(nil);
         end;
       end
-      else if IsEnumerableMap(AValue, LDynamicMap) then
-        Result := WriteEnumerableMap(AValue, ANeonObject, LDynamicMap)
-      else if IsEnumerable(AValue, LDynamicList) then
-        Result := WriteEnumerable(AValue, ANeonObject, LDynamicList)
-      else if IsStreamable(AValue, LDynamicStream) then
-        Result := WriteStreamable(AValue, ANeonObject, LDynamicStream)
       else
-        Result := WriteObject(AValue, ANeonObject);
+        // Which shape this class has is settled once per class, so only the
+        // probe that can match still runs here - the other two used to run,
+        // and fail, for every value
+        case GetDynamicKind(AValue.AsObject) of
+          TNeonDynamicKind.Map:
+            if IsEnumerableMap(AValue, LDynamicMap) then
+              Result := WriteEnumerableMap(AValue, ANeonObject, LDynamicMap);
+
+          TNeonDynamicKind.List:
+            if IsEnumerable(AValue, LDynamicList) then
+              Result := WriteEnumerable(AValue, ANeonObject, LDynamicList);
+
+          TNeonDynamicKind.Stream:
+            if IsStreamable(AValue, LDynamicStream) then
+              Result := WriteStreamable(AValue, ANeonObject, LDynamicStream);
+        else
+          Result := WriteObject(AValue, ANeonObject);
+        end;
     end;
 
     tkArray:
@@ -837,7 +929,12 @@ begin
   end
   else
   begin
-    LName := TTypeInfoUtils.EnumToString(AValue.TypeInfo, AValue.AsOrdinal);
+    // The enum's JSON name follows the configured member case the way a
+    // member's name does: (Admin, Guest) is written "admin"/"guest" under
+    // LowerCase or CamelCase, and a multi-word member splits under SnakeCase.
+    // An explicit [NeonEnumNames] name wins over the case and is used verbatim
+    LName := TTypeInfoUtils.EnumToJSONName(AValue.TypeInfo, AValue.AsOrdinal,
+      FConfig.MemberCase, FConfig.MemberCustomCase);
     Result := TJSONString.Create(LName);
   end;
 end;
@@ -897,6 +994,19 @@ var
 begin
   LInterface := AValue.AsInterface;
   LObject := LInterface as TObject;
+
+  // A member holding no interface follows the same IncludeIf rules as a nil
+  // object member: omitted by default, an explicit null under Always
+  if not Assigned(LObject) then
+  begin
+    case ANeonObject.NeonInclude.Value of
+      IncludeIf.Always, IncludeIf.CustomFunction:
+        Exit(TJSONNull.Create);
+    else
+      Exit(nil);
+    end;
+  end;
+
   Result := WriteObject(LObject, ANeonObject);
 end;
 
@@ -908,7 +1018,10 @@ var
   LJSONValue: TJSONValue;
   LMembers: TNeonRttiMembers;
   LNeonMember: TNeonRttiMember;
+  LStamp: Int64;
 begin
+  LStamp := TNeonLogger.ProfileBegin;
+  try
   LMembers := GetNeonMembers(AType);
   LMembers.FilterSerialize(AInstance);
 
@@ -939,13 +1052,16 @@ begin
       except
         on E: Exception do
         begin
-          LogError(Format('Error converting member [%s] of type [%s]: %s',
+          LogError(Format(SNeonErrorMemberF3,
             [LNeonMember.Name, AType.Name, E.Message]));
           if FConfig.RaiseExceptions then
             raise;
         end;
       end;
     end;
+  end;
+  finally
+    TNeonLogger.ProfileEnd('Serialize:Members', LStamp);
   end;
 end;
 
@@ -975,45 +1091,71 @@ function TNeonSerializerJSON.WriteObject(const AValue: TValue; ANeonObject: TNeo
 var
   LObject: TObject;
   LType: TRttiType;
+  LStamp: Int64;
 begin
-  LObject := AValue.AsObject;
-
-  if LObject = nil then
-    Exit(nil);
-
-  LType := TRttiUtils.Context.GetType(LObject.ClassType);
-
-  Result := TJSONObject.Create;
+  LStamp := TNeonLogger.ProfileBegin;
   try
-    WriteMembers(LType, LObject, Result);
-    case ANeonObject.NeonInclude.Value of
-      IncludeIf.NotEmpty, IncludeIf.NotDefault:
+    LObject := AValue.AsObject;
+
+    if LObject = nil then
+      Exit(nil);
+
+    LType := TRttiUtils.Context.GetType(LObject.ClassType);
+
+    Result := TJSONObject.Create;
+    try
+      WriteMembers(LType, LObject, Result);
+      case ANeonObject.NeonInclude.Value of
+        IncludeIf.NotEmpty, IncludeIf.NotDefault:
+        begin
+          if (Result as TJSONObject).Count = 0 then
+            FreeAndNil(Result);
+        end;
+      end;
+    except
+      on E: Exception do
       begin
-        if (Result as TJSONObject).Count = 0 then
-          FreeAndNil(Result);
+        // Free the partial result, then let the error propagate: without the
+        // re-raise, RaiseExceptions only works for top-level members because
+        // every nested object/record/map swallows the exception
+        FreeAndNil(Result);
+        if FConfig.RaiseExceptions then
+          raise;
+        // Swallowed: this is not a member error (WriteMembers logs and skips
+        // those), the whole object is gone from the document
+        LogError(Format(SNeonErrorSerializeTypeF2, [LType.Name, E.Message]));
       end;
     end;
-  except
-    FreeAndNil(Result);
+  finally
+    TNeonLogger.ProfileEnd('Serialize:Object', LStamp);
   end;
 end;
 
 function TNeonSerializerJSON.WriteEnumerable(const AValue: TValue; ANeonObject: TNeonRttiObject; AList: IDynamicList): TJSONValue;
 var
   LJSONValue: TJSONValue;
+  LStamp: Int64;
 begin
-  // Not an enumerable object
-  if not Assigned(AList) then
-    Exit(nil);
-  if ANeonObject.NeonInclude.Value = IncludeIf.NotEmpty then
-    if AList.Count = 0 then
+  LStamp := TNeonLogger.ProfileBegin;
+  try
+    // Not an enumerable object
+    if not Assigned(AList) then
       Exit(nil);
+    if ANeonObject.NeonInclude.Value = IncludeIf.NotEmpty then
+      if AList.Count = 0 then
+        Exit(nil);
 
-  Result := TJSONArray.Create;
-  while AList.MoveNext do
-  begin
-    LJSONValue := WriteDataMember(AList.Current);
-    (Result as TJSONArray).AddElement(LJSONValue);
+    Result := TJSONArray.Create;
+    while AList.MoveNext do
+    begin
+      LJSONValue := WriteDataMember(AList.Current);
+      // Nil elements become JSON null (same reasoning as WriteArray)
+      if not Assigned(LJSONValue) then
+        LJSONValue := TJSONNull.Create;
+      (Result as TJSONArray).AddElement(LJSONValue);
+    end;
+  finally
+    TNeonLogger.ProfileEnd('Serialize:Enumerable', LStamp);
   end;
 end;
 
@@ -1023,7 +1165,24 @@ var
   LJSONName: TJSONValue;
   LJSONValue: TJSONValue;
   LKeyValue, LValValue: TValue;
+  LPairs: TObjectList<TJSONPair>;
+  LPair: TJSONPair;
+  LStamp: Int64;
+
+  function PairKeyComparer(AReverse: Boolean): IComparer<TJSONPair>;
+  begin
+    Result := TComparer<TJSONPair>.Construct(
+      function(const ALeft, ARight: TJSONPair): Integer
+      begin
+        Result := CompareStr(ALeft.JsonString.Value, ARight.JsonString.Value);
+        if AReverse then
+          Result := -Result;
+      end);
+  end;
+
 begin
+  LStamp := TNeonLogger.ProfileBegin;
+  try
   // Not an EnumerableMap object
   if not Assigned(AMap) then
     Exit(nil);
@@ -1049,41 +1208,84 @@ begin
 
   Result := TJSONObject.Create;
   try
-    while AMap.MoveNext do
-    begin
-      LKeyValue := AMap.CurrentKey;
-      LValValue := AMap.CurrentValue;
+    LPairs := TObjectList<TJSONPair>.Create(True);
+    try
+      while AMap.MoveNext do
+      begin
+        LKeyValue := AMap.CurrentKey;
+        LValValue := AMap.CurrentValue;
 
-      LJSONName := WriteDataMember(LKeyValue);
-      try
+        // A JSON name is always a string, so the key needs an unambiguous text
+        // form: a string key is itself, a number/boolean key is its JSON text
+        // (an Integer-keyed map writes {"1": ...}), a class key goes through
+        // ToString. Anything else has no name to write and is refused here with
+        // the error ReadEnumerableMap raises for the same key types.
+        // The name is resolved before the value is written, so refusing a key
+        // cannot leak the value's JSON, and an empty string key - which is legal
+        // JSON - is no longer mistaken for a failure to build a name
+        LJSONName := WriteDataMember(LKeyValue);
+        try
+          if LJSONName is TJSONString then
+            LName := (LJSONName as TJSONString).Value
+          else if (LJSONName is TJSONNumber) or TJSONUtils.IsBool(LJSONName) then
+            LName := LJSONName.Value
+          else if AMap.KeyIsString then
+            LName := AMap.KeyToString(LKeyValue)
+          else
+            raise ENeonException.Create(SNeonErrorDictKeyInvalid);
+        finally
+          LJSONName.Free;
+        end;
+
         LJSONValue := WriteDataMember(LValValue);
+        // A nil value (nil object, empty value under NotEmpty/NotDefault)
+        // becomes JSON null so the pair keeps a valid, printable value
+        if not Assigned(LJSONValue) then
+          LJSONValue := TJSONNull.Create;
 
-        if LJSONName is TJSONString then
-          LName := (LJSONName as TJSONString).Value
-        else if AMap.KeyIsString then
-          LName := AMap.KeyToString(LKeyValue);
-
-        (Result as TJSONObject).AddPair(LName, LJSONValue);
-
-        if LName.IsEmpty then
-          raise ENeonException.Create(TNeonError.DICT_KEY_INVALID);
-      finally
-        LJSONName.Free;
+        LPairs.Add(TJSONPair.Create(LName, LJSONValue));
       end;
+
+      case FConfig.MapSort of
+        TNeonSort.Rtti: ; // Default, keep the map enumeration order
+        TNeonSort.RttiReverse: LPairs.Reverse;
+        TNeonSort.Alpha: LPairs.Sort(PairKeyComparer(False));
+        TNeonSort.AlphaReverse: LPairs.Sort(PairKeyComparer(True));
+      end;
+
+      // The pairs are now owned by the resulting JSON object
+      LPairs.OwnsObjects := False;
+      for LPair in LPairs do
+        (Result as TJSONObject).AddPair(LPair);
+    finally
+      LPairs.Free;
     end;
   except
     on E: Exception do
     begin
-      FErrors.Add(E.Message);
       FreeAndNil(Result);
+      // Same reasoning as WriteObject/WriteRecord: free the partial result,
+      // then let the error propagate when RaiseExceptions is set
+      if FConfig.RaiseExceptions then
+        raise;
+      // Swallowed: the whole map is gone from the document, so it goes through
+      // LogError (not FErrors.Add) for the configured handler to see it
+      LogError(Format(SNeonErrorSerializeTypeF2,
+        [TRttiUtils.Context.GetType(AValue.TypeInfo).Name, E.Message]));
     end;
+  end;
+  finally
+    TNeonLogger.ProfileEnd('Serialize:EnumerableMap', LStamp);
   end;
 end;
 
 function TNeonSerializerJSON.WriteRecord(const AValue: TValue; ANeonObject: TNeonRttiObject): TJSONValue;
 var
   LType: TRttiType;
+  LStamp: Int64;
 begin
+  LStamp := TNeonLogger.ProfileBegin;
+  try
   Result := TJSONObject.Create;
   LType := TRttiUtils.Context.GetType(AValue.TypeInfo);
   try
@@ -1097,7 +1299,18 @@ begin
       end;
     end;
   except
-    FreeAndNil(Result);
+    on E: Exception do
+    begin
+      // Free the partial result, then let the error propagate
+      FreeAndNil(Result);
+      if FConfig.RaiseExceptions then
+        raise;
+      // Swallowed: same as WriteObject, the whole record is gone
+      LogError(Format(SNeonErrorSerializeTypeF2, [LType.Name, E.Message]));
+    end;
+  end;
+  finally
+    TNeonLogger.ProfileEnd('Serialize:Record', LStamp);
   end;
 end;
 
@@ -1105,30 +1318,57 @@ function TNeonSerializerJSON.WriteSet(const AValue: TValue; ANeonObject: TNeonRt
 var
   LArray: TJSONArray;
   LElementType: PPTypeInfo;
-  LIntegerValue: TIntegerSet;
+  LEnumTypeData: PTypeData;
+  LSetData: array[0..31] of Byte;
+  LSize: Integer;
   LIndex: Integer;
+  LOrdinal: Integer;
   LJSONValue: TJSONValue;
   LValue: TValue;
 begin
   LArray := TJSONArray.Create;
 
-  Integer(LIntegerValue) := Integer(AValue.GetReferenceToRawData^);
-
   LElementType := GetTypeData(AValue.TypeInfo)^.CompType;
   if LElementType <> nil then
   begin
-    for LIndex := 0 to SizeOf(Integer) * 8 - 1 do
-      if LIndex in LIntegerValue then
+    LEnumTypeData := GetTypeData(LElementType^);
+
+    // A set is stored as the smallest of 1/2/4/8/16/32 bytes that can hold
+    // the enum range; iterate every bit so sets with more than 32 elements
+    // (and non-zero-based enums) are not truncated
+    LSize := ((LEnumTypeData.MaxValue - LEnumTypeData.MinValue + 1) + 7) div 8;
+    if LSize <= 1 then LSize := 1
+    else if LSize <= 2 then LSize := 2
+    else if LSize <= 4 then LSize := 4
+    else if LSize <= 8 then LSize := 8
+    else if LSize <= 16 then LSize := 16
+    else LSize := 32;
+
+    FillChar(LSetData, SizeOf(LSetData), 0);
+    Move(AValue.GetReferenceToRawData^, LSetData, LSize);
+
+    for LIndex := 0 to LSize * 8 - 1 do
+      if (LSetData[LIndex div 8] and (1 shl (LIndex mod 8))) <> 0 then
       begin
-        TValue.Make(LIndex, LElementType^, LValue);
-        LJSONValue := WriteDataMember(LValue);
-        LArray.AddElement(LJSONValue);
+        LOrdinal := LEnumTypeData.MinValue + LIndex;
+        // Bits beyond the enum range are not valid elements
+        if (LOrdinal >= LEnumTypeData.MinValue) and (LOrdinal <= LEnumTypeData.MaxValue) then
+        begin
+          TValue.Make(LOrdinal, LElementType^, LValue);
+          LJSONValue := WriteDataMember(LValue);
+          LArray.AddElement(LJSONValue);
+        end;
       end;
   end
   else
   begin
-    for LIndex := 0 to SizeOf(Integer) * 8 - 1 do
-      if LIndex in LIntegerValue then
+    // No RTTI for the element type: fall back to raw 32-bit ordinals
+    FillChar(LSetData, SizeOf(LSetData), 0);
+    LSize := SizeOf(Integer);
+    Move(AValue.GetReferenceToRawData^, LSetData, LSize);
+
+    for LIndex := 0 to LSize * 8 - 1 do
+      if (LSetData[LIndex div 8] and (1 shl (LIndex mod 8))) <> 0 then
       begin
         LValue := LIndex;
         LJSONValue := WriteDataMember(LValue);
@@ -1178,9 +1418,28 @@ begin
   end;
 
   if ANeonObject.NeonRawValue then
-    Result := TNeon.ParseJSON(AValue.AsString, False, True)
+  begin
+    // [NeonRawValue] means the member holds JSON text to splice into the
+    // document as it is, so it has to parse. Report what failed and where the
+    // library's error catalog can be read, instead of letting the RTL's parse
+    // exception (or, when the parser just returns nil, a silently missing
+    // member) out of a member whose only job is to carry JSON
+    Result := TNeon.ParseJSON(AValue.AsString, False, False);
+    if not Assigned(Result) then
+      raise ENeonException.CreateFmt(SNeonErrorRawValueF1, [AValue.AsString]);
+  end
   else
     Result := TJSONString.Create(AValue.AsString);
+end;
+
+function TNeonSerializerJSON.WriteVariantDate(const AValue: TDateTime; ANeonObject: TNeonRttiObject): TJSONValue;
+begin
+  // A varDate carries a full TDateTime: writing it as a plain date would drop
+  // the time of everything that ReadVariant decoded from an ISO-8601 string
+  if Frac(AValue) = 0 then
+    Result := WriteDate(TValue.From<TDate>(AValue), ANeonObject)
+  else
+    Result := WriteDateTime(TValue.From<TDateTime>(AValue), ANeonObject);
 end;
 
 function TNeonSerializerJSON.WriteVariant(const AValue: TValue; ANeonObject: TNeonRttiObject): TJSONValue;
@@ -1209,6 +1468,12 @@ begin
     end;
   end;
 
+  // A variant array has no scalar JSON form, and ReadVariant refuses a JSON
+  // array in return: fail with a clear message instead of letting the branches
+  // below escape as an opaque EVariantTypeCastError
+  if VarIsArray(LValue) then
+    raise ENeonException.Create(SNeonErrorVariantArray);
+
   LVariantType := VarType(LValue) and VarTypeMask;
   case LVariantType of
     //varEmpty   :
@@ -1218,7 +1483,7 @@ begin
     varSingle  ,
     varDouble  ,
     varCurrency: Result := WriteFloat(Currency(LValue), ANeonObject);
-    varDate    : Result := WriteDate(VarToDateTime(LValue), ANeonObject);
+    varDate    : Result := WriteVariantDate(VarToDateTime(LValue), ANeonObject);
     //varOleStr  :
     //varDispatch:
     //varError   :
@@ -1252,50 +1517,79 @@ var
   LJSONArray: TJSONArray;
   LItemValue: TValue;
   LItemParam: TNeonDeserializerParam;
+  LOldItems: TArray<TObject>;
 begin
   if AParam.JSONValue is TJSONNull then
     Exit(TValue.Empty);
-
-  // We don't need to free items (objects) because the array
-  // to deserialize to is always a new value
-  //TRttiUtils.FreeArrayItems(AData);
 
   Result := AData;
   LJSONArray := AParam.JSONValue as TJSONArray;
   LArrayLength := LJSONArray.Count;
 
   if AParam.RttiType.TypeKind = tkArray then
-    LItemParam.RttiType := (AParam.RttiType as TRttiArrayType).ElementType
+  begin
+    LItemParam.RttiType := (AParam.RttiType as TRttiArrayType).ElementType;
+
+    // A static array has a fixed size: refuse JSON that is longer instead
+    // of letting SetArrayElement raise a raw range exception
+    if LJSONArray.Count > Result.GetArrayLength then
+      raise ENeonException.CreateFmt(SNeonErrorRangeOutF2,
+        [LJSONArray.Count.ToString, AParam.RttiType.Name]);
+  end
   else //tkDynArray
   begin
     LItemParam.RttiType := (AParam.RttiType as TRttiDynamicArrayType).ElementType;
     DynArraySetLength(PPointer(Result.GetReferenceToRawData)^, Result.TypeInfo, 1, @LArrayLength);
   end;
 
-  LItemParam.NeonObject := TNeonRttiObject.Create(LItemParam.RttiType, FOperation);
-  try
-    LItemParam.NeonObject.ParseAttributes;
-
-    for LIndex := 0 to LJSONArray.Count - 1 do
-    begin
-      LItemParam.JSONValue := LJSONArray.Items[LIndex];
-
-      if AParam.RttiType.TypeKind = tkArray then // Static Array
-      begin
-        if LItemParam.RttiType.TypeKind = tkClass then
-          LItemValue := CreateItem(AParam.NeonObject, LItemParam.JSONValue, LItemParam.RttiType)
-        else
-          LItemValue := Result.GetArrayElement(LIndex);
-      end
-      else //tkDynArray (Dynamic Array)
-        LItemValue := CreateItem(AParam.NeonObject, LItemParam.JSONValue, LItemParam.RttiType);
-
-      LItemValue := ReadDataMember(LItemParam, LItemValue, True);
-      Result.SetArrayElement(LIndex, LItemValue);
-    end;
-  finally
-    LItemParam.NeonObject.Free;
+  // For a static array of classes, snapshot the elements the member
+  // currently holds so they can be released after the new elements have
+  // been read: the deserializer owns the contents it replaces, and freeing
+  // before the read completed could leave the member with freed references
+  // if an element read raises
+  LOldItems := nil;
+  if (AParam.RttiType.TypeKind = tkArray) and (LItemParam.RttiType.TypeKind = tkClass) then
+  begin
+    SetLength(LOldItems, Result.GetArrayLength);
+    for LIndex := 0 to High(LOldItems) do
+      LOldItems[LIndex] := Result.GetArrayElement(LIndex).AsObject;
   end;
+
+  LItemParam.NeonObject := GetNeonObject(LItemParam.RttiType.Handle);
+
+  for LIndex := 0 to LJSONArray.Count - 1 do
+  begin
+    LItemParam.JSONValue := LJSONArray.Items[LIndex];
+
+    // A null item has nothing to read into: the slot gets the element type's
+    // default (nil for a class), instead of the empty instance the factory or
+    // the constructor used to build for it
+    if LItemParam.JSONValue is TJSONNull then
+    begin
+      Result.SetArrayElement(LIndex, TValue.Empty.Cast(LItemParam.RttiType.Handle));
+      Continue;
+    end;
+
+    if AParam.RttiType.TypeKind = tkArray then // Static Array
+    begin
+      // Replace the stored element with a fresh one via the item factory
+      // (or the plain constructor), so the factory is consulted for every
+      // JSON item; the previous object is freed after the loop below
+      if LItemParam.RttiType.TypeKind = tkClass then
+        LItemValue := CreateItem(AParam.NeonObject, LItemParam.JSONValue, LItemParam.RttiType)
+      else
+        LItemValue := Result.GetArrayElement(LIndex);
+    end
+    else //tkDynArray (Dynamic Array)
+      LItemValue := CreateItem(AParam.NeonObject, LItemParam.JSONValue, LItemParam.RttiType);
+
+    LItemValue := ReadDataMember(LItemParam, LItemValue, True);
+    Result.SetArrayElement(LIndex, LItemValue);
+  end;
+
+  // Every element was read successfully: release the previous contents
+  for LIndex := 0 to High(LOldItems) do
+    LOldItems[LIndex].Free;
 end;
 
 function TNeonDeserializerJSON.ReadChar(const AParam: TNeonDeserializerParam): TValue;
@@ -1320,16 +1614,18 @@ function TNeonDeserializerJSON.ReadDataMember(AJSONValue: TJSONValue;
     AType: TRttiType; const AData: TValue; ACustomProcess: Boolean): TValue;
 var
   LParam: TNeonDeserializerParam;
+  LStamp: Int64;
 begin
+  // Mirrors the serializer's entry overload, cache included - see the comment
+  // there. Custom serializers recursing through IDeserializerContext land here,
+  // and TCollectionSerializer does it once per item
+  LStamp := TNeonLogger.ProfileBegin;
   LParam.JSONValue := AJSONValue;
   LParam.RttiType := AType;
-  LParam.NeonObject := TNeonRttiObject.Create(AType, FOperation);
-  LParam.NeonObject.ParseAttributes;
-  try
-    Result := ReadDataMember(LParam, AData, ACustomProcess);
-  finally
-    LParam.NeonObject.Free;
-  end;
+  LParam.NeonObject := GetNeonObject(AType.Handle);
+  TNeonLogger.ProfileEnd('Deserialize:RttiResolve', LStamp);
+
+  Result := ReadDataMember(LParam, AData, ACustomProcess);
 end;
 
 function TNeonDeserializerJSON.ReadDataMember(var AParam: TNeonDeserializerParam;
@@ -1347,10 +1643,28 @@ begin
     if Assigned(LCustom) then
     begin
       LValue := ManageInstance(AParam, AData);
+
+      // A nil target instance (no AutoCreate/factory and no parameterless
+      // constructor - e.g. an abstract TStream member) cannot be populated by
+      // the serializer without dereferencing nil: skip it and log, matching
+      // the engine's "no AutoCreate -> member stays nil". A serializer that
+      // builds the value itself (NeedsInstance = False) is called anyway
+      if LCustom.NeedsInstance and (LValue.Kind = tkClass) and (LValue.AsObject = nil) then
+      begin
+        LogError(Format(SNeonErrorDeserializeNilF1, [AParam.RttiType.Name]));
+        Exit(LValue);
+      end;
+
       Result := LCustom.Deserialize(AParam.JSONValue, LValue, AParam.NeonObject, Self);
       Exit(Result);
     end;
   end;
+
+  // A JSON null is a value, not a missing member: it is applied here, after the
+  // custom serializers (which may have their own reading of null) and before
+  // every type reader, so that null means the same thing everywhere
+  if AParam.JSONValue is TJSONNull then
+    Exit(ReadNull(AParam, AData));
 
   case AParam.RttiType.TypeKind of
     // Simple types
@@ -1370,25 +1684,45 @@ begin
     tkDynArray:    Result := ReadArray(AParam, AData);
     tkInterface:   Result := ReadInterface(AParam, AData);
 
-    tkClass:
+    tkClass:      Result := ReadReference(AParam, AData);
+
+    tkRecord{$IFDEF HAS_MRECORDS}, tkMRecord{$ENDIF}:
     begin
-      if TJSONUtils.HasItems(AParam.JSONValue) then
-        Result := ReadReference(AParam, AData)
+      if ReadNullable(AParam, AData) then
+        Result := AData
+      else
+        Result := ReadRecord(AParam, AData);
+    end;
+
+  end;
+end;
+
+function TNeonDeserializerJSON.ReadNull(const AParam: TNeonDeserializerParam; const AData: TValue): TValue;
+begin
+  case AParam.RttiType.TypeKind of
+    // Neon does not own the instance a reference points to, so a null cannot
+    // clear it here without leaking it: the reference keeps its value
+    tkClass, tkInterface:
+      Result := AData;
+
+    // A Variant has a null of its own, which is not the same as Unassigned
+    tkVariant:
+      Result := TValue.From<Variant>(Null);
+
+    tkRecord{$IFDEF HAS_MRECORDS}, tkMRecord{$ENDIF}:
+    begin
+      // A zeroed Nullable<T> is exactly "no value"; any other record has no
+      // null form and is left as it is
+      if Assigned(TDynamicNullable.GuessType(AData)) then
+        Result := TValue.Empty.Cast(AParam.RttiType.Handle)
       else
         Result := AData;
     end;
 
-    tkRecord{$IFDEF HAS_MRECORDS}, tkMRecord{$ENDIF}:
-    begin
-      if TJSONUtils.HasItems(AParam.JSONValue) then
-      begin
-        if ReadNullable(AParam, AData) then
-          Result := AData
-        else
-          Result := ReadRecord(AParam, AData);
-      end;
-    end;
-
+  else
+    // Everything else goes back to its default: '' for a string, 0 for a
+    // number, the empty set, an empty array
+    Result := TValue.Empty.Cast(AParam.RttiType.Handle);
   end;
 end;
 
@@ -1407,7 +1741,7 @@ begin
     else if not FConfig.StrictTypes  then
       Result := AParam.JSONValue.GetValue<Boolean>
     else
-      raise ENeonException.Create(TNeonError.BOOL_EXPECTED);
+      raise ENeonException.Create(SNeonErrorBoolExpected);
   end
   else
   begin
@@ -1418,26 +1752,49 @@ begin
       if (LOrdinal >= LTypeData.MinValue) and (LOrdinal <= LTypeData.MaxValue) then
         TValue.Make(LOrdinal, AParam.RttiType.Handle, Result)
       else
-        raise ENeonException.Create(TNeonError.ENUM_INVALID);
+        raise ENeonException.Create(SNeonErrorEnumInvalid);
     end
     else
     begin
       LOrdinal := -1;
+
+      // An explicit [NeonEnumNames] spelling is what the writer produces, so
+      // it is accepted verbatim
       if Length(AParam.NeonObject.NeonEnumNames) > 0 then
       begin
         for LIndex := Low(AParam.NeonObject.NeonEnumNames) to High(AParam.NeonObject.NeonEnumNames) do
           if AParam.JSONValue.Value = AParam.NeonObject.NeonEnumNames[LIndex] then
             LOrdinal := LIndex;
       end;
+
+      // GetEnumValue knows the RTTI spelling and is case-insensitive, which
+      // reads back the settings that only change capitalization (lower, upper,
+      // camel, pascal) and the documents written before the case was applied
       if LOrdinal = -1 then
         LOrdinal := GetEnumValue(AParam.RttiType.Handle, AParam.JSONValue.Value);
+
+      // A separator introduced by snake, kebab or screaming snake, or a name
+      // rewritten by a custom function, is not something GetEnumValue can
+      // resolve: regenerate the name the writer produces for each member and
+      // compare against it
+      if LOrdinal = -1 then
+      begin
+        LTypeData := GetTypeData(AParam.RttiType.Handle);
+        for LIndex := LTypeData.MinValue to LTypeData.MaxValue do
+          if AParam.JSONValue.Value = TTypeInfoUtils.EnumToJSONName(
+            AParam.RttiType.Handle, LIndex, FConfig.MemberCase, FConfig.MemberCustomCase) then
+          begin
+            LOrdinal := LIndex;
+            Break;
+          end;
+      end;
 
       LTypeData := GetTypeData(AParam.RttiType.Handle);
 
       if (LOrdinal >= LTypeData.MinValue) and (LOrdinal <= LTypeData.MaxValue) then
         TValue.Make(LOrdinal, AParam.RttiType.Handle, Result)
       else
-        raise ENeonException.Create(TNeonError.ENUM_NAMES);
+        raise ENeonException.Create(SNeonErrorEnumNames);
     end;
   end;
 end;
@@ -1449,7 +1806,10 @@ var
   LJSONArray: TJSONArray;
   LIndex: Integer;
   LParam: TNeonDeserializerParam;
+  LStamp: Int64;
 begin
+  LStamp := TNeonLogger.ProfileBegin;
+  try
   Result := False;
   LParam.NeonObject := AParam.NeonObject;
   LList := TDynamicList.GuessType(AData.AsObject);
@@ -1465,6 +1825,15 @@ begin
     begin
       LParam.JSONValue := LJSONArray.Items[LIndex];
 
+      // A null item has nothing to read into: the list gets the item type's
+      // default (nil for a class), instead of the empty instance the factory or
+      // the constructor used to build for it
+      if LParam.JSONValue is TJSONNull then
+      begin
+        LList.Add(TValue.Empty.Cast(LParam.RttiType.Handle));
+        Continue;
+      end;
+
       if LParam.RttiType.TypeKind = tkClass then
         LItemValue := CreateItem(AParam.NeonObject, LParam.JSONValue, LParam.RttiType)
       else
@@ -1473,6 +1842,61 @@ begin
       LItemValue := ReadDataMember(LParam, LItemValue, True);
 
       LList.Add(LItemValue);
+    end;
+  end;
+  finally
+    TNeonLogger.ProfileEnd('Deserialize:Enumerable', LStamp);
+  end;
+end;
+
+function TNeonDeserializerJSON.IsSupportedMapKeyType(AType: TRttiType; AMap: IDynamicMap): Boolean;
+begin
+  // A class key round-trips only through its ToString/FromString pair
+  if AType.TypeKind = tkClass then
+    Exit(AMap.KeyIsString);
+
+  // A custom serializer speaks for its own type (e.g. a TGUID key written as a
+  // string): trust it, the way WriteEnumerableMap trusts what it produced
+  if Assigned(FConfig.Serializers.GetSerializer(AType.Handle)) then
+    Exit(True);
+
+  Result := AType.TypeKind in [tkChar, tkWChar, tkString, tkLString, tkWString,
+    tkUString, tkInteger, tkInt64, tkFloat, tkEnumeration, tkVariant];
+end;
+
+function TNeonDeserializerJSON.MapKeyToJSON(AType: TRttiType; const AName: string): TJSONValue;
+var
+  LInt: Int64;
+begin
+  Result := nil;
+
+  case AType.TypeKind of
+    tkInteger, tkInt64:
+    begin
+      if TryStrToInt64(AName, LInt) then
+        Result := TJSONNumber.Create(LInt);
+    end;
+
+    tkFloat:
+    begin
+      // TDate/TTime/TDateTime are written as strings, so they want the name
+      if (AType.Handle <> System.TypeInfo(TDate)) and
+         (AType.Handle <> System.TypeInfo(TTime)) and
+         (AType.Handle <> System.TypeInfo(TDateTime)) then
+        Result := TJSONNumber.Create(AName);
+    end;
+
+    tkEnumeration:
+    begin
+      if AType.Handle = System.TypeInfo(Boolean) then
+      begin
+        if SameText(AName, 'true') then
+          Result := TJSONTrue.Create
+        else if SameText(AName, 'false') then
+          Result := TJSONFalse.Create;
+      end
+      else if FConfig.EnumAsInt and TryStrToInt64(AName, LInt) then
+        Result := TJSONNumber.Create(LInt);
     end;
   end;
 end;
@@ -1486,8 +1910,12 @@ var
   LEnum: TJSONPairEnumerator;
 {$ENDIF}
   LKey, LValue: TValue;
+  LKeyJSON: TJSONValue;
   LParamKey, LParamValue: TNeonDeserializerParam;
+  LStamp: Int64;
 begin
+  LStamp := TNeonLogger.ProfileBegin;
+  try
   Result := False;
   LParamKey.NeonObject := AParam.NeonObject;
   LParamValue.NeonObject := AParam.NeonObject;
@@ -1507,24 +1935,51 @@ begin
         // Key creation and deserialization
         LParamKey.JSONValue := LEnum.Current.JsonString;
 
-        if LParamKey.RttiType.TypeKind = tkClass then
-          LKey := CreateItem(AParam.NeonObject, LParamKey.JSONValue, LParamKey.RttiType)
-        else
-          LKey := LMap.NewKey;
+        // A key type with no text form cannot come back from a JSON name: fail
+        // with the same error WriteEnumerableMap raises for it, instead of
+        // adding a default-constructed key (a class without FromString) or
+        // failing later with an unrelated message
+        if not IsSupportedMapKeyType(LParamKey.RttiType, LMap) then
+          raise ENeonException.Create(SNeonErrorDictKeyInvalid);
 
         if LParamKey.RttiType.TypeKind = tkClass then
-          LMap.KeyFromString(LKey, LEnum.Current.JsonString.Value)
+        begin
+          LKey := CreateItem(AParam.NeonObject, LParamKey.JSONValue, LParamKey.RttiType);
+          LMap.KeyFromString(LKey, LEnum.Current.JsonString.Value);
+        end
         else
-          LKey := ReadDataMember(LParamKey, LKey, True);
+        begin
+          LKey := LMap.NewKey;
+
+          // The name is a string even when the key is not: give the reader the
+          // JSON shape that matches the key type, so a numeric or boolean key
+          // is not rejected by StrictTypes for being the string JSON requires
+          LKeyJSON := MapKeyToJSON(LParamKey.RttiType, LEnum.Current.JsonString.Value);
+          try
+            if Assigned(LKeyJSON) then
+              LParamKey.JSONValue := LKeyJSON;
+            LKey := ReadDataMember(LParamKey, LKey, True);
+          finally
+            LKeyJSON.Free;
+          end;
+        end;
 
         // Value creation and deserialization
         LParamValue.JSONValue := LEnum.Current.JsonValue;
-        if LParamValue.RttiType.TypeKind = tkClass then
-          LValue := CreateItem(AParam.NeonObject, LParamValue.JSONValue, LParamValue.RttiType)
-        else
-          LValue := LMap.NewValue;
 
-        LValue := ReadDataMember(LParamValue, LValue, True);
+        // A null value has nothing to read into: the pair gets the value type's
+        // default (nil for a class), not a freshly created empty instance
+        if LParamValue.JSONValue is TJSONNull then
+          LValue := TValue.Empty.Cast(LParamValue.RttiType.Handle)
+        else
+        begin
+          if LParamValue.RttiType.TypeKind = tkClass then
+            LValue := CreateItem(AParam.NeonObject, LParamValue.JSONValue, LParamValue.RttiType)
+          else
+            LValue := LMap.NewValue;
+
+          LValue := ReadDataMember(LParamValue, LValue, True);
+        end;
 
         // Add the pair to the Map
         LMap.Add(LKey, LValue);
@@ -1532,6 +1987,9 @@ begin
     finally
       LEnum.Free;
     end;
+  end;
+  finally
+    TNeonLogger.ProfileEnd('Deserialize:EnumerableMap', LStamp);
   end;
 end;
 
@@ -1553,7 +2011,7 @@ begin
   else
   begin
     if FConfig.StrictTypes and not (AParam.JSONValue is TJSONNumber) then
-      raise ENeonException.Create(TNeonError.NUM_EXPECTED);
+      raise ENeonException.Create(SNeonErrorNumExpected);
 
     LMax := 0;
     case GetTypeData(AParam.RttiType.Handle).FloatType of
@@ -1592,11 +2050,11 @@ begin
       LFloat := AParam.JSONValue.GetValue<Extended>;
     except
       on E: EOverflow do
-        raise ENeonException.CreateFmt(TNeonError.RANGE_OUT_F2, [AParam.JSONValue.Value, LMsg]);
+        raise ENeonException.CreateFmt(SNeonErrorRangeOutF2, [AParam.JSONValue.Value, LMsg]);
     end;
 
     if (LFloat < -LMax) or (LFloat > LMax) then
-      raise ENeonException.CreateFmt(TNeonError.RANGE_OUT_F2, [AParam.JSONValue.Value, LMsg]);
+      raise ENeonException.CreateFmt(SNeonErrorRangeOutF2, [AParam.JSONValue.Value, LMsg]);
 
     Result := LFloat;
   end;
@@ -1611,7 +2069,7 @@ begin
     Exit(TValue.Empty);
 
   if FConfig.StrictTypes and not (AParam.JSONValue is TJSONNumber) then
-    raise ENeonException.Create(TNeonError.NUM_EXPECTED);
+    raise ENeonException.Create(SNeonErrorNumExpected);
 
   LMin := GetTypeData(AParam.RttiType.Handle).MinInt64Value;
   if LMin < 0 then
@@ -1635,7 +2093,7 @@ begin
     Exit(TValue.Empty);
 
   if FConfig.StrictTypes and not (AParam.JSONValue is TJSONNumber) then
-    raise ENeonException.Create(TNeonError.NUM_EXPECTED);
+    raise ENeonException.Create(SNeonErrorNumExpected);
 
   LInt := StrToInt64(AParam.JSONValue.Value);
 
@@ -1680,14 +2138,88 @@ begin
     end;
   end;
   if (LInt < LMin) or (LInt > LMax) then
-    raise ENeonException.CreateFmt(TNeonError.RANGE_OUT_F2, [LInt.ToString, LMsg]);
+    raise ENeonException.CreateFmt(SNeonErrorRangeOutF2, [LInt.ToString, LMsg]);
 
   Result := LInt;
 end;
 
+function TNeonDeserializerJSON.CreateInterface(const AParam: TNeonDeserializerParam; out AObject: TObject): TValue;
+var
+  LFactory: TCustomFactory;
+  LIntfType: TRttiInterfaceType;
+  LInterface: IInterface;
+begin
+  Result := TValue.Empty;
+  AObject := nil;
+
+  // Nothing in the JSON says which class implements an interface, and the
+  // engine cannot guess one: without a [NeonFactory] - on the member or on the
+  // interface type - there is nothing to read into, so the member keeps what it
+  // has, exactly like a nil class member with no AutoCreate
+  if not Assigned(AParam.NeonObject.NeonFactoryClass) then
+  begin
+    LogError(Format(SNeonErrorInterfaceNoFactoryF1, [AParam.RttiType.Name]));
+    Exit;
+  end;
+
+  // Asking an object for an interface goes through its GUID, so an interface
+  // declared without one cannot be built from a class
+  LIntfType := AParam.RttiType as TRttiInterfaceType;
+  if not (ifHasGuid in LIntfType.IntfFlags) then
+    raise ENeonException.CreateFmt(SNeonErrorInterfaceNoGuidF1, [LIntfType.Name]);
+
+  LFactory := AParam.NeonObject.NeonFactoryClass.Create;
+  try
+    AObject := LFactory.Build(AParam.RttiType, AParam.JSONValue);
+  finally
+    LFactory.Free;
+  end;
+
+  if not Assigned(AObject) then
+    raise ENeonException.CreateFmt(SNeonErrorCreateInstanceF1, [LIntfType.Name]);
+
+  // The reference is taken before anything is read, so a failed read releases
+  // the object with the TValue instead of leaking it. An object that does not
+  // implement the interface is reported and left alone - it is the factory's,
+  // and freeing what the factory may still own would be worse than the leak
+  if not Supports(AObject, LIntfType.GUID, LInterface) then
+    raise ENeonException.CreateFmt(SNeonErrorInterfaceNotImplF2,
+      [AObject.ClassName, LIntfType.Name]);
+
+  TValue.Make(@LInterface, AParam.RttiType.Handle, Result);
+end;
+
 function TNeonDeserializerJSON.ReadInterface(const AParam: TNeonDeserializerParam; const AData: TValue): TValue;
+var
+  LInterface: IInterface;
+  LObject: TObject;
+  LParam: TNeonDeserializerParam;
 begin
   Result := AData;
+
+  // The object behind the interface is what WriteInterface serializes, so it is
+  // what gets read: an interface that already points at one is filled in place
+  LObject := nil;
+  if AData.Kind = tkInterface then
+  begin
+    LInterface := AData.AsInterface;
+    if Assigned(LInterface) then
+      LObject := LInterface as TObject;
+  end;
+
+  if not Assigned(LObject) then
+  begin
+    Result := CreateInterface(AParam, LObject);
+    if not Assigned(LObject) then
+      Exit;
+  end;
+
+  // The members are read from the implementing class, not from the interface:
+  // an interface publishes properties the class may map to different members,
+  // and the serializer writes the class's members too
+  LParam := AParam;
+  LParam.RttiType := TRttiUtils.Context.GetType(LObject.ClassType);
+  ReadObject(LParam, LObject);
 end;
 
 procedure TNeonDeserializerJSON.ReadMembers(AType: TRttiType; AInstance: Pointer; AJSONObject: TJSONObject);
@@ -1696,7 +2228,10 @@ var
   LNeonMember: TNeonRttiMember;
   LMemberValue: TValue;
   LParam: TNeonDeserializerParam;
+  LStamp: Int64;
 begin
+  LStamp := TNeonLogger.ProfileBegin;
+  try
   LMembers := GetNeonMembers(AType);
   LMembers.FilterDeserialize(AInstance);
 
@@ -1717,21 +2252,31 @@ begin
       if not Assigned(LParam.JSONValue) then
         Continue;
 
-      if not TJSONUtils.HasItems(LParam.JSONValue) then
-        Continue;
-
       try
+        // Every JSON value the member has is read, a null and an empty {} or []
+        // included: the old TJSONUtils.HasItems filter skipped exactly those, so
+        // a value the document states explicitly could not clear, create or
+        // empty a member - it silently kept whatever the member already had
         LMemberValue := ReadDataMember(LParam, LNeonMember.GetValue(AInstance), True);
+
+        // A reader that produced no typed value (an unsupported type kind)
+        // must not overwrite the member with an untyped TValue
+        if LMemberValue.TypeInfo = nil then
+          Continue;
+
         LNeonMember.SetValue(LMemberValue, AInstance);
       except
         on E: Exception do
         begin
-          LogError(Format(TNeonError.CONVERT_NUM_F3, [LNeonMember.Name, AType.Name, E.Message]));
+          LogError(Format(SNeonErrorMemberF3, [LNeonMember.Name, AType.Name, E.Message]));
           if FConfig.RaiseExceptions then
             raise;
         end;
       end;
     end;
+  end;
+  finally
+    TNeonLogger.ProfileEnd('Deserialize:Members', LStamp);
   end;
 end;
 
@@ -1754,7 +2299,11 @@ begin
     LNewParam.NeonObject := AParam.NeonObject;
     LNewParam.RttiType := LValueType;
     LNewData := TValue.Empty.Cast(LValueType.Handle);
-    LValue := ReadDataMember(LNewParam, LNewData, False);
+
+    // A custom serializer registered for the inner type T must be honored here:
+    // WriteNullable recurses with ACustomProcess=True, and reading with False
+    // would bypass it, so a Nullable<T> would not survive its own round trip
+    LValue := ReadDataMember(LNewParam, LNewData, True);
 
     LNullable.SetValue(LValue);
   end;
@@ -1764,38 +2313,50 @@ function TNeonDeserializerJSON.ReadObject(const AParam: TNeonDeserializerParam; 
 var
   LJSONObject: TJSONObject;
   LPData: Pointer;
+  LStamp: Int64;
 begin
-  if AParam.JSONValue is TJSONNull then
-    Exit(TValue.Empty);
+  LStamp := TNeonLogger.ProfileBegin;
+  try
+    if AParam.JSONValue is TJSONNull then
+      Exit(TValue.Empty);
 
-  Result := AData;
-  LPData := AData.AsObject;
-  if not Assigned(LPData) then
-    Exit;
+    Result := AData;
+    LPData := AData.AsObject;
+    if not Assigned(LPData) then
+      Exit;
 
-  LJSONObject := AParam.JSONValue as TJSONObject;
-  if (AParam.RttiType.TypeKind = tkClass) or (AParam.RttiType.TypeKind = tkInterface) then
-    ReadMembers(AParam.RttiType, LPData, LJSONObject);
+    LJSONObject := AParam.JSONValue as TJSONObject;
+    if (AParam.RttiType.TypeKind = tkClass) or (AParam.RttiType.TypeKind = tkInterface) then
+      ReadMembers(AParam.RttiType, LPData, LJSONObject);
+  finally
+    TNeonLogger.ProfileEnd('Deserialize:Object', LStamp);
+  end;
 end;
 
 function TNeonDeserializerJSON.ReadRecord(const AParam: TNeonDeserializerParam; const AData: TValue): TValue;
 var
   LJSONObject: TJSONObject;
   LPData: Pointer;
+  LStamp: Int64;
 begin
-  if AParam.JSONValue is TJSONNull then
-    Exit(TValue.Empty);
+  LStamp := TNeonLogger.ProfileBegin;
+  try
+    if AParam.JSONValue is TJSONNull then
+      Exit(TValue.Empty);
 
-  Result := AData;
-  LPData := AData.GetReferenceToRawData;
+    Result := AData;
+    LPData := AData.GetReferenceToRawData;
 
-  if not Assigned(LPData) then
-    Exit;
+    if not Assigned(LPData) then
+      Exit;
 
-  // Objects, Records, Interfaces are all represented by JSON objects
-  LJSONObject := AParam.JSONValue as TJSONObject;
+    // Objects, Records, Interfaces are all represented by JSON objects
+    LJSONObject := AParam.JSONValue as TJSONObject;
 
-  ReadMembers(AParam.RttiType, LPData, LJSONObject);
+    ReadMembers(AParam.RttiType, LPData, LJSONObject);
+  finally
+    TNeonLogger.ProfileEnd('Deserialize:Record', LStamp);
+  end;
 end;
 
 function TNeonDeserializerJSON.ReadSet(const AParam: TNeonDeserializerParam): TValue;
@@ -1804,19 +2365,28 @@ var
   LJSONArray: TJSONArray;
   LValue: TValue;
   LEnumType: TRttiType;
-  LSet: Integer;
+  LTypeData: PTypeData;
+  LSetData: array[0..31] of Byte;
+  LOrdinal: Integer;
 begin
   if AParam.JSONValue is TJSONNull then
     Exit(TValue.Empty);
 
   LEnumType := TRttiUtils.GetSetElementType(AParam.RttiType);
+  if not Assigned(LEnumType) then
+    raise ENeonException.Create(SNeonErrorEnumInvalid);
 
   if AParam.JSONValue is TJSONArray then
     LJSONArray := AParam.JSONValue as TJSONArray
   else
-    raise ENeonException.Create(TNeonError.ARR_EXPECTED);
+    raise ENeonException.Create(SNeonErrorArrExpected);
 
-  LSet := 0;
+  LTypeData := GetTypeData(LEnumType.Handle);
+
+  // The result buffer covers the maximum set size (256 elements = 32 bytes);
+  // ordinals are validated against the enum range before their bit is set
+  FillChar(LSetData, SizeOf(LSetData), 0);
+
   for LJSONValue in LJSONArray do
   begin
     if LJSONValue is TJSONNull then
@@ -1829,9 +2399,15 @@ begin
     else if LJSONValue is TJSONString then
       LValue := ReadDataMember(LJSONValue, LEnumType, TValue.Empty);
 
-    Include(TIntegerSet(LSet), LValue.AsOrdinal);
+    LOrdinal := LValue.AsOrdinal;
+    if (LOrdinal < LTypeData.MinValue) or (LOrdinal > LTypeData.MaxValue) then
+      raise ENeonException.Create(SNeonErrorEnumInvalid);
+
+    LOrdinal := LOrdinal - LTypeData.MinValue;
+    LSetData[LOrdinal div 8] := LSetData[LOrdinal div 8] or (1 shl (LOrdinal mod 8));
   end;
-  TValue.Make(LSet, AParam.RttiType.Handle, Result);
+
+  TValue.Make(@LSetData, AParam.RttiType.Handle, Result);
 end;
 
 function TNeonDeserializerJSON.ReadStreamable(const AParam: TNeonDeserializerParam; const AData: TValue): Boolean;
@@ -1848,7 +2424,11 @@ begin
     LStream := TMemoryStream.Create;
     try
       if IsOriginalInstance(AData) then
-        LJSONValue := (AParam.JSONValue as TJSONObject).GetValue('$value')
+      begin
+        LJSONValue := (AParam.JSONValue as TJSONObject).GetValue('$value');
+        if not Assigned(LJSONValue) then
+          raise ENeonException.Create(SNeonErrorStreamableNoValue);
+      end
       else
         LJSONValue := AParam.JSONValue;
 
@@ -1902,6 +2482,9 @@ begin
   // Because the property is a variant we have to guess the type based (only)
   // on the information of the JSON data
 
+  if not Assigned(AParam.JSONValue) then
+    Exit(TValue.Empty);
+
   if AParam.JSONValue is TJSONNull then
     Exit(TValue.From<Variant>(Null));
 
@@ -1921,6 +2504,17 @@ begin
 
     Exit(TValue.From<Variant>(AParam.JSONValue.Value));
   end;
+
+  // A Variant holds scalars only (WriteVariant writes nothing else), so an
+  // object or an array has to fail loudly instead of leaving the member
+  // Unassigned, which is indistinguishable from "not in the JSON at all"
+  if AParam.JSONValue is TJSONObject then
+    raise ENeonException.CreateFmt(SNeonErrorVariantNotScalarF1, ['object']);
+
+  if AParam.JSONValue is TJSONArray then
+    raise ENeonException.CreateFmt(SNeonErrorVariantNotScalarF1, ['array']);
+
+  raise ENeonException.CreateFmt(SNeonErrorVariantNotScalarF1, [AParam.JSONValue.ClassName]);
 end;
 
 function TNeonDeserializerJSON.CreateItem(ANeonRtti: TNeonRttiObject;
@@ -1946,7 +2540,11 @@ end;
 
 function TNeonDeserializerJSON.JSONToArray(AJSON: TJSONValue; AType: TRttiType): TValue;
 begin
-  Result := ReadDataMember(AJSON, AType, TValue.Empty);
+  // Seed the read with a zeroed value of the target type, as JSONToTValue
+  // does: a raw TValue.Empty has no TypeInfo, so ReadArray can neither
+  // allocate a dynamic array (DynArraySetLength needs the element type)
+  // nor index a static one
+  Result := ReadDataMember(AJSON, AType, TValue.Empty.Cast(AType.Handle));
 end;
 
 procedure TNeonDeserializerJSON.JSONToObject(AObject: TObject; AJSON: TJSONValue);
@@ -1977,7 +2575,10 @@ begin
   if not (AData.AsObject = nil) then
     Exit;
 
-  if not TJSONUtils.HasItems(AParam.JSONValue) then
+  // Anything that is not a JSON null declares a value for the member, so the
+  // instance to read it into is created - an empty {} or [] included, which
+  // used to count as "nothing to read" and left the member nil
+  if AParam.JSONValue is TJSONNull then
     Exit;
 
   if Assigned(AParam.NeonObject.NeonFactoryClass) then
@@ -1995,8 +2596,11 @@ begin
     end;
   end;
 
+  // Try, not CreateInstance: a member whose class has no parameterless
+  // constructor (an abstract TStream, say) stays nil and is logged and skipped
+  // by ReadDataMember, which is the documented AutoCreate behavior
   if (FConfig.AutoCreate or AParam.NeonObject.NeonAutoCreate) then
-    Exit(TRttiUtils.CreateInstance(AParam.RttiType));
+    Exit(TRttiUtils.TryCreateInstance(AParam.RttiType));
 end;
 
 function TNeonDeserializerJSON.ReadReference(var AParam: TNeonDeserializerParam; const AData: TValue): TValue;
@@ -2005,14 +2609,24 @@ var
 begin
   LValue := ManageInstance(AParam, AData);
 
-  if ReadEnumerableMap(AParam, LValue) then
-    Exit(LValue);
+  // Each of these three starts with the same structural probe the serializer
+  // does, so the cached verdict picks the one that can succeed. A nil instance
+  // (no AutoCreate, no factory) matches none of them and falls through to
+  // ReadObject, which is where it was handled before as well
+  if LValue.AsObject <> nil then
+    case GetDynamicKind(LValue.AsObject) of
+      TNeonDynamicKind.Map:
+        if ReadEnumerableMap(AParam, LValue) then
+          Exit(LValue);
 
-  if ReadEnumerable(AParam, LValue) then
-    Exit(LValue);
+      TNeonDynamicKind.List:
+        if ReadEnumerable(AParam, LValue) then
+          Exit(LValue);
 
-  if ReadStreamable(AParam, LValue) then
-    Exit(LValue);
+      TNeonDynamicKind.Stream:
+        if ReadStreamable(AParam, LValue) then
+          Exit(LValue);
+    end;
 
   Result := ReadObject(AParam, LValue);
 end;
@@ -2036,6 +2650,8 @@ end;
 
 class function TNeon.JSONToObject(AType: TRttiType; AJSON: TJSONValue; AConfig: INeonConfiguration): TObject;
 begin
+  // CreateInstance raises SNeonErrorCreateInstanceF1 itself when the type has
+  // no parameterless constructor (A11)
   Result := TRttiUtils.CreateInstance(AType);
   JSONToObject(Result, AJSON, AConfig);
 end;
@@ -2337,7 +2953,7 @@ begin
   try
     LType := TRttiUtils.Context.GetType(TypeInfo(T));
     if not Assigned(LType) then
-      raise ENeonException.Create(TNeonError.EMPTY_TYPE);
+      raise ENeonException.Create(SNeonErrorEmptyType);
 
     case LType.TypeKind of
       tkArray, tkRecord, tkDynArray: TValue.Make(nil, TypeInfo(T), LValue);
@@ -2367,7 +2983,7 @@ begin
     Result := TJSONObject.ParseJSONValue(Data);
   {$ENDIF}
     if RaiseExc and not Assigned(Result) then
-      raise ENeonException.Create(TNeonError.PARSE);
+      raise ENeonException.Create(SNeonErrorParse);
 {$ENDIF}
 end;
 

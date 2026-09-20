@@ -1,0 +1,21 @@
+LabelAlign: Right
+LabelWidth: 130
+FieldSet:
+  Row:
+    Field: Id
+    Field: Description
+  Row:
+    Field: RatePercent
+    Field: NonDeductiblePercent
+  Row:
+    Field: DeductibleCode
+    Field: NonDeductibleCode
+  Row:
+    Field: StampDutyAmount
+    Field: BracketLimit
+  Row:
+    Field: Nature
+    Field: Title
+  Row:
+    Field: ExcludeFromVatSettlement
+    Field: Disabled

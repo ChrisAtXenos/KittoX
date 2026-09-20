@@ -1,0 +1,19 @@
+﻿ModelName: PaymentMethod
+PhysicalName: MODPAGAMENTO
+PluralDisplayLabel: _(Payment methods)
+PluralModelName: PaymentMethods
+DisplayLabel: _(Payment methods)
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Payment methods)
+    DisplayWidth: 50
+  RequiresBankDetails: Boolean not null
+    PhysicalName: RIFBANCARI
+    DisplayLabel: _(Requires bank details)
+    DisplayWidth: 25
+ImageName: creditcard

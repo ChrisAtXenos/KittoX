@@ -1,0 +1,22 @@
+LabelAlign: Right
+LabelWidth: 150
+FieldSet:
+  Row:
+    Field: Section
+  Row:
+    Field: ParentCode
+    Field: LedgerAccountCode
+  Row:
+    Field: Level
+  Row:
+    Field: Description
+  Row:
+    Field: CustomerReference
+    Field: SupplierReference
+    Field: MemberReference
+  Row:
+    Field: BankAccountReference
+    Field: TaxesAndDuties
+    Field: VatPayable
+  Row:
+    Field: Disabled

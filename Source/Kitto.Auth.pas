@@ -153,6 +153,25 @@ type
     /// </summary>
     function Authenticate(const AAuthData: TEFNode): Boolean;
 
+    /// <summary>
+    ///   Refills AAuthData from the user record WITHOUT checking a password,
+    ///   for an identity already proven by other means — a validated JWT whose
+    ///   server-side session was lost (timeout, restart) and re-created empty.
+    ///   Authenticate seeds the auth data at login (the imposed-step flags
+    ///   MUST_CHANGE_PASSWORD / MUST_CONFIRM_ACCESS, and any %Auth:field% a view
+    ///   reads), but that state lives on the session and is gone once the
+    ///   session is; a token outlives the session, so the identity survives
+    ///   while the data behind it does not, and the imposed-step gate — which
+    ///   reads the flags out of the auth data — would wave the request through.
+    ///   Returns False when the user can no longer be established (unknown,
+    ///   deactivated, deleted), so the caller can refuse the token: this is also
+    ///   how a disabled account's still-valid token stops working. The default
+    ///   does nothing and returns True (authenticators with no user record to
+    ///   reload, e.g. TextFile/OSDB, carry all they need in the token).
+    /// </summary>
+    function RehydrateAuthData(const AUserName: string;
+      const AAuthData: TEFNode): Boolean; virtual;
+
     /// <summary>Gives access to a copy of the auth data that was last passed
     /// to Authenticate (and possibly modified by the object during
     /// authentication).</summary>
@@ -637,10 +656,56 @@ end;
 procedure TKAuthenticator.ApplyConfigDefaults(const AAuthData: TEFNode);
 var
   I: Integer;
+  LDefaultNode: TEFNode;
+  LDefaultsNode: TEFNode;
 begin
-  // Get meaningful defaults.
+  // Get meaningful defaults, from configuration.
+  //
+  // These come from Auth/Defaults, which is authored by whoever writes the
+  // application config, so they are trusted and may legitimately carry a macro:
+  // Auth/Defaults/Password: %ENV_VAR% pulls a service password from the
+  // environment, %Config:...% reads another config node, and so on. They are
+  // expanded HERE, as they enter the auth data from configuration.
+  //
+  // The credential a user TYPES at the login form must never be expanded (see
+  // GetSuppliedUserName / GetSuppliedPasswordHash, which now compare it
+  // verbatim): expanding it would let anyone type %Config:Auth/PassepartoutPassword%
+  // and have it resolve to the real passepartout, logging in as any user. That
+  // is why the expansion lives on the config side of the fence and not on the
+  // supplied side.
   for I := 0 to AAuthData.ChildCount - 1 do
-    AAuthData.Children[I].AssignValue(Config.FindNode('Defaults/' + AAuthData.Children[I].Name));
+  begin
+    LDefaultNode := Config.FindNode('Defaults/' + AAuthData.Children[I].Name);
+    if Assigned(LDefaultNode) then
+      AAuthData.Children[I].AsString := LDefaultNode.AsExpandedString
+    else
+      AAuthData.Children[I].AssignValue(nil);
+  end;
+
+  // Seed any EXTRA default that is not one of the standard auth items handled
+  // above (UserName/Password/Language/SecretCode). This lets the config pre-set
+  // an application-specific auth field the standard flow does not declare -- most
+  // usefully the user profile that a %Auth:<field>% macro reads to resolve a
+  // profile-dependent HomeView. Example: with
+  //   Auth: <Authenticator>
+  //     Defaults:
+  //       UserName: SYSDBA
+  //       Password: ...
+  //       PROFILEID: ADMIN
+  // %Auth:PROFILEID% resolves to ADMIN before login, so %Auth:PROFILEID%_Home is
+  // found. A real login overwrites these with the user record's own fields (the
+  // authenticator reads them from the DB), so a seeded value only stands in the
+  // pre-/failed-authentication state -- which is exactly what a deliberate
+  // default login, and a design-time preview (KIDEX) that cannot link an app's
+  // custom authenticator, need. The name is the auth field the app reads, not a
+  // fixed 'Profile' keyword: every app names its profile field its own way (SCM
+  // uses PROFILEID). Trusted, config-authored, and expanded like the items above.
+  LDefaultsNode := Config.FindNode('Defaults');
+  if Assigned(LDefaultsNode) then
+    for I := 0 to LDefaultsNode.ChildCount - 1 do
+      if not Assigned(AAuthData.FindNode(LDefaultsNode.Children[I].Name)) then
+        AAuthData.SetString(LDefaultsNode.Children[I].Name,
+          LDefaultsNode.Children[I].AsExpandedString);
 end;
 
 function TKAuthenticator.SupportsPasswordChange: Boolean;
@@ -718,6 +783,14 @@ end;
 procedure TKAuthenticator.InternalAfterAuthenticate(
   const AAuthData: TEFNode);
 begin
+end;
+
+function TKAuthenticator.RehydrateAuthData(const AUserName: string;
+  const AAuthData: TEFNode): Boolean;
+begin
+  // Default: nothing to reload. Overridden by authenticators that own a user
+  // record (TKDBAuthenticator).
+  Result := True;
 end;
 
 function TKAuthenticator.Authenticate(const AAuthData: TEFNode): Boolean;

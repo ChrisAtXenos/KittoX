@@ -1,0 +1,43 @@
+﻿ModelName: StaffMember
+PhysicalName: ADDETTI
+PluralDisplayLabel: _(Staff)
+PluralModelName: StaffMembers
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Full Name)
+    DisplayWidth: 40
+  Person: Reference(Person)
+    DisplayLabel: _(Person)
+    PhysicalName: FK_ADDETTI_NOMINATIVO
+    DisplayWidth: 40
+    Fields:
+      PersonId:
+        PhysicalName: NOMINATIVOID
+    AutoAddFields:
+      LastName: Person_LastName
+      FirstName: Person_FirstName
+    Rules:
+      CalcDescription: {Person_LastName} {Person_FirstName}
+  Duty: Reference(StaffRole) not null
+    DisplayLabel: _(Duty)
+    PhysicalName: FK_ADDETTI_MANSIONE
+    Fields:
+      DutyId:
+        PhysicalName: MansioneId
+  #LookupFilter: DIRIGENZA = 0
+  Team: Reference(Team) not null
+    DisplayLabel: _(Team)
+    PhysicalName: DT_ADDETTI_SQUADRA
+    Fields:
+      TeamId:
+        PhysicalName: SQUADRAID
+PluralDisplayLabel: _(Staff)
+DisplayLabel: _(Staff member)
+PluralModelName: StaffMembers
+ImageName: person_pin

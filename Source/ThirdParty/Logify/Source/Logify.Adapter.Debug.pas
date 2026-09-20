@@ -20,15 +20,9 @@ type
   ///   Adapter for the Logify framework
   /// </summary>
   TLogifyAdapterDebug = class(TLoggerAdapterHelper, ILoggerAdapter)
-  private
-    FLevel: TLogLevel;
   protected
     procedure InternalLog(const AMessage, AClassName: string; AException: Exception; ALevel: TLogLevel); override;
     procedure InternalRaw(const AMessage: string; ALevel: TLogLevel); override;
-  public
-    constructor Create(const ALevel: TLogLevel);
-
-    property Level: TLogLevel read FLevel write FLevel;
   end;
 
   /// <summary>
@@ -49,36 +43,53 @@ type
 implementation
 
 uses
-  Winapi.Windows;
+  {$IFDEF MSWINDOWS}Winapi.Windows{$ENDIF}
+  {$IFDEF POSIX}Posix.Unistd{$ENDIF};
 
-constructor TLogifyAdapterDebug.Create(const ALevel: TLogLevel);
+/// <summary>
+///   Writes one line to the platform debug channel.
+/// </summary>
+procedure WriteDebugLine(const AMessage: string);
+{$IFDEF POSIX}
+var
+  LBytes: TBytes;
+{$ENDIF}
 begin
-  FLevel := ALevel;
+  {$IFDEF MSWINDOWS}
+  // The Windows debug channel is line oriented: one call is one line
+  OutputDebugString(PChar(AMessage));
+  {$ENDIF}
+
+  {$IFDEF POSIX}
+  // There is no OutputDebugString here. stderr is the conventional out of
+  // band diagnostic channel: unbuffered, separate from whatever the program
+  // writes to stdout, and captured by the IDE when debugging a Linux target.
+  // A single write() call per message keeps concurrent lines from interleaving.
+  LBytes := TEncoding.UTF8.GetBytes(AMessage + sLineBreak);
+  __write(STDERR_FILENO, Pointer(LBytes), Length(LBytes));
+  {$ENDIF}
 end;
 
-procedure TLogifyAdapterDebug.InternalLog(const AMessage, AClassName: string;
-    AException: Exception; ALevel: TLogLevel);
+procedure TLogifyAdapterDebug.InternalLog(const AMessage, AClassName: string; AException: Exception; ALevel: TLogLevel);
 begin
-  OutputDebugString(PChar(FormatMsg(AMessage, AClassName, AException, ALevel)));
+  WriteDebugLine(FormatMsg(AMessage, AClassName, AException, ALevel));
 end;
 
 procedure TLogifyAdapterDebug.InternalRaw(const AMessage: string; ALevel: TLogLevel);
 begin
-  OutputDebugString(PChar(AMessage));
+  WriteDebugLine(AMessage);
 end;
 
 { TLogifyAdapterDebugFactory }
 
-class function TLogifyAdapterDebugFactory.CreateAdapterFactory(const AName:
-    string; ALevel: TLogLevel): TLogifyAdapterDebugFactory;
+class function TLogifyAdapterDebugFactory.CreateAdapterFactory(const AName: string; ALevel: TLogLevel): TLogifyAdapterDebugFactory;
 begin
   Result := TLogifyAdapterDebugFactory.Create();
   Result.Name := AName;
   Result.Level := ALevel;
 end;
 
-class function TLogifyAdapterDebugFactory.CreateAdapterFactory(
-  ALevel: TLogLevel): TLogifyAdapterDebugFactory;
+class function TLogifyAdapterDebugFactory.CreateAdapterFactory(ALevel: TLogLevel): TLogifyAdapterDebugFactory;
 begin
   Result := CreateAdapterFactory('', ALevel);
 end;

@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,6 +84,7 @@ type
     function GetIconSize: TKIconSize;
     function GetLight: TKThemeModeConfig;
     function GetDark: TKThemeModeConfig;
+    function GetPrimaryColor: string;
     /// Chrome/accent/status CSS custom properties for a Primary-Color ('' -> '').
     class function BuildChromeVars(const APrimary: string): string; static;
     /// True if the (hex or CSS-named) colour has high luminance (ITU-R BT.601).
@@ -95,7 +96,7 @@ type
     [YamlNode('Mode', 'Auto', 'Theme mode: Auto (follow OS) | Light | Dark')]
     property Mode: TKTheme read GetMode;
 
-    [YamlNode('UserSelection', 'True', 'Let the end user pick the theme via the ThemeSwitcher controller (only honoured when Mode=Auto). The attribute carries the inverse (True) so adding the node in KIDE writes the meaningful, behaviour-changing value.')]
+    [YamlNode('UserSelection', 'False', 'Let the end user pick the theme via the ThemeSwitcher controller (only honoured when Mode=Auto)')]
     property UserSelection: Boolean read GetUserSelection;
 
     [YamlNode('Font-Family', 'UI font family, shared across modes')]
@@ -109,6 +110,9 @@ type
 
     [YamlNode('IconSize', 'Medium', 'Default icon size (resolved server-side, does not switch live)')]
     property IconSize: TKIconSize read GetIconSize;
+
+    [YamlNode('Primary-Color', 'Accent/chrome colour shared by both modes (backward-compat flat palette; Light/Dark override it per mode)')]
+    property PrimaryColor: string read GetPrimaryColor;
 
     [YamlSubNode('Light', TKThemeModeConfig, 'Light-mode palette (Primary-Color)')]
     property Light: TKThemeModeConfig read GetLight;
@@ -185,6 +189,11 @@ end;
 function TKThemeConfig.GetFontFamily: string;
 begin
   Result := GetString('Font-Family');
+end;
+
+function TKThemeConfig.GetPrimaryColor: string;
+begin
+  Result := GetString('Primary-Color');
 end;
 
 function TKThemeConfig.GetFontSize: string;

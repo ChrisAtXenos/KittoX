@@ -34,6 +34,7 @@ uses
   EF.Types,
   EF.Tree,
   EF.YAML.Attributes,
+  Kitto.Metadata.Types,
   Kitto.Metadata,
   Kitto.Metadata.Models,
   Kitto.Metadata.Views,
@@ -135,6 +136,8 @@ type
     function GetAliasedDBName: string;
     function GetQualifiedAliasedDBName: string;
     function GetLookupFilter: string;
+    function GetFieldsNode: string;
+    function GetViewPhysicalName: string;
     function GetDBNameOrExpression: string;
     function GetFieldType: TFieldType;
     function GetIsPicture: Boolean;
@@ -193,9 +196,9 @@ type
     /// <summary>Fixed list of allowed value/label pairs, if any.</summary>
     property AllowedValues: TEFPairs read GetAllowedValues;
 
-    [YamlNode('CanInsert', 'False', 'Field is editable when inserting a new record')]
+    [YamlNode('CanInsert', 'True', 'Field is editable when inserting a new record')]
     property CanInsert: Boolean read GetCanInsert;
-    [YamlNode('CanUpdate', 'False', 'Field is editable when updating an existing record')]
+    [YamlNode('CanUpdate', 'True', 'Field is editable when updating an existing record')]
     property CanUpdate: Boolean read GetCanUpdate;
 
     /// <summary>
@@ -232,6 +235,14 @@ type
     [YamlNode('LookupFilter', 'SQL filter for lookup combo queries')]
     property LookupFilter: string read GetLookupFilter;
 
+    /// <summary>RTTI carrier for the Fields node: the constituent sub-fields shown
+    /// for a reference field. Read node by node at render time.</summary>
+    [YamlNode('Fields', 'Sub-fields shown for a reference field (each child is a field name)')]
+    property FieldsNode: string read GetFieldsNode;
+
+    [YamlNode('PhysicalName', 'Physical DB column name override for this view field')]
+    property ViewPhysicalName: string read GetViewPhysicalName;
+
     /// <summary>
     ///  Specifies the logical connector to use when appending the
     ///  DefaultFilter to an existing WHERE clause (for example, a referenced
@@ -239,6 +250,7 @@ type
     ///  is 'or'.
     /// </summary>
     [YamlNode('DefaultFilterConnector', 'and', 'Logical connector (and/or) for DefaultFilter')]
+    [YamlEnumType(TypeInfo(TKFilterConnector))]
     property DefaultFilterConnector: string read GetDefaultFilterConnector;
 
     /// <summary>
@@ -303,13 +315,13 @@ type
 
     /// <summary>True if the field is part of the model's primary key.</summary>
     property IsKey: Boolean read GetIsKey;
-    [YamlNode('IsVisible', 'False', 'Field visibility in views')]
+    [YamlNode('IsVisible', 'True', 'Field visibility in views')]
     property IsVisible: Boolean read GetIsVisible;
     [YamlNode('IsRequired', 'Field is mandatory')]
     property IsRequired: Boolean read GetIsRequired;
-    [YamlNode('IsReadOnly', 'True', 'Field is not editable')]
+    [YamlNode('IsReadOnly', 'False', 'Field is not editable')]
     property IsReadOnly: Boolean read GetIsReadOnly;
-    [YamlNode('IsPassword', 'True', 'Mask input for password fields')]
+    [YamlNode('IsPassword', 'False', 'Mask input for password fields')]
     property IsPassword: Boolean read GetIsPassword;
     [YamlNode('EmptyAsNull', 'Convert empty input to NULL in the database')]
     property EmptyAsNull: Boolean read GetEmptyAsNull;
@@ -354,7 +366,7 @@ type
     property EditFormat: string read GetEditFormat;
     [YamlNode('DisplayFormat', 'Display format for rendering values')]
     property DisplayFormat: string read GetDisplayFormat;
-    [YamlNode('BlankValue', 'True', 'Hide field value when an image is displayed')]
+    [YamlNode('BlankValue', 'False', 'Hide field value when an image is displayed')]
     property BlankValue: Boolean read GetBlankValue;
     [YamlNode('AutoCompleteMinChars', '4', 'Minimum characters before autocomplete starts')]
     property AutoCompleteMinChars: Integer read GetAutoCompleteMinChars;
@@ -436,10 +448,10 @@ type
     /// </summary>
     function BuildSortClause(const AIsDescending: Boolean): string;
 
-    [YamlNode('IsPicture', 'True', 'Field contains image data')]
+    [YamlNode('IsPicture', 'False', 'Field contains image data')]
     property IsPicture: Boolean read GetIsPicture;
 
-    [YamlNode('UseSpeedButtons', 'True', 'Show spin buttons on integer input fields')]
+    [YamlNode('UseSpeedButtons', 'False', 'Show spin buttons on integer input fields')]
     property UseSpeedButtons: Boolean read GetUseSpeedButtons;
 
     /// <summary>Returns the companion field name that holds a URL for this field (URL_PREFIX + name).</summary>
@@ -845,6 +857,7 @@ type
     function GetEnableMenu: Boolean;
     function GetStartCollapsed: Boolean;
     function GetShowName: Boolean;
+    function GetAggregates: string;
     function GetShowCount: TKGroupingShowCountConfig;
   public
     [YamlRequiredNode('FieldName', 'Field used for grouping rows')]
@@ -853,14 +866,19 @@ type
     [YamlNode('SortFieldNames', 'Comma-separated fields to sort within groups')]
     property SortFieldNames: string read GetSortFieldNames;
 
-    [YamlNode('EnableMenu', 'True', 'Show grouping context menu')]
+    [YamlNode('EnableMenu', 'False', 'Show grouping context menu')]
     property EnableMenu: Boolean read GetEnableMenu;
 
-    [YamlNode('StartCollapsed', 'True', 'Initially collapse all groups')]
+    [YamlNode('StartCollapsed', 'False', 'Initially collapse all groups')]
     property StartCollapsed: Boolean read GetStartCollapsed;
 
-    [YamlNode('ShowName', 'True', 'Display group field name in header')]
+    [YamlNode('ShowName', 'False', 'Display group field name in header')]
     property ShowName: Boolean read GetShowName;
+
+    /// <summary>RTTI carrier for the Aggregates node: per-column aggregate
+    /// functions (sum/count/...) shown in each group header. Read by path.</summary>
+    [YamlNode('Aggregates', 'Per-column aggregate functions shown in group headers (sum, count, ...)')]
+    property Aggregates: string read GetAggregates;
 
     [YamlSubNode('ShowCount', TKGroupingShowCountConfig, 'Show count display options')]
     property ShowCount: TKGroupingShowCountConfig read GetShowCount;
@@ -917,7 +935,7 @@ type
     function GetCancelButton: TKFormControllerButtonConfig;
     function GetCloseButton: TKFormControllerButtonConfig;
   public
-    [YamlNode('KeepOpenAfterOperation', 'True', 'Keep form open after save/delete')]
+    [YamlNode('KeepOpenAfterOperation', 'False', 'Keep form open after save/delete')]
     property KeepOpenAfterOperation: Boolean read GetKeepOpenAfterOperation;
 
     [YamlNode('ButtonScale', 'CSS scale class for form buttons')]
@@ -951,9 +969,13 @@ type
     function GetRequireSelection: Boolean;
     function GetAutoRefresh: string;
     function GetConfirmationMessage: string;
+    function GetHint: string;
   public
     [YamlNode('DisplayLabel', 'Label shown on the tool button', True)]
     property DisplayLabel: string read GetDisplayLabel;
+
+    [YamlNode('Hint', 'Tooltip shown on hover over the tool button', True)]
+    property Hint: string read GetHint;
 
     [YamlNode('ImageName', 'Icon name for the tool button')]
     property ImageName: string read GetImageName;
@@ -961,10 +983,13 @@ type
     [YamlNode('Controller', 'Controller type for this tool')]
     property ControllerType: string read GetControllerType;
 
-    [YamlNode('RequireSelection', 'True', 'Require a selected record before executing')]
+    [YamlNode('RequireSelection', 'False', 'Require a selected record before executing')]
     property RequireSelection: Boolean read GetRequireSelection;
 
     [YamlNode('AutoRefresh', 'All', 'Refresh mode after execution: All, Current, None')]
+    [YamlEnumValue('All', 'Refresh all records')]
+    [YamlEnumValue('Current', 'Refresh the current record only')]
+    [YamlEnumValue('None', 'Do not refresh')]
     property AutoRefresh: string read GetAutoRefresh;
 
     [YamlNode('ConfirmationMessage', 'User confirmation prompt before executing', True)]
@@ -1002,12 +1027,24 @@ type
   private
     function GetDefaultValue: string;
     function GetExpressionTemplate: string;
+    function GetWidth: Integer;
+    function GetAutoSearchAfterChars: Integer;
+    function GetIsRequired: Boolean;
   public
     [YamlNode('DefaultValue', 'Initial search text')]
     property DefaultValue: string read GetDefaultValue;
 
     [YamlRequiredNode('ExpressionTemplate', 'SQL WHERE template with {value} placeholder')]
     property ExpressionTemplate: string read GetExpressionTemplate;
+
+    [YamlNode('Width', '10', 'Input width in characters')]
+    property Width: Integer read GetWidth;
+
+    [YamlNode('AutoSearchAfterChars', '0', 'Trigger the search automatically after this many typed characters (0 = manual)')]
+    property AutoSearchAfterChars: Integer read GetAutoSearchAfterChars;
+
+    [YamlNode('IsRequired', 'False', 'The filter must have a value before the grid loads')]
+    property IsRequired: Boolean read GetIsRequired;
   end;
 
   /// <summary>
@@ -1021,12 +1058,20 @@ type
     function GetWidth: Integer;
     function GetListWidth: Integer;
     function GetAutoCompleteMinChars: Integer;
+    function GetQueryTemplate: string;
+    function GetDefaultValueExpression: string;
   public
     [YamlRequiredNode('ExpressionTemplate', 'SQL WHERE template with {value} placeholder')]
     property ExpressionTemplate: string read GetExpressionTemplate;
 
     [YamlRequiredNode('CommandText', 'SQL query returning key/display pairs')]
     property CommandText: string read GetCommandText;
+
+    [YamlNode('QueryTemplate', 'Optional SQL WHERE fragment filtering the dropdown query by typed text ({queryValue} placeholder)')]
+    property QueryTemplate: string read GetQueryTemplate;
+
+    [YamlNode('DefaultValueExpression', 'SQL expression computing the initial selected value')]
+    property DefaultValueExpression: string read GetDefaultValueExpression;
 
     [YamlNode('Width', '20', 'Input width in characters')]
     property Width: Integer read GetWidth;
@@ -1046,12 +1091,20 @@ type
   private
     function GetDefaultValue: string;
     function GetExpressionTemplate: string;
+    function GetWidth: Integer;
+    function GetLabelWidth: Integer;
   public
     [YamlNode('DefaultValue', 'Initial date value')]
     property DefaultValue: string read GetDefaultValue;
 
     [YamlRequiredNode('ExpressionTemplate', 'SQL WHERE template with {value} placeholder')]
     property ExpressionTemplate: string read GetExpressionTemplate;
+
+    [YamlNode('Width', '10', 'Input width in characters')]
+    property Width: Integer read GetWidth;
+
+    [YamlNode('LabelWidth', 'Label width in pixels for this filter')]
+    property LabelWidth: Integer read GetLabelWidth;
   end;
 
   /// <summary>
@@ -1063,6 +1116,7 @@ type
     function GetWidth: Integer;
     function GetListWidth: Integer;
     function GetAutoCompleteMinChars: Integer;
+    function GetItems: string;
   public
     [YamlNode('Width', '20', 'Input width in characters')]
     property Width: Integer read GetWidth;
@@ -1072,6 +1126,12 @@ type
 
     [YamlNode('AutoCompleteMinChars', '0', 'Min chars before autocomplete triggers')]
     property AutoCompleteMinChars: Integer read GetAutoCompleteMinChars;
+
+    /// <summary>RTTI carrier for the Items node: the predefined options, each a
+    /// named entry (label as value) carrying an Expression. Read node by node at
+    /// filter-build time; the getter is unused.</summary>
+    [YamlNode('Items', 'Predefined list options (each a named entry with an Expression)')]
+    property Items: string read GetItems;
   end;
 
   /// <summary>
@@ -1122,7 +1182,11 @@ type
   [YamlChildType('FreeSearch', TKFilterItemFreeSearch, '', 'Free-text search field')]
   [YamlChildType('DynaList', TKFilterItemDynaList, '', 'Dynamic (SQL-backed) dropdown filter')]
   [YamlChildType('DateSearch', TKFilterItemDateSearch, '', 'Date search field')]
+  [YamlChildType('NumericSearch', TKFilterItemFreeSearch, '', 'Numeric search field')]
+  [YamlChildType('BooleanSearch', '', 'Boolean (yes/no) search field')]
   [YamlChildType('List', TKFilterItemList, '', 'Static/lookup list filter')]
+  [YamlChildType('ButtonList', TKFilterItemList, '', 'Static list filter rendered as buttons')]
+  [YamlChildType('Lookup', '', 'Lookup (reference) filter')]
   [YamlChildType('ApplyButton', TKFilterItemApplyButton, '', 'Apply-filter button')]
   [YamlChildType('ColumnBreak', TKFilterItemColumnBreak, '', 'Start a new filter column')]
   [YamlChildType('Spacer', TKFilterItemSpacer, '', 'Horizontal spacer')]
@@ -1148,6 +1212,7 @@ type
     function GetLabelWidth: Integer;
     function GetConnector: string;
     function GetCollapsed: Boolean;
+    function GetCollapsible: Boolean;
     function GetColumnWidth: Integer;
     function GetLabelAlign: string;
     function GetItems: TKFilterItemsConfig;
@@ -1159,19 +1224,65 @@ type
     property LabelWidth: Integer read GetLabelWidth;
 
     [YamlNode('Connector', 'and', 'Logical connector: and/or')]
+    [YamlEnumType(TypeInfo(TKFilterConnector))]
     property Connector: string read GetConnector;
 
-    [YamlNode('Collapsed', 'True', 'Show filter panel initially collapsed')]
+    [YamlNode('Collapsed', 'False', 'Show filter panel initially collapsed')]
     property Collapsed: Boolean read GetCollapsed;
+
+    [YamlNode('Collapsible', 'True', 'Allow the filter panel to be collapsed/expanded')]
+    property Collapsible: Boolean read GetCollapsible;
 
     [YamlNode('ColumnWidth', '50', 'Column width for filter layout')]
     property ColumnWidth: Integer read GetColumnWidth;
 
     [YamlNode('LabelAlign', 'Top', 'Label alignment: Top, Left, Right')]
+    [YamlEnumType(TypeInfo(TKLabelAlign))]
     property LabelAlign: string read GetLabelAlign;
 
     [YamlSubNode('Items', TKFilterItemsConfig, 'Filter items (search fields, buttons, layout breaks)')]
     property Items: TKFilterItemsConfig read GetItems;
+  end;
+
+  { ---------- Edit controller ---------- }
+
+  /// <summary>
+  ///  Settings of the embedded edit form of a ViewTable (the form opened to
+  ///  add/edit a record). YAML path: EditController.
+  /// </summary>
+  TKEditControllerConfig = class(TEFNode)
+  private
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetLabelWidth: Integer;
+    function GetLabelAlign: string;
+    function GetCloneButton: Boolean;
+    function GetKeepOpenAfterOperation: Boolean;
+    function GetToolViews: TKToolViewsConfig;
+    function GetShowNavigationButtons: Boolean;
+    function GetApplyButton: string;
+  public
+    [YamlNode('Width', 'Edit form width in pixels (0 = auto)')]
+    property Width: Integer read GetWidth;
+    [YamlNode('Height', 'Edit form height in pixels (0 = auto)')]
+    property Height: Integer read GetHeight;
+    [YamlNode('LabelWidth', 'Field label width in pixels (overrides Defaults/FormPanel/LabelWidth)')]
+    property LabelWidth: Integer read GetLabelWidth;
+    [YamlNode('LabelAlign', 'Field label alignment: top / left / right')]
+    [YamlEnumType(TypeInfo(TKLabelAlign))]
+    property LabelAlign: string read GetLabelAlign;
+    [YamlNode('CloneButton', 'False', 'Show a Clone button on the edit form')]
+    property CloneButton: Boolean read GetCloneButton;
+    [YamlNode('KeepOpenAfterOperation', 'False', 'Keep the edit form open after Save')]
+    property KeepOpenAfterOperation: Boolean read GetKeepOpenAfterOperation;
+    [YamlNode('ShowNavigationButtons', 'False', 'Show previous/next record navigation buttons on the edit form')]
+    property ShowNavigationButtons: Boolean read GetShowNavigationButtons;
+    /// <summary>RTTI carrier for the ApplyButton node (an Apply button that saves
+    /// without closing the form). Read node by node at render time.</summary>
+    [YamlNode('ApplyButton', 'Show an Apply button that saves without closing the edit form')]
+    property ApplyButton: string read GetApplyButton;
+    [YamlContainer('ToolViews', TKToolViewItem, 'Tool buttons shown on the edit form toolbar (each a freely-named item whose Controller names the tool)')]
+    property ToolViews: TKToolViewsConfig read GetToolViews;
   end;
 
   { ---------- ViewTable Controller ---------- }
@@ -1196,35 +1307,76 @@ type
     function GetGrouping: TKGroupingConfig;
     function GetFormController: TKFormControllerConfig;
     function GetFilters: TKFilterPanelConfig;
+    function GetForm: string;
+    function GetGrid: string;
+    function GetWidth: Integer;
+    function GetHeight: Integer;
+    function GetIsMultiSelect: Boolean;
+    function GetAllowInsert: Boolean;
+    function GetAllowEdit: Boolean;
+    function GetAllowDelete: Boolean;
+    function GetDefaultAction: string;
+    function GetAdd: string;
   public
-    [YamlNode('AutoOpen', 'True', 'Auto-load grid data when view opens (default: not IsLarge)')]
+    /// <summary>RTTI carrier for the Grid node: selects the grid layout (its
+    /// Layout child names it; see TKViewTable.FindLayout('Grid')).</summary>
+    [YamlNode('Grid', 'Grid layout selector (its Layout child names the grid layout)')]
+    property Grid: string read GetGrid;
+
+    [YamlNode('DefaultAction', 'Action on grid row double-click (e.g. Edit, View)')]
+    property DefaultAction: string read GetDefaultAction;
+
+    [YamlNode('AllowInsert', 'True', 'Allow inserting new records (legacy inverse of PreventAdding)')]
+    property AllowInsert: Boolean read GetAllowInsert;
+
+    [YamlNode('AllowEdit', 'True', 'Allow editing records (legacy inverse of PreventEditing)')]
+    property AllowEdit: Boolean read GetAllowEdit;
+
+    [YamlNode('AllowDelete', 'True', 'Allow deleting records (legacy inverse of PreventDeleting)')]
+    property AllowDelete: Boolean read GetAllowDelete;
+
+    /// <summary>RTTI carrier for the Add toolbar-action options node (e.g.
+    /// Controller/Add/Tooltip).</summary>
+    [YamlNode('Add', 'Options for the Add toolbar action (e.g. Tooltip)')]
+    property Add: string read GetAdd;
+
+    [YamlNode('Width', 'Grid panel width in pixels (0 = auto)')]
+    property Width: Integer read GetWidth;
+
+    [YamlNode('Height', 'Grid panel height in pixels (0 = auto)')]
+    property Height: Integer read GetHeight;
+
+    [YamlNode('IsMultiSelect', 'False', 'Allow selecting multiple rows in the grid')]
+    property IsMultiSelect: Boolean read GetIsMultiSelect;
+
+    [YamlNode('AutoOpen', 'False', 'Auto-load grid data when view opens (default: not IsLarge)')]
     property AutoOpen: Boolean read GetAutoOpen;
 
     [YamlNode('PageRecordCount', 'Number of records per page')]
     property PageRecordCount: Integer read GetPageRecordCount;
 
-    [YamlNode('PagingTools', 'False', 'Show paging toolbar (default: IsLarge)')]
+    [YamlNode('PagingTools', 'True', 'Show paging toolbar (default: IsLarge)')]
     property PagingTools: Boolean read GetPagingTools;
 
     [YamlNode('RowClassProvider', 'Server-side function returning CSS class per row')]
     property RowClassProvider: string read GetRowClassProvider;
 
-    [YamlNode('AllowViewing', 'True', 'Show a read-only View button')]
+    [YamlNode('AllowViewing', 'False', 'Show a read-only View button')]
     property AllowViewing: Boolean read GetAllowViewing;
 
-    [YamlNode('PreventEditing', 'True', 'Hide the Edit button')]
+    [YamlNode('PreventEditing', 'False', 'Hide the Edit button')]
     property PreventEditing: Boolean read GetPreventEditing;
 
-    [YamlNode('PreventAdding', 'True', 'Hide the Add button')]
+    [YamlNode('PreventAdding', 'False', 'Hide the Add button')]
     property PreventAdding: Boolean read GetPreventAdding;
 
-    [YamlNode('PreventDeleting', 'True', 'Hide the Delete button')]
+    [YamlNode('PreventDeleting', 'False', 'Hide the Delete button')]
     property PreventDeleting: Boolean read GetPreventDeleting;
 
-    [YamlNode('AllowDuplicating', 'True', 'Show a Duplicate button')]
+    [YamlNode('AllowDuplicating', 'False', 'Show a Duplicate button')]
     property AllowDuplicating: Boolean read GetAllowDuplicating;
 
-    [YamlSubNode('ToolViews', TKToolViewsConfig, 'Tool buttons and actions')]
+    [YamlContainer('ToolViews', TKToolViewItem, 'Tool buttons and actions (each a freely-named item whose Controller names the tool)')]
     property ToolViews: TKToolViewsConfig read GetToolViews;
 
     [YamlSubNode('PopupWindow', TKPopupWindowConfig, 'Modal window size for add/edit')]
@@ -1238,6 +1390,12 @@ type
 
     [YamlSubNode('Filters', TKFilterPanelConfig, 'Search/filter panel (List views)')]
     property Filters: TKFilterPanelConfig read GetFilters;
+
+    /// <summary>RTTI carrier for the Form node: selects the edit-form layout
+    /// (child Layout names it; see TKViewTable.FindLayout('Form')). The getter is
+    /// unused; the node is read directly at render time.</summary>
+    [YamlNode('Form', 'Edit-form layout selector (its Layout child names the form layout)')]
+    property Form: string read GetForm;
   end;
 
   /// <summary>
@@ -1266,6 +1424,9 @@ type
     function GetMasterTable: TKViewTable;
     function GetDefaultSorting: string;
     function GetDefaultFilter: string;
+    function GetStyle: string;
+    function GetViewPluralModelName: string;
+    function GetViewHeight: Integer;
     function GetView: TKDataView;
     function GetRules: TKRules;
     function GetImageName: string;
@@ -1276,6 +1437,7 @@ type
   private
     function GetIsLarge: Boolean;
     function GetControllerConfig: TKViewTableControllerConfig;
+    function GetEditControllerConfig: TKEditControllerConfig;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetFields: TKViewFields;
@@ -1393,7 +1555,7 @@ type
     /// <summary>True if the field is visible in this view table.</summary>
     function IsFieldVisible(const AField: TKViewField): Boolean;
 
-    [YamlNode('IsReadOnly', 'True', 'Table data is not editable')]
+    [YamlNode('IsReadOnly', 'False', 'Table data is not editable')]
     property IsReadOnly: Boolean read GetIsReadOnly;
 
     /// <summary>Effective PreventAdding: the view's Controller/PreventAdding if
@@ -1421,6 +1583,15 @@ type
     /// </summary>
     [YamlNode('DefaultSorting', 'Default ORDER BY clause for sorting')]
     property DefaultSorting: string read GetDefaultSorting;
+
+    [YamlNode('Style', 'Extra inline CSS applied to this table''s grid')]
+    property Style: string read GetStyle;
+
+    [YamlNode('PluralModelName', 'Plural model name override for this table (labels/titles)')]
+    property PluralModelName: string read GetViewPluralModelName;
+
+    [YamlNode('Height', 'Grid height in pixels for this table (0 = auto)')]
+    property Height: Integer read GetViewHeight;
 
     /// <summary>Number of detail (child) tables.</summary>
     property DetailTableCount: Integer read GetDetailTableCount;
@@ -1506,11 +1677,14 @@ type
     ///  view table level to override the setting in the model (for example if
     ///  the view table is filtered).
     /// </summary>
-    [YamlNode('IsLarge', 'True', 'Optimize for large datasets')]
+    [YamlNode('IsLarge', 'False', 'Optimize for large datasets')]
     property IsLarge: Boolean read GetIsLarge;
 
     [YamlSubNode('Controller', TKViewTableControllerConfig, 'List/form controller settings')]
     property ControllerConfig: TKViewTableControllerConfig read GetControllerConfig;
+
+    [YamlSubNode('EditController', TKEditControllerConfig, 'Settings of the embedded edit form (Width/Height/LabelWidth/LabelAlign/CloneButton/KeepOpenAfterOperation/ToolViews)')]
+    property EditControllerConfig: TKEditControllerConfig read GetEditControllerConfig;
   end;
 
   /// <summary>
@@ -1523,6 +1697,7 @@ type
   private
     function GetMainTable: TKViewTable;
     function GetDatabaseName: string;
+    function GetIsLookup: Boolean;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDisplayLabel: string; override;
@@ -1536,6 +1711,9 @@ type
     property MainTable: TKViewTable read GetMainTable;
     /// <summary>The database connection name for this view (from the model/config).</summary>
     property DatabaseName: string read GetDatabaseName;
+
+    [YamlNode('IsLookup', 'False', 'View is used as a lookup/selection dialog for a referenced model')]
+    property IsLookup: Boolean read GetIsLookup;
     /// <summary>Returns True if access is granted to this view in the given mode.</summary>
     function IsAccessGranted(const AMode: string): Boolean; override;
   end;
@@ -1621,6 +1799,11 @@ begin
   Result := GetNode('MainTable', True) as TKViewTable;
 end;
 
+function TKDataView.GetIsLookup: Boolean;
+begin
+  Result := GetBoolean('IsLookup');
+end;
+
 procedure TKDataView.InternalAfterLoad;
 
   // See the same helper in TKModel.InternalAfterLoad: evaluating the accessor
@@ -1637,20 +1820,21 @@ procedure TKDataView.InternalAfterLoad;
   begin
     Touch(AViewTable.Rules);
 
-    // The Fields CONTAINER, through GetNode and not through TKViewTable.Fields.
-    // That accessor does more than create the container: when the view
-    // declares no fields it goes on to CreateDefaultFields, which needs the
-    // table's model. A view table without one -- a dashboard's MainTable, for
-    // instance -- has no fields to default and nothing ever asks it for any, so
-    // forcing it here raised 'Object not found' on an empty model name and took
-    // the whole catalogue down with it: KIDE could not open a project at all.
+    // Build the fields now, under the catalogue lock, through the Fields
+    // accessor. For a model-backed table that declares none, the accessor runs
+    // CreateDefaultFields -- exactly the build that otherwise happened lazily on
+    // the first request, and raced two request threads mutating this shared
+    // tree: the outcome was duplicate columns left in the tree for every later
+    // request, or an access violation during the list realloc. Doing it here,
+    // while the catalogue lock is held, leaves the request threads only reading.
     //
-    // The rule for anything added to this method: only accessors that create
-    // their container and do nothing else. Building the default fields early
-    // would close one more race, but not this way.
-    LFields := AViewTable.GetNode('Fields', True) as TKViewFields;
-    // FieldCount here is the container's ChildCount, so this walks the fields
-    // the YAML declares and creates nothing.
+    // Calling the accessor here used to be unsafe -- with no model it went on to
+    // CreateDefaultFields, which read Model.FieldCount, asked the catalogue for
+    // the object named '' and raised 'Object  not found', taking the whole
+    // catalogue down (KIDE could not open a project). GetFields now guards that
+    // build with HasModelName, so a modelless table (a dashboard's MainTable)
+    // gets its empty container and nothing more.
+    LFields := AViewTable.FieldList;
     for I := 0 to LFields.FieldCount - 1 do
       Touch(LFields[I].Rules);
 
@@ -1718,6 +1902,14 @@ begin
   for I := 0 to Rules.RuleCount - 1 do
   begin
     LRule := Rules[I];
+{$IFDEF KITTOX_PREVIEW_MODE}
+    // Preview (KIDEX): a rule implemented by application Delphi code (registered
+    // in the app's own Rules.pas, which KIDEX does not link) cannot be created
+    // here; skip it so the view still renders -- the custom rule simply does not
+    // run in the design-time preview. Compiled out in an application build.
+    if not TKRuleImplFactory.Instance.HasClass(LRule.Name) then
+      Continue;
+{$ENDIF}
     LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
     try
       LRuleImpl.Rule := LRule;
@@ -1736,6 +1928,12 @@ begin
     LRule := Model.Rules[I];
     if not Rules.HasRule(LRule) then
     begin
+{$IFDEF KITTOX_PREVIEW_MODE}
+      // Preview (KIDEX): skip an app-provided rule class not linked into KIDEX
+      // (see the view-level loop above). Compiled out in an application build.
+      if not TKRuleImplFactory.Instance.HasClass(LRule.Name) then
+        Continue;
+{$ENDIF}
       LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
       try
         LRuleImpl.Rule := LRule;
@@ -1791,7 +1989,10 @@ begin
   Result := GetFields.FindChildByPredicate(
     function(const ANode: TEFNode): Boolean
     begin
-      Result := SameText(TKViewField(ANode).ModelField.DBColumnName, ADBColumnName);
+      // Skip expression-only fields: they have no model field (and so no DB
+      // column) to match, and dereferencing ModelField would raise.
+      Result := TKViewField(ANode).HasModelField
+        and SameText(TKViewField(ANode).ModelField.DBColumnName, ADBColumnName);
     end) as TKViewField;
 end;
 
@@ -1800,7 +2001,10 @@ begin
   Result := GetFields.FindChildByPredicate(
     function(const ANode: TEFNode): Boolean
     begin
-      Result := TKViewField(ANode).ModelField = AModelField;
+      // Skip expression-only fields (no model field to compare, and
+      // dereferencing ModelField would raise).
+      Result := TKViewField(ANode).HasModelField
+        and (TKViewField(ANode).ModelField = AModelField);
     end) as TKViewField;
 end;
 
@@ -1904,6 +2108,21 @@ begin
   Result := GetString('DefaultSorting');
   if (Result = '') and HasModelName then
     Result := Model.DefaultSorting;
+end;
+
+function TKViewTable.GetStyle: string;
+begin
+  Result := GetString('Style');
+end;
+
+function TKViewTable.GetViewPluralModelName: string;
+begin
+  Result := GetString('PluralModelName');
+end;
+
+function TKViewTable.GetViewHeight: Integer;
+begin
+  Result := GetInteger('Height', 0);
 end;
 
 function TKViewTable.GetDefaultValues(const AKeyOnly: Boolean): TEFNode;
@@ -2135,6 +2354,11 @@ begin
 end;
 
 function TKViewTable.GetControllerConfig: TKViewTableControllerConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
+function TKViewTable.GetEditControllerConfig: TKEditControllerConfig;
 begin
   Result := nil; // RTTI discovery only
 end;
@@ -2574,7 +2798,11 @@ begin
       end);
     Result := LStore;
   except
-    FreeAndNil(Result);
+    // Free the local, not Result: Result is a class-typed function result and
+    // is NOT zero-initialised, so on a raise before the assignment above (the
+    // derived-fields query failing, say) FreeAndNil(Result) would free a garbage
+    // pointer and leak LStore. Mirrors CreateReferencedModelStore.
+    FreeAndNil(LStore);
     raise;
   end;
 end;
@@ -3142,6 +3370,17 @@ begin
   Result := GetBoolean('IsVisible', True);
 end;
 
+function TKViewField.GetFieldsNode: string;
+begin
+  // RTTI carrier only: the sub-field list is walked node by node at render time.
+  Result := '';
+end;
+
+function TKViewField.GetViewPhysicalName: string;
+begin
+  Result := GetString('PhysicalName');
+end;
+
 function TKViewField.GetLookupFilter: string;
 begin
   Result := GetString('LookupFilter');
@@ -3237,7 +3476,10 @@ end;
 
 function TKViewField.GetIsReference: Boolean;
 begin
-  Result := (Table.Model = Model) and ModelField.IsReference;
+  // HasModelField first: an expression-only view field has no backing model
+  // field, and is never a reference. Without the guard ModelField would raise
+  // 'Field not found'.
+  Result := HasModelField and (Table.Model = Model) and ModelField.IsReference;
 end;
 
 function TKViewField.GetIsRequired: Boolean;
@@ -3375,6 +3617,7 @@ var
   LFieldNames: string;
   LModelFieldIndex: Integer;
   LModelField: TKModelField;
+  LFieldModelField: TKModelField;
 
   procedure SetupField(const AViewField: TKViewField; const AName: string;
     const ADataType: TEFDataType; const AIsKey, AIsAccessGranted: Boolean;
@@ -3396,14 +3639,22 @@ begin
   for LViewFieldIndex := 0 to FViewTable.FieldCount - 1 do
   begin
     LViewField := FViewTable.Fields[LViewFieldIndex];
+    // An expression-only view field has no backing model field: pass nil rather
+    // than dereferencing ModelField (which would raise 'Field not found'). Such
+    // a field is not a reference (GetIsReference is guarded), so the reference
+    // expansion below is not entered for it.
+    if LViewField.HasModelField then
+      LFieldModelField := LViewField.ModelField
+    else
+      LFieldModelField := nil;
     SetupField(LViewField, LViewField.AliasedName, LViewField.DataType,
       LViewField.IsKey and not LViewField.IsReference, LViewField.IsAccessGranted(ACM_READ),
-      LViewField.ModelField);
+      LFieldModelField);
     // URL fields for datatypes that provide downloadable content, such as images.
     if LViewField.IsPicture then
       SetupField(LViewField, LViewField.GetURLFieldName,
         TEFDataTypeFactory.Instance.GetDataType('String'),
-        False, LViewField.IsAccessGranted(ACM_READ), LViewField.ModelField);
+        False, LViewField.IsAccessGranted(ACM_READ), LFieldModelField);
     // Expand reference fields. Also keep the reference field itself (above)
     // as it will hold the user-readable reference description.
     // For each reference field we create:
@@ -3631,6 +3882,7 @@ begin
     Restore;
     raise;
   end;
+  ClearBackup;
 end;
 
 procedure TKViewTableRecord.ApplyBeforeRules;
@@ -3658,6 +3910,7 @@ begin
     Restore;
     raise;
   end;
+  ClearBackup;
 end;
 
 procedure TKViewTableRecord.ApplyEditRecordRules;
@@ -4498,6 +4751,12 @@ begin
   Result := GetBoolean('ShowName', False);
 end;
 
+function TKGroupingConfig.GetAggregates: string;
+begin
+  // RTTI carrier only: the per-column aggregates are read node by node.
+  Result := '';
+end;
+
 function TKGroupingConfig.GetShowCount: TKGroupingShowCountConfig;
 begin
   Result := nil; // RTTI discovery only
@@ -4534,6 +4793,54 @@ begin
   Result := GetBoolean('KeepOpenAfterOperation', False);
 end;
 
+{ TKEditControllerConfig }
+
+function TKEditControllerConfig.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 0);
+end;
+
+function TKEditControllerConfig.GetHeight: Integer;
+begin
+  Result := GetInteger('Height', 0);
+end;
+
+function TKEditControllerConfig.GetLabelWidth: Integer;
+begin
+  Result := GetInteger('LabelWidth', 0);
+end;
+
+function TKEditControllerConfig.GetLabelAlign: string;
+begin
+  Result := GetString('LabelAlign');
+end;
+
+function TKEditControllerConfig.GetCloneButton: Boolean;
+begin
+  Result := GetBoolean('CloneButton', False);
+end;
+
+function TKEditControllerConfig.GetKeepOpenAfterOperation: Boolean;
+begin
+  Result := GetBoolean('KeepOpenAfterOperation', False);
+end;
+
+function TKEditControllerConfig.GetShowNavigationButtons: Boolean;
+begin
+  Result := GetBoolean('ShowNavigationButtons', False);
+end;
+
+function TKEditControllerConfig.GetApplyButton: string;
+begin
+  // RTTI carrier only: the ApplyButton block is read node by node at render time.
+  Result := '';
+end;
+
+function TKEditControllerConfig.GetToolViews: TKToolViewsConfig;
+begin
+  Result := nil; // RTTI discovery only
+end;
+
 function TKFormControllerConfig.GetButtonScale: string;
 begin
   Result := GetString('ButtonScale');
@@ -4566,6 +4873,11 @@ begin
   Result := GetString('DisplayLabel');
 end;
 
+function TKToolViewItem.GetHint: string;
+begin
+  Result := GetString('Hint');
+end;
+
 function TKToolViewItem.GetImageName: string;
 begin
   Result := GetString('ImageName');
@@ -4596,6 +4908,21 @@ end;
 function TKViewTableControllerConfig.GetAutoOpen: Boolean;
 begin
   Result := GetBoolean('AutoOpen', False);
+end;
+
+function TKViewTableControllerConfig.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 0);
+end;
+
+function TKViewTableControllerConfig.GetHeight: Integer;
+begin
+  Result := GetInteger('Height', 0);
+end;
+
+function TKViewTableControllerConfig.GetIsMultiSelect: Boolean;
+begin
+  Result := GetBoolean('IsMultiSelect', False);
 end;
 
 function TKViewTableControllerConfig.GetPageRecordCount: Integer;
@@ -4658,6 +4985,45 @@ begin
   Result := nil; // RTTI discovery only
 end;
 
+function TKViewTableControllerConfig.GetForm: string;
+begin
+  // RTTI carrier only: the form layout is read via FindLayout('Form') at render
+  // time (Controller/Form/Layout), not through this accessor.
+  Result := '';
+end;
+
+function TKViewTableControllerConfig.GetGrid: string;
+begin
+  // RTTI carrier only: the grid layout is read via FindLayout('Grid').
+  Result := '';
+end;
+
+function TKViewTableControllerConfig.GetDefaultAction: string;
+begin
+  Result := GetString('DefaultAction');
+end;
+
+function TKViewTableControllerConfig.GetAllowInsert: Boolean;
+begin
+  Result := GetBoolean('AllowInsert', True);
+end;
+
+function TKViewTableControllerConfig.GetAllowEdit: Boolean;
+begin
+  Result := GetBoolean('AllowEdit', True);
+end;
+
+function TKViewTableControllerConfig.GetAllowDelete: Boolean;
+begin
+  Result := GetBoolean('AllowDelete', True);
+end;
+
+function TKViewTableControllerConfig.GetAdd: string;
+begin
+  // RTTI carrier only: the Add action-options block is read node by node.
+  Result := '';
+end;
+
 function TKViewTableControllerConfig.GetFilters: TKFilterPanelConfig;
 begin
   Result := nil; // RTTI discovery only
@@ -4675,6 +5041,21 @@ begin
   Result := GetString('ExpressionTemplate');
 end;
 
+function TKFilterItemFreeSearch.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 10);
+end;
+
+function TKFilterItemFreeSearch.GetAutoSearchAfterChars: Integer;
+begin
+  Result := GetInteger('AutoSearchAfterChars', 0);
+end;
+
+function TKFilterItemFreeSearch.GetIsRequired: Boolean;
+begin
+  Result := GetBoolean('IsRequired', False);
+end;
+
 { TKFilterItemDynaList }
 
 function TKFilterItemDynaList.GetExpressionTemplate: string;
@@ -4685,6 +5066,16 @@ end;
 function TKFilterItemDynaList.GetCommandText: string;
 begin
   Result := GetString('CommandText');
+end;
+
+function TKFilterItemDynaList.GetQueryTemplate: string;
+begin
+  Result := GetString('QueryTemplate');
+end;
+
+function TKFilterItemDynaList.GetDefaultValueExpression: string;
+begin
+  Result := GetString('DefaultValueExpression');
 end;
 
 function TKFilterItemDynaList.GetWidth: Integer;
@@ -4714,6 +5105,16 @@ begin
   Result := GetString('ExpressionTemplate');
 end;
 
+function TKFilterItemDateSearch.GetWidth: Integer;
+begin
+  Result := GetInteger('Width', 10);
+end;
+
+function TKFilterItemDateSearch.GetLabelWidth: Integer;
+begin
+  Result := GetInteger('LabelWidth', 0);
+end;
+
 { TKFilterItemList }
 
 function TKFilterItemList.GetWidth: Integer;
@@ -4729,6 +5130,13 @@ end;
 function TKFilterItemList.GetAutoCompleteMinChars: Integer;
 begin
   Result := GetInteger('AutoCompleteMinChars', 0);
+end;
+
+function TKFilterItemList.GetItems: string;
+begin
+  // RTTI carrier only: the option entries are read node by node at filter-build
+  // time (each entry's label is its value, with an Expression child).
+  Result := '';
 end;
 
 { TKFilterItemApplyButton }
@@ -4772,6 +5180,11 @@ end;
 function TKFilterPanelConfig.GetCollapsed: Boolean;
 begin
   Result := GetBoolean('Collapsed', False);
+end;
+
+function TKFilterPanelConfig.GetCollapsible: Boolean;
+begin
+  Result := GetBoolean('Collapsible', True);
 end;
 
 function TKFilterPanelConfig.GetColumnWidth: Integer;

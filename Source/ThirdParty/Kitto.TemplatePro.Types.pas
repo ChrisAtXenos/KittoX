@@ -19,11 +19,14 @@
 // limitations under the License.
 //
 // ***************************************************************************
+
+// ***************************************************************************
 //
-// NOTE: This is a namespace-prefixed copy of the original TemplatePro.Types
-// unit, created to avoid design-time package conflicts when both KittoX
-// and DMVCFramework are installed in the same Delphi IDE (both include
-// TemplatePro units). The code is unchanged from the upstream version.
+// NOTE: This is a namespace-prefixed copy of the original TemplatePro.Types unit,
+// taken from the DMVCFramework sources (commit a690158f, 2026-09-14,
+// TemplatePro 1.1), created to avoid design-time package conflicts when both
+// KittoX and DMVCFramework are installed in the same Delphi IDE. Apart from
+// the unit names in "unit" and "uses", the code is unchanged.
 //
 // ***************************************************************************
 
@@ -36,7 +39,7 @@ uses
   System.Generics.Defaults,
   System.Classes,
   System.SysUtils,
-  System.Rtti;
+  System.RTTI;
 
 const
   TEMPLATEPRO_VERSION = '1.1';

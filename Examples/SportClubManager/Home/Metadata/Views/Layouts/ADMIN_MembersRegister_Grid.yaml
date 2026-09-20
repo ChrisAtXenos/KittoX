@@ -1,0 +1,14 @@
+﻿Field: RequestDate
+Field: SubmissionDate
+  DisplayWidth: 20
+Field: AcceptanceDate
+  DisplayWidth: 20
+Field: RejectionDate
+Field: FirstName
+Field: LastName
+Field: TaxCode
+Field: BirthDate
+  DisplayWidth: 20
+Field: BirthPlace
+Field: Address
+Field: Role

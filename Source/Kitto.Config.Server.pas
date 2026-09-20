@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2012-2026 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -82,7 +82,7 @@ type
     [YamlNode('AllowedOrigins', 'Comma-separated list of allowed origins, or * for any. Absent/empty disables CORS')]
     property AllowedOrigins: string read FAllowedOrigins;
 
-    [YamlNode('AllowCredentials', 'True', 'Emit Access-Control-Allow-Credentials: true')]
+    [YamlNode('AllowCredentials', 'False', 'Emit Access-Control-Allow-Credentials: true')]
     property AllowCredentials: Boolean read FAllowCredentials;
   end;
 

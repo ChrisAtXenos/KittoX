@@ -1,0 +1,71 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Subscription Payment Status)
+    Connector: and
+    Items:
+      ButtonList: _(Seasons)
+        Items:
+          ATT: _(Current)
+            Expression: {Q}QUOTA_ISCRIZIONEID IN  (select ID from QUOTE_ISCRIZIONI where (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where INIZIO <= CURRENT_TIMESTAMP and FINE >= CURRENT_TIMESTAMP)))
+            IsDefault: True
+          PRE: _(Previous)
+            Expression: {Q}QUOTA_ISCRIZIONEID IN  (select ID from QUOTE_ISCRIZIONI where (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where FINE < CURRENT_TIMESTAMP)))
+      ColumnBreak:
+        LabelWidth: 90
+      DynaList: _(Active Courses)
+        Width: 50
+        CommandText: |
+          select ID, DX
+          from QUOTE_ISCRIZIONI
+          where
+          (CAMPAGNAID in (SELECT ID FROM CAMPAGNE_ISCRIZIONI where INIZIO <= CURRENT_TIMESTAMP and FINE >= CURRENT_TIMESTAMP))
+          order by DX
+        ExpressionTemplate: {Q}QUOTA_ISCRIZIONEID = '{value}'
+        AutoCompleteMinChars: 3
+      FreeSearch: _(Person)
+        ExpressionTemplate: ({Q}COGNOME LIKE '%{value}%') or ({Q}NOME LIKE '%{value}%') or ({Q}COGNOME_GENITORE LIKE '%{value}%') or ({Q}NOME_GENITORE LIKE '%{value}%')
+        AutoSearchAfterChars: 3
+      ColumnBreak:
+        LabelWidth: 140
+      DateSearch: _(From date)
+        Width: 14
+        ExpressionTemplate: {Q}DATA_ISCRIZIONE >= '{value}'
+      NumericSearch: _(Birth year from)
+        Width: 11
+        ExpressionTemplate: YEAR({Q}DATANASC) >= '{value}'
+      ColumnBreak:
+        LabelWidth: 120
+      DateSearch: _(To date)
+        Width: 14
+        ExpressionTemplate: {Q}DATA_ISCRIZIONE <= '{value}'
+      NumericSearch: _(Birth year to)
+        Width: 11
+        ExpressionTemplate: YEAR({Q}DATANASC) <= '{value}'
+MainTable:
+  Model: VSubscriberPaymentSummary
+  DisplayLabel: _(Subscriber Payment Summary)
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_SubscriberPaymentSummary_Form
+    Grid:
+      Layout: ADMIN_SubscriberPaymentSummary_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: SubscriberPaymentSummary.xlsx
+          RequireSelection: False
+  DetailTables:
+    Controller:
+    Table:
+      Model: SubscriptionInstalment
+      Controller:
+        PopupWindow:
+          Width: 900
+          Height: 600
+        Form:
+          Layout: ADMIN_SubscriptionInstalments_Form
+        Grid:
+          Layout: ADMIN_SubscriptionInstalments_Detail_Grid

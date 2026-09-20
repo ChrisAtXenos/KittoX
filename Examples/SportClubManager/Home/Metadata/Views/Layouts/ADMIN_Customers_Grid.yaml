@@ -1,0 +1,9 @@
+﻿Field: Id
+Field: Description
+Field: LegalForm
+Field: TaxCode
+Field: VatNumber
+Field: EInvoiceCode
+Field: CertifiedEmail
+Field: Email
+Field: Mobile

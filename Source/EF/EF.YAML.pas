@@ -48,6 +48,14 @@ type
     FNextValueType: TEFYAMLValueType;
     FMultiLineFirstLineIndent: Integer;
     FLastValueQuoted: Boolean;
+    // Blank lines seen inside the current block scalar but not yet committed: a
+    // blank line has zero indentation, so it cannot be told apart from the end
+    // of the block until the next line arrives. If the block continues they are
+    // empty value lines (FLastMultiLinePendingBlanks reports how many precede
+    // the line just parsed); if it ends they were trailing separators and go to
+    // the annotations. See the comment in ReadValue.
+    FMultiLinePendingBlanks: Integer;
+    FLastMultiLinePendingBlanks: Integer;
   public
     ///	<summary>Creates the internal indent and annotation lists and resets the parser.</summary>
     procedure AfterConstruction; override;
@@ -89,6 +97,13 @@ type
     ///	 quoted back when writing) or not.
     /// </summary>
     property LastValueQuoted: Boolean read FLastValueQuoted;
+
+    ///	<summary>
+    ///  Number of blank lines that immediately preceded the multi-line value
+    ///  line just parsed, and that belong to the block scalar as empty lines.
+    ///  Meaningful only when LastValueType is a multi-line type; zero otherwise.
+    /// </summary>
+    property LastMultiLinePendingBlanks: Integer read FLastMultiLinePendingBlanks;
   end;
 
   ///	<summary>
@@ -244,10 +259,25 @@ begin
 
   FLastValueType := vtSingleLine;
   FLastValueQuoted := False;
+  FLastMultiLinePendingBlanks := 0;
 
   // Handle multi-line values.
   if FNextValueType in [vtMultiLineWithNL, vtMultiLineWithSpace] then
   begin
+    // A blank line inside a block scalar is an empty line OF THE VALUE, not the
+    // end of the block: but it carries zero indentation, so the "> FPrevIndent"
+    // test below would read it as a dedent and close the block. Doing so pulled
+    // the blank line out of the value and re-emitted it, misplaced, as an
+    // annotation of the following node. Buffer it instead: if the block turns
+    // out to continue, these blanks are reported as empty value lines; if it
+    // ends, they were trailing separators and are handed to the annotations,
+    // exactly as before. We exit WITHOUT updating FPrevIndent, as for any
+    // continuation line.
+    if Trim(ALine) = '' then
+    begin
+      Inc(FMultiLinePendingBlanks);
+      Exit; // Result stays False: there is nothing to emit yet.
+    end;
     LIndent := CountLeading(ALine, ' ');
     // The indentation of the first line in a multi-line value is important
     // because we need to strip exactly that number of spaces from the
@@ -261,12 +291,21 @@ begin
       AName := '';
       AValue := Copy(ALine, FMultiLineFirstLineIndent + 1, MaxInt);
       FLastValueType := FNextValueType;
+      FLastMultiLinePendingBlanks := FMultiLinePendingBlanks;
+      FMultiLinePendingBlanks := 0;
       Result := True;
       Exit;
     end
     else
     begin
-      // Multi-line value finished. Reset variables.
+      // Multi-line value finished. Any blank lines buffered since the last
+      // content line were trailing separators before the next node, not part of
+      // the value: hand them to the annotations, then reset and fall through.
+      while FMultiLinePendingBlanks > 0 do
+      begin
+        FLastAnnotations.Add('');
+        Dec(FMultiLinePendingBlanks);
+      end;
       FLastValueType := vtSingleLine;
       FMultiLineFirstLineIndent := -1;
     end;
@@ -276,10 +315,17 @@ begin
     raise EEFError.CreateFmt('YAML syntax error. Tab character (#9) not allowed. Use spaces only for indentation. Line: %s', [ALine]);
 
   LLine := Trim(ALine);
-  // Store comments and empty lines as annotations for the next node.
+  // Store comments and empty lines as annotations for the next node. A comment
+  // keeps its ORIGINAL indentation (only trailing blanks are trimmed): the
+  // writer emits annotations verbatim, so a comment indented under a deep block
+  // is no longer re-anchored to the (possibly shallower) following node's
+  // indent. Blank lines are stored as ''.
   if (LLine = '') or (LLine[1] = '#') then
   begin
-    FLastAnnotations.Add(LLine);
+    if LLine = '' then
+      FLastAnnotations.Add('')
+    else
+      FLastAnnotations.Add(TrimRight(ALine));
     Exit;
   end;
 
@@ -364,6 +410,8 @@ begin
   FNextValueType := vtSingleLine;
   FLastValueType := vtSingleLine;
   FLastIndentIncrement := 0;
+  FMultiLinePendingBlanks := 0;
+  FLastMultiLinePendingBlanks := 0;
 end;
 
 { TEFYAMLReader }
@@ -471,7 +519,6 @@ var
   LName, LRawValue: string;
   LTop: TEFTree;
   LReader: TStreamReader;
-  LCurrentValue: string;
   LNewNode: TEFNode;
 
   procedure TryPopFromStack(const AAmount: Integer);
@@ -481,6 +528,31 @@ var
     for I := 0 to AAmount do
       if LStack.Count > 0 then
         LStack.Pop;
+  end;
+
+  // Appends one line to a block scalar value, keeping the empty value lines that
+  // preceded it (Parser.LastMultiLinePendingBlanks). The first line of a value
+  // takes no leading break, so any blank lines that would sit before it are
+  // dropped, which matches YAML clip semantics for a leading blank line.
+  procedure AppendMultiLineValue(const ANode: TEFNode; const ALine: string);
+  var
+    LValue: string;
+    LBlank: Integer;
+
+    procedure AppendLine(const AText: string);
+    begin
+      if LValue = '' then
+        LValue := AText
+      else
+        LValue := LValue + sLineBreak + AText;
+    end;
+
+  begin
+    LValue := ANode.AsString;
+    for LBlank := 1 to Parser.LastMultiLinePendingBlanks do
+      AppendLine('');
+    AppendLine(ALine);
+    ANode.AsString := LValue;
   end;
 
 begin
@@ -527,12 +599,7 @@ begin
             end;
             vtMultiLineWithNL:
             begin
-              LCurrentValue := (LTop as TEFNode).AsString;
-              if LCurrentValue = '' then
-                LCurrentValue := LRawValue
-              else
-                LCurrentValue := LCurrentValue + sLineBreak + LRawValue;
-              (LTop as TEFNode).AsString := LCurrentValue;
+              AppendMultiLineValue(LTop as TEFNode, LRawValue);
               (LTop as TEFNode).ValueAttributes := '|';
             end;
             vtMultiLineWithSpace:
@@ -543,12 +610,7 @@ begin
               // wraps at a fixed width, so saving a file rewrapped every folded
               // value at points the author never chose. The '>' marker is still
               // recorded in ValueAttributes, so the file keeps its own style.
-              LCurrentValue := (LTop as TEFNode).AsString;
-              if LCurrentValue = '' then
-                LCurrentValue := LRawValue
-              else
-                LCurrentValue := LCurrentValue + sLineBreak + LRawValue;
-              (LTop as TEFNode).AsString := LCurrentValue;
+              AppendMultiLineValue(LTop as TEFNode, LRawValue);
               (LTop as TEFNode).ValueAttributes := '>';
             end;
           end;
@@ -698,7 +760,11 @@ begin
     if LValue = '' then
       AWriter.WriteLine
     else
-      AWriter.WriteLine(StringOfChar(' ', AIndent) + LValue);
+      // Verbatim: the annotation already carries its own original indentation
+      // (kept when reading). Re-indenting it to AIndent - the following node's
+      // depth - was what moved a comment written inside a deeper block out to
+      // that shallower node's column.
+      AWriter.WriteLine(LValue);
   end;
 
   if Pos(':', ANode.Name) <> 0 then
@@ -729,7 +795,13 @@ begin
         else
           AWriter.WriteLine(StringOfChar(' ', FSpacingChars) + '|');
         for I := 0 to LStrings.Count - 1 do
-          AWriter.WriteLine(StringOfChar(' ', AIndent + FIndentChars) + LStrings[I]);
+          // An empty line of the value is written truly empty, without the
+          // block's indentation: a blank line inside a '|'/'>' block carries no
+          // spaces in the source, and re-indenting it would add trailing ones.
+          if LStrings[I] = '' then
+            AWriter.WriteLine
+          else
+            AWriter.WriteLine(StringOfChar(' ', AIndent + FIndentChars) + LStrings[I]);
       finally
         FreeAndNil(LStrings);
       end;

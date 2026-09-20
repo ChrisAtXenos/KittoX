@@ -1,0 +1,16 @@
+﻿ModelName: CostCentre
+PhysicalName: CENTRIDICOSTO
+PluralDisplayLabel: _(Cost Centres)
+DisplayLabel: _(Cost Centre)
+PluralModelName: CostCentres
+DefaultSorting: {Q}DX
+Fields:
+  Id: String(10) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    DisplayWidth: 10
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Description)
+    DisplayWidth: 50
+ImageName: account_balance

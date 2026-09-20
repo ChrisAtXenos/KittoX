@@ -1,0 +1,33 @@
+﻿ModelName: Deposit
+PhysicalName: VERSAMENTI
+PluralDisplayLabel: _(Deposits)
+DisplayLabel: _(Deposit)
+PluralModelName: Deposits
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Deposit)
+    DisplayWidth: 80
+  PaidFee: Currency not null
+    PhysicalName: QUOTAVERS
+    DisplayLabel: _(Fee Paid)
+    DisplayWidth: 10
+    DefaultValue: 0
+  DepositDate: Date not null
+    PhysicalName: DATAVERS
+    DisplayWidth: 12
+    DisplayLabel: _(Deposit date)
+  ReferenceDetails: Memo
+    DisplayLabel: _(Reference details)
+    PhysicalName: ESTREMI
+    DisplayWidth: 100
+  FederationRegistration: Reference(FederationRegistration)
+    PhysicalName: DT_VERSAMENTI_TESSERAMENTO
+    IsVisible: False
+    Fields:
+      FederationRegistrationId:
+        PhysicalName: TESSERAMENTOID

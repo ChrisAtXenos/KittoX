@@ -1,0 +1,9 @@
+﻿Field: FederationLogo
+Field: Id
+Field: Description
+Field: Address
+Field: Municipality
+Field: PostalCode
+Field: Email
+Field: Province
+Field: SportType

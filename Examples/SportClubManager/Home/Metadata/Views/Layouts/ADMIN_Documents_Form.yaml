@@ -1,0 +1,15 @@
+﻿LabelAlign: Right
+LabelWidth: 160
+FieldSet:
+  Field: Person
+    CharWidth: 50
+FieldSet:
+  Title: _(Document)
+  Field: DocumentType
+  Field: Description
+  Field: IssuedBy
+  Field: IssueDate
+  Field: ExpiryDate
+  Field: Number
+  Field: Notes
+  Field: DocumentFile

@@ -1,0 +1,27 @@
+﻿LabelAlign: Right
+LabelWidth: 160
+FieldSet:
+  Title: _(Instalment)
+  Row:
+    Field: Subscription
+      CharWidth: 90
+  Row:
+    Field: Amount
+    Field: DueDate
+FieldSet:
+  Title: _(Discount)
+  Row:
+    Field: DiscountAllowance
+  Row:
+    Field: DiscountNotes
+      CharWidth: 90
+FieldSet:
+  Title: _(Payment)
+  Row:
+    Field: Status
+  Row:
+    Field: TotalAmount
+    Field: UnapprovedAmount
+  Row:
+    Field: PaidAmount
+    Field: OutstandingAmount

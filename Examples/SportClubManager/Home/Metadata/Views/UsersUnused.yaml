@@ -1,0 +1,27 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Users)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (APPUSER.ID like '%{value}%') or (APPUSER.LAST_NAME like '%{value}%') or (APPUSER.FIRST_NAME like '%{value}%') or (APPUSER.EMAIL_ADDRESS like '%{value}%') or (APPUSER.PHONE_NUMBER like '%{value}%')
+MainTable:
+  Model: User
+  Fields:
+    TaxCode:
+    Description:
+    LastName:
+    FirstName:
+    Email:
+    Mobile:
+    Password:
+    Profile:
+    Language:
+    Administrator:
+    IsSystem:
+    AccessBlocked:
+    PasswordMustBeChanged:
+    PrivacyConsent:
+    CreationDateTime:
+    IpAddress:
+  Controller:

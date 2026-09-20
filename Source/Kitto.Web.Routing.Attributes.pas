@@ -157,6 +157,19 @@ type
   /// </summary>
   TKXNavigableAttribute = class(TCustomAttribute);
 
+  /// <summary>
+  ///   Marks a handler method that a "public" view (one with an empty ACName)
+  ///   must NEVER expose anonymously. Publishing a view waives the
+  ///   authentication gate for its endpoints so that, e.g., a self-registration
+  ///   form can be rendered and submitted without a login; but that exemption
+  ///   must not reach destructive or privileged operations — deleting records,
+  ///   running a tool. Those keep requiring authentication even on a public
+  ///   view. An explicit [TKXAnonymous] on the same method still wins (it is a
+  ///   deliberate, per-endpoint decision); this attribute only removes the
+  ///   blanket exemption that IsPublicView would otherwise grant.
+  /// </summary>
+  TKXNotPublicAttribute = class(TCustomAttribute);
+
 implementation
 
 { TKXPathAttribute }

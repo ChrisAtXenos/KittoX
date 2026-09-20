@@ -1,0 +1,16 @@
+﻿Field: Id
+Field: Description
+  DisplayWidth: 60
+Field: Active
+  DisplayWidth: 7
+Field: FromAddress
+  DisplayWidth: 50
+  DisplayWidth: 25
+Field: Subject
+  DisplayWidth: 50
+Field: CcAddresses
+  DisplayWidth: 25
+Field: BccAddresses
+  DisplayWidth: 25
+Field: AddressesToExclude
+  DisplayWidth: 25

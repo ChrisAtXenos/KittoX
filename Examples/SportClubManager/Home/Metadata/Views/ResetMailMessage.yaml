@@ -1,0 +1,14 @@
+﻿From: <%Config:SportsClubEmail%>
+Subject: _(New password request to sign in to %Config:AppTitle%)
+HTMLBody: |
+  <p><b>%Config:SportsClubName%</b><br/>
+  <br/>
+  _(Dear user, we see that you have requested a new password.)<br/>
+  _(The new temporary password to use at your next sign-in is) <b>{Password}</b><br/>
+  _(Once you have signed in you will have to set a new password for future access.)<br/>
+  <br/>
+  _(If you received this e-mail by mistake or the information does not look correct, please write to us at:) <a href="mailto:%Config:SportsClubEmail%">%Config:SportsClubEmail%</a><br/>
+  <br/>
+  <a href="%Config:AppPath%">_(Click here to sign in again to) %Config:AppTitle%...</a><br/><br/>
+  _(Kind regards.)</p>
+  <p><b>%Config:SportsClubName%</b></p>

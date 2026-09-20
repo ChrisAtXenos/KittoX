@@ -1,0 +1,10 @@
+﻿Type: Tree
+Folder: _(Registries)
+  View: USER_People
+  View: USER_Subscriptions
+Folder: _(Profile of %Auth:USER_FULLNAME%)
+  ImageName: user
+  View:
+    Controller: ChangePassword
+  View:
+    Controller: Logout

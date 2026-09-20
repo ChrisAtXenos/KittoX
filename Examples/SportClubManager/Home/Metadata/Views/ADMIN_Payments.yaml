@@ -1,0 +1,108 @@
+﻿Type: Data
+DisplayLabel: _(Payments)
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Payments)
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: (FK_MEZZI_PAGAMENTO_PAGANTE.DX like '%{value}%')  or  ({Q}ID in (SELECT DP.MEZZO_PAGAMENTOID FROM DETTAGLI_PAGAMENTO DP JOIN RATE_ISCRIZIONI RI ON DP.RATA_ISCRIZIONEID = RI.ID JOIN ISCRIZIONI I ON RI.ISCRIZIONEID = I.ID WHERE I.NOME LIKE '%{value}%' OR I.COGNOME LIKE '%{value}%' ) )
+      List: _(Period)
+        Items:
+          LastWeek: _(Last week)
+            Expression: {Q}DATA_PAGAMENTO >= CURRENT_TIMESTAMP-7
+            IsDefault: True
+          Last30Days: _(Last 30 days)
+            Expression: {Q}DATA_PAGAMENTO >= CURRENT_TIMESTAMP-30
+          Last3Months: _(Last 3 months)
+            Expression: |
+              datepart(month, {Q}DATA_PAGAMENTO) >= (datepart(month, CURRENT_TIMESTAMP)-3)
+              and datepart(year, {Q}DATA_PAGAMENTO) = datepart(year, CURRENT_TIMESTAMP)
+              or datepart(month, {Q}DATA_PAGAMENTO) > CASE
+              WHEN (datepart(month, CURRENT_TIMESTAMP) -3) <= 0 THEN
+              ((datepart(month, CURRENT_TIMESTAMP) -3) + 12) ELSE NULL END
+              and datepart(year, {Q}DATA_PAGAMENTO) = (datepart(year, CURRENT_TIMESTAMP) -1)
+          CurrentYear: _(Current year)
+            Expression: datepart(year, {Q}DATA_PAGAMENTO) = datepart(year, CURRENT_TIMESTAMP)
+          PreviousYear: _(Previous year)
+            Expression: datepart(year, {Q}DATA_PAGAMENTO) = (datepart(year, CURRENT_TIMESTAMP)-1)
+      ColumnBreak:
+        LabelWidth: 150
+      ButtonList: _(Status)
+        Items:
+          INS: _(Entered)
+            Expression: {Q}STATUS = 'INS'
+            IsDefault: True
+          ATT: _(Approved)
+            Expression: {Q}STATUS = 'ATT'
+          ATT: _(Cancelled)
+            Expression: {Q}STATUS = 'ANN'
+          RIF: _(Rejected)
+            Expression: {Q}STATUS = 'RIF'
+      DynaList: _(Payment method)
+        Width: 40
+        CommandText: |
+          select ID, DX
+          from MODPAGAMENTO
+          order by DX
+        ExpressionTemplate: {Q}MOD_PAGAMENTOID = '{value}'
+        AutoCompleteMinChars: 3
+      ColumnBreak:
+        LabelWidth: 90
+      DateSearch: _(From date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_PAGAMENTO >= '{value}'
+      ColumnBreak:
+        LabelWidth: 80
+      DateSearch: _(To date)
+        Width: 15
+        ExpressionTemplate: {Q}DATA_PAGAMENTO <= '{value}'
+MainTable:
+  Model: Payment
+  Rules:
+    EnterPaymentByAdmin:
+  Controller:
+    AllowViewing: True
+    Add: _(Record payment)
+      Tooltip: _(Record a new payment)
+    Form:
+      Layout: ADMIN_Payments_Form
+    Grid:
+      Layout: ADMIN_Payments_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: Payments.xlsx
+          RequireSelection: False
+      ApprovePayment:
+        DisplayLabel: _(Approve payment)
+        Controller: ApprovePayment
+          RequireSelection: True
+          AutoRefresh: All
+          ConfirmationMessage: _(Approve the payment from {Payer} for an amount of {Amount}?)
+      RejectPayment:
+        DisplayLabel: _(Reject payment)
+        Controller: RejectPayment
+          RequireSelection: True
+          AutoRefresh: All
+          ConfirmationMessage: _(Reject the payment from {Payer}?)
+      GeneratePaymentReceipts:
+        DisplayLabel: _(Generate payment receipt)
+        Controller: GeneratePaymentReceipts
+          RequireSelection: True
+          ConfirmationMessage: _(Generate the receipts for the payment?)
+  DetailTables:
+    Controller:
+      Style: Bottom
+        Height: 250
+    Table:
+      Model: PaymentDetail
+      Controller:
+        PopUpWindow:
+          Width: 880
+          Height: 350
+        Add: _(Add payment)
+        Form:
+          Layout: ADMIN_PaymentDetails_Form
+        Grid:
+          Layout: ADMIN_PaymentDetails_Grid

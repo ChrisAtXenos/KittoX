@@ -1,0 +1,96 @@
+﻿ModelName: VSubscriberPaymentSummary
+PhysicalName: V_RIEP_PAGAMENTO_ISCR
+DefaultSorting: {Q}COGNOME, {Q}NOME
+PluralDisplayLabel: _(Status)
+DisplayLabel: _(Subscriber Payment Summary)
+PluralModelName: VSubscriberPaymentSummaries
+IsReadOnly: True
+ImageName: trending_up
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+      IsVisible: False
+  Season: Reference(Season) not null
+    DisplayLabel: _(Season)
+    PhysicalName: FK_STAGIONE
+    DisplayWidth: 40
+    Fields:
+      SeasonId:
+        PhysicalName: STAGIONEID
+  Campaign: Reference(SubscriptionCampaign) not null
+    DisplayLabel: _(Campaign)
+    PhysicalName: FK_ISCRIZIONI_CAMPAGNA
+    DisplayWidth: 40
+    Fields:
+      CampaignId:
+        PhysicalName: CAMPAGNAID
+  SubscriptionFee: Reference(SubscriptionFee) not null
+    DisplayLabel: _(Subscription Fee)
+    PhysicalName: FK_ISCRIZIONI_QUOTA_ISCRIZIONE
+    DisplayWidth: 40
+    Fields:
+      SubscriptionFeeId:
+        PhysicalName: QUOTA_ISCRIZIONEID
+    AutoAddFields:
+      BirthYearFrom: SubscriptionFee_BirthYearFrom
+        DisplayLabel_Grid: _(From)
+      BirthYearTo: SubscriptionFee_BirthYearTo
+        DisplayLabel_Grid: _(To)
+  LastName: String(100) not null
+    DisplayLabel: _(Last Name)
+    PhysicalName: COGNOME
+    DisplayWidth: 30
+  FirstName: String(100) not null
+    DisplayLabel: _(First Name)
+    PhysicalName: NOME
+    DisplayWidth: 30
+  TaxCode: String(16) not null
+    DisplayLabel: _(Tax Code)
+    PhysicalName: CODFISC
+    DisplayWidth: 25
+  ParentLastName: String(100)
+    DisplayLabel: _(Parent Last Name)
+    PhysicalName: COGNOME_GENITORE
+    DisplayWidth: 40
+  ParentFirstName: String(100)
+    DisplayLabel: _(Parent First Name)
+    PhysicalName: NOME_GENITORE
+    DisplayWidth: 40
+  ParentTaxCode: String(16)
+    DisplayLabel: _(Parent Tax Code)
+    PhysicalName: COD_FISCALE_GENITORE
+    DisplayWidth: 25
+  SubscriptionDate: Date not null
+    PhysicalName: DATA_ISCRIZIONE
+    DefaultValue: {Date}
+    DisplayWidth: 12
+    DisplayLabel: _(Subscription date)
+  BirthDate: Date not null
+    PhysicalName: DATANASC
+    DefaultValue: {Date}
+    DisplayWidth: 12
+    DisplayLabel: _(Birth date)
+  SubscriptionTotal: Currency
+    PhysicalName: TOTALE_IMPORTO
+    DisplayLabel: _(Total amount)
+    DisplayLabel_Grid: _(Total)
+    DisplayWidth: 10
+  PaidAmount: Currency
+    PhysicalName: IMP_PAGATO
+    DisplayLabel: _(Amount paid)
+    DisplayLabel_Grid: _(Paid)
+    DisplayWidth: 10
+  OutstandingAmount: Currency
+    PhysicalName: IMP_RESIDUO
+    DisplayLabel: _(Outstanding amount)
+    DisplayLabel_Grid: _(Outstanding)
+    DisplayWidth: 10
+DetailReferences:
+  SubscriptionInstalments: SubscriptionInstalment
+    DisplayLabel: _(Subscription instalments)
+    PhysicalName: DT_RIEP_PAGAMENTO_ISCRITTO
+    ReferenceField: SubscriberPaymentSummary

@@ -1,0 +1,97 @@
+﻿ModelName: MatchPairing
+PhysicalName: ACCOPPIAMENTI
+Fields:
+  Id: String(32) not null primary key
+    DisplayLabel: _(Id)
+    PhysicalName: ID
+  Description: String(200) not null
+    DisplayLabel: _(Description)
+    PhysicalName: DX
+  HomePoints: Integer
+    DisplayLabel: _(Home Points)
+    PhysicalName: PUNTI_CASA
+  HomeSets: Integer
+    DisplayLabel: _(Home Sets)
+    PhysicalName: SET_CASA
+  AwayPoints: Integer
+    DisplayLabel: _(Away Points)
+    PhysicalName: PUNTI_OSPITI
+  AwaySets: Integer
+    DisplayLabel: _(Away Sets)
+    PhysicalName: SET_OSPITI
+  MatchSequenceNumber: String(20)
+    DisplayLabel: _(Match number)
+    PhysicalName: NUMPARTITA
+  MatchDate: Date
+    DisplayLabel: _(Match date)
+    PhysicalName: DATAPARTITA
+  MatchTime: Date
+    DisplayLabel: _(Match time)
+    PhysicalName: ORAPARTITA
+  PartialScores: String(50)
+    DisplayLabel: _(Partial scores)
+    PhysicalName: PARZIALI
+  Set1Home: Integer
+    DisplayLabel: _(Set 1 Home)
+    PhysicalName: SET1_CASA
+  Set1Away: Integer
+    DisplayLabel: _(Set 1 Away)
+    PhysicalName: SET1_OSPITI
+  Set2Home: Integer
+    DisplayLabel: _(Set 2 Home)
+    PhysicalName: SET2_CASA
+  Set2Away: Integer
+    DisplayLabel: _(Set 2 Away)
+    PhysicalName: SET2_OSPITI
+  Set3Home: Integer
+    DisplayLabel: _(Set 3 Home)
+    PhysicalName: SET3_CASA
+  Set3Away: Integer
+    DisplayLabel: _(Set 3 Away)
+    PhysicalName: SET3_OSPITI
+  Set4Home: Integer
+    DisplayLabel: _(Set 4 Home)
+    PhysicalName: SET4_CASA
+  Set4Away: Integer
+    DisplayLabel: _(Set 4 Away)
+    PhysicalName: SET4_OSPITI
+  Set5Home: Integer
+    DisplayLabel: _(Set 5 Home)
+    PhysicalName: SET5_CASA
+  Set5Away: Integer
+    DisplayLabel: _(Set 5 Away)
+    PhysicalName: SET5_OSPITI
+  MatchDay: Reference(MatchDay) not null
+    DisplayLabel: _(Match day)
+    PhysicalName: DT_ACCOPPIAMENTI_OWNERGIORNATA
+    Fields:
+      MatchDayId:
+        PhysicalName: OWNERGIORNATAID
+  SportsFacility: Reference(SportsFacility)
+    DisplayLabel: _(Sports Facility)
+    PhysicalName: FK_ACCOPPIAMENTI_LUOGO
+    Fields:
+      SportsFacilityId:
+        PhysicalName: LUOGOID
+  Home: Reference(Team) not null
+    DisplayLabel: _(Home)
+    PhysicalName: FK_ACCOPPIAMENTI_CASA
+    Fields:
+      HomeId:
+        PhysicalName: CASAID
+  AwayTeam: Reference(Team) not null
+    DisplayLabel: _(Away team)
+    PhysicalName: FK_ACCOPPIAMENTI_OSPITI
+    Fields:
+      AwayTeamId:
+        PhysicalName: OSPITIID
+  Status: Reference(MatchStatus) not null
+    DisplayLabel: _(Status)
+    PhysicalName: FK_ACCOPPIAMENTI_STATUS
+    Fields:
+      StatusId:
+        PhysicalName: STATUSID
+PluralDisplayLabel: _(Match pairings)
+DisplayLabel: _(Match pairing)
+PluralModelName: MatchPairings
+ImageName: looks_two

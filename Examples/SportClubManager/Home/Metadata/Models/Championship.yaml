@@ -1,0 +1,70 @@
+﻿ModelName: Championship
+PhysicalName: CAMPIONATI
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(Championships)
+DisplayLabel: _(Championship)
+PluralModelName: Championships
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+    DisplayLabel: _(Id)
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Championship)
+    DisplayWidth: 50
+  ChampionshipGroup: String(20)
+    PhysicalName: GIRONE
+    DisplayLabel: _(Championship group)
+  FederationSection: String(40)
+    PhysicalName: SEZ_FEDE
+    DisplayLabel: _(Federation section)
+  MinimumAge: Integer not null
+    PhysicalName: ETA_MIN
+    DisplayLabel: _(Minimum age)
+    DisplayFormat: 0
+    EditFormat: 0
+    DisplayWidth: 13
+  MaximumAge: Integer not null
+    PhysicalName: ETA_MAX
+    DisplayLabel: _(Maximum age)
+    DisplayFormat: 0
+    EditFormat: 0
+    DisplayWidth: 13
+  Competitive: Boolean
+    DisplayLabel: _(Competitive)
+    PhysicalName: AGONISTICO
+    DisplayWidth: 10
+  Fee: Currency
+    PhysicalName: QUOTA
+    DisplayLabel: _(Fee)
+    DisplayWidth: 10
+    DefaultValue: 0
+  Category: Reference(Category) not null
+    DisplayLabel: _(Category)
+    PhysicalName: FK_CAMPIONATI_CATEGORIA
+    Fields:
+      CategoryId:
+        PhysicalName: CATEGORIAID
+  Affiliation: Reference(Affiliation) not null
+    PhysicalName: FK_CAMPIONATI_SOCIETA
+    DisplayLabel: _(Affiliation)
+    Fields:
+      ClubNameId:
+        PhysicalName: SOCIETAID
+  Season: Reference(Season) not null
+    DisplayLabel: _(Season)
+    PhysicalName: FK_CAMPIONATI_STAGIONE
+    Fields:
+      SeasonId:
+        PhysicalName: STAGIONEID
+  SportType: Reference(SportType) not null
+    DisplayLabel: _(Sport Type)
+    PhysicalName: FK_CAMPIONATI_TIPOSPORT
+    Fields:
+      SportTypeId:
+        PhysicalName: TIPOSPORTID
+DetailReferences:
+  Matches: Match
+ImageName: group_work

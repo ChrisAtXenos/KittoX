@@ -1,0 +1,69 @@
+﻿LabelAlign: Right
+LabelWidth: 160
+FieldSet:
+  Title: _(Subscription)
+  Row:
+    Field: Status
+    Field: SubscriptionDate
+  Row:
+    Field: SubscriberNotes
+      CharWidth: 90
+FieldSet:
+  Title: _(Person/Athlete)
+  Row:
+    Field: Person
+    Field: Gender
+  Row:
+    Field: TaxCode
+    Field: VisitExpiry
+FieldSet:
+  Title: _(Person/Athlete Details)
+  Collapsible: True
+  Collapsed: True
+  Row:
+    Field: LastName
+    Field: FirstName
+  Row:
+    Field: Address
+  Row:
+    Field: PostalCode
+    Field: Municipality
+  Row:
+    Field: BirthDate
+    Field: BirthPlace
+    Field: BirthProvince
+    Field: BirthCountry
+  Row:
+    Field: Email
+    Field: Mobile
+FieldSet:
+  Title: _(Course/Fee)
+  Row:
+    Field: SubscriptionFee
+      CharWidth: 90
+  Row:
+    Field: CourseFeeAmount
+    Field: InstalmentsDiscountAllowance
+  Row:
+    Field: SiblingDiscountAmount
+    Field: SiblingDiscount
+  Row:
+    Field: SingleInstalmentDiscountAmount
+    Field: SingleInstalmentDiscount
+  Row:
+    Field: SubscriptionTotal
+Fieldset:
+  Title: _(Parent (optional))
+  Row:
+    Field: ParentTaxCode
+  Row:
+    Field: ParentLastName
+    Field: ParentFirstName
+  Row:
+    Field: ParentEmail
+    Field: ParentMobile
+Fieldset:
+  Title: _(Notes)
+  Row:
+    Field: ClubNotes
+      CharWidth: 90

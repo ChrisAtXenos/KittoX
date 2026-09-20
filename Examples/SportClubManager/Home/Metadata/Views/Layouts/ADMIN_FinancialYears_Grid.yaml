@@ -1,0 +1,7 @@
+Field: Id
+Field: Description
+Field: StartDate
+Field: EndDate
+Field: Status
+Field: LastEntryNumber
+  DisplayWidth: 37

@@ -1,0 +1,75 @@
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search VAT Register)
+    LabelWidth: 130
+    Items:
+      DynaList: _(VAT Register Type)
+        Width: 30
+        CommandText: |
+          select ID, DX
+          from REGISTRI_IVA
+          order by DX
+        ExpressionTemplate: {Q}REG_IVAID = '{value}'
+        AutoCompleteMinChars: 3
+      ColumnBreak:
+        LabelWidth: 75
+      DynaList: _(Financial Year)
+        Width: 20
+        CommandText: |
+          select ID, DX
+          from ESERCIZICONTABILI
+          order by DX
+        ExpressionTemplate: {Q}ESERCID = '{value}'
+        AutoCompleteMinChars: 3
+      ColumnBreak:
+        LabelWidth: 70
+      ButtonList: _(Period)
+        Items:
+          Q1: _(Q1)
+            Expression: MONTH({Q}DATA_DOC) >= 1 AND MONTH({Q}DATA_DOC) <= 3
+          Q2: _(Q2)
+            Expression: MONTH({Q}DATA_DOC) >= 4 AND MONTH({Q}DATA_DOC) <= 6
+          Q3: _(Q3)
+            Expression: MONTH({Q}DATA_DOC) >= 7 AND MONTH({Q}DATA_DOC) <= 9
+          Q4: _(Q4)
+            Expression: MONTH({Q}DATA_DOC) >= 10 AND MONTH({Q}DATA_DOC) <= 12
+      ColumnBreak:
+        LabelWidth: 60
+      List: _(Month)
+        Items:
+          January: _(January)
+            Expression: MONTH({Q}DATA_DOC) = 1
+          February: _(February)
+            Expression: MONTH({Q}DATA_DOC) = 2
+          March: _(March)
+            Expression: MONTH({Q}DATA_DOC) = 3
+          April: _(April)
+            Expression: MONTH({Q}DATA_DOC) = 4
+          May: _(May)
+            Expression: MONTH({Q}DATA_DOC) = 5
+          June: _(June)
+            Expression: MONTH({Q}DATA_DOC) = 6
+          July: _(July)
+            Expression: MONTH({Q}DATA_DOC) = 7
+          August: _(August)
+            Expression: MONTH({Q}DATA_DOC) = 8
+          September: _(September)
+            Expression: MONTH({Q}DATA_DOC) = 9
+          October: _(October)
+            Expression: MONTH({Q}DATA_DOC) = 10
+          November: _(November)
+            Expression: MONTH({Q}DATA_DOC) = 11
+          December: _(December)
+            Expression: MONTH({Q}DATA_DOC) = 12
+MainTable:
+  Model: VVatRegister
+  Controller:
+    Grid:
+      Layout: ADMIN_VatRegisters_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: VatRegisterType.xlsx
+          RequireSelection: False

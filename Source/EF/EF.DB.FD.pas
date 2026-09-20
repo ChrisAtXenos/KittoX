@@ -90,7 +90,8 @@ type
   TEFDBFDInfo = class(TEFDBInfo)
   private
     FConnection: TFDConnection;
-    function FDDataTypeToEFDataType(const AFDDataType: TFDDataType): TEFDataType;
+    function FDDataTypeToEFDataType(const AFDDataType: TFDDataType;
+      const AAttributes: TFDDataAttributes): TEFDataType;
   protected
     /// <summary>Reads the columns of the named index into ColumnNames, each at
     /// the place its COLUMN_POSITION says. Override to work around a driver
@@ -1055,7 +1056,8 @@ end;
 
 { TEFDBFDInfo }
 
-function TEFDBFDInfo.FDDataTypeToEFDataType(const AFDDataType: TFDDataType): TEFDataType;
+function TEFDBFDInfo.FDDataTypeToEFDataType(const AFDDataType: TFDDataType;
+  const AAttributes: TFDDataAttributes): TEFDataType;
 var
   LClass: TEFDataTypeClass;
 begin
@@ -1067,9 +1069,29 @@ begin
     dtCurrency, dtBCD, dtFmtBCD: LClass := TEFDecimalDataType;
     dtDateTime, dtDate, dtDateTimeStamp: LClass := TEFDateDataType;
     dtTime, dtTimeIntervalFull, dtTimeIntervalYM, dtTimeIntervalDS: LClass := TEFTimeDataType;
-    dtAnsiString, dtWideString, dtByteString: LClass := TEFStringDataType;
-    dtBlob: LClass := TEFBlobDataType;
-    dtMemo, dtWideMemo, dtXML: LClass := TEFMemoDataType;
+    // On SQL Server a LOB is not identified by its type: varchar(max),
+    // nvarchar(max) and varbinary(max) arrive as dtAnsiString, dtWideString
+    // and dtByteString, the same types as sized columns, and only the
+    // caBlobData attribute tells them apart -- one this reader already
+    // reads for caAllowNull and used to discard, so an nvarchar(max) came
+    // back String(2147483647) and a varbinary(max) as text. Columns
+    // without the attribute keep their mapping: a binary(16) is not a LOB.
+    dtAnsiString, dtWideString:
+      if caBlobData in AAttributes then
+        LClass := TEFMemoDataType
+      else
+        LClass := TEFStringDataType;
+    dtByteString:
+      if caBlobData in AAttributes then
+        LClass := TEFBlobDataType
+      else
+        LClass := TEFStringDataType;
+    // Oracle instead signals a LOB by type: CLOB as dtHMemo/dtWideHMemo
+    // and BLOB as dtHBlob. Unmapped they fell through to String, which for
+    // a CLOB is a model the validator rejects. Measured on Oracle 21c XE.
+    dtBlob, dtHBlob: LClass := TEFBlobDataType;
+    dtMemo, dtWideMemo, dtXML, dtHMemo, dtWideHMemo:
+      LClass := TEFMemoDataType;
   else
     LClass := TEFStringDataType;
   end;
@@ -1149,7 +1171,8 @@ begin
         I := LColumnDataSet.FieldByName('COLUMN_ATTRIBUTES').AsInteger;
         LColumnAttributes := TFDDataAttributes(Pointer(@I)^);
         LColumn.Name := LColumnDataSet.FieldByName('COLUMN_NAME').AsString;
-        LColumn.DataType := FDDataTypeToEFDataType(LColumnDataType);
+        LColumn.DataType := FDDataTypeToEFDataType(LColumnDataType,
+          LColumnAttributes);
         LColumn.Size := LColumnDataSet.FieldByName('COLUMN_LENGTH').AsInteger;
         LColumn.Scale := LColumnDataSet.FieldByName('COLUMN_SCALE').AsInteger;
         if LColumn.Size = 0 then

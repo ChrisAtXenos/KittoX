@@ -1,0 +1,47 @@
+﻿ModelName: Conversation
+PhysicalName: CONVERSAZIONI
+PluralDisplayLabel: _(Conversations)
+PluralModelName: Conversations
+DisplayLabel: _(Conversation)
+DefaultSorting: {Q}DATA_ULT_MSG desc, {Q}UPDTIMESTAMP desc
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    DisplayLabel: _(Code)
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200) not null
+    PhysicalName: DX
+    DisplayLabel: _(Topic)
+  ParticipantGroup: Reference(ParticipantGroup)
+    PhysicalName: DT_PARTECIPANTI_GRUPPO
+    DisplayLabel: _(Group)
+    AutoAddFields:
+      Id: ParticipantGroup_Id
+    Fields:
+      GroupId:
+        PhysicalName: GRUPPOID
+  Status: Reference(ConversationStatus) not null
+    PhysicalName: FK_CONVERSAZIONI_STATUS
+    DisplayLabel: _(Status)
+    AutoAddFields:
+      Id: Status_Id
+    Fields:
+      StatusId:
+        PhysicalName: STATUSID
+        DefaultValue: 1
+  LastMessageDate: DateTime
+    PhysicalName: DATA_ULT_MSG
+    DisplayLabel: _(Last Message Date)
+    DisplayLabel_Grid: _(Last Message)
+    IsReadOnly: True
+Rules:
+  AddParticipants:
+DetailReferences:
+  Messages: Message
+    PhysicalName: DT_MESSAGGI_CONVERSAZIONE
+    ReferenceField: Conversation
+  Participants: Participant
+    PhysicalName: DT_PARTECIPANTI_CONVERSAZIONE
+    ReferenceField: Conversation
+ImageName: forum

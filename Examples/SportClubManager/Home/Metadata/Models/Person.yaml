@@ -1,0 +1,231 @@
+﻿ModelName: Person
+PhysicalName: NOMINATIVI
+IsLarge: True
+DefaultSorting: {Q}DX
+PluralDisplayLabel: _(People)
+DisplayLabel: _(Person)
+PluralModelName: People
+Fields:
+  Id: String(32) not null primary key
+    PhysicalName: ID
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Description: String(200)
+    PhysicalName: DX
+    DisplayLabel: _(Full Name)
+    IsReadOnly: True
+    DisplayWidth: 50
+  LastName: String(100) not null
+    DisplayLabel: _(Last Name)
+    PhysicalName: COGNOME
+    DisplayWidth: 25
+    Rules:
+      CalcDescription: {LastName} {FirstName} ({TaxCode})
+  FirstName: String(100) not null
+    DisplayLabel: _(First Name)
+    PhysicalName: NOME
+    DisplayWidth: 25
+    Rules:
+      CalcDescription: {LastName} {FirstName} ({TaxCode})
+  TaxCode: String(16) not null
+    DisplayLabel: _(Tax Code)
+    PhysicalName: CODFISC
+    DisplayWidth: 25
+    Rules:
+      ForceUpperCase:
+      CheckFieldDupValue:
+      CheckTaxCodeFormat:
+      CheckTaxCodeChecksum:
+      SetRegistryDataFromTaxCode:
+      CalcDescription: {LastName} {FirstName} ({TaxCode})
+  Gender: String(1) not null
+    PhysicalName: SESSO
+    DisplayLabel: _(Gender)
+    AllowedValues:
+      M: _(Male)
+      F: _(Female)
+    DisplayWidth: 15
+  BirthDate: Date not null
+    DisplayLabel: _(Birth Date)
+    PhysicalName: DATANASC
+    DisplayWidth: 12
+  BirthPlace: Reference(Municipality)
+    PhysicalName: FK_NOMINATIVI_LUOGONASC
+    Fields:
+      BirthPlaceId:
+        PhysicalName: LUOGONASCID
+    DisplayLabel: _(Place of birth)
+    DisplayWidth: 40
+    Rules:
+      CalcProvince:
+  BirthProvince: Reference(Province)
+    PhysicalName: FK_NOMINATIVI_PROVNASC
+    DisplayLabel: _(Province of birth)
+    Fields:
+      BirthProvinceId:
+        PhysicalName: PROVNASCID
+    Rules:
+      CalcCountry:
+  BirthCountry: Reference(Country)
+    PhysicalName: FK_ISCRIZIONI_NAZIONALITA
+    DisplayLabel: _(Country of Birth)
+    Fields:
+      BirthCountryId:
+        PhysicalName: NAZIONALITAID
+    AutoAddFields:
+      AtCode: BirthCountry_AtCode
+    DisplayWidth: 40
+  Address: String(50) not null
+    PhysicalName: INDIRIZZO
+    DisplayLabel: _(Home address)
+    DisplayWidth: 40
+  Municipality: Reference(Municipality)
+    PhysicalName: FK_NOMINATIVI_COMUNE
+    Fields:
+      MunicipalityId:
+        PhysicalName: COMUNEID
+    DisplayLabel: _(Municipality)
+    DisplayWidth: 40
+    Rules:
+      CalcProvince:
+    LookupFilter: (COMUNI.ESTINTO = 'N')
+  PostalCode: String(5) not null
+    DisplayLabel: _(Postal Code)
+    PhysicalName: CAP
+  Province: Reference(Province)
+    DisplayLabel: _(Province)
+    PhysicalName: FK_NOMINATIVI_PROVINCIA
+    Fields:
+      ProvinceId:
+        PhysicalName: PROVINCIAID
+    Rules:
+      CalcCountry:
+  Mobile: String(40)
+    DisplayLabel: _(Mobile)
+    PhysicalName: CELLULARE
+    DisplayWidth: 20
+  Phone: String(40)
+    PhysicalName: TELEFONO
+    DisplayLabel: _(Phone)
+    DisplayWidth: 20
+  Email: String(200)
+    PhysicalName: EMAIL
+    DisplayLabel: _(E-mail)
+    DisplayWidth: 40
+  CardNumber: String(20)
+    PhysicalName: TESSERA
+    DisplayLabel: _(Card Number)
+  Loan: Boolean
+    PhysicalName: PRESTITO
+    DisplayLabel: _(Player on loan)
+  Bank: Reference(Bank)
+    PhysicalName: FK_NOMINATIVI_BANCA
+    DisplayLabel: _(Bank)
+    Fields:
+      BankId:
+        PhysicalName: BANCAID
+  BankAccount: String(20)
+    PhysicalName: C_C
+    DisplayLabel: _(Bank account)
+  Iban: String(30)
+    DisplayLabel: _(IBAN)
+    PhysicalName: IBAN
+    DisplayWidth: 30
+    Rules:
+      ForceUpperCase:
+      CheckIBAN:
+  ProfilePhoto: Blob
+    PhysicalName: FOTO
+    DisplayLabel: _(Profile photo)
+    MaxUploadSize: 1MB
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
+  Size: Reference(Size)
+    DisplayLabel: _(Size)
+    PhysicalName: FK_NOMINATIVI_TAGLIA
+    Fields:
+      SizeId:
+        PhysicalName: TAGLIAID
+  IdentityDocument: Reference(Document)
+    DisplayLabel: _(Identity Document)
+    PhysicalName: FK_NOMINATIVI_DOCUMENTO
+    Fields:
+      IdentityDocumentId: String(32)
+        PhysicalName: DOCUMENTOID
+  Height: Integer
+    PhysicalName: ALTEZZA
+    DisplayLabel: _(Height (cm))
+  Weight: Integer
+    PhysicalName: PESO
+    DisplayLabel: _(Weight (kg))
+  HealthCard: Reference(Document)
+    DisplayLabel: _(Health Card)
+    PhysicalName: FK_NOMINATIVI_TESSERASAN
+    Fields:
+      HealthCardId:
+        PhysicalName: TESSERASANID
+  Athlete: Boolean
+    PhysicalName: ATLETA
+    DisplayLabel: _(Athlete)
+  Manager: Boolean
+    PhysicalName: DIRIGENTE
+    DisplayLabel: _(Manager)
+  Coach: Boolean
+    PhysicalName: ALLENATORE
+    DisplayLabel: _(Coach)
+  VisitExpiry: Date
+    DisplayLabel: _(Visit Expiry)
+    DisplayWidth: 12
+    Expression: |
+      (SELECT MAX(SCADENZA) FROM VISITEMEDICHE WHERE NOMINATIVOID = {Q}ID)
+  BirthYear: String(4)
+    Expression: YEAR({Q}DATANASC)
+    DisplayLabel: _(Year of birth)
+  Age: Integer
+    Expression: CAST(DATEDIFF(dy, {Q}DATANASC, GETDATE()+1)/365.25 AS INT)
+    DisplayLabel: _(Age)
+  PersonCalc: HTMLMemo
+    DisplayWidth: 200
+    Lines: 8
+    Expression: |
+      '<img style="float: left; margin: 0px 15px 15px 0px;" src="'+
+      CASE
+        WHEN (SELECT TOP 1 P.FLAGFIGLIO FROM PARENTELE P INNER JOIN MEMBRI_FAMIGLIE MF ON P.ID = MF.PARENTELAID WHERE MF.NOMINATIVOID = {Q}ID AND MF.FAMIGLIAID IN (SELECT FAMIGLIA_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%') ORDER BY P.FLAGFIGLIO DESC) = 1 THEN '%IMAGE(child_care_large.svg)%'
+        ELSE '%IMAGE(face_large.svg)%'
+      END+'" width="40" />'+
+      '<b>'+{Q}COGNOME+' '+{Q}NOME+'</b><br />'+
+      '_(Tax Code):<b> '+{Q}CODFISC+'</b><br />'+
+      '_(Address):<b> '+COALESCE({Q}INDIRIZZO,'')+'</b><br />'+
+      '<b> '+COALESCE({Q}CAP,'')+'</b> '+
+      '<b> '+COALESCE(FK_NOMINATIVI_COMUNE.DX,'')+'</b><br />'+
+      '_(Mobile):<b> '+COALESCE({Q}CELLULARE,'')+'</b><br />'+
+      '_(E-mail):<b> '+COALESCE({Q}EMAIL,'')+'</b><br />'+
+      '_(Born on):<b> '+COALESCE(CONVERT(VARCHAR, {Q}DATANASC, 103),'')+'</b>  ' +
+      '_(born in):<b> '+COALESCE(FK_NOMINATIVI_LUOGONASC.DX,'')+'</b><br />'+
+      '_(Relationship):<b> '+COALESCE((SELECT TOP 1 P.DX FROM PARENTELE P INNER JOIN MEMBRI_FAMIGLIE MF ON P.ID = MF.PARENTELAID WHERE MF.NOMINATIVOID = {Q}ID AND MF.FAMIGLIAID IN (SELECT FAMIGLIA_ID FROM V_NUCLEO_FAMIGLIARE WHERE CREATORE_CODFISC = '%Auth:USER_NAME%') ORDER BY P.DX) ,'')+'</b><br />'
+    DisplayLabel: _(Family members)
+  StatusCalc: String(15)
+    Expression: |
+        COALESCE((SELECT TOP 1 CASE
+            WHEN V1.SCADENZA IS NULL OR COALESCE(V1.IDEONEITA,0) = 0 THEN '_(Booked)'
+            WHEN V1.SCADENZA >= GETDATE() AND COALESCE(V1.IDEONEITA,0) = 1 THEN '_(Active)'
+            WHEN V1.SCADENZA < GETDATE() THEN '_(Expired)'
+          END
+        FROM VISITEMEDICHE V1
+        WHERE V1.NOMINATIVOID = {Q}ID
+        ORDER BY V1.UPDTIMESTAMP DESC, V1.SCADENZA DESC, V1.ID DESC),'_(Not Present)')
+    DisplayLabel: _(Visit Status)
+Rules:
+  PersonCheck:
+  CheckRegistryDataAgainstTaxCode:
+DetailReferences:
+  Insurances: Insurance
+  Documents: Document
+  Subscriptions: Subscription
+  Duties: Duty
+  FederationRegistrations: FederationRegistration
+  MedicalVisits: MedicalVisit
+CaptionField: Description
+ImageName: person

@@ -1,0 +1,25 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search Federation Registrations)
+    Items:
+      FreeSearch: _(Person)
+        ExpressionTemplate: {Q}NOMINATIVOID IN (SELECT ID FROM NOMINATIVI WHERE NOMINATIVI.DX like '%{value}%')
+        AutoSearchAfterChars: 3
+MainTable:
+  Model: FederationRegistration
+  Controller:
+    AllowViewing: True
+    Form:
+      Layout: ADMIN_FederationRegistrations_Form
+    Grid:
+      Layout: ADMIN_FederationRegistrations_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: FederationRegistrations.xlsx
+          RequireSelection: False
+  DetailTables:
+    Table:
+      Model: Deposit

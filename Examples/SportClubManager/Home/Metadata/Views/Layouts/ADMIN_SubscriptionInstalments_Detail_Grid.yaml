@@ -1,0 +1,10 @@
+﻿Field: DueDate
+  DisplayWidth: 20
+Field: Amount
+Field: DiscountAllowance
+Field: TotalAmount
+Field: PaidAmount
+  DisplayWidth: 25
+Field: OutstandingAmount
+  DisplayWidth: 25
+Field: Status

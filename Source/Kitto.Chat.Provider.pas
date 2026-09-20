@@ -72,10 +72,15 @@ type
     function GetDocIndex: string;
     function GetDocBaseUrl: string;
   public
-    [YamlNode('Enabled', 'True', 'Enable the in-app Help Chat assistant (bubble, bottom-right)')]
+    [YamlNode('Enabled', 'False', 'Enable the in-app Help Chat assistant (bubble, bottom-right)')]
     property Enabled: Boolean read GetEnabled;
 
     [YamlNode('Provider', 'stub', 'Chat provider id (e.g. stub, docsearch, claude)')]
+    [YamlEnumValue('stub', 'Canned/echo provider for testing')]
+    [YamlEnumValue('docsearch', 'Documentation search provider')]
+    [YamlEnumValue('claude', 'Anthropic Claude provider')]
+    // Open: the provider id is a pluggable registry, so a custom one is allowed.
+    [YamlEnumOpen]
     property Provider: string read GetProvider;
 
     [YamlNode('PoolSize', KX_HELPCHAT_DEF_POOLSIZE, 'Number of worker threads for the chat runner')]

@@ -1,0 +1,25 @@
+﻿Type: Data
+ImageName: date_range
+DisplayLabel: _(Parties Calendar)
+# The parties shown on a calendar: the List is the data controller (the same
+# Party model as the Parties grid), the CalendarPanel presents it. Start and
+# end both map to Party_DateTime (a party is a point in time), so the calendar
+# handler filters on that single expression; the period (Future/Today/...) is
+# used as event type, giving each period its own colour. Opening an event
+# edits the real party (date, time, name, address and its invitations).
+Controller: List
+  CenterController: CalendarPanel
+    # A party has a date and a start time but no end: on the calendar every
+    # party is drawn as a three-hour block.
+    DefaultEventMinutes: 180
+MainTable:
+  Model: Party
+    CalendarId: Party_Id
+    CalendarStartDate: Party_DateTime
+    CalendarEndDate: Party_DateTime
+    CalendarTitle: Party_Name
+    CalendarEventType: Party_Period
+    CalendarEventNotes: Address
+  EditController:
+    Width: 800
+    Height: 600

@@ -1,0 +1,24 @@
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: _(Search VAT Codes)
+    Items:
+      FreeSearch: _(Free search)
+        ExpressionTemplate: (CODICIIVA.ID like '%{value}%') or (CODICIIVA.DX like '%{value}%') or (CODICIIVA.COD_DETR like '%{value}%') or (CODICIIVA.COD_INDETR like '%{value}%') or (CODICIIVA.TITOLO like '%{value}%') or (CODICIIVA.NATURA like '%{value}%')
+MainTable:
+  Model: VatCode
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Width: 750
+      Height: 400
+    Form:
+      Layout: ADMIN_VatCodes_Form
+    Grid:
+      Layout: ADMIN_VatCodes_Grid
+    ToolViews:
+      ExportExcel:
+        Hint: _(Download to Excel)
+        Controller: SCMExcelExport
+          ClientFileName: VatCodes.xlsx
+          RequireSelection: False

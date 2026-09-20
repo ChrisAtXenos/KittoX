@@ -1,0 +1,175 @@
+/*-------------------------------------------------------------------------------
+   Copyright 2012-2026 Ethea S.r.l.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-------------------------------------------------------------------------------*/
+
+/* This file is automatically included in all rendered pages. */
+/* Put extra CSS classes used in views here. */
+
+/* Background image on body and tab content area */
+body {
+  background: url(../background.png) repeat;
+}
+
+.kx-tab-content {
+  background-image: url(../background.png);
+}
+
+/* TilePanel background */
+.kx-tile-panel {
+  background-image: url(../background.png);
+}
+
+/* The TilePanel background above is a fixed dark image, so the text on it must
+   not follow the theme: the framework colours these two titles with
+   var(--kx-text), which is #333 in the light theme. Tile labels already have a
+   hardcoded white, each tile painting its own background. */
+.kx-tile-panel .kx-tile-section-title,
+.kx-tile-panel .kx-tile-panel-title {
+  color: #fff;
+}
+
+/* === Dashboard KPI tiles — match Taskitto look === */
+
+/* Hide CRUD/Help toolbar inside KPI template tiles (no Add/Edit/Delete/Refresh/Help buttons) */
+.kx-flex-item .kx-template-panel .kx-list-toolbar {
+  display: none;
+}
+
+/* No internal scrollbar: each tile fits its KPI card */
+.kx-flex-item .kx-template-panel .kx-template-content {
+  overflow: hidden;
+}
+
+/* KPI value font slightly smaller and tile padding cleaner */
+.kx-flex-item .kx-kpi-value {
+  font-size: 1.9em;
+}
+
+/* Colored icons (PNG/SVG via {_IMAGE}): contain inside the icon slot */
+.kx-flex-item .kx-kpi-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* LoginView: allow a nested BorderPanel inside the south band of the login
+   dialog to size to its content instead of taking 100vh (the framework
+   default, meant for top-level layouts). Used to stack the support panel on
+   top of the ThemeSwitcher. */
+.kx-login-south > .kx-border-panel {
+  height: auto;
+}
+
+/* LoginView: the support panel (north region) and the ThemeSwitcher (south
+   region) of that nested BorderPanel must blend into the login dialog instead
+   of painting their own backgrounds: .kx-region-north uses --kx-bg + a bottom
+   border and .kx-region-south uses the coloured --kx-chrome chrome band. Make
+   both transparent (and drop the north divider) so the support text sits on
+   the dialog surface and the switcher shows the neutral pill (like the
+   KEmployee login) — three buttons on no coloured band. The chrome-bar rule
+   (.kx-region-south .kx-theme-btn) forces a light icon colour meant for a dark
+   bar; restore the neutral icon colour. The active button keeps the accent
+   fill as the selection indicator. */
+.kx-login-south .kx-region-north,
+.kx-login-south .kx-region-south {
+  background: transparent;
+}
+.kx-login-south .kx-region-north {
+  border-bottom: none;
+}
+/* Right-align the theme switcher pill (it is display:inline-flex, so a
+   text-align on its region is enough). */
+.kx-login-south .kx-region-south {
+  text-align: right;
+}
+.kx-login-south .kx-region-south .kx-theme-btn {
+  color: var(--kx-text-secondary, currentColor);
+}
+.kx-login-south .kx-region-south .kx-theme-btn-active {
+  color: var(--kx-chrome-text, #fff);
+}
+
+/* Home layouts: a BorderPanel nested inside a south region (the ThemeSwitcher +
+   status-bar stack at the bottom of USER_HomeTiles, and the SCM-logo + switcher
+   stack at the bottom of the ADMIN_Home menu) must size to its content instead
+   of the framework default of 100vh — otherwise it takes the whole viewport and
+   covers the menu. Same fix as .kx-login-south above, for the generic
+   .kx-region-south used by the home layouts. */
+.kx-region-south > .kx-border-panel {
+  height: auto;
+}
+
+/* =========================================================================
+   SCM user (parent) forms — mobile LOOK overrides only.
+   The generic field scaling / no-overflow on mobile now lives in the framework
+   kittox.css and applies to every KittoX app. Here we only override, for the
+   SCM user views, the label position (LEFT instead of the framework's mobile
+   label-on-top) and the vertical spacing. Scoped via id^="kx-form-USER_" so
+   ADMIN (desktop) and other apps are untouched.
+   ========================================================================= */
+@media (max-width: 480px) {
+  /* Label to the LEFT of the input, on the same line, with uniform spacing.
+     Works with fieldset+row (USER_Subscribe) and with bare fields
+     (USER_Documents). Overrides the framework's mobile label-on-top. */
+  [id^="kx-form-USER_"] .kx-form-field,
+  [id^="kx-form-USER_"] .kx-form-field.kx-form-field-top {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px 0;
+  }
+  /* Label hugs its own text (no fixed left column → no empty left margin);
+     capped so it never starves the input. */
+  [id^="kx-form-USER_"] .kx-form-label,
+  [id^="kx-form-USER_"] .kx-form-field-top > .kx-form-label {
+    flex: 0 1 auto;
+    width: auto;
+    max-width: 40%;
+    min-width: 0 !important;
+    text-align: left;
+    white-space: normal;
+  }
+  /* In the label-left layout the input fills the leftover row space, overriding
+     the framework's mobile width:100%. Checkboxes/radios are excluded so they
+     keep their square size (still handled by the framework rules). */
+  [id^="kx-form-USER_"] .kx-form-field .kx-form-input:not(.kx-input-checkbox):not(.kx-input-radio),
+  [id^="kx-form-USER_"] .kx-form-field input:not([type="checkbox"]):not([type="radio"]),
+  [id^="kx-form-USER_"] .kx-form-field select,
+  [id^="kx-form-USER_"] .kx-form-field textarea,
+  [id^="kx-form-USER_"] .kx-form-field .kx-form-lookup-wrapper {
+    flex: 1 1 0 !important;
+    width: auto !important;
+  }
+  /* Detail grid (Style: Bottom) inside a user form: ~35% of the viewport. */
+  [id^="kx-form-USER_"] .kx-detail-bottom-panel {
+    height: 35vh !important;
+    overflow: auto;
+  }
+}
+
+/* Login dialog logo: full width, container sized by the image. The negative
+   margins cancel the padding of .kx-login-center (10px 16px 12px), which would
+   otherwise leave 16px of white on each side; the 10px below match the gap
+   between two fields (.kx-login-fields). display:block drops the few pixels an
+   inline image carries under its baseline. */
+.kx-login-north {
+  margin: -10px -16px 10px;
+}
+
+.kx-login-north img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
